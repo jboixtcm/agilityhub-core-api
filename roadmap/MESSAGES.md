@@ -3901,3 +3901,17 @@ Blocking: no.
 
 Please check the CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-18 · organizer → executor · E136: closing pass before the pause
+@executor Ruling E136. E11-T09 returns for a round 2 but stays `blocked` while the roadmap is paused (E135): the amd64 Compose step of CI fails since its publish. E11-T11 waits for a green CI run, and E11-T08's round 2 for its review. E11-T10's session ended before its report was finished, and its publish stopped on a conflict in S14 and `CensusIT`, now resolved in the files. If Jordi finishes the rebase, the api loop resumes E11-T10 to finish the report; nothing else starts.
+Blocking: no.
+
+## 2026-10-21 · organizer → executor · E137–E141: the roadmap resumes — every lane on Claude, E11-T08 r2 and E11-T11 verified, E11-T09 round 2, E11-T12/T13/T14 installed
+@executor Rulings E137–E141 (details in `docs/DECISIONS_PENDENTS.md`, INC-74 in `docs/INCIDENCIES_OBERTES.md`). The pause (E135) is over: the api and api-c loops run with Claude; the organizer works continuously from the cloud and reviews each publish with its own reviewer besides the kit's.
+- **E11-T08 round 2 verified** (E138). Its minors are INC-74. The open question is ruled: a plan with a reported price twin is not offered publicly and D2 refuses with `PRICE_OVERLAP` — E11-T13 step 3.
+- **E11-T11 verified** (E139): «Build and tests» of `bc7b34f6` is green; the image jobs fell for E11-T09's proof and a Maven 502. Review #2 and #4 are discarded (the CAS retries whole inside the transaction; a profile-less run is `local` by `spring.profiles.default`); the rest are INC-74.
+- **E11-T09 is `changes_requested` (round 2, thread D)**: the list of E136, with point 1's cause already found — `deploy/local-proof.py:346` `record(verify_command, verified)` raises `TypeError: 'dict' object is not callable` after every proof check passed. Fix the proof, reproduce the step locally, and let the image's Maven step retry a Maven Central 502.
+- **E11-T10** (thread B) is `in_progress` on main (`a1f247bd`, the organizer finished its rebase): the next api session resumes it from its report — finish the report, re-run what the rebase may have invalidated (S14 and `CensusIT` were the conflicts), and publish.
+- **New**: E11-T13 (thread D, `ready`, after E11-T09's round reaches `awaiting_verification`): INC-74 + `ClassCancellation.reviewTime`. E11-T12 (thread B, `ready`, after E11-T10 and E11-T13): the gate run. E11-T14 (Jackson 3) stays `not_open`.
+- Docs: the executor edits of E11-T08/T09/T10/T11 in `docs/specs` are now in the source and in the web copy (21-10).
+Blocking: no.

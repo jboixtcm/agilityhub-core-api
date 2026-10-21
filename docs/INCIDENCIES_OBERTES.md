@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v4.2 · 18-10-2026** (v4.1 18-10 · v4.0 17-10 · v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v4.4 · 21-10-2026** (v4.3 18-10 · v4.2 18-10 · v4.1 18-10 · v4.0 17-10 · v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -73,15 +73,19 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-61 | 15-10 | api (recorreguts, menors) | Menors d'E9-T02: el llistat de `GET /courses` es fa en memòria (límit conegut a R1), el `slug` del recinte pot xocar i donar un 500 (i A4 hauria de venir del perfil de país), noms de proves | Baixa | **resolta 18-10 (E11-T02 ✅; E134)**; el punt 1 és el límit conegut d'R1, i A4 continua sent el paper per defecte (E132) |
 | INC-62 | 16-10 | api · web (recorreguts) | Menors d'E9-T05 i dues peticions d'api d'E9-W03: la projecció del soci porta el nom d'un recorregut privat previst (R-16-16), la prova de `COURSE_NOT_VISIBLE` en registrar un muntatge, el full de muntatge anterior orfe i el d'una col·locació moguda, el nivell d'AgilityHub sense traduir a N-31, `S3AttachmentStorage.read` sense prova, `CourseListItem.updatedAt` i `dismantledReason` (i, al web, la data de D18 i «Substituït») | Mitjana | api **resolta 18-10 (E11-T02 ✅; E134)**, llevat del punt 5 (les etiquetes de N-31, de Jordi); la part del web continua oberta (la data de D18 i «Substituït», amb el pròxim snapshot) |
 | INC-63 | 16-10 | api (sessions de muntatge, menors) | Menors de la ronda 2 d'E9-T06: el límit d'enviadors refusa fluxos sans per sobre d'uns 64 subscriptors per instància, la prova del temps d'escriptura només llegeix la configuració, el `connection-timeout` de 20 s és global (també per a les pujades), l'estil del ganxo de proves, la prova dels dos `finish` només cobreix un camí | Baixa | **resolta 18-10 (E11-T02 ✅; E134)** |
-| INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — E11-T09 (E132); fins llavors, el pas manual de la ronda 2 d'E10-T04 |
-| INC-65 | 17-10 | api (consola, menors) | Menors de la ronda 2 d'E10-T04: el patró del filtre de suport no inclou `HEAD` (l'interceptor ho para, però cap prova ho cobreix), la comprovació del club d'`IdempotencyFilter` pot respondre `TENANT_MISMATCH` si ja hi ha un altre tenant obert, i `@SupportRestricted` escrita amb el nom complet a 22 handlers | Baixa | oberta — E11-T08 (E131) |
-| INC-66 | 17-10 | api (consola i dominis, menors) | Menors de la ronda 2 d'E10-T03: el reintent per JNDI llença els registres `A` que troba (una fallada de consulta que compta com a absència), el pas a pas de `DEPLOY.md` per als dominis de confiança (la primera opció no funciona i falta com recuperar-ne un de `BROKEN`) i `ClubRepository.save`, que depèn de la transacció de qui el crida | Mitjana | oberta — E11-T08 (E131) |
-| INC-67 | 17-10 | api (seguretat i límits de peticions, menors) | Menors d'E11-T06: cap prova garanteix que cada operació anònima d'escriptura tingui una ruta de límit; el compte de `STRIPE_WEBHOOK` només fa servir la IP (la ràfega d'un club pot endarrerir els esdeveniments de pagament d'un altre, que Stripe reintenta); `CHECKOUT_STATUS` compta per IP i no per compte | Mitjana | oberta — E11-T08, ronda 2: la clau del límit dels webhooks (E132) |
-| INC-68 | 17-10 | api (preus, dades) | Les dates de vigència d'un `Price` es desen com a dates BSON quan s'escriu sencer i com a cadenes quan s'actualitza (informe d'E11-T07); una consulta per data podria no trobar el preu vigent | Alta | oberta — E11-T08, ronda 2: els preus bessons i la zona horària (E132) |
+| INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — E11-T09, ronda 2 (E140); fins llavors, el pas manual de la ronda 2 d'E10-T04 |
+| INC-65 | 17-10 | api (consola, menors) | Menors de la ronda 2 d'E10-T04: el patró del filtre de suport no inclou `HEAD` (l'interceptor ho para, però cap prova ho cobreix), la comprovació del club d'`IdempotencyFilter` pot respondre `TENANT_MISMATCH` si ja hi ha un altre tenant obert, i `@SupportRestricted` escrita amb el nom complet a 22 handlers | Baixa | **resolta 21-10 (E11-T08 ✅ ronda 2; E138)** |
+| INC-66 | 17-10 | api (consola i dominis, menors) | Menors de la ronda 2 d'E10-T03: el reintent per JNDI llença els registres `A` que troba (una fallada de consulta que compta com a absència), el pas a pas de `DEPLOY.md` per als dominis de confiança (la primera opció no funciona i falta com recuperar-ne un de `BROKEN`) i `ClubRepository.save`, que depèn de la transacció de qui el crida | Mitjana | **resolta 21-10 (E11-T08 ✅ ronda 2; E138)** |
+| INC-67 | 17-10 | api (seguretat i límits de peticions, menors) | Menors d'E11-T06: cap prova garanteix que cada operació anònima d'escriptura tingui una ruta de límit; el compte de `STRIPE_WEBHOOK` només fa servir la IP (la ràfega d'un club pot endarrerir els esdeveniments de pagament d'un altre, que Stripe reintenta); `CHECKOUT_STATUS` compta per IP i no per compte | Mitjana | **resolta 21-10 (E11-T08 ✅ ronda 2; E138)**; dos menors (la mida de les memòries cau per ruta i la consulta dels clubs coneguts sense Mongo) a INC-74 |
+| INC-68 | 17-10 | api (preus, dades) | Les dates de vigència d'un `Price` es desen com a dates BSON quan s'escriu sencer i com a cadenes quan s'actualitza (informe d'E11-T07); una consulta per data podria no trobar el preu vigent | Alta | **resolta 21-10 (E11-T08 ✅ ronda 2; E138)**: dates de vigència convertides a dia, bessons d'inici retirats o reportats, `PRICE_OVERLAP` a la facturació; els menors (els ajudants sense tenant, l'oferta pública amb un bessó) a INC-74 |
 | INC-69 | 18-10 | api (recorreguts, menors) | Menors d'E9-T07: la regla de quin recorregut mostra un muntatge és escrita tres vegades, la col·locació del soci quan el recorregut s'ha esborrat, el nom d'una prova i el diagrama de les sessions de muntatge d'S16 §5 | Baixa | oberta — E11-T09 (E132) |
 | INC-70 | 18-10 | api (Spring Boot 4, menors) | Menors d'E11-T07: la prova de l'escaneig exigeix que no hi hagi cap excepció, els pedaços de Jackson de la mateixa línia (2.21.7 i 3.1.7), una línia de `DEPLOY.md` sobre els fitxers de Compose i una sobre Micrometer | Baixa | oberta — E11-T09 (E132) |
 | INC-71 | 18-10 | api (proves) | `BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream` falla de tant en tant: llegeix el `Content-Type` de l'SSE abans que estigui fixat quan diverses compilacions comparteixen el contenidor | Baixa | oberta — E11-T09 (E132) |
 | INC-72 | 18-10 | web (recorreguts, menors) | Menors d'E9-W06: el pas normal d'`e9-core` no s'ha executat en verd amb el codi final (i depèn del diumenge), el plànol del soci no fa servir `resolvedObstacles`, el gestor MSW de `GET /rings/:id` no mira el rol, i dos detalls | Baixa | oberta — E11-W03 (E134) |
+| INC-73 | 18-10 | web (perfil, impersonació) | L'app dels socis encara mostra l'edició del nom i de l'idioma durant una impersonació, i l'API ja refusa `PATCH /me` a aquest token (E11-T09) | Baixa | oberta — E11-W03 (E136) |
+| INC-74 | 21-10 | api (límits de peticions, preus, RGPD, menors) | Menors de la verificació d'E11-T08 ronda 2 i d'E11-T11: les memòries cau dels límits ara són per ruta i la suma no té límit (×21), la consulta dels clubs coneguts fa un 500 si Mongo cau, un pla amb un preu bessó encara s'ofereix públicament, els ajudants d'arrencada dels preus són públics i sense tenant, `named()` mira camps que no existeixen, la regla de `StoredDays` és per desplaçament i no per zona, `CATALEG_ERRORS` S12 sense `PRICE_OVERLAP`; el camí de cancel·lació d'una supressió sense IT, el text «sense perfil» del vault, `filesCleaned` no compta els fitxers de l'`afterCommit`, `graceSiblingAt` no mapat, un nom de prova i la columna «Idempotent» | Baixa | oberta — E11-T13 (E141) |
+| INC-75 | 21-10 | web (estats, consola, auditoria, diners, menors) | Menors de la ronda 2 d'E11-W02 i restes d'INC-41: els chunks mandrosos de la consola sense boundary ni càrrega, 21 sense estat buit (i 22/tasques sense `EmptyState`), la restauració del desplaçament en recarregar, el text del boundary en fallar un chunk, el límit superior del rang d'auditoria, un canal de pagament desconegut mostra la clau, noms de proves sense T-xx-nn, la prova de sondeig d'E8-W01 amb rellotge real; i d'INC-41: els diners dividits per 100 a 40 llocs (`fmtMinor`), «7:30» a dues etiquetes (`reviewTime` de l'api, E11-T13), la confirmació `RING_HAS_BOOKINGS` sense text, «DNI», la forma neutra d'`OTHER`, el registre d'`errors` | Baixa | oberta — E11-W05 (E144) |
+| INC-76 | 21-10 | web (rendiment) | La home amb sessió (03, `/inici`) triga 4,0–4,2 s (TTI) amb la build de producció: el camí carrega ≈330 kB en cinc onades seqüencials des de l'únic chunk `screens` (A38). Un chunk per pestanya amb les fonts precarregades el baixaria; no es fa abans del llançament (E142: la fita de 3 s es demana a la 01 i la 03 queda amb un pressupost de 4,5 s) | Baixa | oberta — després del llançament |
 
 ---
 
@@ -457,6 +461,18 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 **S'espera**: (1) una execució normal en un dia feiner, i la dependència del diumenge resolta o anotada; (2) el plànol del soci amb `resolvedObstacles`; (3) el gestor per rol (la projecció de lectura per a l'INSTRUCTOR, `403` per al soci); (4) els dos detalls.
 
 **On mirar**: `e2e/core/e9-core.spec.ts:1187-1240`, `apps/clubs/src/courses/viewer-model.ts:62-102`, `SetupViewerPage.tsx:309-322`, `packages/api-client/src/mocks/handlers.ts:3604-3609`, `turbo.json:19-28`.
+
+## INC-73 · L'app dels socis ofereix editar el perfil durant una impersonació (web)
+
+**Gravetat**: baixa. Només passa en una impersonació: el canvi falla amb un error en lloc de no oferir-se.
+
+**Origen**: `roadmap/reviews/E11-T09-20261018-1457-claude.md` (api), troballa #5; verificació de l'organitzador del 18-10 (decisió E136).
+
+**El problema**: des d'E11-T09 (INC-37, punt 5), l'API refusa `PATCH /me` a un token d'impersonació (S01 §6), però l'app dels socis encara mostra l'edició del nom i de l'idioma quan el compte està impersonat. És una acció morta (regla 3 d'AGENTS).
+
+**S'espera**: amagar l'edició del nom i de l'idioma durant una impersonació, amb una prova. Ho fa E11-W03.
+
+**On mirar**: el perfil de l'app dels socis (`apps/clubs/src/profile/`) i S01 §6 (`PATCH /me`).
 
 ## INC-01 · `GET /api/v1/health` retorna `500` amb el `main` actual
 
@@ -870,3 +886,57 @@ Solució probable:
 **Com es corregeixen** (decisió E51, avançar correccions; A33 ✓ Jordi 27-09): els deu majors es corregeixen ara, a les tasques E5-T27 i E5-T28 (api) i E4-W16 (web), abans que la resta d'E6, d'E8 i d'E5-W04. La resta espera la passada de correccions (E11-T02 i E11-W02), o va plegada dins la tasca d'E8 que toca el mateix codi.
 
 **Numeració:** la revisió va reservar INC-15…INC-41. La incidència de la revisió d'E5-T25 que s'havia escrit com a INC-15 el mateix dia és ara **INC-42**.
+
+## INC-74 · Menors de la verificació d'E11-T08 (ronda 2) i d'E11-T11 (api)
+
+**Gravetat**: baixa. Cap d'ells mou diners ni trenca una prova; són acabats de les dues tasques verificades el 21-10 (E138, E139).
+
+**Origen**: la revisió independent d'E11-T08 ronda 2 (sessió del núvol, 21-10) i la verificació d'E11-T11 contra `roadmap/reviews/E11-T11-20261018-1554-claude.md`.
+
+**El problema** (fitxer:línia a la verificació de cada tasca):
+1. `RateLimits`: una memòria cau per ruta amb `maximumSize(100 000)` cadascuna → 21 rutes × 525 B/cub ≈ 1,1 GB en el pitjor cas; abans el límit total eren 52 MB.
+2. `RateLimitFilter` → `ClubConfigService.known` → `clubs.ids()` sense captura: si Mongo cau, el webhook d'Stripe respon 500 des del filtre en lloc de caure a `unknown:ip`.
+3. Amb un preu bessó reportat (dos `CURRENT` del mateix concepte), `SignupPlanData.from` i `OfferViews.current` encara ofereixen el pla amb un dels dos preus (la facturació refusa, l'oferta no). **Decisió E138**: el pla no s'ofereix públicament i D2 refusa amb `PRICE_OVERLAP`.
+4. `PriceRepository.normaliseValidityDates()` i `legacyStartTwins()` són públics i llegeixen tots els clubs; la retirada d'un bessó es registra a INFO; `named()` mira `collections.priceId` i `pack_balances.priceId`, que no existeixen (les referències reals: `members.priceId`, `invoices.lines.priceId`, `pending_charges.priceId`); el pas a pas de `DEPLOY.md` compta els mateixos camps.
+5. `StoredDays`: la regla depèn del desplaçament UTC de qui escriu, no de la zona («Pacific/Auckland» només val a l'hivern); el Javadoc i la prova diuen «zona».
+6. `CATALEG_ERRORS.md`: la fila S12 no llista `PRICE_OVERLAP` (S12 §6 sí).
+7. RGPD: el camí `cancelAccountRequest → cleanAfterCommit` només té la comprovació amb Mockito; cap IT deixa un fitxer pendent abans del `DELETE`.
+8. `DEPLOY.md` i el Javadoc de `BankAccountVault.seal` diuen que una execució sense perfil no arrenca; amb `spring.profiles.default: local` arrenca com a `local`. **Decisió E139**: és així per disseny; es corregeix el text i la prova.
+9. `ErasuresJob.filesCleaned` no compta els fitxers que esborra l'`afterCommit`.
+10. S01 §3 llista `graceSiblingAt` i el `RefreshToken` no el mapa; `ErasureFilesCleanupTest…OtherStatesAreLeftAlone` ja no descriu la prova; `CONVENCIONS_API.md` §7 no defineix la columna «Idempotent».
+
+**S'espera**: ho fa E11-T13 (els passos 1–10), amb una prova per punt.
+
+**On mirar**: `shared/application/RateLimits.java`, `shared/api/RateLimitFilter.java`, `platform/application/ClubConfigService.java`, `clubs/catalogs/persistence/PriceRepository.java`, `shared/domain/StoredDays.java`, `clubs/catalogs/application/SignupPlanData.java`, `platform/application/privacy/*`, `payments/application/BankAccountVault.java`.
+
+## INC-75 · Menors de la ronda 2 d'E11-W02 i restes d'INC-41 (web)
+
+**Gravetat**: baixa. Estats i textos; cap flux crític.
+
+**Origen**: la revisió independent d'E11-W02 ronda 2 (sessió del núvol, 21-10; E142) i la llista de punts d'INC-41 que E11-W02 va deixar oberts amb motiu.
+
+**El problema**:
+- (a) `apps/clubs-admin/src/App.tsx` (`ConsolePage`, `CoursesRoute`): chunks mandrosos sota `Suspense fallback={null}` sense boundary — després d'un desplegament, un `import()` que falla desmunta tota la consola (el mateix defecte que la ronda 2 va corregir a l'app dels socis) i no hi ha estat de càrrega.
+- (b) 21 `AttendancePage` pinta un `<ul>` buit sense `EmptyState`; 22 `StudentCardPage` i el tauler de tasques fan servir un `<p>`; `/espera/:id`, `/entrenaments/:id`, `/activitats/:id`, 21/22/tasques no són a la matriu d'estats.
+- (c) `scroll.ts` posa `scrollRestoration = "manual"` sempre: en recarregar (F5) una pantalla desplaçada, s'obre a dalt.
+- (d) `ScreenBoundary`: un chunk que no es pot carregar diu «No hi ha connexió amb el servidor»; una fallada de pintat mostra `errors:INTERNAL_ERROR` (vosaltres, codi de referència) al costat de «Torna-ho a provar» (tu).
+- (e) `AuditPage`: el límit superior del rang és `l'endemà 00:00` i el `between` de l'api és inclusiu (CONVENCIONS_API §4).
+- (f) `CensusListPage`: un `PaymentMethodView.channel` fora de CASH/TRANSFER/BIZUM pinta la clau i18n.
+- (g) les proves de la ronda 2 duen «E11-W02 round 2 (review #n)» i no T-xx-nn; (h) la prova de sondeig `R-12-13` d'E8-W01 depèn del rellotge real.
+- D'INC-41: els diners es divideixen per 100 a 40 llocs (cal `fmtMinor(amountMinor, currency, locale)` a `packages/i18n`); «7:30» a `enums:cancellationReason.RISK_REVIEW` i `admin-scheduling:calendar.selected.exempt` (E11-T13 exposa `ClassCancellation.reviewTime`; el paràmetre `classes.riskReviewTime` per al xip); la confirmació `RING_HAS_BOOKINGS` de D16 sense text; «DNI» a 28/D5/D2 (→ «Document d'identitat»); la forma neutra d'`OTHER` a 11 claus; el registre d'`errors` (vosaltres/usted) contra el tu/tú de la resta.
+
+**S'espera**: ho fa E11-W05, amb una prova per punt i els textos que el Jordi aprovi (E11-W05 pas 6).
+
+**On mirar**: `apps/clubs/src/{states.test.tsx,ScreenBoundary.tsx,scroll.ts}`, `apps/clubs-admin/src/{App.tsx,audit/AuditPage.tsx,census/CensusListPage.tsx}`, `packages/i18n/src/locales/*/{enums,errors,census,admin-census}.json`.
+
+## INC-76 · La home amb sessió (03) no arriba al TTI de 3 s (web)
+
+**Gravetat**: baixa. Mesura d'E11-W02 ronda 2 (log 82): 3 987–4 184 ms a `/inici` amb la build de producció i una sessió simulada per HTTP; la 01 (visitant) dona 2 874–2 981 ms i la PWA puntua 100.
+
+**Origen**: E11-W02 ronda 2, punt 10; decisió E142.
+
+**El problema**: el camí de la 03 carrega ≈330 kB en cinc onades seqüencials des de l'únic chunk `screens` (decisió A38). Tres experiments (logos com a URL, el chunk de pantalles i la sessió arrencats amb `/branding`, tots els espais de noms en una onada) no van guanyar res.
+
+**S'espera**: un chunk per pestanya amb les fonts precarregades, mesurat igual. Després del llançament; la fita de 3 s es demana a la 01 i la 03 queda amb un pressupost de 4,5 s com a línia de base (E142).
+
+**On mirar**: `apps/clubs/src/App.tsx` (el chunk `screens`), `vite.config.ts`, `roadmap/evidence/E11-W02/82-*.log`.
