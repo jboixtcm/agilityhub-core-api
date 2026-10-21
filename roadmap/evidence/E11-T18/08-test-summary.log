@@ -1,0 +1,21 @@
+E11-T18 · test summary of the final `./mvnw -q clean verify` (07-clean-verify.log, exit 0), read from target/surefire-reports and target/failsafe-reports (TEST-*.xml)
+
+surefire: classes=453 tests=4846 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.TemplateClubSeedTest: tests=4 failures=0 errors=0 skipped=0   (new)
+  com.agilityhub.core.shared.application.ErrorMessagesRegisterTest: tests=2 failures=0 errors=0 skipped=0         (new)
+failsafe: classes=168 tests=2224 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.TemplateClubCatalogsIT: tests=3 failures=0 errors=0 skipped=0                   (new)
+  com.agilityhub.core.shared.api.ResponseLocaleIT: tests=2 failures=0 errors=0 skipped=0                           (changed: NO_MEMBERSHIP es text)
+
+Test prints captured in the reports (grep -rh '^E11-T18' target/surefire-reports target/failsafe-reports | sort -u):
+E11-T18 A40.4 es: no error.* message in «vosaltres»/«usted» (248 checked)
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' src/main/resources/seed/message-templates.ca.json: 0 matches
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' src/main/resources/seed/message-templates.en.json: 0 matches
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' src/main/resources/seed/message-templates.es.json: 0 matches
+
+$ grep -ciE 'canic|cànic|7:30|agilitycanic' seeds/club-template-default.yaml src/main/resources/seed/message-templates.{ca,es,en}.json
+src/main/resources/seed/message-templates.es.json:0
+src/main/resources/seed/message-templates.ca.json:0
+src/main/resources/seed/message-templates.en.json:0
+seeds/club-template-default.yaml:0
+exit 1 (grep: no match)
