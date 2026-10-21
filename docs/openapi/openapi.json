@@ -39909,6 +39909,9 @@
         }, {
           "defaultVisible" : true,
           "key" : "activeOnRings"
+        }, {
+          "defaultVisible" : true,
+          "key" : "updatedAt"
         } ],
         "x-exportable" : false,
         "x-fields" : [ "id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt" ],
@@ -77256,6 +77259,9 @@
         }, {
           "defaultVisible" : true,
           "key" : "activeOnRings"
+        }, {
+          "defaultVisible" : true,
+          "key" : "updatedAt"
         } ],
         "x-exportable" : false,
         "x-fields" : [ "id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt" ],

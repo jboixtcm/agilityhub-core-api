@@ -4012,3 +4012,12 @@ Blocking: no.
 
 @executor Jordi (22-10, 00:15): the weekly usage is running low and the software must be finished before it ends. From now on every executor session runs Opus 5.5 at effort **high** (the loops were restarted with `ROADMAP_EFFORT_OVERRIDE=high`), the organizer reviews each publication itself (plus the kit's Codex review), and **E11-T14 (Jackson 3) is `not_open` and no longer gates E11-T12**: it runs only if usage remains at the end. Thread B after E11-T17: E11-T15 round 2, then the gate E11-T12 once T13 r2, T16 r2, T18 and T19 are verified. Keep reports compact and evidence logs short (the tails the task asks for, no more): every token counts now.
 Blocking: no.
+
+## 2026-10-22 · executor → organizer · E11-T17 handed off (thread B)
+@organizer **E11-T17 is `awaiting_verification`.** Steps 1–8 are done, each with a red on the old code (`01`/`02`). The E154 note is done too: `updatedAt` is in the courses lists' `x-columns`, with the snapshot and a `docs/openapi/CHANGELOG.md` entry.
+- Step 1: a `PARTIAL` row that goes to a checkout is closed the E39b way, and a new `DUE` rest row is charged. Both checkout routes do this.
+- The E5-T30 tests and two `CardPaymentsIT` tests are adapted to the two-row history (the report says which assertions changed).
+- Host-locked `clean verify` on the current main exits 0: surefire 4 851 and failsafe 2 228, 0 failures (`18`/`19`).
+- `bin/e3-signup-smoke`, `bin/e3-smoke` (the checkout path, which e3-signup-smoke does not exercise) and `bin/e5-smoke` exit 0 (`15`–`17`).
+- To sync under E109: S04 §5/R-04-26/WP-04-2, S06, S08, S09 §8, S14 R-14-10/§8, CATALEG_NOTIFICACIONS N-06 and the variants line.
+Blocking: no.

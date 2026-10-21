@@ -1,0 +1,40 @@
+heavy.sh: 00:26 waiting for the host lock, held by: 00:19 agilityhub-core-api-c: ./mvnw -q clean verify
+heavy.sh: 00:44 got the host lock after 18 min 1 s
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 16 changes (applied); seed-canic-1.log
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 0 changes (applied); seed-canic-2.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 12 changes (applied); seed-minim-1.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 0 changes (applied); seed-minim-2.log
+Fixture setup: disposable clubs activated; committed seeds retain ONBOARDING
+curl -X GET /api/v1/signup -> 200
+curl -X GET /api/v1/signup/towns -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+curl -X POST /api/v1/signup/upload-urls -> 200
+curl -X PUT /api/v1/signup/uploads -> 204
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/b416b685-ab86-48ce-b244-8f23a28982b9/signup -> 200
+curl -X POST /api/v1/members/b416b685-ab86-48ce-b244-8f23a28982b9/validation -> 200
+curl -X POST /api/v1/members/b416b685-ab86-48ce-b244-8f23a28982b9/validation -> 200
+Mailbox N-02 (ca): Benvinguda, Example!; token=[truncated]
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/me -> 200
+curl -X GET /api/v1/signup -> 200
+curl -X POST /api/v1/me/dogs/signup -> 201
+curl -X GET /api/v1/members/b416b685-ab86-48ce-b244-8f23a28982b9/signup -> 200
+curl -X POST /api/v1/members/b416b685-ab86-48ce-b244-8f23a28982b9/validation -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+PASS add-dog validation, unchanged identity, N-37 APP and N-39 mailbox recognition
+PASS canic: public signup -> dry run -> validation -> welcome mailbox -> magic-link login
+curl -X GET /api/v1/signup -> 200
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/74461c84-8313-4db8-8762-fc2923bbb30f/signup -> 200
+curl -X POST /api/v1/members/74461c84-8313-4db8-8762-fc2923bbb30f/validation -> 200
+curl -X POST /api/v1/members/74461c84-8313-4db8-8762-fc2923bbb30f/validation -> 200
+Mailbox N-02 (en): Welcome, Example!; token=[truncated]
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/me -> 200
+PASS minim: public signup -> dry run -> validation -> welcome mailbox -> magic-link login
+PASS both seeds idempotent; curl/local-mailbox S04 rehearsal completed

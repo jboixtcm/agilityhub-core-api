@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - R-08-07 (S4): `BookingTransactions` retries a `DuplicateKey` like the other writers (`TransactionRetries.conflict`).
   - INC-82: the impersonation-grant and security-event TTL indexes change their retention by drop + create, never `collMod`, which the production `readWrite` user cannot run (`TtlIndexUpgradeIT` on an authenticated Mongo 7).
   - CI runs `deploy/test_e11_t09.py`. Caddy's `forward_auth` ask drops `X-Forwarded-Uri`/`X-Forwarded-Method`. DEPLOY.md notes that the Maven wrapper's distribution download has no retry.
-- E11-T17: the api correction pass, part 7 (rulings E149–E151). No contract change.
+- E11-T17: the api correction pass, part 7 (rulings E149–E151). One contract change, in `docs/openapi/CHANGELOG.md`: the courses lists' `x-columns` gain `updatedAt` (E154).
   - S04 §5, R-04-26 (INC-39.2, E149): a `PARTIAL` row that goes to a checkout is closed as E39b closes it (`CANCELLED`, and a `PAID` correction that keeps the cash: `MANUAL`, its `paidAt`, its amount, and its S12 channel and reference). A new `DUE` row for the rest is the one checked out (`STRIPE`, the provider's `paidAt`). An expired session gives that row back `DUE`. One provider per row; `UpfrontPaymentSucceeded.amountPaid` is the rest. Both checkout routes (`POST /checkout-sessions` with a signup token or with `upfrontPaymentIds`).
   - S09 §8, `CATALEG_NOTIFICACIONS` N-06 (INC-40.10, E150): a training booking the club makes sends N-47 only, no longer N-06 as well.
   - S14 R-14-10: `@Audited(events = …)` names the events an entry links. Each training audit entry of the club links its own `TrainingBooked`/`TrainingCancelled`, published first, never another booking's of the same batch.

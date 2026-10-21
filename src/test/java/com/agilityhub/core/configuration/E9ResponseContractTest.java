@@ -180,6 +180,9 @@ class E9ResponseContractTest {
             // INC-62 (E11-T02): `updatedAt`, D18's date column, is a field of the list too.
             assertThat(strings(get.path("x-fields"))).containsExactlyInAnyOrder("id","name","discipline","level","designerName","source","thumbnailUrl","stats","ownerType","activeOnRings","updatedAt");
             assertThat(strings(get.path("x-sortable"))).containsExactly("name","updatedAt");
+            // E11-T17 (E154): D18 shows `updatedAt` by default, so the column catalogue publishes it, visible by default.
+            assertThat(get.path("x-columns").findValuesAsText("key")).containsExactly("name","discipline","level","designerName","source","thumbnailUrl","stats","ownerType","activeOnRings","updatedAt");
+            assertThat(get.at("/x-columns/9/defaultVisible").asBoolean()).isTrue();
             assertThat(get.path("description").asText()).contains("updatedAt,desc");
         }
         assertThat(strings(api.at("/components/schemas/CourseListItem/required"))).containsExactly("id");

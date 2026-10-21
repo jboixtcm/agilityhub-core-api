@@ -25,7 +25,7 @@ public class PlatformCoursesController {
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED})
     @ListContract(paged = true, filterable = {"owner", "discipline", "agilityhubLevel", "levelId", "source", "tag", "designerName", "obstacleCount", "updatedAt"},
             sortable = {"name", "updatedAt"}, fields = {"id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt"},
-            columns = {"name*", "discipline*", "level*", "designerName*", "source*", "thumbnailUrl*", "stats*", "ownerType*", "activeOnRings*"})
+            columns = {"name*", "discipline*", "level*", "designerName*", "source*", "thumbnailUrl*", "stats*", "ownerType*", "activeOnRings*", "updatedAt*"})
     @Operation(summary = "listPlatformCourses", description = "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. The AgilityHub library (ownerType AGILITYHUB) with the list contract of /courses. Default sort: updatedAt,desc. owner: CLUB, AGILITYHUB or MINE.",
             responses = @ApiResponse(responseCode = "200", description = "S16 CoursePage", useReturnTypeSchema = true))
     public org.springframework.http.ResponseEntity<CoursePage> listPlatformCourses(@Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> query) {

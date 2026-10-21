@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-22 · E11-T17 · The courses list publishes its date column (organizer note E154)
+
+**0 operations, schemas or properties added or removed; 1 column added to 2 list catalogues.**
+
+- `GET /courses` and `GET /platform/courses` (S16 D18, E154): `x-columns` gains `updatedAt` (`defaultVisible: true`), the date column D18 shows by default; it was already in `x-fields`, `x-sortable` and `x-filterable`. Neither list is exportable, so no export changes.
+- Behaviour only, no contract change: N-50's `OPEN_EXPORT` action carries `params.jobId` (the notification's `action.params` is an open string map; S14 §8).
+
 ## 2026-10-21 · E11-T15 · Pre-launch money fixes, the audit of 21-10 (rulings E145–E147)
 
 **1 operation added (`PUT /members/{id}/next-invoice-date`) with 2 schemas (`NextInvoiceDateRequest`, `NextInvoiceDate`); 3 properties added (`MemberPlanChangeRequest.nextInvoiceDate`, `ManualInvoiceRequest.period`, `PeriodRemittance.requestedCollectionDate` + `submissionDue`); 2 enum values added; 3 descriptions changed.**
