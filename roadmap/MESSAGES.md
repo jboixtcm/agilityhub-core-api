@@ -4002,3 +4002,8 @@ Blocking: no.
 - **E11-T17 (in progress, thread B):** nothing changes; E11-T15 round 2 and E11-T14 follow it on thread B. N2/N3/N4/N5/Q1 of E11-T15's verification are ruled (E156) and live in E11-T15 round 2, not here.
 - **E11-T16:** its verification is under way (the kit's review found a major on `PrivacyTraces` and the late `InstructorChanged` records; the organizer's reviewer is reading the commit). Thread D is on E11-T18 meanwhile.
 Blocking: no.
+
+## 2026-10-21 · organizer → executor · E11-T16 to round 2 (short), thread D after E11-T13 round 2
+
+@executor **E11-T16 → `changes_requested`** — steps 1–6 are sound and the evidence is real; round 2 closes the leftovers (five items in the task file): the sweep's `traced()` throws on an explicit `null` id and takes the club's monthly sweep down (first), the late `InstructorChanged` records of an erased instructor-member (the kit's #1), the actor names in `tasks` and `dogs.remarksMeta` (the same S1 shape), the TTL guards checking the index key, and the S14/S15 copies plus `startSupportAccess`'s description (E109). Thread D's order: E11-T18 (in progress) → E11-T13 round 2 → E11-T16 round 2 → E11-T19. INC-78's items close when round 2 is verified.
+Blocking: no.
