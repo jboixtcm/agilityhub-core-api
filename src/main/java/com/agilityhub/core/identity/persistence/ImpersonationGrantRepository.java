@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.index.Index;
-import org.springframework.data.mongodb.core.index.IndexOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -53,14 +52,17 @@ public class ImpersonationGrantRepository extends TenantRepository<Impersonation
         var signedBefore = new Criteria().orOperator(Criteria.where("createdAt").is(null), Criteria.where("createdAt").lt(rotatedAt));
         return mongo.exists(Query.query(Criteria.where("revokedAt").is(null).and("expiresAt").gt(now)).addCriteria(signedBefore), ImpersonationGrant.class);
     }
+    /**
+     * The `expiresAt` TTL index at {@link #RETENTION}, whatever the name of the one a volume already has. A retention that changed
+     * is a drop and a create, never `collMod` (INC-82, E11-T16): the production user holds `readWrite`, which has `createIndex`
+     * and `dropIndex` but not `collMod`. The seconds without the index are harmless: the expiry sweep does not depend on it.
+     */
     public void ensureIndexes() {
         var indexes = mongo.indexOps(ImpersonationGrant.class);
         var existing = indexes.getIndexInfo().stream().filter(index -> index.getIndexFields().size() == 1
                 && index.getIndexFields().getFirst().getKey().equals("expiresAt")).findFirst();
-        if (existing.isEmpty()) {
-            indexes.createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(RETENTION).named(RETENTION_INDEX));
-        } else if (!existing.get().getExpireAfter().equals(java.util.Optional.of(RETENTION))) {
-            indexes.alterIndex(existing.get().getName(), IndexOptions.expireAfter(RETENTION));
-        }
+        if (existing.isPresent() && existing.get().getExpireAfter().equals(java.util.Optional.of(RETENTION))) { return; }
+        existing.ifPresent(index -> indexes.dropIndex(index.getName()));
+        indexes.createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(RETENTION).named(RETENTION_INDEX));
     }
 }

@@ -1,0 +1,40 @@
+$ ./mvnw -q test -Dtest='BookingTransactionsSurvivorsTest' -Dsurefire.failIfNoSpecifiedTests=false -Djacoco.skip=true
+# old code: BookingTransactions.transientConflict retries 112 and TransientTransactionError only
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 4, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.796 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.application.BookingTransactionsSurvivorsTest
+[ERROR] com.agilityhub.core.clubs.bookings.application.BookingTransactionsSurvivorsTest.T_08_29_R_08_07_aDuplicateKeyOnTheFirstAttemptIsRetriedAndCounted -- Time elapsed: 0.003 s <<< ERROR!
+org.springframework.dao.DuplicateKeyException: E11000 duplicate key error collection: seat_locks
+	at com.agilityhub.core.clubs.bookings.application.BookingTransactionsSurvivorsTest.lambda$T_08_29_R_08_07_aDuplicateKeyOnTheFirstAttemptIsRetriedAndCounted$10(BookingTransactionsSurvivorsTest.java:90)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:84)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:143)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:128)
+	at com.agilityhub.core.clubs.bookings.application.BookingTransactions.retry(BookingTransactions.java:42)
+	at com.agilityhub.core.clubs.bookings.application.BookingTransactions.lambda$write$1(BookingTransactions.java:38)
+	at com.agilityhub.core.shared.application.LocalLanes.hold(LocalLanes.java:35)
+	at com.agilityhub.core.clubs.bookings.application.BookingTransactions.write(BookingTransactions.java:38)
+	at com.agilityhub.core.clubs.bookings.application.BookingTransactionsSurvivorsTest.T_08_29_R_08_07_aDuplicateKeyOnTheFirstAttemptIsRetriedAndCounted(BookingTransactionsSurvivorsTest.java:97)
+
+[ERROR] Errors: 
+[ERROR]   BookingTransactionsSurvivorsTest.T_08_29_R_08_07_aDuplicateKeyOnTheFirstAttemptIsRetriedAndCounted:97->lambda$T_08_29_R_08_07_aDuplicateKeyOnTheFirstAttemptIsRetriedAndCounted$10:90 DuplicateKey E11000 duplicate key error collection: seat_locks
+[ERROR] Tests run: 4, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit 1

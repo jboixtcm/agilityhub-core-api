@@ -50,7 +50,8 @@ public class CurrentUserFilter extends OncePerRequestFilter {
         CurrentUser.Support support = null;
         if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("support"))) {
             // S17 R-17-10 (E10-T04): a support token opens the club's administration only while its grant lives, and never the
-            // routes that hand over personal data or full bank accounts. Their handlers refuse it too (@SupportRestricted).
+            // routes that hand over personal data or full bank accounts, or schedule or cancel a member's erasure (E11-T16). Their
+            // handlers refuse it too (@SupportRestricted; SecurityInventoryIT checks both lists are the same).
             support = supports.validate(jwt, path.equals("/oauth2/revoke"));
             if (com.agilityhub.core.identity.application.SupportAccessService.restricted(request.getMethod(), path)) {
                 throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.SUPPORT_RESTRICTED);

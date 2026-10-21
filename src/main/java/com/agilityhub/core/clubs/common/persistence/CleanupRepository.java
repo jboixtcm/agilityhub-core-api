@@ -76,8 +76,9 @@ public class CleanupRepository {
     }
 
     /**
-     * Published (fully processed) outbox events of the club before `before`; PENDING/FAILED ones are never touched.
-     * Events without a `clubId` (platform, identity) are outside every club's cleanup.
+     * Published (fully processed) outbox events of the club before `before`; PENDING/FAILED ones are never touched here.
+     * Events without a `clubId` (platform, identity) are outside every club's cleanup. The `FAILED` records about an erased
+     * member go with its erasure and the monthly `retention-sweep` (S14 R-14-15, E11-T16: `PrivacyTraces`).
      */
     public long processedEvents(String clubId, Instant before) { return mongo.count(processed(scope(clubId), before), DOMAIN_EVENTS); }
     public long deleteProcessedEvents(String clubId, Instant before) { return mongo.remove(processed(scope(clubId), before), DOMAIN_EVENTS).getDeletedCount(); }

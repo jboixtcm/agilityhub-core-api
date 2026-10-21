@@ -82,7 +82,7 @@ http://127.0.0.1:9080 {
 # `GET /internal/domains/app?host=` (always 200, `X-Club-App: clubs | clubs-admin`, the domain's own app) and the answer picks
 # the root. A domain verified in the console serves its app at once: no host list, no reload. A client's own `X-Club-App` is
 # dropped first. The Core answers only the internal network: the request leaves without forwarding headers (the peer is
-# Caddy itself), without the client's credentials and with the upstream's own Host.
+# Caddy itself), without the client's credentials, URI or method (E11-T16) and with the upstream's own Host.
 (club_spa) {
     route {
         request_header -X-Club-App
@@ -95,6 +95,9 @@ http://127.0.0.1:9080 {
             header_up -X-Forwarded-Proto
             header_up -Authorization
             header_up -Cookie
+            # E11-T16: forward_auth's own copies of the client's request (its URI, whose query can carry a code, and its method).
+            header_up -X-Forwarded-Uri
+            header_up -X-Forwarded-Method
             copy_headers X-Club-App
         }
         # The two roots are one exclusive group: the first that matches wins, so the back office comes first.

@@ -1,6 +1,7 @@
 """E11-T09: INC-64 (Caddy picks a club host's SPA from the Core, no CLUB_ADMIN_HOSTS) and INC-37 (the env inventory).
 
-Round 2 (E140): the local proof's evidence helper is never rebound, and the image's Maven step retries a transient 502."""
+Round 2 (E140): the local proof's evidence helper is never rebound, and the image's Maven step retries a transient 502.
+E11-T16: CI runs this file; the Caddy ask leaves without the client's X-Forwarded-Uri and X-Forwarded-Method."""
 from pathlib import Path
 import ast
 import collections
@@ -45,6 +46,14 @@ http://:9090 {
     @foreign {
         not host 127.0.0.1
     }
+    @client_uri {
+        header X-Forwarded-Uri *
+    }
+    @client_method {
+        header X-Forwarded-Method *
+    }
+    respond @client_uri 403
+    respond @client_method 403
     respond @leak 403
     respond @credentials 403
     respond @cookie 403
@@ -133,6 +142,8 @@ class ClubAppTest(unittest.TestCase):
                 self.assertEqual('<h1>AgilityHub clubs</h1>', get('members.example.test', '/', [('X-Club-App', 'clubs-admin')])[0])
                 leaky = [('Authorization', 'Bearer eyJfictional'), ('Cookie', 'ah_refresh=fictional'), ('X-Forwarded-For', '198.51.100.7')]
                 self.assertEqual('<h1>AgilityHub clubsadmin</h1>', get('office.example.test', '/', leaky)[0])
+                # E11-T16: the ask carries neither the client's URI (its query can hold a code) nor its method: the stub refuses both.
+                self.assertEqual('<h1>AgilityHub clubsadmin</h1>', get('office.example.test', '/entrar?handoff=fictional-code')[0])
                 # Round 2 (review #9): a Host that carries query syntax stays one escaped `host` value, so it cannot name another
                 # host to the Core. Go accepts `&` and `=` in a Host header. Unescaped, both would name the back office: the stub
                 # answers `clubs-admin` to the raw queries.

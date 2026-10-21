@@ -21,13 +21,17 @@ public class BookingErasureRepository {
         return mongo.exists(Query.query(club().and("memberId").in(memberIds).and("state").in("ACTIVE", "PAYMENT_PENDING")
                 .and("classStartsAt").gt(now)), "bookings");
     }
-    /** The changed documents per collection. */
+    /**
+     * The changed documents per collection. The club's text goes from the members' own bookings; their name as booker or canceller
+     * goes from every booking of the club, another member's too (E11-T16: a family-group member books for another's dog, an
+     * instructor-member cancels for someone else).
+     */
     public Map<String, Long> erase(Collection<String> memberIds, Collection<String> accountIds) {
         var mine = Query.query(club().and("memberId").in(memberIds));
         long changed = mongo.updateMulti(mine, new Update().unset("cancelMessage"), "bookings").getModifiedCount();
-        changed += mongo.updateMulti(Query.query(club().and("memberId").in(memberIds).orOperator(Criteria.where("bookedBy.accountId").in(accountIds),
+        changed += mongo.updateMulti(Query.query(club().orOperator(Criteria.where("bookedBy.accountId").in(accountIds),
                 Criteria.where("bookedBy.impersonatedMemberId").in(memberIds))), new Update().unset("bookedBy.displayName"), "bookings").getModifiedCount();
-        changed += mongo.updateMulti(Query.query(club().and("memberId").in(memberIds).orOperator(Criteria.where("cancelledBy.accountId").in(accountIds),
+        changed += mongo.updateMulti(Query.query(club().orOperator(Criteria.where("cancelledBy.accountId").in(accountIds),
                 Criteria.where("cancelledBy.impersonatedMemberId").in(memberIds))), new Update().unset("cancelledBy.displayName"), "bookings").getModifiedCount();
         long holds = mongo.remove(Query.query(club().and("memberId").in(memberIds)), "seat_holds").getDeletedCount();
         // An erased account that marked attendance (a helper or instructor who was also a member) loses its name as marker.

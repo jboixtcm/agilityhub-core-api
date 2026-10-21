@@ -677,4 +677,185 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(json(admin(body(post("/api/v1/accounts/staff-account/erasure"), Map.of())), 403).path("code").asText()).isEqualTo("FORBIDDEN");
         assertThat(json(platform(get("/api/v1/platform/erasure-requests").param("filter", "clubId:exists:false")), 200).path("totalItems").asLong()).isEqualTo(2);
     }
+
+    @Autowired com.agilityhub.core.clubs.bookings.application.BookingsErasure bookingsErasure;
+    @Autowired com.agilityhub.core.clubs.activities.application.ActivitiesErasure activitiesErasure;
+    @Autowired com.agilityhub.core.clubs.census.application.CensusErasure censusErasure;
+    /** The evidence of E11-T16: a stored document as the test saw it (fictional data only). */
+    static void trace(String label, Document document) { System.out.println("E11-T16 " + label + ": " + (document == null ? "absent" : document.toJson())); }
+    String executeMontsesErasure() throws Exception {
+        String id = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201).path("id").asText();
+        clock.setInstant(DUE);
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(executor.execute(id)).isEqualTo(ErasureExecutor.Outcome.ERASED); }
+        return id;
+    }
+
+    /**
+     * E11-T16 step 1's fixture (audit 21-10, S1): «active»'s documents whose actor is Montse — a class she booked for its dog
+     * (a family-group member, `BookingConfirmationService` writes the booker's first name), one she cancelled (an instructor-
+     * member, `BookingActors.member`), an activity she registered it to — and an applicant whose S04 claim found her as the
+     * group's holder (R-04-12 `FOUND`). «active»'s own fixture claim is `NOT_FOUND_PENDING`, with names and no holder id.
+     */
+    void seedOtherMembersActors() {
+        dog(CLUB, "kiwi", "montse", "941000000100001", null);
+        dog(CLUB, "other-dog", "active", "941000000100003", null);
+        raw("bookings", "_id", "booking-by-montse", "clubId", CLUB, "memberId", "active", "dogId", "other-dog", "state", "ACTIVE",
+                "classStartsAt", Instant.parse("2026-07-01T18:00:00Z"), "bookedBy", map("accountId", "montse-account", "displayName", "Fictional Name"));
+        raw("bookings", "_id", "booking-cancelled-by-montse", "clubId", CLUB, "memberId", "active", "dogId", "other-dog", "state", "CANCELLED",
+                "classStartsAt", Instant.parse("2026-07-08T18:00:00Z"), "bookedBy", map("accountId", "active-account", "displayName", "Fictional Active"),
+                "cancelledBy", map("accountId", "montse-account", "role", "INSTRUCTOR", "displayName", "Fictional Name"));
+        raw("activity_registrations", "_id", "registration-by-montse", "clubId", CLUB, "memberId", "active", "state", "CANCELLED",
+                "registeredBy", map("accountId", "montse-account", "displayName", "Fictional Name"));
+        // The other club's documents are that club's: its part of an erasure runs there.
+        raw("bookings", "_id", "booking-other-club", "clubId", OTHER, "memberId", "elsewhere", "state", "CANCELLED",
+                "bookedBy", map("accountId", "montse-account", "displayName", "Fictional Name"));
+        member(CLUB, "applicant", 13, "Y1234567X", null);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("applicant")), new org.springframework.data.mongodb.core.query.Update().set("status", "PENDING")
+                .unset("memberNumber").set("familyGroupClaim", map("status", "FOUND", "holderName", "Fictional Person montse", "dogName", "Fictional kiwi",
+                        "holderMemberId", "montse")), "members");
+    }
+
+    /**
+     * S14 R-14-15 (E11-T16 step 1, audit 21-10 S1): the erased member's name as the actor of another member's documents goes too
+     * — `bookedBy`/`cancelledBy` of the bookings, `registeredBy` of the activity registrations, the holder's and dog's names of an
+     * applicant's `FOUND` claim — and ids, states and the other actors' names stay. A `NOT_FOUND_PENDING` claim names a holder
+     * by what the applicant typed, with no id: nothing ties it to the erased member, so it keeps its names.
+     */
+    @Test void T_14_08_R_14_15_theErasedActorsNameLeavesTheOtherMembersBookingsRegistrationsAndClaims() throws Exception {
+        seedOtherMembersActors();
+        var ids = List.of("bookings:booking-by-montse", "bookings:booking-cancelled-by-montse", "activity_registrations:registration-by-montse", "members:applicant");
+        ids.forEach(row -> trace("step 1 before " + row, row.startsWith("members:") ? project(document("members", "applicant")) : document(row.split(":")[0], row.split(":")[1])));
+        executeMontsesErasure();
+        ids.forEach(row -> trace("step 1 after " + row, row.startsWith("members:") ? project(document("members", "applicant")) : document(row.split(":")[0], row.split(":")[1])));
+        var booked = document("bookings", "booking-by-montse");
+        assertThat(booked.get("bookedBy", Document.class)).containsOnlyKeys("accountId").containsEntry("accountId", "montse-account");
+        assertThat(booked).containsEntry("memberId", "active").containsEntry("state", "ACTIVE").containsEntry("dogId", "other-dog");
+        var cancelled = document("bookings", "booking-cancelled-by-montse");
+        assertThat(cancelled.get("cancelledBy", Document.class)).doesNotContainKey("displayName").containsEntry("accountId", "montse-account").containsEntry("role", "INSTRUCTOR");
+        assertThat(cancelled.get("bookedBy", Document.class)).containsEntry("displayName", "Fictional Active");
+        assertThat(document("activity_registrations", "registration-by-montse").get("registeredBy", Document.class)).containsOnlyKeys("accountId");
+        assertThat(document("bookings", "booking-other-club").get("bookedBy", Document.class)).containsEntry("displayName", "Fictional Name");
+        var applicant = document("members", "applicant");
+        assertThat(applicant.get("familyGroupClaim", Document.class)).containsOnlyKeys("status", "holderMemberId").containsEntry("status", "FOUND")
+                .containsEntry("holderMemberId", "montse");
+        assertThat(applicant.getString("firstName")).isEqualTo("Fictional");
+        assertThat(applicant.get("erasedAt")).isNull();
+        assertThat(document("members", "active").get("familyGroupClaim", Document.class)).containsEntry("status", "NOT_FOUND_PENDING")
+                .containsEntry("holderName", "Fictional Holder").containsEntry("dogName", "Fictional Dog");
+    }
+    /** The applicant's fields the evidence shows: its claim, status and version. */
+    static Document project(Document member) {
+        return new Document("_id", member.get("_id")).append("status", member.get("status")).append("version", member.get("version"))
+                .append("familyGroupClaim", member.get("familyGroupClaim"));
+    }
+
+    /**
+     * E11-T16 step 1: the contexts' steps count the other members' documents they change — the two bookings, the registration
+     * and the applicant's claim beside Montse's own member document — and a second run changes nothing (R-14-15 is idempotent).
+     */
+    @Test void R_14_15_theStepsCountTheOtherMembersDocumentsTheyChange() {
+        seedOtherMembersActors();
+        try (var tenant = TenantContext.open(CLUB)) {
+            var subject = new ErasureSubject("request-e11-t16", CLUB, List.of(new com.agilityhub.core.platform.application.privacy.ErasureMember("montse", "montse-account", 87,
+                    "LEFT", LocalDate.of(2026, 8, 31), null, "LEAVE_REQUEST", null, List.of("kiwi"))), java.util.Set.of("montse-account"), Map.of(),
+                    new com.agilityhub.core.platform.application.privacy.ErasurePlaceholders("Abonat suprimit", "Compte suprimit", "Gos suprimit", "(suprimit)"), DUE);
+            assertThat(bookingsErasure.erase(subject).documents()).containsEntry("bookings", 2L);
+            assertThat(activitiesErasure.erase(subject).documents()).containsEntry("activity_registrations", 1L);
+            assertThat(censusErasure.erase(subject).documents()).containsEntry("members", 2L);
+            assertThat(bookingsErasure.erase(subject).documents()).doesNotContainKey("bookings");
+            assertThat(activitiesErasure.erase(subject).documents()).isEmpty();
+        }
+        assertThat(document("members", "applicant").get("version", Number.class).longValue()).as("the claim's write moves the census version").isEqualTo(1L);
+    }
+
+    /** A `NO_SHOW` mark of the member's dog on 30-08, not notified yet: P3's scope (S15 R-15-13). */
+    void noShow(String id, String memberId, String dogId) {
+        Instant starts = Instant.parse("2026-08-30T16:00:00Z");
+        try (var tenant = TenantContext.open(CLUB)) {
+            mongo.insert(new com.agilityhub.core.clubs.bookings.persistence.Attendance(id, CLUB, "booking-" + id, "class-30-08", LocalDate.of(2026, 8, 30), starts,
+                    starts.plusSeconds(3600), dogId, memberId, com.agilityhub.core.clubs.bookings.domain.AttendanceState.NO_SHOW, starts, null, null, null, List.of(),
+                    null, starts, starts));
+        }
+    }
+    /** The attendance rows of P3's stored trace (`items[].detail[key = attendances].value`), raw. */
+    List<Document> tracedAttendances(String runId) {
+        var rows = new java.util.ArrayList<Document>();
+        for (var item : document("job_runs", runId).getList("items", Document.class)) {
+            for (var entry : item.getList("detail", Document.class)) {
+                if ("attendances".equals(entry.getString("key"))) { rows.addAll(entry.getList("value", Document.class)); }
+            }
+        }
+        return rows;
+    }
+
+    /**
+     * S14 R-14-15 vs S15 R-15-19 (E11-T16 step 2, audit 21-10 S2): a record the dispatcher gave up on (`FAILED`, a `MemberUpdated`
+     * whose diff carries the phones as S03 writes it, and a `DogUpdated` with the old name) is about the erased member too, and has
+     * no consumer left to serve: it goes with the erasure, like a published one. P3's trace names the erased member's dog
+     * (`job_runs.items.detail.attendances[].dogName`): that name goes, the row's ids stay. The other member's record and row stay.
+     */
+    @Test void R_14_15_R_15_19_theErasureDeletesItsFailedRecordsAndTheDogNameOfTheRunTraces() throws Exception {
+        dog(CLUB, "kiwi", "montse", "941000000100001", null);
+        dog(CLUB, "other-dog", "active", "941000000100003", null);
+        raw("domain_events", "_id", "event-failed", "clubId", CLUB, "type", "MemberUpdated", "aggregateId", "montse", "status", "FAILED", "attempts", 10,
+                "payload", map("memberId", "montse", "diff", map("phones", map("before", List.of(map("prefix", "+34", "number", "600000001")),
+                        "after", List.of(map("prefix", "+34", "number", "600000002"))))));
+        raw("domain_events", "_id", "event-failed-dog", "clubId", CLUB, "type", "DogUpdated", "aggregateId", "kiwi", "status", "FAILED", "attempts", 10,
+                "payload", map("dogId", "kiwi", "memberId", "montse", "diff", map("name", map("before", "Fictional kiwi", "after", "Kiwi"))));
+        raw("domain_events", "_id", "event-failed-active", "clubId", CLUB, "type", "MemberUpdated", "aggregateId", "active", "status", "FAILED", "attempts", 10,
+                "payload", map("memberId", "active", "diff", map("phones", map("before", List.of(), "after", List.of(map("prefix", "+34", "number", "600000003"))))));
+        noShow("attendance-montse", "montse", "kiwi");
+        noShow("attendance-active", "active", "other-dog");
+        var dry = runner.manual(CLUB, JobName.NO_SHOW_NOTICES, true, "admin-account");
+        assertThat(tracedAttendances(dry.id())).extracting(row -> row.getString("dogName")).containsExactlyInAnyOrder("Fictional kiwi", "Fictional other-dog");
+        trace("step 2 before domain_events:event-failed", document("domain_events", "event-failed"));
+        trace("step 2 before job_runs:" + dry.id(), document("job_runs", dry.id()));
+        executeMontsesErasure();
+        trace("step 2 after domain_events:event-failed", document("domain_events", "event-failed"));
+        trace("step 2 after job_runs:" + dry.id(), document("job_runs", dry.id()));
+        assertThat(document("domain_events", "event-failed")).isNull();
+        assertThat(document("domain_events", "event-failed-dog")).isNull();
+        assertThat(document("domain_events", "event-failed-active")).isNotNull();
+        var rows = tracedAttendances(dry.id());
+        assertThat(rows).filteredOn(row -> "montse".equals(row.getString("memberId"))).singleElement()
+                .satisfies(row -> assertThat(row).doesNotContainKey("dogName").containsEntry("attendanceId", "attendance-montse").containsEntry("classDate", "2026-08-30"));
+        assertThat(rows).filteredOn(row -> "active".equals(row.getString("memberId"))).singleElement()
+                .satisfies(row -> assertThat(row).containsEntry("dogName", "Fictional other-dog"));
+    }
+
+    /**
+     * S15 R-15-19 / S14 R-14-16 (E11-T16 step 2): what reaches the outbox or the run traces after the erasure — a record still
+     * `PENDING` when it ran, published afterwards, and a run that finished after it, storing a trace that names the dog — is
+     * purged by the monthly `retention-sweep` (`PURGE_ERASED_TRACES`, one item per erased member with something left). The
+     * other member's published record stays, and a second sweep has nothing to do.
+     */
+    @Test void R_15_19_R_14_15_theMonthlySweepPurgesWhatReachedTheOutboxAndTheTracesAfterTheErasure() throws Exception {
+        dog(CLUB, "kiwi", "montse", "941000000100001", null);
+        raw("domain_events", "_id", "event-late", "clubId", CLUB, "type", "MemberUpdated", "aggregateId", "montse", "status", "PENDING", "attempts", 0,
+                "payload", map("memberId", "montse", "diff", map("firstName", map("before", "Fictional", "after", "Fictional Montse"))));
+        raw("domain_events", "_id", "event-active", "clubId", CLUB, "type", "MemberUpdated", "aggregateId", "active", "status", "PUBLISHED",
+                "publishedAt", REQUESTED, "payload", map("memberId", "active", "diff", map("firstName", map("before", "Fictional", "after", "Fictional Active"))));
+        noShow("attendance-montse", "montse", "kiwi");
+        var dry = runner.manual(CLUB, JobName.NO_SHOW_NOTICES, true, "admin-account");
+        executeMontsesErasure();
+        assertThat(document("domain_events", "event-late")).as("an unprocessed record is not the erasure's").containsEntry("status", "PENDING");
+        // The dispatcher publishes it afterwards; a run that started before the erasure stores its whole trace after it.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("event-late")), new org.springframework.data.mongodb.core.query.Update().set("status", "PUBLISHED")
+                .set("publishedAt", DUE.plusSeconds(60)), "domain_events");
+        mongo.save(dry);
+        assertThat(tracedAttendances(dry.id())).singleElement().satisfies(row -> assertThat(row).containsEntry("dogName", "Fictional kiwi"));
+        clock.setInstant(Instant.parse("2026-10-01T04:00:00Z"));
+        var planned = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
+        assertThat(planned.items()).extracting(item -> item.entityType() + ":" + item.entityId() + ":" + item.action()).contains("Member:montse:WOULD_PURGE_ERASED_TRACES")
+                .noneMatch(item -> item.contains("active"));
+        var sweep = runner.manual(CLUB, JobName.RETENTION_SWEEP, false, "admin-account");
+        assertThat(sweep.errors()).isEmpty();
+        assertThat(sweep.items()).extracting(item -> item.entityId() + ":" + item.action()).contains("montse:PURGE_ERASED_TRACES");
+        assertThat(sweep.counters()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("erasedTracesPurged", 1L));
+        assertThat(document("domain_events", "event-late")).isNull();
+        assertThat(document("domain_events", "event-active")).isNotNull();
+        assertThat(tracedAttendances(dry.id())).singleElement().satisfies(row -> assertThat(row).doesNotContainKey("dogName").containsEntry("memberId", "montse"));
+        var again = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
+        assertThat(again.items()).extracting(item -> item.action()).doesNotContain("WOULD_PURGE_ERASED_TRACES");
+    }
 }

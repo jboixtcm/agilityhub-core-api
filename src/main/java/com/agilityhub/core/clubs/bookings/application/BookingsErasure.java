@@ -17,9 +17,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * S14 WP-14-D, S08/S10: R-14-14's `FUTURE_BOOKINGS` (an `ACTIVE` or `PAYMENT_PENDING` booking of a class still to start) and
- * R-14-15's bookings (ids, states, dates kept; the club's free text and the member's own name as booker go), seat holds deleted.
- * Waiting-list entries and attendances hold no personal text of the member and are kept; an attendance the erased account marked
- * loses the marker's name.
+ * R-14-15's bookings (ids, states, dates kept; the club's free text goes, and the member's name as booker or canceller goes from
+ * every booking of the club, another member's too: E11-T16), seat holds deleted. Waiting-list entries and attendances hold no
+ * personal text of the member and are kept; an attendance the erased account marked loses the marker's name.
  */
 @Component
 public class BookingsErasure implements ErasureCheck, ErasureStep, MemberDataSource {

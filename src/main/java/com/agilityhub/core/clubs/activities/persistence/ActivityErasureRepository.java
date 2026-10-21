@@ -21,9 +21,9 @@ public class ActivityErasureRepository {
         return mongo.exists(Query.query(club().and("memberId").in(memberIds).and("state").in("ACTIVE", "WAITLISTED")
                 .and("activityStartsAt").gt(now)), "activity_registrations");
     }
-    /** The changed documents per collection. */
+    /** The changed documents per collection: the members' name as registrant of any registration of the club, another member's too (E11-T16). */
     public Map<String, Long> erase(Collection<String> memberIds, Collection<String> accountIds) {
-        long changed = mongo.updateMulti(Query.query(club().and("memberId").in(memberIds).orOperator(
+        long changed = mongo.updateMulti(Query.query(club().orOperator(
                 Criteria.where("registeredBy.accountId").in(accountIds), Criteria.where("registeredBy.impersonatedMemberId").in(memberIds))),
                 new Update().unset("registeredBy.displayName"), "activity_registrations").getModifiedCount();
         return Map.of("activity_registrations", changed);

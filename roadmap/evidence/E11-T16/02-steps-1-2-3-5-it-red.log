@@ -1,0 +1,424 @@
+$ ./mvnw -q -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Dit.test='ErasureIT#T_14_08_R_14_15_theErasedActorsName*+R_14_15_theStepsCount*+R_14_15_R_15_19_*+R_15_19_R_14_15_*,SupportAccessIT#T_17_09_R_17_10_aSupportTokenNeither*,SecurityInventoryIT#T_17_09_*,TtlIndexUpgradeIT' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify
+# old code: steps 1, 2, 3 and 5 not implemented (the new tests only)
+21:53:34.801 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+21:53:34.803 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+21:53:34.806 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+21:53:34.906 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+21:53:35.100 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+21:53:35.101 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+21:53:35.110 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+21:53:35.497 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+21:53:35.556 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+21:53:35.616 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 6d405321cc4fd6ef4e8d5aa132456fd5733d6426726dd19eb16dc5e8ea068fc0
+21:53:35.786 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.289014S
+21:53:35.790 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+21:53:35.790 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+21:53:35.790 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+21:53:35.790 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+21:53:35.819 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: ad83405c8c820aab0e9d434ca15c1d33e88e98cbc2b80edd4f0bb044300519ff
+21:53:38.254 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT2.463776S
+21:53:38.321 [main] INFO org.mongodb.driver.client -- MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='root', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7a3b7122, com.mongodb.Jep395RecordCodecProvider@58b5a2f3, com.mongodb.KotlinCodecProvider@25f15f50, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:57502], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+21:53:38.326 [cluster-6ad91842393f70b4f840575f-localhost:57502] INFO org.mongodb.driver.cluster -- Monitor thread successfully connected to server with description ServerDescription{address=localhost:57502, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7251125, minRoundTripTimeNanos=0}
+21:53:38.370 [main] INFO org.mongodb.driver.client -- MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='coreApp', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7a3b7122, com.mongodb.Jep395RecordCodecProvider@58b5a2f3, com.mongodb.KotlinCodecProvider@25f15f50, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:57502], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+21:53:38.371 [cluster-6ad91842393f70b4f8405760-localhost:57502] INFO org.mongodb.driver.cluster -- Monitor thread successfully connected to server with description ServerDescription{address=localhost:57502, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1138542, minRoundTripTimeNanos=0}
+E11-T16 step 5 before: [IndexInfo [indexFields=[IndexField [ key: at, direction: ASC, type: DEFAULT, weight: NaN]], name=security_event_retention, unique=false, sparse=false, language=, partialFilterExpression=null, collation=null, expireAfterSeconds=PT720H, hidden=false]]
+E11-T16 step 5 before: [IndexInfo [indexFields=[IndexField [ key: expiresAt, direction: ASC, type: DEFAULT, weight: NaN]], name=expiresAt_1, unique=false, sparse=false, language=, partialFilterExpression=null, collation=null, expireAfterSeconds=PT0S, hidden=false]]
+[ERROR] Tests run: 4, Failures: 0, Errors: 3, Skipped: 0, Time elapsed: 4.152 s <<< FAILURE! -- in com.agilityhub.core.configuration.TtlIndexUpgradeIT
+[ERROR] com.agilityhub.core.configuration.TtlIndexUpgradeIT.INC_82_aSecurityEventIndexAtAnotherRetentionIsDroppedAndCreatedAgain -- Time elapsed: 0.141 s <<< ERROR!
+org.springframework.data.mongodb.UncategorizedMongoDbException: Command execution failed on MongoDB server with error 13 (Unauthorized): 'not authorized on agilityhub to execute command { collMod: "security_events", index: { name: "security_event_retention", expireAfterSeconds: 7776000 }, $db: "agilityhub", lsid: { id: UUID("0fe90ca0-2995-4005-ae90-008ebfb8a36a") } }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "not authorized on agilityhub to execute command { collMod: \"security_events\", index: { name: \"security_event_retention\", expireAfterSeconds: 7776000 }, $db: \"agilityhub\", lsid: { id: UUID(\"0fe90ca0-2995-4005-ae90-008ebfb8a36a\") } }", "code": 13, "codeName": "Unauthorized"}
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.doTranslateException(MongoExceptionTranslator.java:155)
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.translateExceptionIfPossible(MongoExceptionTranslator.java:74)
+	at org.springframework.data.mongodb.core.MongoTemplate.potentiallyConvertRuntimeException(MongoTemplate.java:3202)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:613)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.alterIndex(DefaultIndexOperations.java:170)
+	at com.agilityhub.core.platform.persistence.SecurityEventRepository.ensureIndexes(SecurityEventRepository.java:23)
+	at com.agilityhub.core.configuration.TtlIndexUpgradeIT.INC_82_aSecurityEventIndexAtAnotherRetentionIsDroppedAndCreatedAgain(TtlIndexUpgradeIT.java:93)
+Caused by: com.mongodb.MongoCommandException: Command execution failed on MongoDB server with error 13 (Unauthorized): 'not authorized on agilityhub to execute command { collMod: "security_events", index: { name: "security_event_retention", expireAfterSeconds: 7776000 }, $db: "agilityhub", lsid: { id: UUID("0fe90ca0-2995-4005-ae90-008ebfb8a36a") } }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "not authorized on agilityhub to execute command { collMod: \"security_events\", index: { name: \"security_event_retention\", expireAfterSeconds: 7776000 }, $db: \"agilityhub\", lsid: { id: UUID(\"0fe90ca0-2995-4005-ae90-008ebfb8a36a\") } }", "code": 13, "codeName": "Unauthorized"}
+	at com.mongodb.internal.connection.ProtocolHelper.getCommandFailureException(ProtocolHelper.java:210)
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveCommandMessageResponse(InternalStreamConnection.java:570)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceiveInternal(InternalStreamConnection.java:494)
+	at com.mongodb.internal.connection.InternalStreamConnection.lambda$sendAndReceive$1(InternalStreamConnection.java:383)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceive(InternalStreamConnection.java:386)
+	at com.mongodb.internal.connection.UsageTrackingInternalConnection.sendAndReceive(UsageTrackingInternalConnection.java:111)
+	at com.mongodb.internal.connection.DefaultConnectionPool$PooledConnection.sendAndReceive(DefaultConnectionPool.java:757)
+	at com.mongodb.internal.connection.CommandProtocolImpl.execute(CommandProtocolImpl.java:60)
+	at com.mongodb.internal.connection.DefaultServer$DefaultServerProtocolExecutor.execute(DefaultServer.java:207)
+	at com.mongodb.internal.connection.DefaultServerConnection.executeProtocol(DefaultServerConnection.java:112)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:82)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:74)
+	at com.mongodb.internal.connection.DefaultServer$OperationCountTrackingConnection.command(DefaultServer.java:297)
+	at com.mongodb.internal.operation.SyncOperationHelper.createReadCommandAndExecute(SyncOperationHelper.java:317)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$executeRetryableRead$4(SyncOperationHelper.java:210)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$1(SyncOperationHelper.java:146)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:177)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$2(SyncOperationHelper.java:142)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:177)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSourceAndConnection(SyncOperationHelper.java:138)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$executeRetryableRead$5(SyncOperationHelper.java:208)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$decorateReadWithRetries$14(SyncOperationHelper.java:338)
+	at com.mongodb.internal.async.function.RetryingSyncSupplier.get(RetryingSyncSupplier.java:67)
+	at com.mongodb.internal.operation.SyncOperationHelper.executeRetryableRead(SyncOperationHelper.java:214)
+	at com.mongodb.internal.operation.SyncOperationHelper.executeRetryableRead(SyncOperationHelper.java:193)
+	at com.mongodb.internal.operation.CommandReadOperation.execute(CommandReadOperation.java:70)
+	at com.mongodb.client.internal.MongoClusterImpl$OperationExecutorImpl.execute(MongoClusterImpl.java:439)
+	at com.mongodb.client.internal.MongoDatabaseImpl.executeCommand(MongoDatabaseImpl.java:215)
+	at com.mongodb.client.internal.MongoDatabaseImpl.runCommand(MongoDatabaseImpl.java:184)
+	at com.mongodb.client.internal.MongoDatabaseImpl.runCommand(MongoDatabaseImpl.java:179)
+	at com.mongodb.client.internal.MongoDatabaseImpl.runCommand(MongoDatabaseImpl.java:169)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.lambda$alterIndex$0(DefaultIndexOperations.java:170)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:611)
+	... 3 more
+
+[ERROR] com.agilityhub.core.configuration.TtlIndexUpgradeIT.INC_82_aSecurityEventIndexWithoutTtlOnTheSameKeyBecomesTheRetentionIndex -- Time elapsed: 0.021 s <<< ERROR!
+org.springframework.dao.DataIntegrityViolationException: Command execution failed on MongoDB server with error 85 (IndexOptionsConflict): 'An equivalent index already exists with a different name and options. Requested index: { v: 2, key: { at: 1 }, name: "security_event_retention", expireAfterSeconds: 7776000 }, existing index: { v: 2, key: { at: 1 }, name: "at_1" }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "An equivalent index already exists with a different name and options. Requested index: { v: 2, key: { at: 1 }, name: \"security_event_retention\", expireAfterSeconds: 7776000 }, existing index: { v: 2, key: { at: 1 }, name: \"at_1\" }", "code": 85, "codeName": "IndexOptionsConflict"}
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.doTranslateException(MongoExceptionTranslator.java:145)
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.translateExceptionIfPossible(MongoExceptionTranslator.java:74)
+	at org.springframework.data.mongodb.core.MongoTemplate.potentiallyConvertRuntimeException(MongoTemplate.java:3202)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:634)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.execute(DefaultIndexOperations.java:217)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.createIndex(DefaultIndexOperations.java:121)
+	at com.agilityhub.core.platform.persistence.SecurityEventRepository.ensureIndexes(SecurityEventRepository.java:21)
+	at com.agilityhub.core.configuration.TtlIndexUpgradeIT.INC_82_aSecurityEventIndexWithoutTtlOnTheSameKeyBecomesTheRetentionIndex(TtlIndexUpgradeIT.java:105)
+Caused by: com.mongodb.MongoCommandException: Command execution failed on MongoDB server with error 85 (IndexOptionsConflict): 'An equivalent index already exists with a different name and options. Requested index: { v: 2, key: { at: 1 }, name: "security_event_retention", expireAfterSeconds: 7776000 }, existing index: { v: 2, key: { at: 1 }, name: "at_1" }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "An equivalent index already exists with a different name and options. Requested index: { v: 2, key: { at: 1 }, name: \"security_event_retention\", expireAfterSeconds: 7776000 }, existing index: { v: 2, key: { at: 1 }, name: \"at_1\" }", "code": 85, "codeName": "IndexOptionsConflict"}
+	at com.mongodb.internal.connection.ProtocolHelper.getCommandFailureException(ProtocolHelper.java:210)
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveCommandMessageResponse(InternalStreamConnection.java:570)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceiveInternal(InternalStreamConnection.java:494)
+	at com.mongodb.internal.connection.InternalStreamConnection.lambda$sendAndReceive$1(InternalStreamConnection.java:383)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceive(InternalStreamConnection.java:386)
+	at com.mongodb.internal.connection.UsageTrackingInternalConnection.sendAndReceive(UsageTrackingInternalConnection.java:111)
+	at com.mongodb.internal.connection.DefaultConnectionPool$PooledConnection.sendAndReceive(DefaultConnectionPool.java:757)
+	at com.mongodb.internal.connection.CommandProtocolImpl.execute(CommandProtocolImpl.java:60)
+	at com.mongodb.internal.connection.DefaultServer$DefaultServerProtocolExecutor.execute(DefaultServer.java:207)
+	at com.mongodb.internal.connection.DefaultServerConnection.executeProtocol(DefaultServerConnection.java:112)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:82)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:74)
+	at com.mongodb.internal.connection.DefaultServer$OperationCountTrackingConnection.command(DefaultServer.java:297)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$executeCommand$6(SyncOperationHelper.java:223)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$1(SyncOperationHelper.java:146)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:177)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$2(SyncOperationHelper.java:142)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:177)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSourceAndConnection(SyncOperationHelper.java:138)
+	at com.mongodb.internal.operation.SyncOperationHelper.executeCommand(SyncOperationHelper.java:221)
+	at com.mongodb.internal.operation.CreateIndexesOperation.execute(CreateIndexesOperation.java:117)
+	at com.mongodb.internal.operation.CreateIndexesOperation.execute(CreateIndexesOperation.java:61)
+	at com.mongodb.client.internal.MongoClusterImpl$OperationExecutorImpl.execute(MongoClusterImpl.java:474)
+	at com.mongodb.client.internal.MongoCollectionImpl.executeCreateIndexes(MongoCollectionImpl.java:942)
+	at com.mongodb.client.internal.MongoCollectionImpl.createIndexes(MongoCollectionImpl.java:924)
+	at com.mongodb.client.internal.MongoCollectionImpl.createIndexes(MongoCollectionImpl.java:919)
+	at com.mongodb.client.internal.MongoCollectionImpl.createIndex(MongoCollectionImpl.java:904)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.lambda$createIndex$0(DefaultIndexOperations.java:131)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:632)
+	... 4 more
+
+[ERROR] com.agilityhub.core.configuration.TtlIndexUpgradeIT.INC_82_anImpersonationGrantIndexAtAnotherRetentionIsDroppedAndCreatedAgain -- Time elapsed: 0.014 s <<< ERROR!
+org.springframework.data.mongodb.UncategorizedMongoDbException: Command execution failed on MongoDB server with error 13 (Unauthorized): 'not authorized on agilityhub to execute command { collMod: "impersonation_grants", index: { name: "expiresAt_1", expireAfterSeconds: 86400 }, $db: "agilityhub", lsid: { id: UUID("0fe90ca0-2995-4005-ae90-008ebfb8a36a") } }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "not authorized on agilityhub to execute command { collMod: \"impersonation_grants\", index: { name: \"expiresAt_1\", expireAfterSeconds: 86400 }, $db: \"agilityhub\", lsid: { id: UUID(\"0fe90ca0-2995-4005-ae90-008ebfb8a36a\") } }", "code": 13, "codeName": "Unauthorized"}
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.doTranslateException(MongoExceptionTranslator.java:155)
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.translateExceptionIfPossible(MongoExceptionTranslator.java:74)
+	at org.springframework.data.mongodb.core.MongoTemplate.potentiallyConvertRuntimeException(MongoTemplate.java:3202)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:613)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.alterIndex(DefaultIndexOperations.java:170)
+	at com.agilityhub.core.identity.persistence.ImpersonationGrantRepository.ensureIndexes(ImpersonationGrantRepository.java:63)
+	at com.agilityhub.core.configuration.TtlIndexUpgradeIT.INC_82_anImpersonationGrantIndexAtAnotherRetentionIsDroppedAndCreatedAgain(TtlIndexUpgradeIT.java:78)
+Caused by: com.mongodb.MongoCommandException: Command execution failed on MongoDB server with error 13 (Unauthorized): 'not authorized on agilityhub to execute command { collMod: "impersonation_grants", index: { name: "expiresAt_1", expireAfterSeconds: 86400 }, $db: "agilityhub", lsid: { id: UUID("0fe90ca0-2995-4005-ae90-008ebfb8a36a") } }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "not authorized on agilityhub to execute command { collMod: \"impersonation_grants\", index: { name: \"expiresAt_1\", expireAfterSeconds: 86400 }, $db: \"agilityhub\", lsid: { id: UUID(\"0fe90ca0-2995-4005-ae90-008ebfb8a36a\") } }", "code": 13, "codeName": "Unauthorized"}
+	at com.mongodb.internal.connection.ProtocolHelper.getCommandFailureException(ProtocolHelper.java:210)
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveCommandMessageResponse(InternalStreamConnection.java:570)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceiveInternal(InternalStreamConnection.java:494)
+	at com.mongodb.internal.connection.InternalStreamConnection.lambda$sendAndReceive$1(InternalStreamConnection.java:383)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceive(InternalStreamConnection.java:386)
+	at com.mongodb.internal.connection.UsageTrackingInternalConnection.sendAndReceive(UsageTrackingInternalConnection.java:111)
+	at com.mongodb.internal.connection.DefaultConnectionPool$PooledConnection.sendAndReceive(DefaultConnectionPool.java:757)
+	at com.mongodb.internal.connection.CommandProtocolImpl.execute(CommandProtocolImpl.java:60)
+	at com.mongodb.internal.connection.DefaultServer$DefaultServerProtocolExecutor.execute(DefaultServer.java:207)
+	at com.mongodb.internal.connection.DefaultServerConnection.executeProtocol(DefaultServerConnection.java:112)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:82)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:74)
+	at com.mongodb.internal.connection.DefaultServer$OperationCountTrackingConnection.command(DefaultServer.java:297)
+	at com.mongodb.internal.operation.SyncOperationHelper.createReadCommandAndExecute(SyncOperationHelper.java:317)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$executeRetryableRead$4(SyncOperationHelper.java:210)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$1(SyncOperationHelper.java:146)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:177)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$2(SyncOperationHelper.java:142)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:177)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSourceAndConnection(SyncOperationHelper.java:138)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$executeRetryableRead$5(SyncOperationHelper.java:208)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$decorateReadWithRetries$14(SyncOperationHelper.java:338)
+	at com.mongodb.internal.async.function.RetryingSyncSupplier.get(RetryingSyncSupplier.java:67)
+	at com.mongodb.internal.operation.SyncOperationHelper.executeRetryableRead(SyncOperationHelper.java:214)
+	at com.mongodb.internal.operation.SyncOperationHelper.executeRetryableRead(SyncOperationHelper.java:193)
+	at com.mongodb.internal.operation.CommandReadOperation.execute(CommandReadOperation.java:70)
+	at com.mongodb.client.internal.MongoClusterImpl$OperationExecutorImpl.execute(MongoClusterImpl.java:439)
+	at com.mongodb.client.internal.MongoDatabaseImpl.executeCommand(MongoDatabaseImpl.java:215)
+	at com.mongodb.client.internal.MongoDatabaseImpl.runCommand(MongoDatabaseImpl.java:184)
+	at com.mongodb.client.internal.MongoDatabaseImpl.runCommand(MongoDatabaseImpl.java:179)
+	at com.mongodb.client.internal.MongoDatabaseImpl.runCommand(MongoDatabaseImpl.java:169)
+	at org.springframework.data.mongodb.core.DefaultIndexOperations.lambda$alterIndex$0(DefaultIndexOperations.java:170)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:611)
+	... 3 more
+
+21:53:38.952 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.SecurityInventoryIT]: SecurityInventoryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:53:39.042 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.SecurityInventoryIT
+21:53:39.063 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.SecurityInventoryIT]: SecurityInventoryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:53:39.064 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:53:39.065 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.SecurityInventoryIT
+21:53:39.074 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+21:53:39.106 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 5bde9abc61414e7586820e862338a91602695d13269ebcefbe4134cbf5ebdff0
+21:53:39.585 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.510249S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-21T21:53:40.216+02:00 INFO  [main] c.a.c.configuration.SecurityInventoryIT traceId= clubId= accountId= : Starting SecurityInventoryIT using Java [redacted] with PID 54338 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-21T21:53:40.218+02:00 INFO  [main] c.a.c.configuration.SecurityInventoryIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-21T21:53:40.965+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-21T21:53:41.011+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 43 ms. Found 0 MongoDB repository interfaces.
+2026-10-21T21:53:41.305+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@408573b1], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7a3b7122, com.mongodb.Jep395RecordCodecProvider@58b5a2f3, com.mongodb.KotlinCodecProvider@25f15f50, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:57509], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5b7600ec], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-21T21:53:41.308+02:00 INFO  [cluster-6ad91845393f70b4f8405761-localhost:57509] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:57509, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1895917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=5bde9abc6141:27017, hosts=[5bde9abc6141:27017], passives=[], arbiters=[], primary='5bde9abc6141:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad91843e410de01dd969d5e, counter=6}, lastWriteDate=Wed Oct 21 21:53:39 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-21T21:53:42.206+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:42.223+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:42.242+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:42.797+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:42.811+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:42.825+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:42.883+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T21:53:45.600+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-21T21:53:45.600+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-21T21:53:45.604+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-21T21:53:45.668+02:00 INFO  [main] c.a.c.configuration.SecurityInventoryIT traceId= clubId= accountId= : Started SecurityInventoryIT in 5.591 seconds (process running for 11.178)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+E11-T16 support-restricted operations (25):
+  DELETE /api/v1/me/sessions/{id}
+  GET /api/v1/activities/export
+  GET /api/v1/activity-registrations/export
+  GET /api/v1/audit-entries/export
+  GET /api/v1/billing/exports
+  GET /api/v1/dogs/export
+  GET /api/v1/exports
+  GET /api/v1/exports/{id}
+  GET /api/v1/exports/{id}/download
+  GET /api/v1/instructor/week/export
+  GET /api/v1/invoices/export
+  GET /api/v1/members/export
+  GET /api/v1/notifications/export
+  GET /api/v1/remittances/{id}/file
+  GET /api/v1/training-bookings/export
+  PATCH /api/v1/me
+  POST /api/v1/audit-entries/export
+  POST /api/v1/dogs/export
+  POST /api/v1/me/data-export
+  POST /api/v1/me/onboarding/postpone
+  POST /api/v1/members/export
+  POST /api/v1/members/{id}/data-export
+  POST /api/v1/members/{id}/impersonation-token
+  PUT /api/v1/me/onboarding
+  PUT /api/v1/me/password
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 7.518 s <<< FAILURE! -- in com.agilityhub.core.configuration.SecurityInventoryIT
+[ERROR] com.agilityhub.core.configuration.SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler -- Time elapsed: 0.451 s <<< FAILURE!
+org.assertj.core.error.AssertJMultipleFailuresError: 
+
+Multiple Failures (7 failures)
+-- failure 1 --
+[DELETE /api/v1/members/{id}/erasure has a restricted shape: the filter closes it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:221)
+-- failure 2 --
+[DELETE /api/v1/members/{id}/erasure has a restricted shape: its handler is @SupportRestricted] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:222)
+-- failure 3 --
+[POST /api/v1/members/{id}/erasure has a restricted shape: the filter closes it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:221)
+-- failure 4 --
+[POST /api/v1/members/{id}/erasure has a restricted shape: its handler is @SupportRestricted] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:222)
+-- failure 5 --
+[DELETE /api/v1/support-accesses/{id} has a restricted shape: the filter closes it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:221)
+-- failure 6 --
+[DELETE /api/v1/support-accesses/{id} is @SupportRestricted: the filter closes it too] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:228)
+-- failure 7 --
+[DELETE /api/v1/support-accesses/{id} is @SupportRestricted: the filter's pattern names it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:235)
+	at com.agilityhub.core.configuration.SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:240)
+
+2026-10-21T21:53:46.450+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.privacy.ErasureIT]: ErasureIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:46.476+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.privacy.ErasureIT
+2026-10-21T21:53:46.476+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.privacy.ErasureIT]: ErasureIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:46.477+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.privacy.PrivacyItFixtures]: PrivacyItFixtures does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:46.477+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:46.478+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.privacy.ErasureIT
+E11-T16 step 1 before bookings:booking-by-montse: {"_id": "booking-by-montse", "clubId": "rgpd-a", "memberId": "active", "dogId": "other-dog", "state": "ACTIVE", "classStartsAt": {"$date": "2026-07-01T18:00:00Z"}, "bookedBy": {"accountId": "montse-account", "displayName": "Fictional Name"}}
+E11-T16 step 1 before bookings:booking-cancelled-by-montse: {"_id": "booking-cancelled-by-montse", "clubId": "rgpd-a", "memberId": "active", "dogId": "other-dog", "state": "CANCELLED", "classStartsAt": {"$date": "2026-07-08T18:00:00Z"}, "bookedBy": {"accountId": "active-account", "displayName": "Fictional Active"}, "cancelledBy": {"accountId": "montse-account", "role": "INSTRUCTOR", "displayName": "Fictional Name"}}
+E11-T16 step 1 before activity_registrations:registration-by-montse: {"_id": "registration-by-montse", "clubId": "rgpd-a", "memberId": "active", "state": "CANCELLED", "registeredBy": {"accountId": "montse-account", "displayName": "Fictional Name"}}
+E11-T16 step 1 before members:applicant: {"_id": "applicant", "status": "PENDING", "version": 0, "familyGroupClaim": {"status": "FOUND", "holderName": "Fictional Person montse", "dogName": "Fictional kiwi", "holderMemberId": "montse"}}
+E11-T16 step 1 after bookings:booking-by-montse: {"_id": "booking-by-montse", "clubId": "rgpd-a", "memberId": "active", "dogId": "other-dog", "state": "ACTIVE", "classStartsAt": {"$date": "2026-07-01T18:00:00Z"}, "bookedBy": {"accountId": "montse-account", "displayName": "Fictional Name"}}
+E11-T16 step 1 after bookings:booking-cancelled-by-montse: {"_id": "booking-cancelled-by-montse", "clubId": "rgpd-a", "memberId": "active", "dogId": "other-dog", "state": "CANCELLED", "classStartsAt": {"$date": "2026-07-08T18:00:00Z"}, "bookedBy": {"accountId": "active-account", "displayName": "Fictional Active"}, "cancelledBy": {"accountId": "montse-account", "role": "INSTRUCTOR", "displayName": "Fictional Name"}}
+E11-T16 step 1 after activity_registrations:registration-by-montse: {"_id": "registration-by-montse", "clubId": "rgpd-a", "memberId": "active", "state": "CANCELLED", "registeredBy": {"accountId": "montse-account", "displayName": "Fictional Name"}}
+E11-T16 step 1 after members:applicant: {"_id": "applicant", "status": "PENDING", "version": 0, "familyGroupClaim": {"status": "FOUND", "holderName": "Fictional Person montse", "dogName": "Fictional kiwi", "holderMemberId": "montse"}}
+E11-T16 step 2 before domain_events:event-failed: {"_id": "event-failed", "clubId": "rgpd-a", "type": "MemberUpdated", "aggregateId": "montse", "status": "FAILED", "attempts": 10, "payload": {"memberId": "montse", "diff": {"phones": {"before": [{"prefix": "+34", "number": "600000001"}], "after": [{"prefix": "+34", "number": "600000002"}]}}}}
+E11-T16 step 2 before job_runs:0dfe5a22-b920-4fd7-8a2b-bfd66987d120: {"_id": "0dfe5a22-b920-4fd7-8a2b-bfd66987d120", "clubId": "rgpd-a", "job": "NO_SHOW_NOTICES", "scheduledFor": {"$date": "2026-09-05T08:00:00Z"}, "scheduledForLocal": "2026-09-05T10:00", "timeZone": "Europe/Madrid", "trigger": "MANUAL", "dryRun": true, "status": "SUCCEEDED", "startedAt": {"$date": "2026-09-05T08:00:00Z"}, "finishedAt": {"$date": "2026-09-05T08:00:00Z"}, "durationMs": 0, "counters": [{"key": "notices", "value": 2}, {"key": "late", "value": 2}, {"key": "WOULD_NOTIFY", "value": 1}], "items": [{"entityType": "NoShowNoticeBatch", "entityId": "2026-09-05", "action": "WOULD_NOTIFY", "detail": [{"key": "date", "value": "2026-09-05"}, {"key": "attendanceCount", "value": 2}, {"key": "attendances", "value": [{"attendanceId": "attendance-active", "bookingId": "booking-attendance-active", "memberId": "active", "dogName": "Fictional other-dog", "classDate": "2026-08-30"}, {"attendanceId": "attendance-montse", "bookingId": "booking-attendance-montse", "memberId": "montse", "dogName": "Fictional kiwi", "classDate": "2026-08-30"}]}]}], "errors": [], "actorAccountId": "admin-account", "parametersSnapshot": [{"key": "jobs.noShowNotices.enabled", "value": true}, {"key": "messaging.noShowNoticeTime", "value": "08:00"}], "exclusive": false, "holder": "14b9153f-d5f9-4e64-b2d2-2a6b2d4ef353:e99a2551-4779-477d-9520-bad1ca291a74", "leaseExpired": false, "_class": "com.agilityhub.core.platform.persistence.jobs.JobRun"}
+E11-T16 step 2 after domain_events:event-failed: {"_id": "event-failed", "clubId": "rgpd-a", "type": "MemberUpdated", "aggregateId": "montse", "status": "FAILED", "attempts": 10, "payload": {"memberId": "montse", "diff": {"phones": {"before": [{"prefix": "+34", "number": "600000001"}], "after": [{"prefix": "+34", "number": "600000002"}]}}}}
+E11-T16 step 2 after job_runs:0dfe5a22-b920-4fd7-8a2b-bfd66987d120: {"_id": "0dfe5a22-b920-4fd7-8a2b-bfd66987d120", "clubId": "rgpd-a", "job": "NO_SHOW_NOTICES", "scheduledFor": {"$date": "2026-09-05T08:00:00Z"}, "scheduledForLocal": "2026-09-05T10:00", "timeZone": "Europe/Madrid", "trigger": "MANUAL", "dryRun": true, "status": "SUCCEEDED", "startedAt": {"$date": "2026-09-05T08:00:00Z"}, "finishedAt": {"$date": "2026-09-05T08:00:00Z"}, "durationMs": 0, "counters": [{"key": "notices", "value": 2}, {"key": "late", "value": 2}, {"key": "WOULD_NOTIFY", "value": 1}], "items": [{"entityType": "NoShowNoticeBatch", "entityId": "2026-09-05", "action": "WOULD_NOTIFY", "detail": [{"key": "date", "value": "2026-09-05"}, {"key": "attendanceCount", "value": 2}, {"key": "attendances", "value": [{"attendanceId": "attendance-active", "bookingId": "booking-attendance-active", "memberId": "active", "dogName": "Fictional other-dog", "classDate": "2026-08-30"}, {"attendanceId": "attendance-montse", "bookingId": "booking-attendance-montse", "memberId": "montse", "dogName": "Fictional kiwi", "classDate": "2026-08-30"}]}]}], "errors": [], "actorAccountId": "admin-account", "parametersSnapshot": [{"key": "jobs.noShowNotices.enabled", "value": true}, {"key": "messaging.noShowNoticeTime", "value": "08:00"}], "exclusive": false, "holder": "14b9153f-d5f9-4e64-b2d2-2a6b2d4ef353:e99a2551-4779-477d-9520-bad1ca291a74", "leaseExpired": false, "_class": "com.agilityhub.core.platform.persistence.jobs.JobRun"}
+[ERROR] Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 1.187 s <<< FAILURE! -- in com.agilityhub.core.platform.privacy.ErasureIT
+[ERROR] com.agilityhub.core.platform.privacy.ErasureIT.T_14_08_R_14_15_theErasedActorsNameLeavesTheOtherMembersBookingsRegistrationsAndClaims -- Time elapsed: 0.487 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {"accountId"="montse-account", "displayName"="Fictional Name"}
+to contain only following keys:
+  ["accountId"]
+keys not found:
+  []
+and keys not expected:
+  ["displayName"]
+
+	at com.agilityhub.core.platform.privacy.ErasureIT.T_14_08_R_14_15_theErasedActorsNameLeavesTheOtherMembersBookingsRegistrationsAndClaims(ErasureIT.java:731)
+
+[ERROR] com.agilityhub.core.platform.privacy.ErasureIT.R_15_19_R_14_15_theMonthlySweepPurgesWhatReachedTheOutboxAndTheTracesAfterTheErasure -- Time elapsed: 0.274 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting ArrayList:
+  []
+to contain:
+  ["Member:montse:WOULD_PURGE_ERASED_TRACES"]
+but could not find the following element(s):
+  ["Member:montse:WOULD_PURGE_ERASED_TRACES"]
+
+	at com.agilityhub.core.platform.privacy.ErasureIT.R_15_19_R_14_15_theMonthlySweepPurgesWhatReachedTheOutboxAndTheTracesAfterTheErasure(ErasureIT.java:849)
+
+[ERROR] com.agilityhub.core.platform.privacy.ErasureIT.R_14_15_theStepsCountTheOtherMembersDocumentsTheyChange -- Time elapsed: 0.172 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {}
+to contain entries:
+  ["bookings"=2L]
+but could not find the following map entries:
+  ["bookings"=2L]
+	at com.agilityhub.core.platform.privacy.ErasureIT.R_14_15_theStepsCountTheOtherMembersDocumentsTheyChange(ErasureIT.java:762)
+
+[ERROR] com.agilityhub.core.platform.privacy.ErasureIT.R_14_15_R_15_19_theErasureDeletesItsFailedRecordsAndTheDogNameOfTheRunTraces -- Time elapsed: 0.219 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: null
+ but was: {"_id"="event-failed", "aggregateId"="montse", "attempts"=10, "clubId"="rgpd-a", "payload"={"diff"={"phones"={"after"=[{"number"="600000002", "prefix"="+34"}], "before"=[{"number"="600000001", "prefix"="+34"}]}}, "memberId"="montse"}, "status"="FAILED", "type"="MemberUpdated"}
+	at com.agilityhub.core.platform.privacy.ErasureIT.R_14_15_R_15_19_theErasureDeletesItsFailedRecordsAndTheDogNameOfTheRunTraces(ErasureIT.java:816)
+
+2026-10-21T21:53:47.637+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.SupportAccessIT]: SupportAccessIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:47.664+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.SupportAccessIT
+2026-10-21T21:53:47.665+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.SupportAccessIT]: SupportAccessIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:47.665+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.BillingItSupport]: BillingItSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:47.665+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T21:53:47.666+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.SupportAccessIT
+E11-T16 step 3 POST /members/pere/erasure (support token): 201 {"id":"dd4252c5-a969-4f14-a172-8599fd6b2585","clubId":"bill-a","scope":"MEMBER","accountId":"bill-account-pere","memberIds":["pere"],"clubIds":["bill-a"],"source":"ADMIN","requestedByAccountId":"bill-platform","requestedAt":"2026-08-25T08:00:00Z","reason":"asked by e-mail","status":"SCHEDULED","executeAt":"2026-08-29T22:00:00Z","blockReasons":[],"erasedAt":null,"cancelledAt":null,"cancelledByAccountId":null,"version":0}
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.265 s <<< FAILURE! -- in com.agilityhub.core.platform.api.SupportAccessIT
+[ERROR] com.agilityhub.core.platform.api.SupportAccessIT.T_17_09_R_17_10_aSupportTokenNeitherSchedulesNorCancelsAMembersErasure -- Time elapsed: 0.234 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"id":"dd4252c5-a969-4f14-a172-8599fd6b2585","clubId":"bill-a","scope":"MEMBER","accountId":"bill-account-pere","memberIds":["pere"],"clubIds":["bill-a"],"source":"ADMIN","requestedByAccountId":"bill-platform","requestedAt":"2026-08-25T08:00:00Z","reason":"asked by e-mail","status":"SCHEDULED","executeAt":"2026-08-29T22:00:00Z","blockReasons":[],"erasedAt":null,"cancelledAt":null,"cancelledByAccountId":null,"version":0}] 
+expected: 403
+ but was: 201
+	at com.agilityhub.core.platform.api.SupportAccessIT.T_17_09_R_17_10_aSupportTokenNeitherSchedulesNorCancelsAMembersErasure(SupportAccessIT.java:265)
+
+[ERROR] Failures: 
+[ERROR]   SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler:240 
+Multiple Failures (7 failures)
+-- failure 1 --
+[DELETE /api/v1/members/{id}/erasure has a restricted shape: the filter closes it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:221)
+-- failure 2 --
+[DELETE /api/v1/members/{id}/erasure has a restricted shape: its handler is @SupportRestricted] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:222)
+-- failure 3 --
+[POST /api/v1/members/{id}/erasure has a restricted shape: the filter closes it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:221)
+-- failure 4 --
+[POST /api/v1/members/{id}/erasure has a restricted shape: its handler is @SupportRestricted] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:222)
+-- failure 5 --
+[DELETE /api/v1/support-accesses/{id} has a restricted shape: the filter closes it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:221)
+-- failure 6 --
+[DELETE /api/v1/support-accesses/{id} is @SupportRestricted: the filter closes it too] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:228)
+-- failure 7 --
+[DELETE /api/v1/support-accesses/{id} is @SupportRestricted: the filter's pattern names it] 
+Expecting value to be true but was false
+at SecurityInventoryIT.T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler(SecurityInventoryIT.java:235)
+[ERROR]   SupportAccessIT.T_17_09_R_17_10_aSupportTokenNeitherSchedulesNorCancelsAMembersErasure:265 [{"id":"dd4252c5-a969-4f14-a172-8599fd6b2585","clubId":"bill-a","scope":"MEMBER","accountId":"bill-account-pere","memberIds":["pere"],"clubIds":["bill-a"],"source":"ADMIN","requestedByAccountId":"bill-platform","requestedAt":"2026-08-25T08:00:00Z","reason":"asked by e-mail","status":"SCHEDULED","executeAt":"2026-08-29T22:00:00Z","blockReasons":[],"erasedAt":null,"cancelledAt":null,"cancelledByAccountId":null,"version":0}] 
+expected: 403
+ but was: 201
+[ERROR]   ErasureIT.R_14_15_R_15_19_theErasureDeletesItsFailedRecordsAndTheDogNameOfTheRunTraces:816 
+expected: null
+ but was: {"_id"="event-failed", "aggregateId"="montse", "attempts"=10, "clubId"="rgpd-a", "payload"={"diff"={"phones"={"after"=[{"number"="600000002", "prefix"="+34"}], "before"=[{"number"="600000001", "prefix"="+34"}]}}, "memberId"="montse"}, "status"="FAILED", "type"="MemberUpdated"}
+[ERROR]   ErasureIT.R_14_15_theStepsCountTheOtherMembersDocumentsTheyChange:762 
+Expecting map:
+  {}
+to contain entries:
+  ["bookings"=2L]
+but could not find the following map entries:
+  ["bookings"=2L]
+[ERROR]   ErasureIT.R_15_19_R_14_15_theMonthlySweepPurgesWhatReachedTheOutboxAndTheTracesAfterTheErasure:849 
+Expecting ArrayList:
+  []
+to contain:
+  ["Member:montse:WOULD_PURGE_ERASED_TRACES"]
+but could not find the following element(s):
+  ["Member:montse:WOULD_PURGE_ERASED_TRACES"]
+
+[ERROR]   ErasureIT.T_14_08_R_14_15_theErasedActorsNameLeavesTheOtherMembersBookingsRegistrationsAndClaims:731 
+Expecting actual:
+  {"accountId"="montse-account", "displayName"="Fictional Name"}
+to contain only following keys:
+  ["accountId"]
+keys not found:
+  []
+and keys not expected:
+  ["displayName"]
+
+[ERROR] Errors: 
+[ERROR]   TtlIndexUpgradeIT.INC_82_aSecurityEventIndexAtAnotherRetentionIsDroppedAndCreatedAgain:93 » UncategorizedMongoDb Command execution failed on MongoDB server with error 13 (Unauthorized): 'not authorized on agilityhub to execute command { collMod: "security_events", index: { name: "security_event_retention", expireAfterSeconds: 7776000 }, $db: "agilityhub", lsid: { id: UUID("0fe90ca0-2995-4005-ae90-008ebfb8a36a") } }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "not authorized on agilityhub to execute command { collMod: \"security_events\", index: { name: \"security_event_retention\", expireAfterSeconds: 7776000 }, $db: \"agilityhub\", lsid: { id: UUID(\"0fe90ca0-2995-4005-ae90-008ebfb8a36a\") } }", "code": 13, "codeName": "Unauthorized"}
+[ERROR]   TtlIndexUpgradeIT.INC_82_aSecurityEventIndexWithoutTtlOnTheSameKeyBecomesTheRetentionIndex:105 » DataIntegrityViolation Command execution failed on MongoDB server with error 85 (IndexOptionsConflict): 'An equivalent index already exists with a different name and options. Requested index: { v: 2, key: { at: 1 }, name: "security_event_retention", expireAfterSeconds: 7776000 }, existing index: { v: 2, key: { at: 1 }, name: "at_1" }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "An equivalent index already exists with a different name and options. Requested index: { v: 2, key: { at: 1 }, name: \"security_event_retention\", expireAfterSeconds: 7776000 }, existing index: { v: 2, key: { at: 1 }, name: \"at_1\" }", "code": 85, "codeName": "IndexOptionsConflict"}
+[ERROR]   TtlIndexUpgradeIT.INC_82_anImpersonationGrantIndexAtAnotherRetentionIsDroppedAndCreatedAgain:78 » UncategorizedMongoDb Command execution failed on MongoDB server with error 13 (Unauthorized): 'not authorized on agilityhub to execute command { collMod: "impersonation_grants", index: { name: "expiresAt_1", expireAfterSeconds: 86400 }, $db: "agilityhub", lsid: { id: UUID("0fe90ca0-2995-4005-ae90-008ebfb8a36a") } }' on server localhost:57502. The full response is {"ok": 0.0, "errmsg": "not authorized on agilityhub to execute command { collMod: \"impersonation_grants\", index: { name: \"expiresAt_1\", expireAfterSeconds: 86400 }, $db: \"agilityhub\", lsid: { id: UUID(\"0fe90ca0-2995-4005-ae90-008ebfb8a36a\") } }", "code": 13, "codeName": "Unauthorized"}
+[ERROR] Tests run: 10, Failures: 6, Errors: 3, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit 1

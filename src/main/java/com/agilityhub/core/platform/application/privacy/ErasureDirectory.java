@@ -15,4 +15,6 @@ public interface ErasureDirectory {
      * with `leaveDate ≤ leftOnOrBefore`, and a rejected signup (`leftReason = SIGNUP_REJECTED`) with `leftAt ≤ rejectedOnOrBefore`.
      */
     List<ErasureMember> retentionDue(LocalDate leftOnOrBefore, Instant rejectedOnOrBefore);
+    /** The members of the current club already erased (`erasedAt` set), with their dogs: S15 R-15-19's sweep of their traces (E11-T16). */
+    List<ErasureMember> erased();
 }

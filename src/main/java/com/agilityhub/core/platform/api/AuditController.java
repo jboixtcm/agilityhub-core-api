@@ -83,6 +83,7 @@ public class AuditController {
                 entry.ipHash(), entry.source())).toList();
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PostMapping("/api/v1/members/{id}/erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
@@ -102,6 +103,7 @@ public class AuditController {
             responses = @ApiResponse(responseCode = "200", description = "ErasureRequest"))
     public ErasureRequest memberErasure(@PathVariable String id) { return clubView(erasures.live(id), id); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @DeleteMapping("/api/v1/members/{id}/erasure")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

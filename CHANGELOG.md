@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T16: RGPD and support-access follow-ups of the audit of 21-10 (ruling E145), and INC-82. No contract change (`bin/openapi-snapshot`: no diff).
+  - S14 R-14-15 (S1): an erased member's name as the booker or canceller of another member's booking, and as the registrant of another member's activity registration, goes too. Another applicant's `FOUND` family claim on the erased holder keeps `status` and `holderMemberId` without `holderName`/`dogName` (the census version moves).
+  - S14 R-14-15 / S15 R-15-19 (S2): the erasure deletes the `FAILED` outbox records about its subject as well as the `PUBLISHED` ones, and unsets the dog names of P3's run traces (`job_runs.items.detail.attendances[].dogName`). The monthly `retention-sweep` gets the `PURGE_ERASED_TRACES` task (counter `erasedTracesPurged`): records published after the erasure and traces stored after it.
+  - S17 R-17-10 (S3): a support token gets `403 SUPPORT_RESTRICTED` on `POST`/`DELETE /members/{id}/erasure` (the `GET` stays readable), in the request filter and in the handlers (`@SupportRestricted`). `DELETE /support-accesses/{id}` joins the filter's pattern. `SecurityInventoryIT` checks that the shapes, the pattern and the annotations agree.
+  - R-08-07 (S4): `BookingTransactions` retries a `DuplicateKey` like the other writers (`TransactionRetries.conflict`).
+  - INC-82: the impersonation-grant and security-event TTL indexes change their retention by drop + create, never `collMod`, which the production `readWrite` user cannot run (`TtlIndexUpgradeIT` on an authenticated Mongo 7).
+  - CI runs `deploy/test_e11_t09.py`. Caddy's `forward_auth` ask drops `X-Forwarded-Uri`/`X-Forwarded-Method`. DEPLOY.md notes that the Maven wrapper's distribution download has no retry.
 - E11-T15: pre-launch money fixes from the audit of 21-10 (rulings E145–E147). The contract changes are listed in `docs/openapi/CHANGELOG.md`.
   - S12 R-12-01/06 (F1): a pack member moving to a monthly plan gets its first `nextInvoiceDate`. `POST /members/{id}/plan-change` takes an optional `nextInvoiceDate`; without one, the default is `billing.nextInvoiceDayOfMonth` of next month.
   - S12 R-12-04 (F2): a family holder without a payment method, or past its last billed month, pays for nobody. Its members are billed on their own.

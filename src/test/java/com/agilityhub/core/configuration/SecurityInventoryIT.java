@@ -1,5 +1,6 @@
 package com.agilityhub.core.configuration;
 
+import com.agilityhub.core.identity.application.SupportAccessService;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.HostTenantResolver;
 import com.agilityhub.core.platform.persistence.ClubRepository;
@@ -7,6 +8,7 @@ import com.agilityhub.core.platform.support.PlatformFixtures;
 import com.agilityhub.core.shared.api.RateLimitFilter;
 import com.agilityhub.core.shared.api.SignedFileRequests;
 import com.agilityhub.core.shared.application.RateLimits;
+import com.agilityhub.core.shared.application.SupportRestricted;
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -166,6 +168,75 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
                         .as(label + " unsigned with " + bearer).isEqualTo("VALIDATION_ERROR");
             }
         }
+        failures.assertAll();
+    }
+
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("requestMappingHandlerMapping")
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
+
+    /**
+     * The shapes of the routes S17 R-17-10 closes to a support token, written apart from {@link SupportAccessService}'s own
+     * pattern so that a new export, file, impersonation or erasure route that the pattern misses fails here: the personal-data
+     * exports and their files, the SEPA files, a member's impersonation, the scheduling and cancelling of a member's erasure
+     * (E11-T16), the account's own credentials and sessions, and the club's end of a support access.
+     */
+    static final java.util.regex.Pattern RESTRICTED_SHAPES = java.util.regex.Pattern.compile("(GET|POST) /api/v1/.*export.*|GET /api/v1/.*/files?(/.*)?"
+            + "|POST /api/v1/.*/impersonation-token|(POST|DELETE) /api/v1/members/\\{[^}]+}/erasure"
+            + "|(PUT|PATCH|DELETE|POST) /api/v1/me(/password|/sessions(/.*)?|/onboarding(/.*)?)?|DELETE /api/v1/support-accesses/.*");
+    /** Published operations of those shapes that are not a club's personal data, each with its reason. */
+    static final java.util.Map<String, String> SHAPED_BUT_OPEN = java.util.Map.of(
+            "GET /api/v1/build-sessions/{id}/export", "S16 §14.1: the course's geometry for the Unity app, no personal data",
+            "GET /api/v1/public/{clubSlug}/activities/{slug}/files/{fileId}", "anonymous: an activity's public file, no bearer is read");
+
+    /**
+     * S17 R-17-10 (E11-T16 step 3, audit 21-10 S3): the support restriction is the same list in its three places. Every published
+     * operation of a restricted shape is matched by {@link SupportAccessService#restricted} (the request filter) and its handler is
+     * {@code @SupportRestricted}, so it refuses a support token on its own as `CurrentUserFilter`'s Javadoc promises; every
+     * operation the filter restricts has an annotated handler; and no annotated handler, published or hidden (the signed SEPA
+     * file), is outside the filter's pattern.
+     */
+    @Test void T_17_09_R_17_10_everyRestrictedShapeIsFilteredAndRefusedByItsHandler() throws Exception {
+        var published = mapper.readTree(Files.readString(Path.of("docs/openapi/openapi.json")));
+        // `METHOD pattern` → its handlers (one route can have several, by `params` or `produces`): annotated = every one of them.
+        var handlers = new java.util.HashMap<String, List<org.springframework.web.method.HandlerMethod>>();
+        for (var entry : mappings.getHandlerMethods().entrySet()) {
+            for (String pattern : entry.getKey().getPatternValues()) {
+                for (var method : entry.getKey().getMethodsCondition().getMethods()) {
+                    handlers.computeIfAbsent(method.name() + " " + pattern, key -> new java.util.ArrayList<>()).add(entry.getValue());
+                }
+            }
+        }
+        var failures = new org.assertj.core.api.SoftAssertions();
+        var restricted = new java.util.TreeSet<String>();
+        for (var path : published.path("paths").properties()) {
+            for (var method : path.getValue().properties()) {
+                if (!Set.of("get", "post", "put", "patch", "delete").contains(method.getKey())) { continue; }
+                String label = method.getKey().toUpperCase() + " " + path.getKey();
+                String sample = path.getKey().replaceAll("\\{[^}]+}", "inventory-missing");
+                boolean filtered = SupportAccessService.restricted(method.getKey().toUpperCase(), sample);
+                var routed = handlers.getOrDefault(label, List.of());
+                boolean annotated = !routed.isEmpty() && routed.stream().allMatch(handler -> handler.hasMethodAnnotation(SupportRestricted.class));
+                boolean anyAnnotated = routed.stream().anyMatch(handler -> handler.hasMethodAnnotation(SupportRestricted.class));
+                if (RESTRICTED_SHAPES.matcher(label).matches() && !SHAPED_BUT_OPEN.containsKey(label)) {
+                    failures.assertThat(filtered).as(label + " has a restricted shape: the filter closes it").isTrue();
+                    failures.assertThat(annotated).as(label + " has a restricted shape: its handler is @SupportRestricted").isTrue();
+                }
+                if (filtered) {
+                    restricted.add(label);
+                    failures.assertThat(annotated).as(label + " is filtered: its handler is @SupportRestricted").isTrue();
+                }
+                if (anyAnnotated) { failures.assertThat(filtered).as(label + " is @SupportRestricted: the filter closes it too").isTrue(); }
+            }
+        }
+        for (var entry : handlers.entrySet()) {
+            if (entry.getValue().stream().noneMatch(handler -> handler.hasMethodAnnotation(SupportRestricted.class))) { continue; }
+            String method = entry.getKey().substring(0, entry.getKey().indexOf(' ')), pattern = entry.getKey().substring(entry.getKey().indexOf(' ') + 1);
+            failures.assertThat(SupportAccessService.restricted(method, pattern.replaceAll("\\{[^}]+}", "inventory-missing")))
+                    .as(entry.getKey() + " is @SupportRestricted: the filter's pattern names it").isTrue();
+        }
+        System.out.println("E11-T16 support-restricted operations (" + restricted.size() + "):");
+        restricted.forEach(label -> System.out.println("  " + label));
+        assertThat(restricted).as("the published operations closed to a support token").hasSizeGreaterThanOrEqualTo(25);
         failures.assertAll();
     }
 

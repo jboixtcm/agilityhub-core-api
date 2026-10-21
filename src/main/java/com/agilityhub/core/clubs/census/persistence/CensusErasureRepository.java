@@ -45,6 +45,20 @@ public class CensusErasureRepository {
     }
 
     /**
+     * R-14-15 with S04 R-04-12 (E11-T16): another applicant's `FOUND` claim names the erased holder and the holder's dog
+     * (`holderName`/`dogName`, as the applicant typed them): the names go, `status` and `holderMemberId` stay, and the census
+     * version moves. A `NOT_FOUND_PENDING` claim carries no holder id: nothing ties its names to the erased member.
+     */
+    public long forgetClaimedHolders(Collection<String> holderIds, Instant at) {
+        if (holderIds.isEmpty()) { return 0; }
+        writes.written(TenantContext.require());
+        var named = new Criteria().orOperator(Criteria.where("familyGroupClaim.holderName").exists(true), Criteria.where("familyGroupClaim.dogName").exists(true));
+        var claims = Query.query(club()).addCriteria(Criteria.where("familyGroupClaim.holderMemberId").in(holderIds).and("_id").nin(holderIds)).addCriteria(named);
+        return mongo.updateMulti(claims, new Update().unset("familyGroupClaim.holderName").unset("familyGroupClaim.dogName").set("updatedAt", at).inc("version", 1),
+                "members").getModifiedCount();
+    }
+
+    /**
      * R-14-15 `paymentMethod → només type + mandateRef + mandateSignedAt`: IBAN (clear or encrypted), holder, `holderTaxId` and the
      * card data go; the mandate stays where it was (the top level or the `sepa` block).
      */

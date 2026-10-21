@@ -243,7 +243,8 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
     /**
      * E11-T09 round 2 (review #3), the production upgrade: a database from before INC-37 has the grants' TTL index `expiresAt_1`
      * with `expireAfterSeconds: 0`, under which Mongo could delete a grant before the sweep ends it. At start, `ensureIndexes()`
-     * turns that same index into the day of retention; a second start changes nothing.
+     * turns it into the day of retention; a second start changes nothing. E11-T16 (INC-82): by drop + create, never `collMod`, so
+     * the one `expiresAt` index has the repository's name now (asserted on the key: `TtlIndexUpgradeIT` runs it as `readWrite`).
      */
     @Test void T_01_11_INC_37_theOldExpiryIndexBecomesTheDayOfRetention() {
         var collection = mongo.getCollection("impersonation_grants");
@@ -259,9 +260,11 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
             assertThat(index.get("expireAfterSeconds", Number.class).longValue()).isZero();
         });
         grantRepository.ensureIndexes();
+        String upgraded = onExpiresAt.get().getFirst().getString("name");
         grantRepository.ensureIndexes();
         assertThat(onExpiresAt.get()).singleElement().satisfies(index -> {
-            assertThat(index.getString("name")).isEqualTo("expiresAt_1");
+            assertThat(index.get("key", Document.class)).isEqualTo(new Document("expiresAt", 1));
+            assertThat(index.getString("name")).as("a second start leaves it alone").isEqualTo(upgraded);
             assertThat(index.get("expireAfterSeconds", Number.class).longValue()).isEqualTo(86_400);
         });
     }

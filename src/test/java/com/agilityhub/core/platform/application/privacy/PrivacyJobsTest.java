@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -111,5 +112,65 @@ class PrivacyJobsTest {
         when(remittances.counter()).thenReturn("remittanceFilesDeleted"); when(remittances.apply(any(), eq("x"))).thenReturn(true);
         assertThat(job.apply(context(false), new JobItem("Remittance", "x", "DELETE_REMITTANCE_FILE")).counters()).containsEntry("remittanceFilesDeleted", 1L);
         assertThat(job.apply(context(false), new JobItem("Other", "x", "UNKNOWN")).action()).isEqualTo("NOT_IN_SCOPE");
+    }
+
+    /**
+     * S15 R-15-19 / S14 R-14-15 (E11-T16 step 2, audit 21-10 S2): the monthly sweep purges the outbox records and run traces that
+     * reached an erased member after its erasure — one `PURGE_ERASED_TRACES` item per erased member that still has one, its dogs
+     * included — and never an active member's: the directory names only the erased ones, and an item whose member is not erased
+     * (no longer, or never) changes nothing.
+     */
+    @Test void R_15_19_R_14_15_theSweepPurgesTheTracesOfErasedMembersAndLeavesTheActiveOnes() {
+        var repository = mock(com.agilityhub.core.platform.persistence.privacy.PrivacyTraceRepository.class);
+        var traces = new PrivacyTraces(repository, directory);
+        var job = new RetentionSweepJob(directory, requests, erasures, executor, audit, List.of(traces));
+        var erased = new ErasureMember("erased", "erased-account", 87, "LEFT", LocalDate.of(2020, 8, 31), null, "LEAVE_REQUEST", AT.minusSeconds(86_400), List.of("erased-dog"));
+        var clean = new ErasureMember("clean", "clean-account", 88, "LEFT", LocalDate.of(2020, 8, 31), null, "LEAVE_REQUEST", AT.minusSeconds(86_400), List.of());
+        var active = new ErasureMember("active", "active-account", 12, "ACTIVE", null, null, null, null, List.of("active-dog"));
+        when(directory.erased()).thenReturn(List.of(erased, clean));
+        when(repository.traced(List.of("erased", "clean"), Map.of("erased-dog", "erased"))).thenReturn(new java.util.TreeSet<>(List.of("erased")));
+        var items = job.plan(context(false));
+        assertThat(items).extracting(JobItem::entityType, JobItem::entityId, JobItem::action).containsExactly(tuple("Member", "erased", "PURGE_ERASED_TRACES"));
+        verify(recorder).count("erasedTracesPurged", 0);
+        when(directory.member("erased")).thenReturn(Optional.of(erased));
+        when(repository.deleteProcessedEvents(java.util.Set.of("erased"), List.of("erased-dog"))).thenReturn(1L);
+        var effect = job.apply(context(false), items.getFirst());
+        assertThat(effect.action()).isEqualTo("PURGE_ERASED_TRACES");
+        assertThat(effect.counters()).containsEntry("erasedTracesPurged", 1L);
+        verify(repository).forgetDogNames(java.util.Set.of("erased"));
+        // Only the run traces were left: still done.
+        when(repository.deleteProcessedEvents(java.util.Set.of("erased"), List.of("erased-dog"))).thenReturn(0L);
+        when(repository.forgetDogNames(java.util.Set.of("erased"))).thenReturn(1L);
+        assertThat(job.apply(context(false), items.getFirst()).counters()).containsEntry("erasedTracesPurged", 1L);
+        // Nothing left (a second sweep, a concurrent one): out of scope, nothing counted.
+        when(repository.forgetDogNames(java.util.Set.of("erased"))).thenReturn(0L);
+        assertThat(job.apply(context(false), items.getFirst()).action()).isEqualTo("NOT_IN_SCOPE");
+        // An active member's records are never the sweep's, even named by a forged item; a member gone from the club neither.
+        when(directory.member("active")).thenReturn(Optional.of(active));
+        when(directory.member("gone")).thenReturn(Optional.empty());
+        for (String id : List.of("active", "gone")) {
+            var refused = job.apply(context(false), new JobItem("Member", id, "PURGE_ERASED_TRACES"));
+            assertThat(refused.action()).isEqualTo("NOT_IN_SCOPE");
+            assertThat(refused.counters()).containsEntry("erasedTracesPurged", 0L);
+        }
+        verify(repository, never()).deleteProcessedEvents(ArgumentMatchers.<java.util.Collection<String>>argThat(ids -> ids.contains("active") || ids.contains("gone")),
+                ArgumentMatchers.<java.util.Collection<String>>any());
+        verify(repository, never()).forgetDogNames(ArgumentMatchers.<java.util.Collection<String>>argThat(ids -> ids.contains("active") || ids.contains("gone")));
+        // A club without erased members asks the traces nothing.
+        when(directory.erased()).thenReturn(List.of());
+        reset(repository);
+        assertThat(traces.due(context(false))).isEmpty();
+        verifyNoInteractions(repository);
+    }
+
+    /** E11-T16 step 2: the erasure itself deletes the `PUBLISHED` and `FAILED` records about its subject and the dog names of its run traces. */
+    @Test void R_14_15_theErasureStepCountsTheRecordsAndTracesItForgets() {
+        var repository = mock(com.agilityhub.core.platform.persistence.privacy.PrivacyTraceRepository.class);
+        var member = new ErasureMember("erased", "erased-account", 87, "LEFT", LocalDate.of(2020, 8, 31), null, "LEAVE_REQUEST", null, List.of("erased-dog"));
+        var subject = new ErasureSubject("request-1", "club-a", List.of(member), java.util.Set.of(), Map.of(),
+                new ErasurePlaceholders("Abonat suprimit", "Compte suprimit", "Gos suprimit", "(suprimit)"), AT);
+        when(repository.deleteProcessedEvents(subject.memberIds(), subject.dogIds())).thenReturn(2L);
+        when(repository.forgetDogNames(subject.memberIds())).thenReturn(1L);
+        assertThat(new PrivacyTraces(repository, directory).erase(subject).documents()).containsEntry("domain_events", 2L).containsEntry("job_runs", 1L);
     }
 }

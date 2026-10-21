@@ -250,6 +250,44 @@ class SupportAccessIT extends BillingItSupport {
         assertThat(mongo.count(Query.query(Criteria.where("action").is("SUPPORT_ACCESS_ENDED")), "audit_entries")).isEqualTo(1);
     }
 
+    /**
+     * S17 R-17-10, MATRIU «RGPD» (E11-T16 step 3, audit 21-10 S3): a support token neither schedules nor cancels a member's
+     * erasure — the irreversible pseudonymisation of R-14-15 is the club's own decision — while it still reads the request the
+     * club made (`GET`). Both refusals are `403 SUPPORT_RESTRICTED`, before anything is written; the club's ADMIN does both.
+     */
+    @Test void T_17_09_R_17_10_aSupportTokenNeitherSchedulesNorCancelsAMembersErasure() throws Exception {
+        mongo.remove(Query.query(Criteria.where("clubIds").in(CLUB, OTHER)), "erasure_requests");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("pere")), new org.springframework.data.mongodb.core.query.Update()
+                .set("leaveDate", "2026-07-31").set("leftAt", java.util.Date.from(java.time.Instant.parse("2026-07-31T10:00:00Z"))).set("leftReason", "LEAVE_REQUEST"), "members");
+        String token = token();
+        var scheduled = as(token, post("/api/v1/members/pere/erasure").contentType("application/json").content("{\"reason\":\"asked by e-mail\"}"));
+        System.out.println("E11-T16 step 3 POST /members/pere/erasure (support token): " + scheduled.getStatus() + " " + scheduled.getContentAsString());
+        assertThat(scheduled.getStatus()).as(scheduled.getContentAsString()).isEqualTo(403);
+        assertThat(code(scheduled)).isEqualTo("SUPPORT_RESTRICTED");
+        assertThat(mongo.count(new Query(), "erasure_requests")).isZero();
+        assertThat(mongo.count(Query.query(Criteria.where("action").is("ERASURE_REQUESTED")), "audit_entries")).isZero();
+        // The club's ADMIN schedules it; the support token reads it and cannot cancel it.
+        assertThat(ok(admin(post("/api/v1/members/pere/erasure").contentType("application/json").content("{}")), 201).path("status").asText()).isEqualTo("SCHEDULED");
+        var read = as(token, get("/api/v1/members/pere/erasure"));
+        assertThat(read.getStatus()).as(read.getContentAsString()).isEqualTo(200);
+        assertThat(json(read).path("status").asText()).isEqualTo("SCHEDULED");
+        var cancelled = as(token, delete("/api/v1/members/pere/erasure"));
+        System.out.println("E11-T16 step 3 DELETE /members/pere/erasure (support token): " + cancelled.getStatus() + " " + cancelled.getContentAsString());
+        assertThat(cancelled.getStatus()).as(cancelled.getContentAsString()).isEqualTo(403);
+        assertThat(code(cancelled)).isEqualTo("SUPPORT_RESTRICTED");
+        assertThat(mongo.findOne(new Query(), Document.class, "erasure_requests").getString("status")).isEqualTo("SCHEDULED");
+        assertThat(mongo.count(Query.query(Criteria.where("action").is("ERASURE_CANCELLED")), "audit_entries")).isZero();
+        // A spelling of the path that Spring routes to the same handler is refused too.
+        var encoded = as(token, delete(URI.create("/api/v1/members/pere/%65rasure")));
+        assertThat(encoded.getStatus()).as(encoded.getContentAsString()).isEqualTo(403);
+        assertThat(code(encoded)).isEqualTo("SUPPORT_RESTRICTED");
+        for (String method : List.of("POST", "DELETE")) {
+            assertThat(com.agilityhub.core.identity.application.SupportAccessService.restricted(method, "/api/v1/members/pere/erasure")).as(method).isTrue();
+        }
+        assertThat(com.agilityhub.core.identity.application.SupportAccessService.restricted("GET", "/api/v1/members/pere/erasure")).isFalse();
+        ok(admin(delete("/api/v1/members/pere/erasure")), 204);
+    }
+
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("requestMappingHandlerMapping")
     org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
 

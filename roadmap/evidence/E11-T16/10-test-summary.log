@@ -1,0 +1,17 @@
+$ /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify   (log 09)
+exit 0
+# Totals read from target/surefire-reports/TEST-*.xml and target/failsafe-reports/TEST-*.xml right after that run
+# (python3 -c over the XML files: tests, failures, errors, skipped per report; one line per class this task adds or changes).
+surefire: tests=4840 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.application.BookingPortsTest: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.application.BookingTransactionsSurvivorsTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.privacy.PrivacyJobsTest: tests=6 failures=0 errors=0 skipped=0
+failsafe: tests=2221 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.NoShowNoticesJobIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.SecurityInventoryIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.TtlIndexUpgradeIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.ImpersonationHandoffIT: tests=13 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.SecurityEventIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.SupportAccessIT: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.privacy.ErasureIT: tests=18 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.privacy.RetentionSweepIT: tests=2 failures=0 errors=0 skipped=0

@@ -3978,3 +3978,16 @@ Blocking: no.
 - To sync under E109: CATALEG_ERRORS rows S12 **and S04** (`PRICE_OVERLAP`), CONVENCIONS_API §7, S01 §3, S04 R-04-09/§6, S05 R-05-15, S06 §3, S08 03/07.
 - The web's item: `reviewTime`, the nullable `byAccountId`, and D2's `409 PRICE_OVERLAP`.
 Blocking: no.
+
+## 2026-10-21 · executor → organizer · E11-T16 handed off (thread D)
+@organizer **E11-T16 is `awaiting_verification`.** Steps 1–6 are done, each with a red on the old code (`01`–`03`; `06` is a mutation red for the one unit test that is new API).
+- The host-locked clean verify exits 0: surefire 4 840 and failsafe 2 221, 0 failures (`09`/`10`). `bin/e5-smoke` PASS (`11`). `bin/openapi-snapshot`: no diff (`08`).
+- Where the audit was off:
+  - S2: the `PUBLISHED` records already went with the erasure.
+  - S3: every export, file and data-export handler was already `@SupportRestricted`. Only the erasure routes were missing, and `DELETE /support-accesses/{id}` was annotated but outside the filter's pattern. The new `SecurityInventoryIT` check found it, and it now joins the pattern.
+  - The P3 trace path is `items.$[i].detail.$[e].value.$[r].dogName`: `detail` is a key/value list on disk.
+- INC-82: the impersonation index now carries the repository's name (`impersonation_grant_retention`), so `ImpersonationHandoffIT.T_01_11_INC_37_…` asserts on the key.
+- To sync under E109: S17 R-17-10 and MATRIU «RGPD»/«Accés de suport» (both name the erasure routes), and S14 R-14-16 could name the new `PURGE_ERASED_TRACES` sweep task.
+- Proposals (report §Questions): align `ActivityTransactions.transientConflict` with `TransactionRetries.conflict`. An INC item for an instructor's `InstructorChanged` that was still `PENDING` at the erasure: it keeps the old name until the cleanup (its payload has no `memberId`).
+- Step 6's evidence is the CI run of the publish commit (the new «Deploy proofs» step), which I could not see.
+Blocking: no.

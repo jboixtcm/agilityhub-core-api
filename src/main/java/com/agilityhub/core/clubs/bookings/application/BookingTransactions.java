@@ -11,7 +11,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * S08 §6 booking transactions: one Mongo transaction per operation, retried on `WriteConflict` /
+ * S08 §6 booking transactions: one Mongo transaction per operation, retried on `WriteConflict` / `DuplicateKey` /
  * `TransientTransactionError` (at most 3 attempts, the shared 50–150 ms randomised backoff of
  * {@link TransactionRetries#jitter()}), never after a commit.
  *
@@ -49,10 +49,9 @@ public class BookingTransactions {
             }
         }
     }
-    public static boolean transientConflict(Throwable failure) {
-        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
-            if (cause instanceof com.mongodb.MongoException mongo && (mongo.getCode() == 112 || mongo.hasErrorLabel("TransientTransactionError"))) { return true; }
-        }
-        return false;
-    }
+    /**
+     * The conflict the other retried writers retry (E11-T16, {@link TransactionRetries#conflict}): a write conflict, a duplicate
+     * key (the first `seat_locks` upsert of a class after its `seat_lock_ttl`) or a `TransientTransactionError`.
+     */
+    public static boolean transientConflict(Throwable failure) { return TransactionRetries.conflict(failure); }
 }

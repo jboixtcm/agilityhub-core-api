@@ -79,6 +79,30 @@ class BookingTransactionsSurvivorsTest {
         assertThat(calls.get()).isEqualTo(1);
     }
 
+    /**
+     * E5-T07 / R-08-07 (E11-T16 step 4, audit 21-10 S4): the booking writers retry what `TransactionRetries.conflict` retries for
+     * S05, S06, S09 and `JobRunner.write`, a duplicate key too — the first `seat_locks` upsert of a class after the seven-day
+     * `seat_lock_ttl` can raise one — counted as `duplicate_key`; a duplicate key in the chain of another failure too.
+     */
+    @Test void T_08_29_R_08_07_aDuplicateKeyOnTheFirstAttemptIsRetriedAndCounted() {
+        when(template.execute(any())).thenAnswer(inv -> {
+            int call = calls.incrementAndGet();
+            if (call == 1) { throw new org.springframework.dao.DuplicateKeyException("E11000 duplicate key error collection: seat_locks"); }
+            if (call == 2) { throw new IllegalStateException(new MongoException(11000, "E11000 duplicate key error collection: seat_locks")); }
+            return "booking-1";
+        });
+        var transactions = new BookingTransactions(template, new LocalLanes(false), retries);
+
+        try (var tenant = TenantContext.open("club-a")) {
+            assertThat(transactions.write(List.of("class-a"), () -> "work")).isEqualTo("booking-1");
+        }
+
+        assertThat(calls.get()).isEqualTo(3);
+        assertThat(retries.retries(BookingTransactions.CONTEXT, "duplicate_key")).isEqualTo(2);
+        assertThat(retries.exhaustions(BookingTransactions.CONTEXT)).isZero();
+        assertThat(BookingTransactions.transientConflict(new org.springframework.dao.DuplicateKeyException("E11000"))).isTrue();
+    }
+
     private static MongoException transientError() {
         var error = new MongoException("Transaction aborted");
         error.addLabel("TransientTransactionError");

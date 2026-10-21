@@ -43,14 +43,17 @@ public class SupportAccessService implements ConsoleSupportAccess {
     public static final String CLIENT = "clubs-admin";
     /**
      * `METHOD path` of the routes a support token never reaches: every personal-data export and its files (S14), the SEPA files,
-     * which carry full IBANs (S12), the club's member impersonation (S01 R-01-09) and the platform account's own credentials and
-     * sessions. The members' and the club's IBANs are masked everywhere else already (R-03-27, R-17-05).
+     * which carry full IBANs (S12), the club's member impersonation (S01 R-01-09), the scheduling and cancelling of a member's
+     * erasure (S14 R-14-14, E11-T16: the irreversible pseudonymisation is the club's decision; the `GET` stays readable), the
+     * platform account's own credentials and sessions, and the club's end of a support access. The members' and the club's IBANs
+     * are masked everywhere else already (R-03-27, R-17-05). Each handler is `@SupportRestricted` too (`SecurityInventoryIT`).
      */
     static final Pattern RESTRICTED = Pattern.compile("(GET|POST) /api/v1/[a-z-]+/export|(GET|POST) /api/v1/instructor/week/export"
             + "|GET /api/v1/exports(/.*)?|GET /api/v1/billing/exports|POST /api/v1/(members/[^/]+|me)/data-export"
             + "|GET /api/v1/remittances/[^/]+/file|GET /api/v1/remittances/files/.+"
-            + "|POST /api/v1/members/[^/]+/impersonation-token"
-            + "|(PUT|PATCH|DELETE|POST) /api/v1/me(/password|/sessions(/[^/]+)?|/onboarding(/postpone)?)?");
+            + "|POST /api/v1/members/[^/]+/impersonation-token|(POST|DELETE) /api/v1/members/[^/]+/erasure"
+            + "|(PUT|PATCH|DELETE|POST) /api/v1/me(/password|/sessions(/[^/]+)?|/onboarding(/postpone)?)?"
+            + "|DELETE /api/v1/support-accesses/[^/]+");
     private final ImpersonationGrantRepository grants; private final AccountRepository accounts; private final AuthSettings settings;
     private final EventPublisher events; private final JwtEncoder encoder; private final Clock clock; private final String issuer;
     public SupportAccessService(ImpersonationGrantRepository grants, AccountRepository accounts, AuthSettings settings, EventPublisher events,

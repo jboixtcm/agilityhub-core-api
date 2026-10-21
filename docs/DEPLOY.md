@@ -41,6 +41,9 @@ The private identity is supplied only to an explicit verification/recovery run.
    bootstrap creates `rs0`, the app account (`readWrite` on its database only)
    and backup account (Mongo's built-in `backup` role only). Existing
    users are **never reset from env**; a stale app/backup password fails health.
+   `readWrite` has `createIndex` and `dropIndex` but not `collMod`: the Core
+   changes a TTL at startup by dropping and creating the index (INC-82,
+   E11-T16, `TtlIndexUpgradeIT`), so never grant the app account more.
    On a pre-round-2 installation, an operator must replace the stored backup
    user's roles with only `{role: "backup", db: "admin"}` before enabling cron;
    changing the bootstrap file alone does not revoke an existing `hostManager`.
@@ -376,7 +379,8 @@ and refuses another ([Caddy's ask contract](https://caddyserver.com/docs/caddyfi
 accordingly (`(club_spa)` in `deploy/Caddyfile`). The Core reads the answer from the domain after the verification commits (it
 keeps only found hosts, five minutes at most, and empties that cache after every domain change), so a verified back-office host
 serves the back office at once. The route answers only the internal network, like the ask: Caddy sends it without the
-client's forwarding headers, credentials or cookies, and drops any `X-Club-App` the client sent. It is not in the public
+client's forwarding headers, credentials or cookies, without `forward_auth`'s own `X-Forwarded-Uri`/`X-Forwarded-Method`
+(the client's URI and method, E11-T16), and drops any `X-Club-App` the client sent. It is not in the public
 contract, and the public sites never proxy `/internal/*`. If the Core is down, the catch-all answers `502` instead of the
 SPA (the SPA cannot work without the Core anyway); the product hosts (`ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`) keep their
 own static sites.
@@ -463,7 +467,8 @@ resolver failure and an unresolved product host (`SKIPPED`, nothing counted), th
 members' SPA, then a `VERIFIED` `clubs-admin` domain is written for it while Caddy runs (the local stack has no DNS egress,
 so the write stands for the console's verification commit), and the next request serves the back office. Caddy's
 configuration and container are the same before and after (no reload), and a client's own `X-Club-App` changes nothing.
-`deploy/test_e11_t09.py` runs the same `(club_spa)` snippet in a real Caddy against a stub of the route.
+`deploy/test_e11_t09.py` runs the same `(club_spa)` snippet in a real Caddy against a stub of the route; CI's `tests` job
+runs it on every push (E11-T16; it pulls `caddy:2.10.2-alpine`).
 
 ### Environment inventory (source, purpose and rotation)
 
@@ -640,7 +645,10 @@ both `linux/amd64` and `linux/arm64` after tests, coverage, OpenAPI and the secr
 scan pass on a `main` push. PRs and manual runs only validate; GitHub's existing
 `[skip ci]` push behavior remains in force. Actions are pinned to commits.
 The build stage uses the builder's native architecture for the portable Java jar;
-the runtime uses the requested target architecture. See the
+the runtime uses the requested target architecture. Its Maven step retries a dependency download that Maven Central answers
+with a transient 5xx (E11-T09 round 2), but the Maven wrapper's own download of the Maven distribution
+(`.mvn/wrapper/maven-wrapper.properties`, `distributionUrl`) has no retry: a 5xx there fails the image job, and re-running
+the job is the remedy. See the
 [Docker multi-platform workflow](https://docs.docker.com/build/ci/github-actions/multi-platform/).
 
 The first package publication is private by default and the workflow associates
@@ -1363,7 +1371,9 @@ parameter, and no deployment needs to set it at R1. The lanes are fair in-proces
 burst on one last seat queues instead of exhausting its retries. The guarantees that hold across instances are:
 
 - S07 registrations: the `$inc registrationSeq` on the activity, `WriteConflict` → at most 3 retries (R-07-08).
-- S08 holds, bookings and waiting lists: the `$inc` on `seat_locks` per class, at most 3 attempts (R-08-07).
+- S08 holds, bookings and waiting lists: the `$inc` on `seat_locks` per class, at most 3 attempts (R-08-07), retrying a
+  `WriteConflict`, a `DuplicateKey` (the first upsert of a class's seat lock after `seat_lock_ttl`) or a transient error like
+  the other writers (E11-T16).
 - S09 free training: the partial unique index `training_active_seat` and the `$inc` of `Dog.trainingSeq` (always) and
   `Member.trainingSeq` (unit `MEMBER`), at most 3 attempts (R-09-06). The ring-slot sequences in `ring_slot_locks`
   (one document per ring and training grid slot) are written by a training booking (its own slot) and by every write

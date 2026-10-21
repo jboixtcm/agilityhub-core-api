@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component;
  * its `JobRun` and `SchedulerRun`): (a) `LEFT` members with `leaveDate + rgpd.retentionYearsAfterLeave ≤ today` and (b, INC-10)
  * rejected signups with `leftAt + rgpd.rejectedSignupRetentionDays ≤ today` get an `ErasureRequest{source: RETENTION}` executed at
  * once (a blocked one stays `BLOCKED` for the console); (c) and (e) are the owning contexts' {@link RetentionTask}s; (d) audit
- * entries older than `audit.retentionYears` are purged. (f) security events expire through their TTL index (R-14-17).
+ * entries older than `audit.retentionYears` are purged. (f) security events expire through their TTL index (R-14-17). E11-T16:
+ * the erased members' outbox records and run traces left after their erasure are one more task ({@link PrivacyTraces}).
  */
 @Component
 public class RetentionSweepJob implements Job {

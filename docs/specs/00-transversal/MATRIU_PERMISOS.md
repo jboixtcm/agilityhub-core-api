@@ -32,9 +32,9 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | Inactivitat / baixa | — | W sol·licitud pròpia | — | RW + X (aprovar, denegar, data d'efecte) | — |
 | Tauler D1, KPIs | — | — | — | R | R agregat per club (consola) |
 | Auditoria | — | — | — | R | R plataforma |
-| RGPD: paquet de dades, supressió (S14) | — | X paquet propi (`/me/data-export`) | — | X paquet i supressió d'un abonat | X supressió de compte |
+| RGPD: paquet de dades, supressió (S14) | — | X paquet propi (`/me/data-export`) | — | X paquet i supressió d'un abonat (un token de suport, no: `POST /members/{id}/data-export` i `POST`/`DELETE /members/{id}/erasure` → `403 SUPPORT_RESTRICTED`; el `GET /members/{id}/erasure` sí; E11-T16) | X supressió de compte |
 | Processos programats (S15) | — | — | — | R execucions · X interruptors, executar ara, dry run | R/X tots els clubs |
-| Accés de suport de plataforma (S17) | — | — | — | — | X (token `support`, auditat, sense IBAN ni exports) |
+| Accés de suport de plataforma (S17) | — | — | — | — | X (token `support`, auditat, sense IBAN ni exports ni sol·licitar o anul·lar supressions, R-17-10) |
 | Recorreguts `/courses` | — | R visibles (CLUB/PUBLIC) | RW del club · X importar Smarter | RW · X publicar al club | RW `AGILITYHUB` (públics) |
 | Rings (geometria), col·locacions, recorregut muntat, sessions de muntatge, inventari | — | R recorregut muntat (08/10) | RW (registrar muntat, sessió de muntatge) | RW | — |
 | Consola de clubs `/platform/*` | — | — | — | — | RW + X (crear club, mòduls, dominis, proveïdors, suspendre) |

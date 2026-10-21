@@ -50,8 +50,18 @@ public class CensusErasure implements ErasureDirectory, ErasureStep, MemberDataS
             return left != null && !left.isAfter(leftOnOrBefore);
         }).map(this::view).toList();
     }
+    @Override public List<ErasureMember> erased() {
+        var erased = members.matching(Criteria.where("erasedAt").ne(null));
+        if (erased.isEmpty()) { return List.of(); }
+        var dogsOf = new java.util.HashMap<String, List<String>>();
+        dogs.matching(Criteria.where("memberId").in(erased.stream().map(member -> member.id).toList()))
+                .forEach(dog -> dogsOf.computeIfAbsent(dog.memberId, ignored -> new java.util.ArrayList<>()).add(dog.id));
+        return erased.stream().map(member -> view(member, dogsOf.getOrDefault(member.id, List.of()))).toList();
+    }
     private ErasureMember view(Member member) {
-        var dogIds = dogs.matching(Criteria.where("memberId").is(member.id)).stream().map(dog -> dog.id).toList();
+        return view(member, dogs.matching(Criteria.where("memberId").is(member.id)).stream().map(dog -> dog.id).toList());
+    }
+    private static ErasureMember view(Member member, List<String> dogIds) {
         return new ErasureMember(member.id, member.accountId, member.memberNumber, member.status, member.leaveDate, member.leftAt,
                 member.leftReason, member.erasedAt, dogIds);
     }
@@ -72,7 +82,8 @@ public class CensusErasure implements ErasureDirectory, ErasureStep, MemberDataS
             if (stored == null) { continue; }
             if (erasure.eraseMember(stored, subject.placeholders().member(), ErasurePlaceholders.number(member.memberNumber()), subject.requestId(), subject.at())) { erased++; }
         }
-        return effect.count("members", erased).build();
+        // E11-T16: the other applicants' claims that name an erased member as their group's holder.
+        return effect.count("members", erased + erasure.forgetClaimedHolders(ids, subject.at())).build();
     }
 
     /**

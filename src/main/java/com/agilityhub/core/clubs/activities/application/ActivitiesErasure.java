@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * S14 WP-14-D, S07 (a collection added after S14 was written): an `ACTIVE` or `WAITLISTED` registration to an activity still to
- * start is a future booking (R-14-14 `FUTURE_BOOKINGS`); R-14-15 keeps the registrations and drops the member's own name as registrant.
+ * start is a future booking (R-14-14 `FUTURE_BOOKINGS`); R-14-15 keeps the registrations and drops the member's name as registrant,
+ * from another member's registration too (E11-T16).
  */
 @Component
 public class ActivitiesErasure implements ErasureCheck, ErasureStep {
