@@ -173,7 +173,13 @@ public final class BillingContracts {
     public record PeriodSimulation(@Schema(format = "uuid") String id, Instant at, SimulationKpis kpis, List<BillingIncident> incidents, List<CashMember> cashMembers) { }
     public record PeriodRun(@Schema(format = "uuid") String id, BillingRunStatus status, ByProvider byProvider, boolean rollbackable,
             List<RollbackBlocker> rollbackBlockers) { }
-    public record PeriodRemittance(@Schema(format = "uuid") String id, RemittanceStatus status, boolean fileAvailable) { }
+    @Schema(description = "requestedCollectionDate: the remittance's collection date (club-local). submissionDue (E147, E11-T15): still GENERATED and the "
+            + "club-local day is the one before it or later — D6 warns «marca la remesa com a enviada»; from the date itself the run cannot be rolled "
+            + "back (COLLECTION_DATE_PASSED)")
+    public record PeriodRemittance(@Schema(format = "uuid") String id, RemittanceStatus status, boolean fileAvailable, LocalDate requestedCollectionDate,
+            boolean submissionDue) { }
+    @Schema(description = "200 of PUT /members/{id}/next-invoice-date (E146)")
+    public record NextInvoiceDate(LocalDate nextInvoiceDate) { }
     @Schema(description = "D6's chips: Tots · Pendents · Remesats · Cobrats · Impagats")
     public record InvoiceCounts(@Schema(minimum = "0") long all, @Schema(minimum = "0") long pending, @Schema(minimum = "0") long remitted,
             @Schema(minimum = "0") long paid, @Schema(minimum = "0") long failed) { }

@@ -160,6 +160,44 @@ class InvoiceActionsIT extends BillingItSupport {
         assertThat(ok(admin(get("/api/v1/invoices").param("sort", "memberLastName,asc")), 200).path("items").findValuesAsText("displayNumber")).first().isEqualTo("2026-0912");
     }
 
+    /**
+     * E11-T15 step 11 (the audit of 21-10, F11; R-12-19, R-12-26): an adjustment for December created on 28-11 is December's —
+     * D6's December list and December's accounting export — not November's. Without `period` it is the issue month, as before; at
+     * most three months either side of it.
+     */
+    @Test void R_12_19_R_12_26_aManualReceiptCarriesTheMonthItIsFor() throws Exception {
+        clock.setInstant(java.time.Instant.parse("2026-11-28T09:00:00Z"));
+        var lines = List.of(Map.of("description", "Ajust quota desembre", "base", Map.of("amountMinor", 1500, "currency", "EUR"), "taxPercent", 0));
+        var december = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "vila", "period", "2026-12", "lines", lines, "note", "Ajust de desembre"))), 201);
+        assertThat(december.path("period").asText()).isEqualTo("2026-12");
+        assertThat(december.path("issueDate").asText()).isEqualTo("2026-11-28");
+        assertThat(mongo.findById(december.path("id").asText(), Document.class, "invoices").getString("period")).isEqualTo("2026-12");
+        var listed = new ArrayList<String>();
+        ok(admin(get("/api/v1/invoices").param("filter", "period:eq:2026-12")), 200).path("items").forEach(item -> listed.add(item.path("id").asText()));
+        assertThat(listed).containsExactly(december.path("id").asText());
+        var export = call(admin(get("/api/v1/billing/exports").param("period", "2026-12")));
+        assertThat(export.getStatus()).isEqualTo(200);
+        assertThat(export.getContentAsString(java.nio.charset.StandardCharsets.UTF_8)).contains(december.path("displayNumber").asText(), "Ajust quota desembre");
+        assertThat(call(admin(get("/api/v1/billing/exports").param("period", "2026-11"))).getContentAsString(java.nio.charset.StandardCharsets.UTF_8))
+                .doesNotContain(december.path("displayNumber").asText());
+        // Without a period: the issue month, as before.
+        var november = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "vila", "lines", lines, "note", "Ajust"))), 201);
+        assertThat(november.path("period").asText()).isEqualTo("2026-11");
+        // Three months either side of the issue month; anything else, or not a month, is 400 on `period` and takes no number.
+        assertThat(ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "vila", "period", "2026-08", "lines", lines, "note", "Ajust"))), 201)
+                .path("period").asText()).isEqualTo("2026-08");
+        assertThat(ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "vila", "period", "2027-02", "lines", lines, "note", "Ajust"))), 201)
+                .path("period").asText()).isEqualTo("2027-02");
+        long before = invoices().size();
+        for (String period : List.of("2026-07", "2027-03", "2026-13", "desembre")) {
+            var refused = call(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "vila", "period", period, "lines", lines, "note", "Ajust"))));
+            assertThat(refused.getStatus()).as(period + " " + refused.getContentAsString()).isEqualTo(400);
+            assertThat(json(refused).path("code").asText()).isEqualTo("VALIDATION_ERROR");
+            assertThat(json(refused).at("/details/fieldErrors/0/field").asText()).as(period).isEqualTo("period");
+        }
+        assertThat(invoices()).hasSize((int) before);
+    }
+
     @Test void T_12_12_anIssuedInvoiceHasNoPatchItsRepositoryNeverReplacesItAndCollectionsAreAppendOnly() throws Exception {
         error(admin(patch("/api/v1/invoices/" + id("puig")).contentType("application/json").content("{\"total\":{\"amountMinor\":6000,\"currency\":\"EUR\"}}")), 405, "METHOD_NOT_ALLOWED");
         try (var tenant = TenantContext.open(CLUB)) {

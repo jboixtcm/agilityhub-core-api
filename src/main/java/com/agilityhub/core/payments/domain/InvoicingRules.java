@@ -15,13 +15,16 @@ import java.util.*;
  * <li>R-12-01: `ACTIVE` (inside an inactivity period too), `nextInvoiceDate ≤` the last day of `M`, a payment method, and
  * `M ≤ lastInvoicedMonth` when the member is leaving; anything else is out of the month. R-12-25 (ruling E87): unbilled
  * `PendingCharge`s make a member due for them whatever its date — a single-class member usually has none — and a member due
- * only for them gets their lines and keeps its date (the run gives no date to a plan without a periodic fee).</li>
- * <li>R-12-02/03: `MONTHLY` → one `MONTHLY_FEE` at the price current on the issue date, replaced by `INACTIVITY_FEE` when the
- * member owes one for the month, or `MAINTENANCE_FEE` when the plan's billing mode is `MAINTENANCE`; without a current price
- * the member is skipped (`NO_PRICE`), never invented. `PACK` → no periodic line. Every unbilled `PendingCharge` → one
- * `SINGLE_CLASS` line (they only exist for single classes). Total 0 or no line → no invoice, the date still advances.</li>
+ * only for them gets their lines and keeps its date (the run gives no date to a plan without a periodic fee). E11-T15: a
+ * `MONTHLY` member without a date is skipped with `NO_NEXT_INVOICE_DATE` (D6 lists it), never silently left out.</li>
+ * <li>R-12-02/03: `MONTHLY` → one `MONTHLY_FEE` a month at the price current on the issue date, replaced by `INACTIVITY_FEE`
+ * when the member owes one for the month, or `MAINTENANCE_FEE` when the plan's billing mode is `MAINTENANCE`; the months are
+ * `month(nextInvoiceDate)` to `M`, so a month skipped earlier is billed with `M` (E11-T15); without a current price the member
+ * is skipped (`NO_PRICE`), never invented. `PACK` → no periodic line. Every unbilled `PendingCharge` → one `SINGLE_CLASS` line
+ * (they only exist for single classes). Total 0 or no line → no invoice, the date still advances.</li>
  * <li>R-12-04: with `FAMILY_GROUP` the holder pays: a non-holder gets no invoice; its inactivity fee and single classes are
- * separate lines on the holder's invoice, and its date advances with the holder's.</li>
+ * separate lines on the holder's invoice, and its date advances with the holder's. A holder without a payment method or past
+ * its last billed month pays for nobody: the members are billed on their own (E11-T15).</li>
  * <li>R-12-05: a `MANUAL` member of a `MONTHLY` plan with `billing.cashInvoicing = SEMESTER` gets one invoice with a line per
  * month from `month(nextInvoiceDate)` (never before the start of `M`'s natural period) to the end of `M`'s natural period of
  * `billing.cashPeriodMonths` (January–June, July–December), capped at the last month a leaving member is billed; its date
@@ -120,12 +123,18 @@ public final class InvoicingRules {
         var payerOf = new HashMap<String, String>();
         if (settings.familyGroups()) {
             for (var group : groups) {
+                var holder = byId.get(group.holderMemberId());
                 // R-03-20 (INC-38, E11-T10): a holder who is not ACTIVE pays for nobody; the others are billed on their own.
-                if (!byId.containsKey(group.holderMemberId()) || !"ACTIVE".equals(byId.get(group.holderMemberId()).status())) { continue; }
+                if (holder == null || !"ACTIVE".equals(holder.status())) { continue; }
+                // R-12-04, S13 R-13-11 (E11-T15, the audit of 21-10): neither does a holder without a payment method or past its last
+                // billed month (a leaving holder is still ACTIVE when the month after its leave is billed). A holder that is only not
+                // due keeps its group: the holder's date governs the group's (R-12-06).
+                var holderGate = gate(holder, period, due(holder, period) || hasCharges(holder, settings, sources), sources);
+                if (holderGate == Exclusion.NO_PAYMENT_METHOD || holderGate == Exclusion.AFTER_LEAVE) { continue; }
                 for (String memberId : group.memberIds()) {
                     if (memberId.equals(group.holderMemberId()) || !byId.containsKey(memberId) || payerOf.containsKey(memberId)) { continue; }
                     payerOf.put(memberId, group.holderMemberId());
-                    covered.computeIfAbsent(group.holderMemberId(), holder -> new ArrayList<>()).add(byId.get(memberId));
+                    covered.computeIfAbsent(group.holderMemberId(), payer -> new ArrayList<>()).add(byId.get(memberId));
                 }
             }
         }
@@ -172,6 +181,16 @@ public final class InvoicingRules {
         for (var month = first; !month.isAfter(periodEnd(period, periodMonths)); month = month.plusMonths(1)) { months.add(month); }
         return months;
     }
+    /**
+     * The months a monthly invoice covers (R-12-01/02, E11-T15 step 4): from `month(nextInvoiceDate)` to `M` — one month when the
+     * member is up to date, more when a month was skipped (an incident: no bank account, no price…) and never billed since.
+     */
+    public static List<YearMonth> unbilledMonths(YearMonth period, LocalDate nextInvoiceDate) {
+        var first = nextInvoiceDate == null || YearMonth.from(nextInvoiceDate).isAfter(period) ? period : YearMonth.from(nextInvoiceDate);
+        var months = new ArrayList<YearMonth>();
+        for (var month = first; !month.isAfter(period); month = month.plusMonths(1)) { months.add(month); }
+        return months;
+    }
     /** The first month of `M`'s natural period of {@code periodMonths} months in its year (January, July for 6). */
     public static YearMonth periodStart(YearMonth month, int periodMonths) {
         int size = Math.max(1, Math.min(12, periodMonths));
@@ -195,6 +214,9 @@ public final class InvoicingRules {
             boolean familyCharges) {
         boolean periodic = due(member, period);
         var gate = gate(member, period, periodic || familyCharges || hasCharges(member, settings, sources), sources);
+        // R-12-01, R-12-07 (E11-T15 steps 1 and 3): a monthly member without a date is D6's incident, never silently out of the month,
+        // and the run never invents its date (the admin sets it: PUT /members/{id}/next-invoice-date, E146).
+        if (gate == Exclusion.NOT_DUE && dateless(member, period, sources)) { return new Skipped(BillingIncidentCode.NO_NEXT_INVOICE_DATE); }
         if (gate != null) { return new Excluded(gate); }
         var lastBilled = sources.lastInvoicedMonth(member.id()).orElse(null);
         var plan = member.planId() == null ? null : sources.plan(member.planId()).orElse(null);
@@ -204,7 +226,9 @@ public final class InvoicingRules {
         LocalDate next = periodic ? invoiceDay(period.plusMonths(1), settings.nextInvoiceDayOfMonth()) : member.nextInvoiceDate();
         if (periodic && plan.type() == PlanType.MONTHLY) {
             boolean semester = settings.cashInvoicing() == CashInvoicing.SEMESTER && member.method() == PaymentMethodType.MANUAL && settings.cashPeriodMonths() > 1;
-            var months = semester ? cashMonths(period, member.nextInvoiceDate(), settings.cashPeriodMonths()) : List.of(period);
+            // E11-T15 step 4 (R-12-01/02): any other method catches up from month(nextInvoiceDate) too — a month skipped with an
+            // incident is billed with the current one, each line with its own month's fee and text.
+            var months = semester ? cashMonths(period, member.nextInvoiceDate(), settings.cashPeriodMonths()) : unbilledMonths(period, member.nextInvoiceDate());
             if (semester) { next = invoiceDay(periodEnd(period, settings.cashPeriodMonths()).plusMonths(1), settings.nextInvoiceDayOfMonth()); }
             var concept = plan.maintenance() ? InvoiceLineOrigin.MAINTENANCE_FEE : InvoiceLineOrigin.MONTHLY_FEE;
             Price price = null; boolean priced = false;
@@ -236,10 +260,12 @@ public final class InvoicingRules {
         var lastBilled = sources.lastInvoicedMonth(member.id()).orElse(null);
         if (lastBilled != null && period.isAfter(lastBilled)) { return null; }
         var lines = new ArrayList<Line>();
-        var fee = periodic && settings.inactivity() ? sources.inactivityFee(member.id(), period).orElse(null) : null;
-        if (fee != null) {
+        // E11-T15 step 4: the member's own unbilled months, as the holder's lines catch up (each with its own month's fee).
+        for (var month : periodic && settings.inactivity() ? unbilledMonths(period, member.nextInvoiceDate()) : List.<YearMonth>of()) {
+            var fee = sources.inactivityFee(member.id(), month).orElse(null);
+            if (fee == null) { continue; }
             if (!fee.currency().equals(settings.currency())) { return new Skipped(BillingIncidentCode.CURRENCY_MISMATCH); }
-            lines.add(new Line(InvoiceLineOrigin.INACTIVITY_FEE, period, null, null, null, describer.line(InvoiceLineOrigin.INACTIVITY_FEE, null, period),
+            lines.add(new Line(InvoiceLineOrigin.INACTIVITY_FEE, month, null, null, null, describer.line(InvoiceLineOrigin.INACTIVITY_FEE, null, month),
                     InvoiceAmounts.fromPrice(fee, BigDecimal.ZERO, settings.taxIncluded()), member.id()));
         }
         var charges = charges(member, settings, sources, member.id());
@@ -269,6 +295,17 @@ public final class InvoicingRules {
     /** R-12-01: `nextInvoiceDate ≤` the last day of {@code period}. */
     private static boolean due(Member member, YearMonth period) {
         return member.nextInvoiceDate() != null && !member.nextInvoiceDate().isAfter(period.atEndOfMonth());
+    }
+    /**
+     * E11-T15 steps 1 and 3 (R-12-01, R-12-07): an `ACTIVE` member on a `MONTHLY` plan without `nextInvoiceDate` that the month
+     * would otherwise bill (not past its last billed month). A pack or single-class plan has no periodic fee, so no date either.
+     */
+    private static boolean dateless(Member member, YearMonth period, Sources sources) {
+        if (member.nextInvoiceDate() != null || member.planId() == null) { return false; }
+        var plan = sources.plan(member.planId()).orElse(null);
+        if (plan == null || plan.type() != PlanType.MONTHLY) { return false; }
+        var lastBilled = sources.lastInvoicedMonth(member.id());
+        return lastBilled.isEmpty() || !period.isAfter(lastBilled.get());
     }
     /** R-12-25: unbilled `PendingCharge`s to bill (only with `SINGLE_CLASS`). */
     private static boolean hasCharges(Member member, Settings settings, Sources sources) {

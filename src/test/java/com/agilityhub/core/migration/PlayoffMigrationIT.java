@@ -571,6 +571,99 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(later.count("invoices", "SKIPPED")).isEqualTo(1);
         assertThat(rows("invoices")).hasSize(1);
     }
+    /**
+     * E11-T15 step 6 (the audit of 21-10, F6; S18 R-18-11b over R-18-03/09/10): a receipt or pack row the importer cannot read —
+     * an unknown status, an unparseable date or amount, a plan that is not a seed code — is `WARNING INPUT_SCHEMA_MISMATCH` +
+     * `SKIPPED`, never an `ERROR` that refuses the whole load (the census included). Dates are read like the census's (ISO or
+     * `d/M/uuuu`); a pack's plan is the Playoff typology through the mapping, then the member's own pack plan.
+     */
+    @Test void R_18_11b_E145_aReceiptOrPackRowThatCannotBeReadIsSkippedWithAWarningAndTheLoadApplies() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().addToSet("modules","PACKS"), "clubs"); configs.invalidate(CLUB);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("PACK10")), new Update().set("pack", Map.of("sessions",10,"validityMonths",6))
+                .set("dogsIncluded",1).set("showOnSignup",false).set("showOnWeb",false).set("order",0).set("version",0L), "plans");
+        Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                + "good-iso;" + source(1) + ";1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n"
+                + "good-dmy;" + source(1) + ";2;1/8/2026;Fictional fee;10,00;Pagado;MANUAL\n"
+                + "returned;" + source(1) + ";3;1/2/2026;Fictional fee;10,00;Devuelto;SEPA_DD\n"
+                + "bad-amount;" + source(1) + ";4;2026-08-01;Fictional fee;deu euros;Pagado;MANUAL\n");
+        Files.writeString(fixture.resolve("packs.csv"), "Pack ID;Member ID;Plan;Opened on;Consumed\n"
+                + "code;" + source(1) + ";PACK10;2026-08-01;6\n"
+                + "typology;" + source(1) + ";Pack 10 classes;1/8/2026;3\n"
+                + "unknown;" + source(1) + ";Pack de 10;2026-08-01;2\n");
+        var report = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, LocalDate.of(2026, 9, 1));
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        assertThat(report.count("members", "CREATED")).isEqualTo(187);
+        assertThat(report.count("invoices", "CREATED")).isEqualTo(2); assertThat(report.count("packBalances", "CREATED")).isEqualTo(2);
+        assertThat(report.rows()).filteredOn(r -> r.outcome().equals("WARNING") && r.code().equals("INPUT_SCHEMA_MISMATCH"))
+                .extracting(MigrationReport.Entry::file, MigrationReport.Entry::row).containsExactlyInAnyOrder(tuple("receipts", 4), tuple("receipts", 5), tuple("packs", 4));
+        assertThat(report.rows()).filteredOn(r -> r.file().equals("receipts") && r.row() >= 4).extracting(MigrationReport.Entry::outcome)
+                .containsExactly("WARNING", "SKIPPED", "WARNING", "SKIPPED");
+        assertThat(rows("members")).hasSize(187);
+        assertThat(rows("invoices")).extracting(i -> i.getString("displayNumber")).containsExactlyInAnyOrder("1", "2");
+        assertThat(rows("pack_balances")).extracting(p -> p.get("sourceIds", Document.class).getString("playoffPackId"), p -> p.getString("planId"))
+                .containsExactlyInAnyOrder(tuple("code", "PACK10"), tuple("typology", "PACK10"));
+    }
+    /**
+     * E11-T15 step 7 (the audit of 21-10, F7; S18 R-18-08, E43): a SEPA record whose number lost to another (`NUMBER_CONFLICT`)
+     * gets no `{slug}-{memberId}-1` mandate (44 characters, refused by pain.008 for the whole remittance) but none at all and a
+     * `MANDATE_PENDING` warning; every mandate the migration writes fits `Max35Text`.
+     */
+    @Test void R_18_08_E43_aNumberConflictSepaRecordGetsNoMandateUntilItHasANumber() throws Exception {
+        var report = apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
+        for (int ordinal = 185; ordinal <= 188; ordinal++) {
+            assertThat(member(ordinal).get("memberNumber")).isNull();
+            var payment = member(ordinal).get("paymentMethod", Document.class);
+            assertThat(payment.getString("type")).isEqualTo("SEPA_DD");
+            assertThat(payment.get("mandateRef")).as("member " + ordinal).isNull();
+            assertThat(entries(report, ordinal)).contains("members WARNING MANDATE_PENDING");
+        }
+        assertThat(warnings(report, "MANDATE_PENDING")).isEqualTo(4);
+        assertThat(rows("members")).allSatisfy(member -> {
+            var payment = member.get("paymentMethod", Document.class);
+            String mandate = payment == null ? null : payment.getString("mandateRef");
+            if (mandate != null) { assertThat(mandate).hasSizeLessThanOrEqualTo(35).matches("[a-zA-Z0-9/\\-?:().,'+ ]+"); }
+        });
+    }
+    /**
+     * E11-T15 step 3 (the audit of 21-10, F3; ruling E146; S18 R-18-13, S12 R-12-05): Playoff already charged the cash members up to
+     * the end of their half-year. The optional `pagat_fins.csv` gives a member's last paid month (or a day of it), and the member's
+     * first date is the 1st of the month after it — never earlier than R-18-13's default; a row the importer cannot read or whose
+     * member is unknown is a `MAPPING_INVALID` warning and the default stays.
+     */
+    @Test void R_18_13_E146_aPaidUntilRowGivesTheMigratedMemberItsFirstInvoiceDate() throws Exception {
+        LocalDate cutover = LocalDate.of(2026, 11, 1);
+        List<PlayoffPlanner.Change> monthly;
+        try (var tenant = TenantContext.open(CLUB)) {
+            monthly = planner.plan(input(), MAPPING, cutover).changes().stream().filter(c -> c.entity().equals("members") && c.fields().get("nextInvoiceDate") != null).toList();
+        }
+        // Without the file, every ACTIVE monthly member gets R-18-13's default: the 1st of the month after the cut-over.
+        assertThat(monthly).isNotEmpty().allSatisfy(c -> assertThat(c.fields().get("nextInvoiceDate")).isEqualTo("2026-12-01"));
+        // A cash member (the audit's case) and four other monthly members.
+        String cash = monthly.stream().filter(c -> "MANUAL".equals(((Map<?, ?>) c.fields().get("paymentMethod")).get("type"))).map(c -> c.source().get("id")).findFirst().orElseThrow();
+        var others = monthly.stream().map(c -> c.source().get("id")).filter(id -> !id.equals(cash)).distinct().toList();
+        assertThat(others).hasSizeGreaterThanOrEqualTo(4);
+        Files.writeString(fixture.resolve("pagat_fins.csv"), "Member ID;Paid until\n"
+                + cash + ";2026-12\n"
+                + others.get(0) + ";15/2/2027\n"
+                + others.get(1) + ";2026-09\n"
+                + others.get(2) + ";someday\n"
+                + "P0000000000000000;2026-12\n");
+        var report = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        // Paid until December → January; a day of February → March.
+        assertThat(nextInvoiceDate(cash)).isEqualTo("2027-01-01");
+        assertThat(nextInvoiceDate(others.get(0))).isEqualTo("2027-03-01");
+        // Never earlier than the cut-over's default; an unreadable row keeps it; a member without a row has it.
+        assertThat(nextInvoiceDate(others.get(1))).isEqualTo("2026-12-01");
+        assertThat(nextInvoiceDate(others.get(2))).isEqualTo("2026-12-01");
+        assertThat(nextInvoiceDate(others.get(3))).isEqualTo("2026-12-01");
+        assertThat(report.rows()).filteredOn(r -> r.file().equals("paidUntil") && r.outcome().equals("WARNING"))
+                .extracting(MigrationReport.Entry::row, MigrationReport.Entry::code).containsExactlyInAnyOrder(tuple(5, "MAPPING_INVALID"), tuple(6, "MAPPING_INVALID"));
+    }
+    String nextInvoiceDate(String source) {
+        var member = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source)), Document.class, "members");
+        return member.getString("nextInvoiceDate");
+    }
     @Test void T_18_15_futureLeaveImportsAnApprovedMigratedRequestOnceWithoutNotifications() throws Exception {
         var table = PlayoffTable.read(fixture.resolve("socis.csv"));
         int left = table.getFirst().indexOf("Data baixa"); assertThat(left).isNotNegative();
@@ -862,7 +955,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
                     java.math.BigDecimal.ZERO, LocalDate.of(2020, 1, 1), null, 0L, at, at, null, null));
         }
         mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("updatedAt", at)
-                .set("paymentProviders.SEPA_XML", Map.of("enabled", true, "creditorName", "Club Agility Exemple", "creditorId", "ES00ZZZB00000000", "iban", "ES0000000000000000009876"))
+                .set("paymentProviders.SEPA_XML", Map.of("enabled", true, "creditorName", "Club Agility Exemple", "creditorId", "ES81ZZZB00000000", "iban", "ES0000000000000000009876"))
                 .set("paymentProviders.MANUAL", Map.of("enabled", true)), "clubs");
         configs.invalidate(CLUB);
     }

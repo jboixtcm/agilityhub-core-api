@@ -41,7 +41,7 @@ class BillingRunServiceSurvivors2Test {
     final BillingRunService service = new BillingRunService(mock(InvoicingService.class), mock(BillingSimulationService.class), mock(BillingRunRepository.class),
             mock(BillingSimulationRepository.class), mock(InvoiceRepository.class), mock(CollectionRepository.class), mock(RemittanceRepository.class),
             mock(PendingChargeRepository.class), mock(RemittanceWriterPort.class), mock(InvoiceCounters.class), mock(InvoiceNumbers.class), census,
-            mock(BillingCatalogAccess.class), mock(BillingEvents.class), mock(AuditWriter.class), mock(BillingTransactions.class), Clock.fixed(NOW, ZoneOffset.UTC));
+            mock(BillingCatalogAccess.class), mock(BillingEvents.class), mock(AuditWriter.class), mock(BillingTransactions.class), Clock.fixed(NOW, ZoneOffset.UTC), BillingRunServiceSurvivorsTest.clubClock());
 
     /** No drafts, no charges, no waiting receipts: only the members' last change can make the simulation stale. */
     static InvoicingService.MonthPlan emptyPlan() {

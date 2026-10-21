@@ -44,7 +44,7 @@ public record MappingConfig(int version, String defaultClub, int ageWarningYears
                 || !Set.of("ACTIVE","LEFT","SKIP").containsAll(statuses.values())
                 || history.receiptsMonths() < 1
                 || !files.keySet().containsAll(Set.of("members", "plans", "levels", "groups", "team", "persons"))
-                || !Set.of("members", "plans", "levels", "groups", "team", "persons", "receipts", "packs", "forecast", "mandates").containsAll(files.keySet())) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
+                || !Set.of("members", "plans", "levels", "groups", "team", "persons", "receipts", "packs", "forecast", "mandates", "paidUntil").containsAll(files.keySet())) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
         var names = new HashSet<String>();
         for (var file : files.values()) {
             var positions = new HashSet<Integer>(); var fields = new HashSet<String>();

@@ -87,7 +87,9 @@ public class InvoicesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, CURRENCY_MISMATCH})
     @Operation(summary = "createManualInvoice", description = ROLES + "R-12-19: a MANUAL invoice (ADJUSTMENT lines, positive or negative, base + "
             + "round_half_even(base × taxPercent / 100)) numbered like the others from the series counter, PENDING, with the member's payment method "
-            + "frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. includeInNextRun with a total "
+            + "frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. period (E11-T15): the month it is "
+            + "for — D6's month list and the accounting export (R-12-26) — absent → the issue month; more than three months from the issue month "
+            + "→ 400 VALIDATION_ERROR {field: period}, before any number is taken. includeInNextRun with a total "
             + "of zero or less → 400 VALIDATION_ERROR {field: includeInNextRun} (never direct-debited; settled by hand). INVOICE_CREATED_MANUAL audit, "
             + "InvoiceIssued. While a run holds the club's billing lock → 409 BILLING_BUSY. A line in another currency → 422 CURRENCY_MISMATCH; "
             + "another club's member → 404; an erased one → 409 MEMBER_ERASED." + SERVED,
@@ -96,7 +98,7 @@ public class InvoicesController {
         access.mutableMember(request.memberId());
         var lines = request.lines().stream().map(line -> new com.agilityhub.core.payments.application.InvoiceActions.ManualLine(line.description(), line.base(),
                 line.taxPercent())).toList();
-        return keyed(201, () -> actions.createManual(request.memberId(), lines, Boolean.TRUE.equals(request.includeInNextRun()), request.note()));
+        return keyed(201, () -> actions.createManual(request.memberId(), lines, Boolean.TRUE.equals(request.includeInNextRun()), request.note(), request.period()));
     }
 
     @PostMapping("/api/v1/invoices/{id}/payment")

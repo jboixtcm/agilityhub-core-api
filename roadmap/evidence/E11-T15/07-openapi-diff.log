@@ -1,0 +1,251 @@
+diff --git a/docs/openapi/openapi.json b/docs/openapi/openapi.json
+index 0f706aac..3bd80af0 100644
+--- a/docs/openapi/openapi.json
++++ b/docs/openapi/openapi.json
+@@ -1985,3 +1985,3 @@
+       "BillingIncidentCode" : {
+-        "enum" : [ "NO_BANK_ACCOUNT", "NO_PLAN", "NO_PRICE", "CARD_INVALID", "CURRENCY_MISMATCH", "PROVIDER_DISABLED", "MEMBER_NOT_ACTIVE", "PAYMENT_METHOD_CHANGED" ],
++        "enum" : [ "NO_BANK_ACCOUNT", "NO_PLAN", "NO_PRICE", "CARD_INVALID", "CURRENCY_MISMATCH", "PROVIDER_DISABLED", "MEMBER_NOT_ACTIVE", "PAYMENT_METHOD_CHANGED", "NO_NEXT_INVOICE_DATE" ],
+         "type" : "string"
+@@ -13379,2 +13379,7 @@
+             "type" : "string"
++          },
++          "period" : {
++            "description" : "E11-T15 (R-12-19, R-12-26): the month the receipt is for — D6's month list and the accounting export by period. Absent → the issue month; at most three months either side of it",
++            "pattern" : "[0-9]{4}-(0[1-9]|1[0-2])",
++            "type" : "string"
+           }
+@@ -14864,2 +14869,7 @@
+           },
++          "nextInvoiceDate" : {
++            "description" : "E11-T15 (R-12-06): the first invoice date of a member that has none (a pack member moving to a MONTHLY plan); absent → billing.nextInvoiceDayOfMonth of next month. Not before the first day of the club's current month. A member that already has a date keeps it (use PUT /members/{id}/next-invoice-date).",
++            "format" : "date",
++            "type" : "string"
++          },
+           "planId" : {
+@@ -15452,2 +15462,30 @@
+       },
++      "NextInvoiceDate" : {
++        "description" : "200 of PUT /members/{id}/next-invoice-date (E146)",
++        "properties" : {
++          "nextInvoiceDate" : {
++            "format" : "date",
++            "type" : "string"
++          }
++        },
++        "required" : [ "nextInvoiceDate" ],
++        "type" : "object"
++      },
++      "NextInvoiceDateRequest" : {
++        "description" : "E146 (E11-T15): the admin's correction of a member's next invoice date, with its reason (audited)",
++        "properties" : {
++          "nextInvoiceDate" : {
++            "description" : "Any day from the first of the club's current month twelve months back to the last day of the month twelve months ahead",
++            "format" : "date",
++            "type" : "string"
++          },
++          "reason" : {
++            "maxLength" : 200,
++            "minLength" : 0,
++            "type" : "string"
++          }
++        },
++        "required" : [ "nextInvoiceDate", "reason" ],
++        "type" : "object"
++      },
+       "NoShowNotice" : {
+@@ -16810,2 +16848,3 @@
+       "PeriodRemittance" : {
++        "description" : "requestedCollectionDate: the remittance's collection date (club-local). submissionDue (E147, E11-T15): still GENERATED and the club-local day is the one before it or later — D6 warns «marca la remesa com a enviada»; from the date itself the run cannot be rolled back (COLLECTION_DATE_PASSED)",
+         "properties" : {
+@@ -16818,7 +16857,14 @@
+           },
++          "requestedCollectionDate" : {
++            "format" : "date",
++            "type" : "string"
++          },
+           "status" : {
+             "$ref" : "#/components/schemas/RemittanceStatus"
++          },
++          "submissionDue" : {
++            "type" : "boolean"
+           }
+         },
+-        "required" : [ "fileAvailable", "id", "status" ],
++        "required" : [ "fileAvailable", "id", "requestedCollectionDate", "status", "submissionDue" ],
+         "type" : "object"
+@@ -20920,3 +20966,3 @@
+       "RollbackBlocker" : {
+-        "enum" : [ "REMITTANCE_SUBMITTED", "COLLECTION_SUBMITTED", "INVOICE_PAID", "MANUAL_INVOICE_AFTER" ],
++        "enum" : [ "REMITTANCE_SUBMITTED", "COLLECTION_SUBMITTED", "INVOICE_PAID", "MANUAL_INVOICE_AFTER", "COLLECTION_DATE_PASSED" ],
+         "type" : "string"
+@@ -50328,3 +50374,3 @@
+       "post" : {
+-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a MANUAL invoice (ADJUSTMENT lines, positive or negative, base + round_half_even(base × taxPercent / 100)) numbered like the others from the series counter, PENDING, with the member's payment method frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. includeInNextRun with a total of zero or less → 400 VALIDATION_ERROR {field: includeInNextRun} (never direct-debited; settled by hand). INVOICE_CREATED_MANUAL audit, InvoiceIssued. While a run holds the club's billing lock → 409 BILLING_BUSY. A line in another currency → 422 CURRENCY_MISMATCH; another club's member → 404; an erased one → 409 MEMBER_ERASED. Tenant comes from the JWT; another club's resource → 404.",
++        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a MANUAL invoice (ADJUSTMENT lines, positive or negative, base + round_half_even(base × taxPercent / 100)) numbered like the others from the series counter, PENDING, with the member's payment method frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. period (E11-T15): the month it is for — D6's month list and the accounting export (R-12-26) — absent → the issue month; more than three months from the issue month → 400 VALIDATION_ERROR {field: period}, before any number is taken. includeInNextRun with a total of zero or less → 400 VALIDATION_ERROR {field: includeInNextRun} (never direct-debited; settled by hand). INVOICE_CREATED_MANUAL audit, InvoiceIssued. While a run holds the club's billing lock → 409 BILLING_BUSY. A line in another currency → 422 CURRENCY_MISMATCH; another club's member → 404; an erased one → 409 MEMBER_ERASED. Tenant comes from the JWT; another club's resource → 404.",
+         "operationId" : "createManualInvoice",
+@@ -64529,2 +64575,159 @@
+     },
++    "/api/v1/members/{id}/next-invoice-date" : {
++      "put" : {
++        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. E146 (E11-T15; S12 R-12-01/05/06): sets the date the next run bills the member from — a migrated cash member already charged to the end of its half-year, a member without a date (simulation incident NO_NEXT_INVOICE_DATE). Never under impersonation (403). The date: from the first day of the club's current month twelve months back to the last day of the month twelve months ahead, else 400 VALIDATION_ERROR {fieldErrors: [{field: nextInvoiceDate, code: INVALID_VALUE}]}; reason required (≤ 200). The member must be ACTIVE (else 409 INVALID_STATE); a pending readmission's frozen record is 409 INVALID_STATE {reason: READMISSION_PENDING} (INC-39); another club's member 404; an erased one 409 MEMBER_ERASED. Audited MEMBER_UPDATED (changes[].path = nextInvoiceDate, the reason) with MemberUpdated{memberId, diff}; the same date again changes nothing. The next simulation reads the new date (a monthly member is billed every month from month(nextInvoiceDate)). Tenant comes from the JWT; another club's resource → 404.",
++        "operationId" : "setNextInvoiceDate",
++        "parameters" : [ {
++          "in" : "path",
++          "name" : "id",
++          "required" : true,
++          "schema" : {
++            "type" : "string"
++          }
++        } ],
++        "requestBody" : {
++          "content" : {
++            "application/json" : {
++              "schema" : {
++                "$ref" : "#/components/schemas/NextInvoiceDateRequest"
++              }
++            }
++          },
++          "required" : true
++        },
++        "responses" : {
++          "200" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/NextInvoiceDate"
++                }
++              }
++            },
++            "description" : "NextInvoiceDate"
++          },
++          "400" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "VALIDATION_ERROR"
++          },
++          "401" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Unauthorized"
++          },
++          "403" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Forbidden"
++          },
++          "404" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "NOT_FOUND, MODULE_DISABLED"
++          },
++          "409" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "MEMBER_ERASED, INVALID_STATE"
++          },
++          "422" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Unprocessable Entity"
++          },
++          "429" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Too Many Requests",
++            "headers" : {
++              "Retry-After" : {
++                "description" : "Seconds before retrying",
++                "schema" : {
++                  "format" : "int32",
++                  "type" : "integer"
++                }
++              }
++            }
++          },
++          "4XX" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Client error"
++          },
++          "500" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Internal Server Error"
++          },
++          "501" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Not Implemented"
++          },
++          "5XX" : {
++            "content" : {
++              "application/json" : {
++                "schema" : {
++                  "$ref" : "#/components/schemas/ApiError"
++                }
++              }
++            },
++            "description" : "Server error"
++          }
++        },
++        "summary" : "setNextInvoiceDate",
++        "tags" : [ "payments" ]
++      }
++    },
+     "/api/v1/members/{id}/notification-preferences" : {
+@@ -65287,3 +65490,3 @@
+       "post" : {
+-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Changes the current plan and price without moving nextInvoiceDate. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
++        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Changes the current plan and price without moving an existing nextInvoiceDate. A member without one (every pack member) moving to a MONTHLY plan gets its first date (E11-T15, R-12-06): the request's nextInvoiceDate or, without it, billing.nextInvoiceDayOfMonth of next month (club-local), in the MEMBER_PLAN_CHANGED audit diff; a nextInvoiceDate before the first day of the club's current month → 400 VALIDATION_ERROR {fieldErrors: [{field: nextInvoiceDate, code: INVALID_VALUE}]}. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+         "operationId" : "change",

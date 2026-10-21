@@ -187,7 +187,7 @@ class E8PersistenceIT extends AbstractIntegrationTest {
             assertThatThrownBy(() -> simulations.insert(new BillingSimulation("e8p-simulation-2", CLUB, "2026-09", now, List.of(), List.of(), List.of(), null, "e8p-admin")))
                     .isInstanceOf(DuplicateKeyException.class);
             // R-12-12: a remittance's MsgId is unique in the club.
-            var creditor = new Remittance.Creditor("Club Example", "ES00ZZZB00000000", "ES0000000000000000000000", null);
+            var creditor = new Remittance.Creditor("Club Example", "ES81ZZZB00000000", "ES0000000000000000000000", null);
             remittances.insert(new Remittance("e8p-remittance-1", CLUB, "e8p-run-3", "2026-09", "e8p-2026-09-1", now, "2026-09-01", creditor, List.of(), 0,
                     new Money(0, "EUR"), new Remittance.SequenceBreakdown(0, 0), null, now, null, RemittanceStatus.GENERATED, null, null, null, now, "e8p-admin"));
             assertThatThrownBy(() -> remittances.insert(new Remittance("e8p-remittance-2", CLUB, "e8p-run-3", "2026-09", "e8p-2026-09-1", now, "2026-09-01", creditor,

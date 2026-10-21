@@ -48,6 +48,8 @@ public class PlayoffPlanner {
         final Map<String,Map<String,Object>> plans=new HashMap<>(), levels=new HashMap<>(); final List<Map<String,Object>> prices=catalogs.rows("prices");
         // R-18-04 (f): joined record → principal record, and principal record → the NIF the club confirmed.
         final Map<String,String> joins=new HashMap<>(), confirmedDocuments=new HashMap<>(), personBySource=new HashMap<>();
+        // E146 (E11-T15 step 3): the last month Playoff charged each record (`pagat_fins.csv`), by source id.
+        final Map<String,YearMonth> paidUntil=new HashMap<>();
         final Map<String,PlayoffInput.Row> emailOwners=new HashMap<>(); final List<Shared> shared=new ArrayList<>();
         // R-18-14: records that are themselves a rejected re-execution transition → the report field; the protected members
         // (every member of such a record, every member two persons of this load would share, every member whose stored
@@ -78,6 +80,7 @@ public class PlayoffPlanner {
             var candidates=new ArrayList<Candidate>(); var skipped=new ArrayList<PlayoffInput.Row>(); var seen=new HashSet<String>();
             Set<String> sourceIds=input.files().get("members").stream().map(r -> r.get("id")).collect(java.util.stream.Collectors.toSet());
             persons(sourceIds);
+            paidUntil(sourceIds);
             for (var row:input.files().get("members")) {
                 try {
                     if (row.get("id").isEmpty() || !seen.add(row.get("id"))) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
@@ -183,6 +186,20 @@ public class PlayoffPlanner {
             rows.add(new MigrationReport.Entry(row.file(),row.row(),"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,field));
             return true;
         }
+        /**
+         * E146 (E11-T15 step 3, R-18-13): the optional `pagat_fins.csv` — a record's last month Playoff charged (`YYYY-MM`, or a day of
+         * it, ISO or `d/M/uuuu`). A joined record's row counts for its principal; the latest month wins. An unknown record or an
+         * unreadable value is a `MAPPING_INVALID` warning and the default date stays.
+         */
+        void paidUntil(Set<String> sourceIds) {
+            for (var row:input.files().getOrDefault("paidUntil",List.of())) {
+                String source=row.get("memberId"); YearMonth month;
+                try { month=row.get("paidUntil").matches("[0-9]{4}-[0-9]{2}") ? YearMonth.parse(row.get("paidUntil")) : YearMonth.from(Objects.requireNonNull(date(row.get("paidUntil")))); }
+                catch (RuntimeException unreadable) { month=null; }
+                if (month==null || !sourceIds.contains(source)) { incident(row,"members","WARNING","MAPPING_INVALID"); continue; }
+                paidUntil.merge(joins.getOrDefault(source,source),month,(a,b) -> a.isAfter(b) ? a : b);
+            }
+        }
         /** R-18-12: a record left without account proposes a family group with the account holder, unless they already share one. */
         void proposals() {
             for (var item:shared) {
@@ -271,9 +288,13 @@ public class PlayoffPlanner {
                 var payment=payment(row);
                 if ("SEPA_DD".equals(payment.get("type"))) {
                     var previousPayment=map(old==null ? null : old.get("paymentMethod"));
-                    // Playoff exports no mandates. Preserve the first cutover mandate on reapply.
-                    payment.put("mandateRef",previousPayment.getOrDefault("mandateRef",config.club().slug()+"-"+(number==null ? memberId : number)+"-1"));
-                    payment.put("mandateSignedAt",previousPayment.getOrDefault("mandateSignedAt",instant(today)));
+                    // Playoff exports no mandates. Preserve the first cutover mandate on reapply. R-18-08, E43 (E11-T15 step 7): the
+                    // reference is `{clubSlug}-{memberNumber}-1`, at most 35 characters (a long slug is cut); a record without a number
+                    // (NUMBER_CONFLICT) has none until it gets one (MANDATE_PENDING), never a `{slug}-{memberId}-1` pain.008 refuses.
+                    String kept=string(previousPayment.get("mandateRef"));
+                    String reference=census.usableMandateRef(kept) ? kept : number==null ? null : census.mandateRef(config.club().slug(),number);
+                    payment.put("mandateRef",reference);
+                    payment.put("mandateSignedAt",reference==null ? null : previousPayment.getOrDefault("mandateSignedAt",instant(today)));
                     // Other clubs can supply their original mandate; the Cànic's export carries none (R-18-08).
                     var mandate = input.files().getOrDefault("mandates", List.of()).stream().filter(m -> m.get("memberId").equals(row.get("id"))).findFirst();
                     if (mandate.isPresent() && !mandate.get().get("mandateRef").isEmpty()) {
@@ -281,10 +302,11 @@ public class PlayoffPlanner {
                             var signed = PlayoffBillingPlanner.date(mandate.get().get("mandateSignedAt"));
                             payment.put("mandateRef", mandate.get().get("mandateRef"));
                             payment.put("mandateSignedAt", instant(signed));
-                        } catch (java.time.format.DateTimeParseException invalid) {
+                        } catch (ApiException | java.time.format.DateTimeParseException invalid) {
                             incident(mandate.get(), "members", "ERROR", "INPUT_SCHEMA_MISMATCH");
                         }
                     }
+                    if (payment.get("mandateRef")==null) { warn(row,"MANDATE_PENDING"); }
                     payment.put("holderTaxId",document.isEmpty() ? null : document);
                 }
                 fields.put("paymentMethod",payment);
@@ -393,7 +415,13 @@ public class PlayoffPlanner {
             if (plan==null || !Boolean.TRUE.equals(plan.get("active"))) { warn(row,"LEGACY_PLAN"); return; }
             String planId=string(plan.get("_id")); fields.put("planId",planId);
             boolean monthly="MONTHLY".equals(plan.get("type"));
-            if (monthly && "ACTIVE".equals(fields.get("status"))) { fields.put("nextInvoiceDate",today.withDayOfMonth(1).plusMonths(1).toString()); }
+            if (monthly && "ACTIVE".equals(fields.get("status"))) {
+                // R-18-13: the 1st of the month after the cut-over; E146 (E11-T15 step 3): later when Playoff already charged the member
+                // further (`pagat_fins.csv`: paid until M → the 1st of M + 1), never earlier.
+                var first=today.withDayOfMonth(1).plusMonths(1); var paid=paidUntil.get(row.get("id"));
+                if (paid!=null && paid.plusMonths(1).atDay(1).isAfter(first)) { first=paid.plusMonths(1).atDay(1); }
+                fields.put("nextInvoiceDate",first.toString());
+            }
             String concept=monthly ? "MAINTENANCE".equals(plan.get("billingMode")) ? "MAINTENANCE_FEE" : "MONTHLY_FEE" : "PACK";
             var current=prices.stream().filter(p -> planId.equals(p.get("planId")) && concept.equals(p.get("concept")) && !businessDate(p.get("validFrom")).isAfter(today)
                     && (p.get("validTo")==null || !businessDate(p.get("validTo")).isBefore(today))).toList();

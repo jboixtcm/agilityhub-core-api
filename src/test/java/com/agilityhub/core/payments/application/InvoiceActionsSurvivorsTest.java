@@ -141,6 +141,24 @@ class InvoiceActionsSurvivorsTest {
         verify(invoices, never()).insert(any());
     }
 
+    /** E11-T15 step 11 (R-12-19, R-12-26): a manual receipt's `period` that is not a month, or too far from the issue month, takes no number. */
+    @Test void R_12_19_R_12_26_aManualPeriodOutsideItsRangeOrNotAMonthIsRefusedBeforeANumberIsTaken() {
+        when(census.member("member-a")).thenReturn(Optional.of(member("member-a", "ca")));
+        when(invoicing.context()).thenReturn(context());
+        var line = new InvoiceActions.ManualLine("Ajust de quota", new Money(1500, "EUR"), BigDecimal.ZERO);
+        try (var tenant = TenantContext.open(CLUB)) {
+            for (String period : List.of("desembre", "2026-13", "2099-01")) {
+                assertThatThrownBy(() -> actions.createManual("member-a", List.of(line), false, null, period)).as(period)
+                        .isInstanceOfSatisfying(ApiException.class, e -> {
+                            assertThat(e.code()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+                            assertThat(e.details()).containsEntry("field", "period");
+                        });
+            }
+        }
+        verifyNoInteractions(numbers);
+        verify(invoices, never()).insert(any());
+    }
+
     // --- fixture ------------------------------------------------------------------------------------------------------------
 
     static void assertCode(ThrowingCallable call, ErrorCode code) {

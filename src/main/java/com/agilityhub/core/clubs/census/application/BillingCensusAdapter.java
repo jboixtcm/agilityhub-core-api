@@ -41,9 +41,25 @@ public class BillingCensusAdapter implements BillingCensusAccess {
         // R-04-06 (INC-39, E11-T10): a pending readmission's LEFT record is frozen; D2's validation assigns its plan.
         census.members.lock(); return CensusAccess.unfrozen(census.mutableMember(memberId)).planId;
     }
-    @Override public void changePlan(String memberId, String planId, String priceId) {
+    @Override public void changePlan(String memberId, String planId, String priceId, LocalDate firstInvoiceDate) {
         var member = census.mutableMember(memberId); member.planId = planId; member.priceId = priceId;
+        // E11-T15 step 1 (R-12-06): a member without a date gets its first one; a member that has one keeps it.
+        if (firstInvoiceDate != null && member.nextInvoiceDate == null) { member.nextInvoiceDate = firstInvoiceDate; }
         census.members.save(member);
+    }
+    @Override public Optional<NextInvoiceDateChange> setNextInvoiceDate(String memberId, LocalDate date) {
+        // R-04-06 (INC-39): a pending readmission's LEFT record is frozen; R-12-01: only an ACTIVE member is billed.
+        census.members.lock();
+        var member = CensusAccess.unfrozen(census.mutableMember(memberId));
+        if (!"ACTIVE".equals(member.status)) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.INVALID_STATE); }
+        LocalDate before = member.nextInvoiceDate;
+        if (date.equals(before)) { return Optional.empty(); }
+        member.nextInvoiceDate = date; census.members.save(member);
+        // S03 §7 `MemberUpdated{memberId, diff}`, as MemberService.patch publishes a census edit.
+        var was = new LinkedHashMap<String, Object>(); was.put("nextInvoiceDate", before == null ? null : before.toString());
+        events.emit("MemberUpdated", "Member", memberId, CensusValues.object("memberId", memberId, "diff",
+                events.maskedDiff(was, CensusValues.object("nextInvoiceDate", date.toString()))));
+        return Optional.of(new NextInvoiceDateChange(before, date));
     }
     @Override public Optional<Card> card(String memberId) {
         return census.members.findById(memberId).filter(member -> "CARD".equals(map(member.paymentMethod).get("type"))).map(member -> {

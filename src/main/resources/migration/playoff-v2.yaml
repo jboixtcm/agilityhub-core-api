@@ -154,4 +154,13 @@ files:
       - {at: 1, header: "Member ID", field: memberId, anonymize: id}
       - {at: 2, header: "Mandate reference", field: mandateRef, anonymize: id}
       - {at: 3, header: "Signed on", field: mandateSignedAt, anonymize: keep}
+  # E146 (E11-T15, S18 R-18-13), optional: the last month Playoff already charged a member (YYYY-MM, or a day of it). Its first
+  # nextInvoiceDate is the 1st of the month after — never earlier than the cut-over's default (01 of M+1). The Cànic's cash members
+  # pay natural half-years: list them here so the first run does not bill months they already paid.
+  paidUntil:
+    name: pagat_fins.csv
+    required: false
+    columns:
+      - {at: 1, header: "Member ID", field: memberId, anonymize: id}
+      - {at: 2, header: "Paid until", field: paidUntil, anonymize: keep}
 history: {receiptsMonths: 24}

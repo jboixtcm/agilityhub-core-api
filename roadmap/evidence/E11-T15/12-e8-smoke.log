@@ -1,0 +1,131 @@
+heavy.sh: 20:07 waiting for the host lock, held by: 20:07 agilityhub-core-web-c: pnpm e2e:core E11-W02
+heavy.sh: 20:26 got the host lock after 18 min 47 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic-consumer.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic-consumer.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  402 changes (demo planning, week start 2026-11-02)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-11-02 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  0 changes (demo planning, week start 2026-11-02)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-11-02 run 2: 0 changes
+  + catalogs: 6 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 2: 0 changes
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, inactiveDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  16 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, attendanceHistoryClasses=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, attendanceRenamed=0, attendanceLevelChanges=0, followupNotes=0, attendanceBookings=0, attendanceWaitlist=0, attendanceMarks=0, attendanceCancellations=0, attendanceNoShowBatches=0, followupTasks=0, followupTaskAttachments=0, followupObservations=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0, trainingHistoryOverrides=0, trainingHistoryBookings=0, messagingContacts=0, messagingProfiles=0, messagingBounces=0, pushSubscriptions=0, customTemplates=0, cardMembers=1, pendingCharges=2}
+  23 changes (demo planning, week start 2026-11-02)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-11-02 run 1
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, inactiveDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  0 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, attendanceHistoryClasses=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, attendanceRenamed=0, attendanceLevelChanges=0, followupNotes=0, attendanceBookings=0, attendanceWaitlist=0, attendanceMarks=0, attendanceCancellations=0, attendanceNoShowBatches=0, followupTasks=0, followupTaskAttachments=0, followupObservations=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0, trainingHistoryOverrides=0, trainingHistoryBookings=0, messagingContacts=0, messagingProfiles=0, messagingBounces=0, pushSubscriptions=0, customTemplates=0, cardMembers=1, pendingCharges=2}
+  0 changes (demo planning, week start 2026-11-02)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-11-02 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2): second runs 0 changes · week start 2026-11-02 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic, fifo
+curl PUT /api/v1/jobs/expirations/switch -> 200
+curl PUT /api/v1/jobs/billing-reminder/switch -> 200
+PASS PUT /jobs/{expirations,billing-reminder}/switch {enabled:false}: 200 · the scheduler leaves P5 and P10 to this script
+curl POST /api/v1/inactivity-periods/<id>/decision -> 200
+PASS seed:demo E8 section (Cànic + FIFO): seeded · creditor ES64ZZZ999999999; inactivity REQUESTED 2026-11 and ACTIVE 2026-10…2026-11; leave on 2027-08-31; pack EXPIRED 2026-10-20; FIFO: 1 CARD payer, 2 pending charges; the request then APPROVED by the admin
+curl POST /api/v1/bookings/<id>/cancellation -> 200
+PASS Pack consumed (seeded booking) and returned (POST /bookings/{id}/cancellation in time): 200 · movement CONSUME → REFUND; remaining 2 → 3
+curl POST /api/v1/billing/simulations -> 201
+PASS POST /billing/simulations {period 2026-11}: 201 · 116 receipts, 14030.00 EUR, collection 2026-11-01; incidents none; the inactive member pays 30.00 EUR instead of 180.00 EUR
+curl POST /api/v1/billing/runs -> 201
+PASS POST /billing/runs: 201 · run GENERATED, 116 receipts 2026-0001…2026-0116, remittance 61 debits 7670.00 EUR
+curl GET /api/v1/remittances/<id>/file -> 200
+curl GET <signed remittance link> -> 200
+PASS GET /remittances/{id}/file → signed link → pain.008: 200 · pain.008.001.02, 61 DrctDbtTxInf, CtrlSum 7670.00, creditor ES64ZZZ999999999, SeqTp ['RCUR'], XSD validated by the API
+curl POST /api/v1/invoices/<id>/failure -> 200
+PASS POST /invoices/{id}/failure (bank return): 200 · 2026-0001 FAILED
+curl POST /api/v1/billing/runs/<id>/rollback -> 200
+PASS POST /billing/runs/{id}/rollback: 200 · 116 receipts cancelled, 131 next-invoice dates restored, remittance rolled back
+curl POST /api/v1/billing/simulations -> 201
+curl POST /api/v1/billing/runs -> 201
+PASS POST /billing/simulations + /billing/runs again: 201 · same numbers 2026-0001…2026-0116 (116)
+curl POST /api/v1/invoices/<id>/payment -> 200
+PASS POST /invoices/{id}/payment {CASH}: 200 · 2026-0002 PAID
+curl POST /api/v1/billing/simulations -> 201
+curl POST /api/v1/billing/runs -> 201
+curl POST /api/v1/billing/runs/<id>/card-charges -> 202
+Card leg on FakePaymentProvider: STRIPE_TEST_SECRET_KEY is unset; billing:fake-webhook exercises the handler without the route's signature check
+PASS POST /billing/runs/{id}/card-charges + payment_intent.succeeded (fake provider): 202 → PAID · 1 submitted; PaymentIntent pi_fake_71d9…[truncated]
+PASS POST /test/clock: 200 · 06:00 the day after the leave date (Wed 01-09 06:00 Europe/Madrid; server now 2027-09-01T04:00Z)
+curl POST /api/v1/jobs/expirations/trigger -> 200
+curl POST /api/v1/jobs/expirations/trigger -> 200
+JobRun expirations dry run: run 03642a05… EXPIRATIONS trigger=MANUAL dryRun=True status=SUCCEEDED scheduledForLocal=2027-09-01T06:00 counters={'WOULD_EXPIRE_PACK': 16, 'WOULD_END_INACTIVITY': 1, 'WOULD_START_INACTIVITY': 1, 'WOULD_LEAVE': 2, 'WOULD_REMIND_SIGNUPS': 1, 'WOULD_EXPIRE_SETUP': 3} items=['PackBalance:7b914544…:WOULD_EXPIRE_PACK', 'PackBalance:e7ee4136…:WOULD_EXPIRE_PACK', 'PackBalance:5860b352…:WOULD_EXPIRE_PACK', 'PackBalance:b9524c60…:WOULD_EXPIRE_PACK', 'PackBalance:03addb04…:WOULD_EXPIRE_PACK', 'PackBalance:6421b359…:WOULD_EXPIRE_PACK', 'PackBalance:8974ef2e…:WOULD_EXPIRE_PACK', 'PackBalance:b96834af…:WOULD_EXPIRE_PACK', 'PackBalance:24e2f3dd…:WOULD_EXPIRE_PACK', 'PackBalance:65bda5d8…:WOULD_EXPIRE_PACK', 'PackBalance:93d81a0a…:WOULD_EXPIRE_PACK', 'PackBalance:bcedf002…:WOULD_EXPIRE_PACK', 'PackBalance:bde83cca…:WOULD_EXPIRE_PACK', 'PackBalance:ea832eeb…:WOULD_EXPIRE_PACK', 'PackBalance:f8845a45…:WOULD_EXPIRE_PACK', 'PackBalance:fb1b3ffc…:WOULD_EXPIRE_PACK', 'InactivityPeriod:7b0496cb…:WOULD_END_INACTIVITY', 'InactivityPeriod:2c53c914…:WOULD_START_INACTIVITY', 'Member:ba4a8bb4…:WOULD_LEAVE', 'Member:1418d3d1…:WOULD_LEAVE', 'Club:506de59f…:WOULD_REMIND_SIGNUPS', 'RingSetup:4705f057…:WOULD_EXPIRE_SETUP', 'RingSetup:40969acc…:WOULD_EXPIRE_SETUP', 'RingSetup:944c9d29…:WOULD_EXPIRE_SETUP']
+JobRun expirations real run: run 2c546d06… EXPIRATIONS trigger=MANUAL dryRun=False status=SUCCEEDED scheduledForLocal=2027-09-01T06:00 counters={'expiredPacks': 16, 'startedInactivity': 1, 'endedInactivity': 1, 'leftMembers': 2, 'signupReminders': 1, 'expiredSetups': 3} items=['PackBalance:7b914544…:EXPIRE_PACK', 'PackBalance:e7ee4136…:EXPIRE_PACK', 'PackBalance:5860b352…:EXPIRE_PACK', 'PackBalance:b9524c60…:EXPIRE_PACK', 'PackBalance:03addb04…:EXPIRE_PACK', 'PackBalance:6421b359…:EXPIRE_PACK', 'PackBalance:8974ef2e…:EXPIRE_PACK', 'PackBalance:b96834af…:EXPIRE_PACK', 'PackBalance:24e2f3dd…:EXPIRE_PACK', 'PackBalance:65bda5d8…:EXPIRE_PACK', 'PackBalance:93d81a0a…:EXPIRE_PACK', 'PackBalance:bcedf002…:EXPIRE_PACK', 'PackBalance:bde83cca…:EXPIRE_PACK', 'PackBalance:ea832eeb…:EXPIRE_PACK', 'PackBalance:f8845a45…:EXPIRE_PACK', 'PackBalance:fb1b3ffc…:EXPIRE_PACK', 'InactivityPeriod:7b0496cb…:END_INACTIVITY', 'InactivityPeriod:2c53c914…:START_INACTIVITY', 'Member:ba4a8bb4…:LEAVE', 'Member:1418d3d1…:LEAVE', 'Club:506de59f…:REMIND_SIGNUPS', 'RingSetup:4705f057…:EXPIRE_SETUP', 'RingSetup:40969acc…:EXPIRE_SETUP', 'RingSetup:944c9d29…:EXPIRE_SETUP']
+PASS POST /jobs/expirations/trigger {dryRun:true} then {dryRun:false}: SUCCEEDED ×2 · 24 items, plan ≡ effects; counters {'expiredPacks': 16, 'startedInactivity': 1, 'endedInactivity': 1, 'leftMembers': 2, 'signupReminders': 1, 'expiredSetups': 3}; the leaving member ACTIVE → LEFT; the approved inactivity ACTIVE
+curl POST /api/v1/jobs/expirations/trigger -> 200
+curl POST /api/v1/jobs/expirations/trigger -> 200
+PASS POST /jobs/expirations/trigger twice more: SUCCEEDED ×2 · second: 14 leaves S13 planned from the expired packs (their grace already over), signups alreadyDone; third: nothing
+curl POST /api/v1/billing/simulations -> 201
+PASS POST /billing/simulations after the leave: 201 · the member who left has no receipt
+PASS POST /test/clock: 200 · 06:00 on day 22 (Wed 22-09 06:00 Europe/Madrid; server now 2027-09-22T04:00Z)
+curl POST /api/v1/jobs/billing-reminder/trigger -> 200
+curl POST /api/v1/jobs/billing-reminder/trigger -> 200
+JobRun billing-reminder day 22 dry run: run 2b04b872… BILLING_REMINDER trigger=MANUAL dryRun=True status=SUCCEEDED scheduledForLocal=2027-09-22T06:00 counters={'WOULD_REMIND_BILLING': 1} items=['Club:506de59f…:WOULD_REMIND_BILLING']
+JobRun billing-reminder day 22 real run: run 04b0e180… BILLING_REMINDER trigger=MANUAL dryRun=False status=SUCCEEDED scheduledForLocal=2027-09-22T06:00 counters={'remittanceReminders': 1} items=['Club:506de59f…:REMIND_BILLING']
+curl POST /api/v1/jobs/billing-reminder/trigger -> 200
+PASS POST /test/clock: 200 · 06:00 on day 23 (Thu 23-09 06:00 Europe/Madrid; server now 2027-09-23T04:00Z)
+curl POST /api/v1/jobs/billing-reminder/trigger -> 200
+JobRun billing-reminder day 23: run bbc9be09… BILLING_REMINDER trigger=MANUAL dryRun=False status=SUCCEEDED scheduledForLocal=2027-09-23T06:00 counters={} items=[]
+PASS POST /jobs/billing-reminder/trigger on day 22 (dry run, real, again) and on day 23: SUCCEEDED ×4 · plan ≡ effects; RemittanceReminderDue {'period': '2027-10', 'pendingMembers': 69} → 2 N-41 notice(s) once; nothing on the second run nor on day 23; invoices/remittances/runs unchanged [232, 2, 2]
+curl GET /api/v1/billing/exports -> 200
+Accounting CSV (BOM EF BB BF, first ten rows, fictional data):
+  Número;Data;Mes;Número d’abonat;Nom;NIF del titular;Concepte;Base;Impost %;Impost;Total;Mètode;Estat;Data de cobrament;Remesa;Referència de pagament
+  2026-0001;21/10/2026;2026-11;1;Laia Fictici001;;Quota Abonat · 2 gossos (familiar) — Octubre 2026;90,00;0,00;0,00;90,00;Domiciliació;Remesat;;canic-2026-11-2;canic-1-1
+  2026-0001;21/10/2026;2026-11;1;Laia Fictici001;;Quota Abonat · 2 gossos (familiar) — Novembre 2026;90,00;0,00;0,00;90,00;Domiciliació;Remesat;;canic-2026-11-2;canic-1-1
+  2026-0002;21/10/2026;2026-11;3;Berta Fictici003;;Quota Abonat · 2 gossos (familiar) — Octubre 2026;90,00;0,00;0,00;90,00;Manual;Cobrat;21/10/2026;;
+  2026-0002;21/10/2026;2026-11;3;Berta Fictici003;;Quota Abonat · 2 gossos (familiar) — Novembre 2026;90,00;0,00;0,00;90,00;Manual;Cobrat;21/10/2026;;
+  2026-0002;21/10/2026;2026-11;3;Berta Fictici003;;Quota Abonat · 2 gossos (familiar) — Desembre 2026;90,00;0,00;0,00;90,00;Manual;Cobrat;21/10/2026;;
+  2026-0003;21/10/2026;2026-11;5;Laia Fictici005;;Quota Abonat · 2 gossos (familiar) — Octubre 2026;90,00;0,00;0,00;90,00;Domiciliació;Remesat;;canic-2026-11-2;canic-5-1
+  2026-0003;21/10/2026;2026-11;5;Laia Fictici005;;Quota Abonat · 2 gossos (familiar) — Novembre 2026;90,00;0,00;0,00;90,00;Domiciliació;Remesat;;canic-2026-11-2;canic-5-1
+  2026-0004;21/10/2026;2026-11;7;Aina Fictici007;;Quota Abonat · 2 gossos (familiar) — Octubre 2026;90,00;0,00;0,00;90,00;Domiciliació;Remesat;;canic-2026-11-2;canic-7-1
+  2026-0004;21/10/2026;2026-11;7;Aina Fictici007;;Quota Abonat · 2 gossos (familiar) — Novembre 2026;90,00;0,00;0,00;90,00;Domiciliació;Remesat;;canic-2026-11-2;canic-7-1
+  2026-0005;21/10/2026;2026-11;9;Aleix Fictici009;;Quota Abonat · 2 gossos (familiar) — Octubre 2026;90,00;0,00;0,00;90,00;Manual;Pendent;;;
+PASS GET /billing/exports?period=2026-11&format=csv: 200 · BOM, ';', header «Número…»; 287 rows = 287 invoice lines; total 14030.00 = the run's
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2)                   · second runs 0 changes · week start 2026-11-02 (8+ days ahead)
+  PUT /jobs/{expirations,billing-reminder}/switch {enabled:false}                        · 200 · the scheduler leaves P5 and P10 to this script
+  seed:demo E8 section (Cànic + FIFO)                                                    · seeded · creditor ES64ZZZ999999999; inactivity REQUESTED 2026-11 and ACTIVE 2026-10…2026-11; leave on 2027-08-31; pack EXPIRED 2026-10-20; FIFO: 1 CARD payer, 2 pending charges; the request then APPROVED by the admin
+  Pack consumed (seeded booking) and returned (POST /bookings/{id}/cancellation in time) · 200 · movement CONSUME → REFUND; remaining 2 → 3
+  POST /billing/simulations {period 2026-11}                                             · 201 · 116 receipts, 14030.00 EUR, collection 2026-11-01; incidents none; the inactive member pays 30.00 EUR instead of 180.00 EUR
+  POST /billing/runs                                                                     · 201 · run GENERATED, 116 receipts 2026-0001…2026-0116, remittance 61 debits 7670.00 EUR
+  GET /remittances/{id}/file → signed link → pain.008                                    · 200 · pain.008.001.02, 61 DrctDbtTxInf, CtrlSum 7670.00, creditor ES64ZZZ999999999, SeqTp ['RCUR'], XSD validated by the API
+  POST /invoices/{id}/failure (bank return)                                              · 200 · 2026-0001 FAILED
+  POST /billing/runs/{id}/rollback                                                       · 200 · 116 receipts cancelled, 131 next-invoice dates restored, remittance rolled back
+  POST /billing/simulations + /billing/runs again                                        · 201 · same numbers 2026-0001…2026-0116 (116)
+  POST /invoices/{id}/payment {CASH}                                                     · 200 · 2026-0002 PAID
+  POST /billing/runs/{id}/card-charges + payment_intent.succeeded (fake provider)        · 202 → PAID · 1 submitted; PaymentIntent pi_fake_71d9…[truncated]
+  POST /test/clock                                                                       · 200 · 06:00 the day after the leave date (Wed 01-09 06:00 Europe/Madrid; server now 2027-09-01T04:00Z)
+  POST /jobs/expirations/trigger {dryRun:true} then {dryRun:false}                       · SUCCEEDED ×2 · 24 items, plan ≡ effects; counters {'expiredPacks': 16, 'startedInactivity': 1, 'endedInactivity': 1, 'leftMembers': 2, 'signupReminders': 1, 'expiredSetups': 3}; the leaving member ACTIVE → LEFT; the approved inactivity ACTIVE
+  POST /jobs/expirations/trigger twice more                                              · SUCCEEDED ×2 · second: 14 leaves S13 planned from the expired packs (their grace already over), signups alreadyDone; third: nothing
+  POST /billing/simulations after the leave                                              · 201 · the member who left has no receipt
+  POST /test/clock                                                                       · 200 · 06:00 on day 22 (Wed 22-09 06:00 Europe/Madrid; server now 2027-09-22T04:00Z)
+  POST /test/clock                                                                       · 200 · 06:00 on day 23 (Thu 23-09 06:00 Europe/Madrid; server now 2027-09-23T04:00Z)
+  POST /jobs/billing-reminder/trigger on day 22 (dry run, real, again) and on day 23     · SUCCEEDED ×4 · plan ≡ effects; RemittanceReminderDue {'period': '2027-10', 'pendingMembers': 69} → 2 N-41 notice(s) once; nothing on the second run nor on day 23; invoices/remittances/runs unchanged [232, 2, 2]
+  GET /billing/exports?period=2026-11&format=csv                                         · 200 · BOM, ';', header «Número…»; 287 rows = 287 invoice lines; total 14030.00 = the run's
+PASS E8 backend gate: the month simulated, generated, its pain.008 checked, a bank return, the rollback and the same numbers again, a cash payment, a card charge with its webhook (fake provider), a pack consumed and returned, an inactivity and a leave with their effect on the receipt, P5 and P10 at 06:00, and the accounting export
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

@@ -141,7 +141,8 @@ class InvoicingRulesTest {
         assertThat(lines(new Member("pere", "LEFT", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "abonat"), SEPTEMBER))
                 .isEqualTo(new Excluded(Exclusion.NOT_ACTIVE));
         assertThat(lines(sepa("laura", "abonat", LocalDate.of(2026, 10, 1)), SEPTEMBER)).isEqualTo(new Excluded(Exclusion.NOT_DUE));
-        assertThat(lines(sepa("laura", "abonat", null), SEPTEMBER)).isEqualTo(new Excluded(Exclusion.NOT_DUE));
+        // E11-T15 step 3: a MONTHLY member without a date is no longer silently out of the month, it is D6's incident.
+        assertThat(lines(sepa("laura", "abonat", null), SEPTEMBER)).isEqualTo(new Skipped(BillingIncidentCode.NO_NEXT_INVOICE_DATE));
         assertThat(lines(new Member("laura", "ACTIVE", LocalDate.of(2026, 9, 1), null, false, false, "abonat"), SEPTEMBER))
                 .isEqualTo(new Excluded(Exclusion.NO_PAYMENT_METHOD));
         // S13 R-13-11: leave on 10-11 with fullMonthIfLater → November is the last billed month; December is out.
@@ -250,6 +251,131 @@ class InvoicingRulesTest {
         assertThat(withLeft.invoices()).extracting(draft -> draft.lines().getFirst().amounts().total()).containsExactly(eur(6000), eur(6000));
         assertThat(withLeft.excluded()).doesNotContainValue(Exclusion.BILLED_VIA_HOLDER);
     }
+    /**
+     * E11-T15 step 2 (the audit of 21-10, F2; R-12-04, R-03-20, S13 R-13-11): a holder leaving at the end of November is still
+     * `ACTIVE` when December is billed, but its December is `AFTER_LEAVE`. It captures nobody: the group's members are billed on
+     * their own, each with its own plan and method. A holder who is only not due keeps its group (its date governs the group).
+     */
+    @Test void T_12_02_R_13_11_aLeavingHolderBillsNobodyAndTheMembersAreBilledOnTheirOwn() {
+        var december = YearMonth.of(2026, 12); var runDay = LocalDate.of(2026, 11, 25);
+        leaving.put("laura", YearMonth.of(2026, 11));
+        var group = new Group("laura", List.of("laura", "joan-antoni"));
+        var month = InvoicingRules.month(List.of(sepa("joan-antoni", "abonat", LocalDate.of(2026, 12, 1)), sepa("laura", "abonat2", LocalDate.of(2026, 12, 1))),
+                List.of(group), december, runDay, CANIC, sources, TEXT);
+        assertThat(month.invoices()).singleElement().satisfies(draft -> {
+            assertThat(draft.payerId()).isEqualTo("joan-antoni");
+            assertThat(draft.lines()).singleElement().satisfies(line -> {
+                assertThat(line.origin()).isEqualTo(InvoiceLineOrigin.MONTHLY_FEE);
+                assertThat(line.amounts().total()).isEqualTo(eur(6000));
+                assertThat(line.forMemberId()).isNull();
+            });
+            assertThat(draft.advances()).containsExactly(new Advance("joan-antoni", LocalDate.of(2026, 12, 1), LocalDate.of(2027, 1, 1)));
+        });
+        assertThat(month.excluded()).containsExactly(Map.entry("laura", Exclusion.AFTER_LEAVE));
+        assertThat(month.skipped()).isEmpty();
+        // A holder without a payment method captures nobody either: its members are billed (and flagged) on their own.
+        leaving.clear();
+        var withoutMethod = InvoicingRules.month(List.of(new Member("laura", "ACTIVE", LocalDate.of(2026, 12, 1), null, false, false, "abonat2"),
+                sepa("joan-antoni", "abonat", LocalDate.of(2026, 12, 1))), List.of(group), december, runDay, CANIC, sources, TEXT);
+        assertThat(withoutMethod.invoices()).extracting(Draft::payerId).containsExactly("joan-antoni");
+        assertThat(withoutMethod.excluded()).containsExactly(Map.entry("laura", Exclusion.NO_PAYMENT_METHOD));
+        // The same leaving holder with its date in January (December already billed to it) and the member due: the member stays
+        // BILLED_VIA_HOLDER — a member of a group whose holder is not due is not due either (R-12-04, R-12-06).
+        leaving.put("laura", YearMonth.of(2026, 11));
+        var notDue = InvoicingRules.month(List.of(sepa("joan-antoni", "abonat", LocalDate.of(2026, 12, 1)), sepa("laura", "abonat2", LocalDate.of(2027, 1, 1))),
+                List.of(group), december, runDay, CANIC, sources, TEXT);
+        assertThat(notDue.invoices()).isEmpty();
+        assertThat(notDue.advances()).isEmpty();
+        assertThat(notDue.excluded()).containsExactly(Map.entry("joan-antoni", Exclusion.BILLED_VIA_HOLDER), Map.entry("laura", Exclusion.NOT_DUE));
+    }
+
+    /**
+     * E11-T15 steps 1 and 3 (the audit of 21-10, F1/F3; R-12-01, R-12-06, R-12-07): an `ACTIVE` member on a `MONTHLY` plan with no
+     * `nextInvoiceDate` (a pack member moved to a monthly plan, a migrated record) is D6's incident `NO_NEXT_INVOICE_DATE`, never
+     * silently `NOT_DUE`, and never `Billed`: a run must not invent a date (the admin sets it, E146). A pack or single-class member
+     * without a date is not due as before; a non-holder is billed via its holder first; a leaver past its last month stays out.
+     */
+    @Test void T_12_07_R_12_06_aMonthlyMemberWithoutANextInvoiceDateIsAnIncidentAndTheRunNeverInventsOne() {
+        var december = YearMonth.of(2026, 12); var runDay = LocalDate.of(2026, 11, 25);
+        assertThat(InvoicingRules.linesFor(sepa("m", "abonat", null), december, runDay, CANIC, sources, TEXT))
+                .isEqualTo(new Skipped(BillingIncidentCode.NO_NEXT_INVOICE_DATE));
+        assertThat(InvoicingRules.linesFor(cash("c", "terapia", null), december, runDay, CANIC, sources, TEXT))
+                .isEqualTo(new Skipped(BillingIncidentCode.NO_NEXT_INVOICE_DATE));
+        assertThat(InvoicingRules.linesFor(sepa("p", "pack10", null), december, runDay, CANIC, sources, TEXT)).isEqualTo(new Excluded(Exclusion.NOT_DUE));
+        assertThat(InvoicingRules.linesFor(sepa("s", "single", null), december, runDay, CANIC, sources, TEXT)).isEqualTo(new Excluded(Exclusion.NOT_DUE));
+        assertThat(InvoicingRules.linesFor(new Member("x", "LEFT", null, PaymentMethodType.SEPA_DD, true, false, "abonat"), december, runDay, CANIC, sources, TEXT))
+                .isEqualTo(new Excluded(Exclusion.NOT_ACTIVE));
+        leaving.put("gone", YearMonth.of(2026, 11));
+        assertThat(InvoicingRules.linesFor(sepa("gone", "abonat", null), december, runDay, CANIC, sources, TEXT)).isEqualTo(new Excluded(Exclusion.NOT_DUE));
+        var group = new Group("laura", List.of("laura", "joan-antoni"));
+        var month = InvoicingRules.month(List.of(sepa("joan-antoni", "abonat", null), sepa("laura", "abonat2", LocalDate.of(2026, 12, 1)), sepa("m", "abonat", null)),
+                List.of(group), december, runDay, CANIC, sources, TEXT);
+        assertThat(month.skipped()).containsExactly(new Incident("m", BillingIncidentCode.NO_NEXT_INVOICE_DATE));
+        assertThat(month.excluded()).containsEntry("joan-antoni", Exclusion.BILLED_VIA_HOLDER);
+        assertThat(month.invoices()).extracting(Draft::payerId).containsExactly("laura");
+        assertThat(month.advances()).extracting(Advance::memberId).containsExactly("laura");
+    }
+
+    /**
+     * E11-T15 step 3 (the audit of 21-10, F3; R-12-05): a cash member whose date is too early is billed every month of the half-year
+     * from it — the documented behaviour of the rule. The Cànic's fix is the migration's «paid until» file and the admin's
+     * `PUT /members/{id}/next-invoice-date`, not the rule.
+     */
+    @Test void T_12_03_R_12_05_aTooEarlyDateOfACashMemberBillsTheEarlierMonthsOfItsHalfYear() {
+        var december = billed(InvoicingRules.linesFor(cash("c", "abonat", LocalDate.of(2026, 11, 1)), YearMonth.of(2026, 12), LocalDate.of(2026, 11, 25), CANIC, sources, TEXT));
+        assertThat(december.lines()).extracting(Line::month).containsExactly(YearMonth.of(2026, 11), YearMonth.of(2026, 12));
+        assertThat(december.nextInvoiceDate()).isEqualTo(LocalDate.of(2027, 1, 1));
+        // With its real date (paid until December), nothing is due in December.
+        assertThat(InvoicingRules.linesFor(cash("c", "abonat", LocalDate.of(2027, 1, 1)), YearMonth.of(2026, 12), LocalDate.of(2026, 11, 25), CANIC, sources, TEXT))
+                .isEqualTo(new Excluded(Exclusion.NOT_DUE));
+    }
+
+    /**
+     * E11-T15 step 4 (the audit of 21-10, F4; R-12-01, R-12-02, R-12-07): a non-cash monthly member skipped in December (no bank
+     * account) is billed December with January once it can be, like R-12-05's cash catch-up: one line per month from
+     * `month(nextInvoiceDate)` to `M`, each with its own month's inactivity fee or the price current on the issue date, and the
+     * frozen text of its month; the date goes to `M + 1`. A leaving member's months after its last billed month stay out.
+     */
+    @Test void T_12_01_R_12_07_anUnbilledEarlierMonthIsBilledWithTheCurrentOne() {
+        var january = YearMonth.of(2027, 1); var runDay = LocalDate.of(2026, 12, 26);
+        var caughtUp = billed(InvoicingRules.linesFor(sepa("m", "abonat", LocalDate.of(2026, 12, 1)), january, runDay, CANIC, sources, TEXT));
+        assertThat(caughtUp.lines()).extracting(Line::month).containsExactly(YearMonth.of(2026, 12), january);
+        assertThat(caughtUp.lines()).extracting(Line::description).containsExactly("MONTHLY_FEE Abonat 2026-12", "MONTHLY_FEE Abonat 2027-01");
+        assertThat(caughtUp.total("EUR")).isEqualTo(eur(12000));
+        assertThat(caughtUp.nextInvoiceDate()).isEqualTo(LocalDate.of(2027, 2, 1));
+        assertThat(billed(InvoicingRules.linesFor(sepa("m", "abonat", LocalDate.of(2027, 1, 1)), january, runDay, CANIC, sources, TEXT)).lines()).hasSize(1);
+        // Each month keeps its own inactivity fee.
+        inactivity.put("m:2026-12", eur(1000));
+        assertThat(billed(InvoicingRules.linesFor(sepa("m", "abonat", LocalDate.of(2026, 12, 1)), january, runDay, CANIC, sources, TEXT)).lines())
+                .extracting(Line::origin, Line::month).containsExactly(org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.INACTIVITY_FEE, YearMonth.of(2026, 12)),
+                        org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.MONTHLY_FEE, january));
+        inactivity.clear();
+        // Any method: monthly cash catches up too; the SEMESTER branch is unchanged (R-12-05).
+        var monthlyCash = new Settings("EUR", 1, CashInvoicing.MONTHLY, 6, true, true, true, true, CANIC.enabledMethods());
+        assertThat(billed(InvoicingRules.linesFor(cash("v", "abonat", LocalDate.of(2026, 12, 1)), january, runDay, monthlyCash, sources, TEXT)).lines()).hasSize(2);
+        // A family member due with its holder catches up too: its own December inactivity fee rides the holder's January invoice.
+        inactivity.put("joan-antoni:2026-12", eur(1000));
+        var family = InvoicingRules.month(List.of(sepa("laura", "abonat2", LocalDate.of(2026, 12, 1)), sepa("joan-antoni", "abonat", LocalDate.of(2026, 12, 1))),
+                List.of(new Group("laura", List.of("laura", "joan-antoni"))), january, runDay, CANIC, sources, TEXT);
+        assertThat(family.invoices()).singleElement().satisfies(draft -> {
+            assertThat(draft.lines()).extracting(Line::origin, Line::month, Line::forMemberId).containsExactly(
+                    org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.MONTHLY_FEE, YearMonth.of(2026, 12), null),
+                    org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.MONTHLY_FEE, january, null),
+                    org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.INACTIVITY_FEE, YearMonth.of(2026, 12), "joan-antoni"));
+            assertThat(draft.advances()).extracting(Advance::memberId, Advance::to).containsExactly(
+                    org.assertj.core.groups.Tuple.tuple("laura", LocalDate.of(2027, 2, 1)), org.assertj.core.groups.Tuple.tuple("joan-antoni", LocalDate.of(2027, 2, 1)));
+        });
+        inactivity.clear();
+        // A leaving member whose last billed month is December stays out of January, as before.
+        leaving.put("m", YearMonth.of(2026, 12));
+        assertThat(InvoicingRules.linesFor(sepa("m", "abonat", LocalDate.of(2026, 12, 1)), january, runDay, CANIC, sources, TEXT)).isEqualTo(new Excluded(Exclusion.AFTER_LEAVE));
+        // A leaving member billed in its last month catches up only to it.
+        leaving.put("m", YearMonth.of(2027, 1));
+        var february = YearMonth.of(2027, 2);
+        assertThat(billed(InvoicingRules.linesFor(sepa("m", "abonat", LocalDate.of(2026, 12, 1)), YearMonth.of(2027, 1), runDay, CANIC, sources, TEXT)).lines()).hasSize(2);
+        assertThat(InvoicingRules.linesFor(sepa("m", "abonat", LocalDate.of(2026, 12, 1)), february, runDay, CANIC, sources, TEXT)).isEqualTo(new Excluded(Exclusion.AFTER_LEAVE));
+    }
+
     @Test void T_12_03_cashBySemesterBillsTheRestOfTheNaturalHalfYearFromTheFirstUnpaidMonth() {
         // Signup on 17-08 (split day 16, invoice day 1): option A starts today, August is paid at signup → nextInvoiceDate 01-09.
         var options = FirstMonthCalculator.options(LocalDate.of(2026, 8, 17), 16, 1, eur(6000));

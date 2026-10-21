@@ -94,13 +94,14 @@ class PackBalanceServiceSurvivorsTest {
         assertThat(pack.sourceIds()).isEqualTo(Map.of("playoffPackId", "playoff-1"));
     }
 
-    @Test void T_18_15_aFullyConsumedMigratedPackOpensClosedAndAnExpiredOneCarriesItsInstant() {
+    /** E11-T15 step 9 (R-18-10, R-13-14): a fully consumed pack opens ACTIVE with remaining 0 (was CLOSED: P5a never expired it). */
+    @Test void T_18_15_aFullyConsumedMigratedPackOpensActiveWithNothingLeftAndAnExpiredOneCarriesItsInstant() {
         service.openMigrated("mig-2", "playoff-2", "member", "dog", "plan", OPENED, 10, LocalDate.of(2026, 7, 1));
         service.openMigrated("mig-3", "playoff-3", "member", "dog", "plan", LocalDate.of(2025, 1, 10), 6, LocalDate.of(2026, 7, 1));
 
         // remaining = 0 is valid (kills `remaining <= 0`).
         assertThat(stored.get("mig-2").remaining()).isZero();
-        assertThat(stored.get("mig-2").state()).isEqualTo(PackBalanceState.CLOSED);
+        assertThat(stored.get("mig-2").state()).isEqualTo(PackBalanceState.ACTIVE);
         assertThat(stored.get("mig-2").expiredAt()).isNull();
         assertThat(stored.get("mig-3").state()).isEqualTo(PackBalanceState.EXPIRED);
         assertThat(stored.get("mig-3").expiredAt()).isEqualTo(NOW);

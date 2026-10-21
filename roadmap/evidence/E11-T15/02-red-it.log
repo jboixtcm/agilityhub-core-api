@@ -1,0 +1,1682 @@
+heavy.sh: 17:32 waiting for the host lock, held by: 17:30 agilityhub-core-api-c: ./mvnw -q clean verify
+heavy.sh: the lock is still held after 45 min by: 18:02 agilityhub-core-web-c: pnpm e2e:core E11-W02
+heavy.sh: running WITHOUT the lock - if this run fails on timeouts, say so in the report
+18:17:09.191 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.InvoiceActionsIT]: InvoiceActionsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:17:09.307 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.InvoiceActionsIT
+18:17:09.337 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.InvoiceActionsIT]: InvoiceActionsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:17:09.337 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.BillingItSupport]: BillingItSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:17:09.337 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:17:09.339 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.InvoiceActionsIT
+18:17:09.378 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+18:17:09.378 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+18:17:09.383 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+18:17:09.501 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+18:17:09.702 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+18:17:09.703 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+18:17:09.713 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+18:17:10.105 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+18:17:10.216 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+18:17:10.282 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 23ee1b49e3498a7aa8cf460cfee430a305434af54b909d6a18d4f57ec01668e3
+18:17:10.473 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.367483S
+18:17:10.477 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+18:17:10.478 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+18:17:10.478 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+18:17:10.478 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+18:17:10.513 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 06a68321fcf339411e8db47c2c5f4cadee2d8dd72442ea0af150c706db44aa72
+18:17:10.975 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.497328S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-21T18:17:11.693+02:00 INFO  [main] c.a.core.payments.api.InvoiceActionsIT traceId= clubId= accountId= : Starting InvoiceActionsIT using Java [redacted] with PID 86414 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-21T18:17:11.695+02:00 INFO  [main] c.a.core.payments.api.InvoiceActionsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-21T18:17:12.625+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-21T18:17:12.676+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 47 ms. Found 0 MongoDB repository interfaces.
+2026-10-21T18:17:13.106+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@47184859], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@22781286, com.mongodb.Jep395RecordCodecProvider@11564455, com.mongodb.KotlinCodecProvider@173c0722, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50254], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@12e3cf1c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-21T18:17:13.114+02:00 INFO  [cluster-6ad8e58979d24f4d93c7dc12-localhost:50254] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50254, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10311834, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=06a68321fcf3:27017, hosts=[06a68321fcf3:27017], passives=[], arbiters=[], primary='06a68321fcf3:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad8e5863ab83c1f440ba31f, counter=6}, lastWriteDate=Wed Oct 21 18:17:11 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-21T18:17:14.231+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:14.250+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:14.273+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:14.982+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:14.996+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:15.015+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:15.086+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T18:17:18.150+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-21T18:17:18.150+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-21T18:17:18.157+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 7 ms
+2026-10-21T18:17:18.238+02:00 INFO  [main] c.a.core.payments.api.InvoiceActionsIT traceId= clubId= accountId= : Started InvoiceActionsIT in 6.718 seconds (process running for 9.529)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 11.36 s <<< FAILURE! -- in com.agilityhub.core.payments.api.InvoiceActionsIT
+[ERROR] com.agilityhub.core.payments.api.InvoiceActionsIT.R_12_19_R_12_26_aManualReceiptCarriesTheMonthItIsFor -- Time elapsed: 1.932 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "2026-12"
+ but was: "2026-11"
+	at com.agilityhub.core.payments.api.InvoiceActionsIT.R_12_19_R_12_26_aManualReceiptCarriesTheMonthItIsFor(InvoiceActionsIT.java:172)
+
+2026-10-21T18:17:20.512+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.RemittancesIT]: RemittancesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:20.515+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.RemittancesIT
+2026-10-21T18:17:20.516+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.RemittancesIT]: RemittancesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:20.516+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.BillingItSupport]: BillingItSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:20.516+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:20.518+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.RemittancesIT
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 1.451 s <<< FAILURE! -- in com.agilityhub.core.payments.api.RemittancesIT
+[ERROR] com.agilityhub.core.payments.api.RemittancesIT.R_12_14_E147_aGeneratedRemittanceCannotBeRolledBackOnceItsCollectionDateHasCome -- Time elapsed: 0.774 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "2026-09-01"
+ but was: ""
+	at com.agilityhub.core.payments.api.RemittancesIT.R_12_14_E147_aGeneratedRemittanceCannotBeRolledBackOnceItsCollectionDateHasCome(RemittancesIT.java:200)
+
+[ERROR] com.agilityhub.core.payments.api.RemittancesIT.R_12_15_E147_theDayBeforeTheCollectionDateTheSubmissionIsDueAndTheRollbackStillWorks -- Time elapsed: 0.665 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.agilityhub.core.payments.api.RemittancesIT.R_12_15_E147_theDayBeforeTheCollectionDateTheSubmissionIsDueAndTheRollbackStillWorks(RemittancesIT.java:233)
+
+2026-10-21T18:17:21.963+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.MemberNextInvoiceDateIT]: MemberNextInvoiceDateIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:21.964+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.MemberNextInvoiceDateIT
+2026-10-21T18:17:21.965+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.MemberNextInvoiceDateIT]: MemberNextInvoiceDateIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:21.965+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.BillingItSupport]: BillingItSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:21.965+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:21.966+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.MemberNextInvoiceDateIT
+2026-10-21T18:17:22.429+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3ecc78ad-d464-4fec-9273-d3be1de0d892 clubId=bill-a accountId=bill-admin : Framework request rejected status=404 code=NOT_FOUND traceId=3ecc78ad-d464-4fec-9273-d3be1de0d892
+2026-10-21T18:17:22.641+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7c814082-f600-4fb9-83f3-3587bb9c91af clubId=bill-a accountId=bill-admin : Framework request rejected status=404 code=NOT_FOUND traceId=7c814082-f600-4fb9-83f3-3587bb9c91af
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.680 s <<< FAILURE! -- in com.agilityhub.core.payments.api.MemberNextInvoiceDateIT
+[ERROR] com.agilityhub.core.payments.api.MemberNextInvoiceDateIT.T_12_07_E146_theAdminSetsAMembersNextInvoiceDateWithItsReasonAndTheSimulationFollows -- Time elapsed: 0.467 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3ecc78ad-d464-4fec-9273-d3be1de0d892"}] 
+expected: 200
+ but was: 404
+	at com.agilityhub.core.payments.api.BillingItSupport.ok(BillingItSupport.java:205)
+	at com.agilityhub.core.payments.api.MemberNextInvoiceDateIT.T_12_07_E146_theAdminSetsAMembersNextInvoiceDateWithItsReasonAndTheSimulationFollows(MemberNextInvoiceDateIT.java:35)
+
+[ERROR] com.agilityhub.core.payments.api.MemberNextInvoiceDateIT.T_12_21_E146_theRouteIsTheAdminsOnlyWithinTwelveMonthsAndForAnActiveMember -- Time elapsed: 0.208 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[2025-07-31] 
+expected: 400
+ but was: 404
+	at com.agilityhub.core.payments.api.MemberNextInvoiceDateIT.T_12_21_E146_theRouteIsTheAdminsOnlyWithinTwelveMonthsAndForAnActiveMember(MemberNextInvoiceDateIT.java:73)
+
+2026-10-21T18:17:22.645+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.E8ScheduledProcessesIT]: E8ScheduledProcessesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.646+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.E8ScheduledProcessesIT
+2026-10-21T18:17:22.647+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.E8ScheduledProcessesIT]: E8ScheduledProcessesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.647+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.BillingItSupport]: BillingItSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.648+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.649+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.E8ScheduledProcessesIT
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.202 s <<< FAILURE! -- in com.agilityhub.core.payments.api.E8ScheduledProcessesIT
+[ERROR] com.agilityhub.core.payments.api.E8ScheduledProcessesIT.R_18_10_R_13_14_aMigratedPackWithNothingLeftExpiresAndSchedulesTheLeave -- Time elapsed: 0.195 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "ACTIVE"
+ but was: "CLOSED"
+	at com.agilityhub.core.payments.api.E8ScheduledProcessesIT.R_18_10_R_13_14_aMigratedPackWithNothingLeftExpiresAndSchedulesTheLeave(E8ScheduledProcessesIT.java:219)
+
+2026-10-21T18:17:22.847+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.LifecycleIT]: LifecycleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.889+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.LifecycleIT
+2026-10-21T18:17:22.890+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.LifecycleIT]: LifecycleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.890+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.BookingFixtures]: BookingFixtures does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.890+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:22.891+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.LifecycleIT
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.522 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.LifecycleIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_12_01_R_12_06_aPackToMonthlyChangeGivesTheMemberItsFirstInvoiceDate -- Time elapsed: 0.474 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "2026-12-01"
+ but was: null
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_12_01_R_12_06_aPackToMonthlyChangeGivesTheMemberItsFirstInvoiceDate(LifecycleIT.java:288)
+
+2026-10-21T18:17:23.370+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.PlayoffMigrationIT]: PlayoffMigrationIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:23.393+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.PlayoffMigrationIT
+2026-10-21T18:17:23.394+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.PlayoffMigrationIT]: PlayoffMigrationIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:23.394+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-21T18:17:23.394+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.PlayoffMigrationIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-21T18:17:23.421+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : Starting PlayoffMigrationIT using Java [redacted] with PID 86414 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-21T18:17:23.422+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-21T18:17:23.961+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-21T18:17:23.999+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 31 ms. Found 0 MongoDB repository interfaces.
+2026-10-21T18:17:24.068+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@353fd673], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@22781286, com.mongodb.Jep395RecordCodecProvider@11564455, com.mongodb.KotlinCodecProvider@173c0722, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50254], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7e03d053], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-21T18:17:24.069+02:00 INFO  [cluster-6ad8e59479d24f4d93c7dc13-localhost:50254] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50254, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1041458, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=06a68321fcf3:27017, hosts=[06a68321fcf3:27017], passives=[], arbiters=[], primary='06a68321fcf3:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad8e5863ab83c1f440ba31f, counter=6}, lastWriteDate=Wed Oct 21 18:17:23 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-21T18:17:27.795+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : Started PlayoffMigrationIT in 4.39 seconds (process running for 19.086)
+2026-10-21T18:17:28.030+02:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 26 dogs
+E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 8.693 s <<< FAILURE! -- in com.agilityhub.core.migration.PlayoffMigrationIT
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.R_18_11b_E145_aReceiptOrPackRowThatCannotBeReadIsSkippedWithAWarningAndTheLoadApplies -- Time elapsed: 0.418 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[Playoff APPLY
+Validation failed; no changes applied. Counts below describe the proposed changes.
+members: created=187 updated=0 skipped=4 errors=0
+dogs: created=189 updated=0 skipped=0 errors=0
+familyGroups: created=1 updated=0 skipped=0 errors=0 proposed=18
+accounts: created=156 updated=0 skipped=31 errors=0
+invoices: created=1 updated=0 skipped=0 errors=3
+packBalances: created=1 updated=0 skipped=0 errors=2
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INPUT_SCHEMA_MISMATCH=5, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PACK_DOG_AMBIGUOUS=3, PERSON_MERGED=1, PLAN_UNMAPPED=8, VALIDATION_ERROR=10}
+Billing totals: {invoicesPAID=1, mandatesCreated=184, packsACTIVE=1}
+members:191 members SKIPPED 
+members:192 members SKIPPED 
+members:2 members WARNING INVALID_PHONE
+members:2 members WARNING VALIDATION_ERROR
+members:2 members WARNING NO_BANK_ACCOUNT
+members:2 accounts SKIPPED 
+members:2 members CREATED 
+members:2 members WARNING DOG_INFERRED
+members:2 members WARNING CHIP_MISSING
+members:2 dogs CREATED 
+members:3 members WARNING INVALID_PHONE
+members:3 members WARNING VALIDATION_ERROR
+members:3 members WARNING NO_BANK_ACCOUNT
+members:3 accounts SKIPPED 
+members:3 members CREATED 
+members:3 members WARNING DOG_INFERRED
+members:3 members WARNING CHIP_MISSING
+members:3 dogs CREATED 
+members:4 members WARNING INVALID_PHONE
+members:4 members WARNING VALIDATION_ERROR
+members:4 members WARNING NO_BANK_ACCOUNT
+members:4 accounts SKIPPED 
+members:4 members CREATED 
+members:4 members WARNING DOG_INFERRED
+members:4 members WARNING CHIP_MISSING
+members:4 dogs CREATED 
+members:5 members WARNING INVALID_PHONE
+members:5 members WARNING VALIDATION_ERROR
+members:5 members WARNING NO_BANK_ACCOUNT
+members:5 accounts SKIPPED 
+members:5 members CREATED 
+members:5 members WARNING DOG_INFERRED
+members:5 members WARNING CHIP_MISSING
+members:5 dogs CREATED 
+members:6 members WARNING INVALID_PHONE
+members:6 members WARNING VALIDATION_ERROR
+members:6 members WARNING NO_BANK_ACCOUNT
+members:6 accounts SKIPPED 
+members:6 members CREATED 
+members:6 members WARNING DOG_INFERRED
+members:6 members WARNING CHIP_MISSING
+members:6 dogs CREATED 
+members:7 members WARNING INVALID_PHONE
+members:7 members WARNING VALIDATION_ERROR
+members:7 members WARNING NO_BANK_ACCOUNT
+members:7 accounts SKIPPED 
+members:7 members CREATED 
+members:7 members WARNING DOG_INFERRED
+members:7 members WARNING CHIP_MISSING
+members:7 dogs CREATED 
+members:8 members WARNING INVALID_PHONE
+members:8 members WARNING VALIDATION_ERROR
+members:8 members WARNING NO_BANK_ACCOUNT
+members:8 accounts SKIPPED 
+members:8 members CREATED 
+members:8 members WARNING DOG_INFERRED
+members:8 members WARNING CHIP_MISSING
+members:8 dogs CREATED 
+members:9 members WARNING INVALID_PHONE
+members:9 members WARNING VALIDATION_ERROR
+members:9 members WARNING NO_BANK_ACCOUNT
+members:9 accounts CREATED 
+members:9 members CREATED 
+members:9 members WARNING DOG_INFERRED
+members:9 members WARNING CHIP_MISSING
+members:9 dogs CREATED 
+members:10 members WARNING INVALID_PHONE
+members:10 members WARNING VALIDATION_ERROR
+members:10 members WARNING NO_BANK_ACCOUNT
+members:10 accounts CREATED 
+members:10 members CREATED 
+members:10 members WARNING DOG_INFERRED
+members:10 members WARNING CHIP_MISSING
+members:10 dogs CREATED 
+members:11 members WARNING VALIDATION_ERROR
+members:11 members WARNING NO_BANK_ACCOUNT
+members:11 accounts CREATED 
+members:11 members CREATED 
+members:11 members WARNING CHIP_MISSING
+members:11 dogs CREATED 
+members:12 members WARNING NO_BANK_ACCOUNT
+members:12 accounts CREATED 
+members:12 members CREATED 
+members:12 members WARNING CHIP_MISSING
+members:12 dogs CREATED 
+members:13 members WARNING NO_BANK_ACCOUNT
+members:13 accounts CREATED 
+members:13 members CREATED 
+members:13 members WARNING CHIP_MISSING
+members:13 dogs CREATED 
+members:14 members WARNING NO_BANK_ACCOUNT
+members:14 accounts CREATED 
+members:14 members CREATED 
+members:14 members WARNING CHIP_MISSING
+members:14 dogs CREATED 
+members:15 members WARNING NO_BANK_ACCOUNT
+members:15 accounts CREATED 
+members:15 members CREATED 
+members:15 members WARNING CHIP_MISSING
+members:15 dogs CREATED 
+members:16 members WARNING NO_BANK_ACCOUNT
+members:16 accounts CREATED 
+members:16 members CREATED 
+members:16 members WARNING CHIP_MISSING
+members:16 dogs CREATED 
+members:17 members WARNING NO_BANK_ACCOUNT
+members:17 accounts CREATED 
+members:17 members CREATED 
+members:17 members WARNING CHIP_MISSING
+members:17 dogs CREATED 
+members:18 members WARNING NO_BANK_ACCOUNT
+members:18 accounts CREATED 
+members:18 members CREATED 
+members:18 dogs CREATED 
+members:19 members WARNING NO_BANK_ACCOUNT
+members:19 accounts CREATED 
+members:19 members CREATED 
+members:19 dogs CREATED 
+members:20 members WARNING NO_BANK_ACCOUNT
+members:20 accounts CREATED 
+members:20 members CREATED 
+members:20 dogs CREATED 
+members:21 members WARNING NO_BANK_ACCOUNT
+members:21 accounts CREATED 
+members:21 members CREATED 
+members:21 dogs CREATED 
+members:22 members WARNING NO_BANK_ACCOUNT
+members:22 accounts CREATED 
+members:22 members CREATED 
+members:22 dogs CREATED 
+members:23 members WARNING NO_BANK_ACCOUNT
+members:23 accounts CREATED 
+members:23 members CREATED 
+members:23 dogs CREATED 
+members:24 members WARNING NO_BANK_ACCOUNT
+members:24 accounts CREATED 
+members:24 members CREATED 
+members:24 dogs CREATED 
+members:25 members WARNING NO_BANK_ACCOUNT
+members:25 accounts CREATED 
+members:25 members CREATED 
+members:25 dogs CREATED 
+members:26 members WARNING NO_BANK_ACCOUNT
+members:26 accounts CREATED 
+members:26 members CREATED 
+members:26 dogs CREATED 
+members:27 members WARNING NO_BANK_ACCOUNT
+members:27 accounts CREATED 
+members:27 members CREATED 
+members:27 dogs CREATED 
+members:28 members WARNING AGE_SUSPECT
+members:28 members WARNING BIRTHDATE_SUSPECT
+members:28 accounts CREATED 
+members:28 members CREATED 
+members:28 dogs CREATED 
+members:29 members WARNING AGE_SUSPECT
+members:29 accounts CREATED 
+members:29 members CREATED 
+members:29 dogs CREATED 
+members:30 accounts CREATED 
+members:30 members CREATED 
+members:30 members WARNING DOG_NAME_FROM_SURNAME
+members:30 dogs CREATED 
+members:31 members WARNING IBAN_INVALID
+members:31 accounts CREATED 
+members:31 members CREATED 
+members:31 dogs CREATED 
+members:32 members WARNING PLAN_UNMAPPED
+members:32 accounts CREATED 
+members:32 members CREATED 
+members:32 dogs CREATED 
+members:33 members WARNING MAPPING_INVALID
+members:33 accounts CREATED 
+members:33 members CREATED 
+members:33 dogs CREATED 
+members:34 accounts CREATED 
+members:34 members CREATED 
+members:34 members WARNING LEVEL_PENDING
+members:34 dogs CREATED 
+members:35 accounts CREATED 
+members:35 members CREATED 
+members:35 dogs CREATED 
+members:36 accounts CREATED 
+members:36 members CREATED 
+members:36 dogs CREATED 
+members:37 accounts CREATED 
+members:37 members CREATED 
+members:37 dogs CREATED 
+members:38 accounts CREATED 
+members:38 members CREATED 
+members:38 dogs CREATED 
+members:39 members WARNING CARD_NOT_MIGRATED
+members:39 accounts CREATED 
+members:39 members CREATED 
+members:39 dogs CREATED 
+members:40 members WARNING MAPPING_INVALID
+members:40 accounts CREATED 
+members:40 members CREATED 
+members:40 dogs CREATED 
+members:41 accounts CREATED 
+members:41 members CREATED 
+members:41 dogs CREATED 
+members:42 accounts CREATED 
+members:42 members CREATED 
+members:42 dogs CREATED 
+members:43 accounts CREATED 
+members:43 members CREATED 
+members:43 dogs CREATED 
+members:44 accounts CREATED 
+members:44 members CREATED 
+members:44 dogs CREATED 
+members:45 accounts CREATED 
+members:45 members CREATED 
+members:45 dogs CREATED 
+members:46 accounts CREATED 
+members:46 members CREATED 
+members:46 members WARNING PLAN_UNMAPPED
+members:46 dogs CREATED 
+members:47 accounts CREATED 
+members:47 members CREATED 
+members:47 dogs CREATED 
+members:48 accounts CREATED 
+members:48 members CREATED 
+members:48 dogs CREATED 
+members:49 accounts CREATED 
+members:49 members CREATED 
+members:49 dogs CREATED 
+members:50 accounts CREATED 
+members:50 members CREATED 
+members:50 dogs CREATED 
+members:51 accounts CREATED 
+members:51 members CREATED 
+members:51 dogs CREATED 
+members:52 accounts CREATED 
+members:52 members CREATED 
+members:52 dogs CREATED 
+members:53 accounts CREATED 
+members:53 members CREATED 
+members:53 dogs CREATED 
+members:54 accounts CREATED 
+members:54 members CREATED 
+members:54 dogs CREATED 
+members:55 accounts CREATED 
+members:55 members CREATED 
+members:55 dogs CREATED 
+members:56 accounts CREATED 
+members:56 members CREATED 
+members:56 dogs CREATED 
+members:57 accounts CREATED 
+members:57 members CREATED 
+members:57 dogs CREATED 
+members:58 accounts CREATED 
+members:58 members CREATED 
+members:58 dogs CREATED 
+members:59 accounts CREATED 
+members:59 members CREATED 
+members:59 dogs CREATED 
+members:60 accounts CREATED 
+members:60 members CREATED 
+members:60 dogs CREATED 
+members:61 accounts CREATED 
+members:61 members CREATED 
+members:61 dogs CREATED 
+members:62 accounts CREATED 
+members:62 members CREATED 
+members:62 dogs CREATED 
+members:63 accounts CREATED 
+members:63 members CREATED 
+members:63 dogs CREATED 
+members:64 accounts CREATED 
+members:64 members CREATED 
+members:64 dogs CREATED 
+members:65 accounts CREATED 
+members:65 members CREATED 
+members:65 dogs CREATED 
+members:66 accounts CREATED 
+members:66 members CREATED 
+members:66 dogs CREATED 
+members:67 accounts CREATED 
+members:67 members CREATED 
+members:67 dogs CREATED 
+members:88 accounts CREATED 
+members:88 members CREATED 
+members:88 dogs CREATED 
+members:68 members WARNING EMAIL_SHARED
+members:68 accounts SKIPPED 
+members:68 members CREATED 
+members:68 dogs CREATED 
+members:69 accounts CREATED 
+members:69 members CREATED 
+members:69 dogs CREATED 
+members:70 accounts CREATED 
+members:70 members CREATED 
+members:70 dogs CREATED 
+members:71 accounts CREATED 
+members:71 members CREATED 
+members:71 dogs CREATED 
+members:72 accounts CREATED 
+members:72 members CREATED 
+members:72 dogs CREATED 
+members:73 accounts CREATED 
+members:73 members CREATED 
+members:73 dogs CREATED 
+members:74 accounts CREATED 
+members:74 members CREATED 
+members:74 dogs CREATED 
+members:75 accounts CREATED 
+members:75 members CREATED 
+members:75 dogs CREATED 
+members:76 accounts CREATED 
+members:76 members CREATED 
+members:76 dogs CREATED 
+members:77 accounts CREATED 
+members:77 members CREATED 
+members:77 dogs CREATED 
+members:78 accounts CREATED 
+members:78 members CREATED 
+members:78 dogs CREATED 
+members:79 accounts CREATED 
+members:79 members CREATED 
+members:79 dogs CREATED 
+members:80 accounts CREATED 
+members:80 members CREATED 
+members:80 dogs CREATED 
+members:81 accounts CREATED 
+members:81 members CREATED 
+members:81 dogs CREATED 
+members:82 members WARNING EMAIL_SHARED
+members:82 accounts SKIPPED 
+members:82 members CREATED 
+members:82 dogs CREATED 
+members:84 members WARNING EMAIL_SHARED
+members:84 accounts SKIPPED 
+members:84 members CREATED 
+members:84 dogs CREATED 
+members:85 members WARNING EMAIL_SHARED
+members:85 accounts SKIPPED 
+members:85 members CREATED 
+members:85 dogs CREATED 
+members:86 members WARNING EMAIL_SHARED
+members:86 accounts SKIPPED 
+members:86 members CREATED 
+members:86 dogs CREATED 
+members:87 members WARNING EMAIL_SHARED
+members:87 accounts SKIPPED 
+members:87 members CREATED 
+members:87 dogs CREATED 
+members:89 members WARNING EMAIL_SHARED
+members:89 accounts SKIPPED 
+members:89 members CREATED 
+members:89 dogs CREATED 
+members:90 members WARNING EMAIL_SHARED
+members:90 accounts SKIPPED 
+members:90 members CREATED 
+members:90 dogs CREATED 
+members:91 members WARNING EMAIL_SHARED
+members:91 accounts SKIPPED 
+members:91 members CREATED 
+members:91 dogs CREATED 
+members:92 members WARNING EMAIL_SHARED
+members:92 accounts SKIPPED 
+members:92 members CREATED 
+members:92 dogs CREATED 
+members:93 members WARNING EMAIL_SHARED
+members:93 accounts SKIPPED 
+members:93 members CREATED 
+members:93 dogs CREATED 
+members:94 members WARNING EMAIL_SHARED
+members:94 accounts SKIPPED 
+members:94 members CREATED 
+members:94 dogs CREATED 
+members:95 members WARNING EMAIL_SHARED
+members:95 accounts SKIPPED 
+members:95 members CREATED 
+members:95 dogs CREATED 
+members:96 members WARNING EMAIL_SHARED
+members:96 accounts SKIPPED 
+members:96 members CREATED 
+members:96 dogs CREATED 
+members:97 members WARNING EMAIL_SHARED
+members:97 accounts SKIPPED 
+members:97 members CREATED 
+members:97 dogs CREATED 
+members:98 members WARNING EMAIL_SHARED
+members:98 accounts SKIPPED 
+members:98 members CREATED 
+members:98 dogs CREATED 
+members:99 members WARNING EMAIL_SHARED
+members:99 accounts SKIPPED 
+members:99 members CREATED 
+members:99 dogs CREATED 
+members:100 members WARNING EMAIL_SHARED
+members:100 accounts SKIPPED 
+members:100 members CREATED 
+members:100 dogs CREATED 
+members:101 members WARNING EMAIL_SHARED
+members:101 accounts SKIPPED 
+members:101 members CREATED 
+members:101 dogs CREATED 
+members:102 accounts CREATED 
+members:102 members CREATED 
+members:102 dogs CREATED 
+members:103 accounts CREATED 
+members:103 members CREATED 
+members:103 dogs CREATED 
+members:104 accounts CREATED 
+members:104 members CREATED 
+members:104 dogs CREATED 
+members:105 accounts CREATED 
+members:105 members CREATED 
+members:105 dogs CREATED 
+members:106 accounts CREATED 
+members:106 members CREATED 
+members:106 dogs CREATED 
+members:107 accounts CREATED 
+members:107 members CREATED 
+members:107 dogs CREATED 
+members:108 accounts CREATED 
+members:108 members CREATED 
+members:108 dogs CREATED 
+members:109 accounts CREATED 
+members:109 members CREATED 
+members:109 dogs CREATED 
+members:110 accounts CREATED 
+members:110 members CREATED 
+members:110 dogs CREATED 
+members:111 accounts CREATED 
+members:111 members CREATED 
+members:111 dogs CREATED 
+members:112 accounts CREATED 
+members:112 members CREATED 
+members:112 dogs CREATED 
+members:113 accounts CREATED 
+members:113 members CREATED 
+members:113 dogs CREATED 
+members:114 accounts CREATED 
+members:114 members CREATED 
+members:114 dogs CREATED 
+members:115 accounts CREATED 
+members:115 members CREATED 
+members:115 dogs CREATED 
+members:116 accounts CREATED 
+members:116 members CREATED 
+members:116 dogs CREATED 
+members:117 accounts CREATED 
+members:117 members CREATED 
+members:117 dogs CREATED 
+members:118 accounts CREATED 
+members:118 members CREATED 
+members:118 dogs CREATED 
+members:119 accounts CREATED 
+members:119 members CREATED 
+members:119 dogs CREATED 
+members:120 accounts CREATED 
+members:120 members CREATED 
+members:120 dogs CREATED 
+members:121 accounts CREATED 
+members:121 members CREATED 
+members:121 dogs CREATED 
+members:122 accounts CREATED 
+members:122 members CREATED 
+members:122 dogs CREATED 
+members:123 accounts CREATED 
+members:123 members CREATED 
+members:123 dogs CREATED 
+members:124 accounts CREATED 
+members:124 members CREATED 
+members:124 dogs CREATED 
+members:125 accounts CREATED 
+members:125 members CREATED 
+members:125 dogs CREATED 
+members:126 accounts CREATED 
+members:126 members CREATED 
+members:126 dogs CREATED 
+members:127 accounts CREATED 
+members:127 members CREATED 
+members:127 dogs CREATED 
+members:128 accounts CREATED 
+members:128 members CREATED 
+members:128 dogs CREATED 
+members:129 accounts CREATED 
+members:129 members CREATED 
+members:129 dogs CREATED 
+members:130 accounts CREATED 
+members:130 members CREATED 
+members:130 dogs CREATED 
+members:131 accounts CREATED 
+members:131 members CREATED 
+members:131 dogs CREATED 
+members:132 accounts CREATED 
+members:132 members CREATED 
+members:132 dogs CREATED 
+members:133 accounts CREATED 
+members:133 members CREATED 
+members:133 dogs CREATED 
+members:134 accounts CREATED 
+members:134 members CREATED 
+members:134 dogs CREATED 
+members:135 accounts CREATED 
+members:135 members CREATED 
+members:135 dogs CREATED 
+members:136 accounts CREATED 
+members:136 members CREATED 
+members:136 dogs CREATED 
+members:137 accounts CREATED 
+members:137 members CREATED 
+members:137 dogs CREATED 
+members:138 accounts CREATED 
+members:138 members CREATED 
+members:138 dogs CREATED 
+members:139 accounts CREATED 
+members:139 members CREATED 
+members:139 dogs CREATED 
+members:140 accounts CREATED 
+members:140 members CREATED 
+members:140 dogs CREATED 
+members:141 accounts CREATED 
+members:141 members CREATED 
+members:141 dogs CREATED 
+members:142 accounts CREATED 
+members:142 members CREATED 
+members:142 dogs CREATED 
+members:143 accounts CREATED 
+members:143 members CREATED 
+members:143 dogs CREATED 
+members:144 accounts CREATED 
+members:144 members CREATED 
+members:144 dogs CREATED 
+members:145 accounts CREATED 
+members:145 members CREATED 
+members:145 dogs CREATED 
+members:146 accounts CREATED 
+members:146 members CREATED 
+members:146 dogs CREATED 
+members:147 accounts CREATED 
+members:147 members CREATED 
+members:147 dogs CREATED 
+members:148 accounts CREATED 
+members:148 members CREATED 
+members:148 dogs CREATED 
+members:149 accounts CREATED 
+members:149 members CREATED 
+members:149 dogs CREATED 
+members:150 accounts CREATED 
+members:150 members CREATED 
+members:150 dogs CREATED 
+members:151 accounts CREATED 
+members:151 members CREATED 
+members:151 dogs CREATED 
+members:152 accounts CREATED 
+members:152 members CREATED 
+members:152 dogs CREATED 
+members:153 accounts CREATED 
+members:153 members CREATED 
+members:153 dogs CREATED 
+members:154 accounts CREATED 
+members:154 members CREATED 
+members:154 dogs CREATED 
+members:155 accounts CREATED 
+members:155 members CREATED 
+members:155 dogs CREATED 
+members:156 accounts CREATED 
+members:156 members CREATED 
+members:156 dogs CREATED 
+members:157 accounts CREATED 
+members:157 members CREATED 
+members:157 dogs CREATED 
+members:158 accounts CREATED 
+members:158 members CREATED 
+members:158 dogs CREATED 
+members:159 accounts CREATED 
+members:159 members CREATED 
+members:159 dogs CREATED 
+members:160 accounts CREATED 
+members:160 members CREATED 
+members:160 dogs CREATED 
+members:161 accounts CREATED 
+members:161 members CREATED 
+members:161 dogs CREATED 
+members:162 accounts CREATED 
+members:162 members CREATED 
+members:162 dogs CREATED 
+members:163 accounts CREATED 
+members:163 members CREATED 
+members:163 dogs CREATED 
+members:164 accounts CREATED 
+members:164 members CREATED 
+members:164 dogs CREATED 
+members:165 accounts CREATED 
+members:165 members CREATED 
+members:165 dogs CREATED 
+members:166 accounts CREATED 
+members:166 members CREATED 
+members:166 dogs CREATED 
+members:167 accounts CREATED 
+members:167 members CREATED 
+members:167 dogs CREATED 
+members:168 accounts CREATED 
+members:168 members CREATED 
+members:168 dogs CREATED 
+members:169 accounts CREATED 
+members:169 members CREATED 
+members:169 dogs CREATED 
+members:170 accounts CREATED 
+members:170 members CREATED 
+members:170 dogs CREATED 
+members:171 accounts CREATED 
+members:171 members CREATED 
+members:171 dogs CREATED 
+members:172 accounts CREATED 
+members:172 members CREATED 
+members:172 dogs CREATED 
+members:173 accounts CREATED 
+members:173 members CREATED 
+members:173 dogs CREATED 
+members:174 accounts CREATED 
+members:174 members CREATED 
+members:174 dogs CREATED 
+members:175 accounts CREATED 
+members:175 members CREATED 
+members:175 dogs CREATED 
+members:176 accounts CREATED 
+members:176 members CREATED 
+members:176 dogs CREATED 
+members:177 accounts CREATED 
+members:177 members CREATED 
+members:177 dogs CREATED 
+members:178 accounts CREATED 
+members:178 members CREATED 
+members:178 dogs CREATED 
+members:179 accounts CREATED 
+members:179 members CREATED 
+members:179 dogs CREATED 
+members:180 accounts CREATED 
+members:180 members CREATED 
+members:180 dogs CREATED 
+members:181 accounts CREATED 
+members:181 members CREATED 
+members:181 dogs CREATED 
+members:182 accounts CREATED 
+members:182 members CREATED 
+members:182 dogs CREATED 
+members:183 accounts CREATED 
+members:183 members CREATED 
+members:183 dogs CREATED 
+members:184 members WARNING PLAN_UNMAPPED
+members:184 accounts CREATED 
+members:184 members CREATED 
+members:184 members WARNING LEVEL_PENDING
+members:184 dogs CREATED 
+members:185 members SKIPPED 
+members:185 members WARNING LEVEL_PENDING
+members:185 dogs CREATED 
+members:187 members WARNING NUMBER_CONFLICT
+members:187 members WARNING PLAN_UNMAPPED
+members:187 accounts SKIPPED 
+members:187 members CREATED 
+members:187 members WARNING LEVEL_PENDING
+members:187 dogs CREATED 
+members:186 members WARNING NUMBER_CONFLICT
+members:186 members WARNING PLAN_UNMAPPED
+members:186 accounts SKIPPED 
+members:186 members CREATED 
+members:186 members WARNING LEVEL_PENDING
+members:186 dogs CREATED 
+members:188 members WARNING NUMBER_CONFLICT
+members:188 members WARNING PLAN_UNMAPPED
+members:188 accounts SKIPPED 
+members:188 members CREATED 
+members:188 members WARNING LEVEL_PENDING
+members:188 dogs CREATED 
+members:189 members WARNING NUMBER_CONFLICT
+members:189 members WARNING PLAN_UNMAPPED
+members:189 accounts SKIPPED 
+members:189 members CREATED 
+members:189 members WARNING LEVEL_PENDING
+members:189 dogs CREATED 
+members:190 members WARNING PLAN_UNMAPPED
+members:190 accounts SKIPPED 
+members:190 members CREATED 
+members:190 members WARNING LEVEL_PENDING
+members:190 dogs CREATED 
+members:83 members WARNING PERSON_MERGED
+members:83 members SKIPPED 
+members:83 dogs CREATED 
+groups:2 familyGroups CREATED 
+members:68 familyGroups PROPOSED EMAIL_SHARED field=holder@88
+members:84 familyGroups PROPOSED EMAIL_SHARED field=holder@64
+members:85 familyGroups PROPOSED EMAIL_SHARED field=holder@65
+members:86 familyGroups PROPOSED EMAIL_SHARED field=holder@66
+members:87 familyGroups PROPOSED EMAIL_SHARED field=holder@67
+members:89 familyGroups PROPOSED EMAIL_SHARED field=holder@69
+members:90 familyGroups PROPOSED EMAIL_SHARED field=holder@70
+members:91 familyGroups PROPOSED EMAIL_SHARED field=holder@71
+members:92 familyGroups PROPOSED EMAIL_SHARED field=holder@72
+members:93 familyGroups PROPOSED EMAIL_SHARED field=holder@73
+members:94 familyGroups PROPOSED EMAIL_SHARED field=holder@74
+members:95 familyGroups PROPOSED EMAIL_SHARED field=holder@75
+members:96 familyGroups PROPOSED EMAIL_SHARED field=holder@76
+members:97 familyGroups PROPOSED EMAIL_SHARED field=holder@77
+members:98 familyGroups PROPOSED EMAIL_SHARED field=holder@78
+members:99 familyGroups PROPOSED EMAIL_SHARED field=holder@79
+members:100 familyGroups PROPOSED EMAIL_SHARED field=holder@80
+members:101 familyGroups PROPOSED EMAIL_SHARED field=holder@81
+receipts:2 invoices CREATED 
+receipts:3 invoices ERROR INPUT_SCHEMA_MISMATCH
+receipts:4 invoices ERROR INPUT_SCHEMA_MISMATCH
+receipts:5 invoices ERROR INPUT_SCHEMA_MISMATCH
+packs:2 packBalances WARNING PACK_DOG_AMBIGUOUS
+packs:2 packBalances CREATED 
+packs:3 packBalances WARNING PACK_DOG_AMBIGUOUS
+packs:3 packBalances ERROR INPUT_SCHEMA_MISMATCH
+packs:4 packBalances WARNING PACK_DOG_AMBIGUOUS
+packs:4 packBalances ERROR INPUT_SCHEMA_MISMATCH
+] 
+Expecting value to be false but was true
+	at com.agilityhub.core.migration.PlayoffMigrationIT.R_18_11b_E145_aReceiptOrPackRowThatCannotBeReadIsSkippedWithAWarningAndTheLoadApplies(PlayoffMigrationIT.java:594)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.R_18_13_E146_aPaidUntilRowGivesTheMigratedMemberItsFirstInvoiceDate -- Time elapsed: 1.978 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "2027-01-01"
+ but was: "2026-12-01"
+	at com.agilityhub.core.migration.PlayoffMigrationIT.R_18_13_E146_aPaidUntilRowGivesTheMigratedMemberItsFirstInvoiceDate(PlayoffMigrationIT.java:654)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.R_18_08_E43_aNumberConflictSepaRecordGetsNoMandateUntilItHasANumber -- Time elapsed: 1.622 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[member 185] 
+expected: null
+ but was: "playoff-test-a37c6476-0bbf-3e96-9f7b-4b6b3bcd34ab-1"
+	at com.agilityhub.core.migration.PlayoffMigrationIT.R_18_08_E43_aNumberConflictSepaRecordGetsNoMandateUntilItHasANumber(PlayoffMigrationIT.java:617)
+
+[ERROR] Failures: 
+[ERROR]   LifecycleIT.T_12_01_R_12_06_aPackToMonthlyChangeGivesTheMemberItsFirstInvoiceDate:288 
+expected: "2026-12-01"
+ but was: null
+[ERROR]   PlayoffMigrationIT.R_18_08_E43_aNumberConflictSepaRecordGetsNoMandateUntilItHasANumber:617 [member 185] 
+expected: null
+ but was: "playoff-test-a37c6476-0bbf-3e96-9f7b-4b6b3bcd34ab-1"
+[ERROR]   PlayoffMigrationIT.R_18_11b_E145_aReceiptOrPackRowThatCannotBeReadIsSkippedWithAWarningAndTheLoadApplies:594 [Playoff APPLY
+Validation failed; no changes applied. Counts below describe the proposed changes.
+members: created=187 updated=0 skipped=4 errors=0
+dogs: created=189 updated=0 skipped=0 errors=0
+familyGroups: created=1 updated=0 skipped=0 errors=0 proposed=18
+accounts: created=156 updated=0 skipped=31 errors=0
+invoices: created=1 updated=0 skipped=0 errors=3
+packBalances: created=1 updated=0 skipped=0 errors=2
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INPUT_SCHEMA_MISMATCH=5, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PACK_DOG_AMBIGUOUS=3, PERSON_MERGED=1, PLAN_UNMAPPED=8, VALIDATION_ERROR=10}
+Billing totals: {invoicesPAID=1, mandatesCreated=184, packsACTIVE=1}
+members:191 members SKIPPED 
+members:192 members SKIPPED 
+members:2 members WARNING INVALID_PHONE
+members:2 members WARNING VALIDATION_ERROR
+members:2 members WARNING NO_BANK_ACCOUNT
+members:2 accounts SKIPPED 
+members:2 members CREATED 
+members:2 members WARNING DOG_INFERRED
+members:2 members WARNING CHIP_MISSING
+members:2 dogs CREATED 
+members:3 members WARNING INVALID_PHONE
+members:3 members WARNING VALIDATION_ERROR
+members:3 members WARNING NO_BANK_ACCOUNT
+members:3 accounts SKIPPED 
+members:3 members CREATED 
+members:3 members WARNING DOG_INFERRED
+members:3 members WARNING CHIP_MISSING
+members:3 dogs CREATED 
+members:4 members WARNING INVALID_PHONE
+members:4 members WARNING VALIDATION_ERROR
+members:4 members WARNING NO_BANK_ACCOUNT
+members:4 accounts SKIPPED 
+members:4 members CREATED 
+members:4 members WARNING DOG_INFERRED
+members:4 members WARNING CHIP_MISSING
+members:4 dogs CREATED 
+members:5 members WARNING INVALID_PHONE
+members:5 members WARNING VALIDATION_ERROR
+members:5 members WARNING NO_BANK_ACCOUNT
+members:5 accounts SKIPPED 
+members:5 members CREATED 
+members:5 members WARNING DOG_INFERRED
+members:5 members WARNING CHIP_MISSING
+members:5 dogs CREATED 
+members:6 members WARNING INVALID_PHONE
+members:6 members WARNING VALIDATION_ERROR
+members:6 members WARNING NO_BANK_ACCOUNT
+members:6 accounts SKIPPED 
+members:6 members CREATED 
+members:6 members WARNING DOG_INFERRED
+members:6 members WARNING CHIP_MISSING
+members:6 dogs CREATED 
+members:7 members WARNING INVALID_PHONE
+members:7 members WARNING VALIDATION_ERROR
+members:7 members WARNING NO_BANK_ACCOUNT
+members:7 accounts SKIPPED 
+members:7 members CREATED 
+members:7 members WARNING DOG_INFERRED
+members:7 members WARNING CHIP_MISSING
+members:7 dogs CREATED 
+members:8 members WARNING INVALID_PHONE
+members:8 members WARNING VALIDATION_ERROR
+members:8 members WARNING NO_BANK_ACCOUNT
+members:8 accounts SKIPPED 
+members:8 members CREATED 
+members:8 members WARNING DOG_INFERRED
+members:8 members WARNING CHIP_MISSING
+members:8 dogs CREATED 
+members:9 members WARNING INVALID_PHONE
+members:9 members WARNING VALIDATION_ERROR
+members:9 members WARNING NO_BANK_ACCOUNT
+members:9 accounts CREATED 
+members:9 members CREATED 
+members:9 members WARNING DOG_INFERRED
+members:9 members WARNING CHIP_MISSING
+members:9 dogs CREATED 
+members:10 members WARNING INVALID_PHONE
+members:10 members WARNING VALIDATION_ERROR
+members:10 members WARNING NO_BANK_ACCOUNT
+members:10 accounts CREATED 
+members:10 members CREATED 
+members:10 members WARNING DOG_INFERRED
+members:10 members WARNING CHIP_MISSING
+members:10 dogs CREATED 
+members:11 members WARNING VALIDATION_ERROR
+members:11 members WARNING NO_BANK_ACCOUNT
+members:11 accounts CREATED 
+members:11 members CREATED 
+members:11 members WARNING CHIP_MISSING
+members:11 dogs CREATED 
+members:12 members WARNING NO_BANK_ACCOUNT
+members:12 accounts CREATED 
+members:12 members CREATED 
+members:12 members WARNING CHIP_MISSING
+members:12 dogs CREATED 
+members:13 members WARNING NO_BANK_ACCOUNT
+members:13 accounts CREATED 
+members:13 members CREATED 
+members:13 members WARNING CHIP_MISSING
+members:13 dogs CREATED 
+members:14 members WARNING NO_BANK_ACCOUNT
+members:14 accounts CREATED 
+members:14 members CREATED 
+members:14 members WARNING CHIP_MISSING
+members:14 dogs CREATED 
+members:15 members WARNING NO_BANK_ACCOUNT
+members:15 accounts CREATED 
+members:15 members CREATED 
+members:15 members WARNING CHIP_MISSING
+members:15 dogs CREATED 
+members:16 members WARNING NO_BANK_ACCOUNT
+members:16 accounts CREATED 
+members:16 members CREATED 
+members:16 members WARNING CHIP_MISSING
+members:16 dogs CREATED 
+members:17 members WARNING NO_BANK_ACCOUNT
+members:17 accounts CREATED 
+members:17 members CREATED 
+members:17 members WARNING CHIP_MISSING
+members:17 dogs CREATED 
+members:18 members WARNING NO_BANK_ACCOUNT
+members:18 accounts CREATED 
+members:18 members CREATED 
+members:18 dogs CREATED 
+members:19 members WARNING NO_BANK_ACCOUNT
+members:19 accounts CREATED 
+members:19 members CREATED 
+members:19 dogs CREATED 
+members:20 members WARNING NO_BANK_ACCOUNT
+members:20 accounts CREATED 
+members:20 members CREATED 
+members:20 dogs CREATED 
+members:21 members WARNING NO_BANK_ACCOUNT
+members:21 accounts CREATED 
+members:21 members CREATED 
+members:21 dogs CREATED 
+members:22 members WARNING NO_BANK_ACCOUNT
+members:22 accounts CREATED 
+members:22 members CREATED 
+members:22 dogs CREATED 
+members:23 members WARNING NO_BANK_ACCOUNT
+members:23 accounts CREATED 
+members:23 members CREATED 
+members:23 dogs CREATED 
+members:24 members WARNING NO_BANK_ACCOUNT
+members:24 accounts CREATED 
+members:24 members CREATED 
+members:24 dogs CREATED 
+members:25 members WARNING NO_BANK_ACCOUNT
+members:25 accounts CREATED 
+members:25 members CREATED 
+members:25 dogs CREATED 
+members:26 members WARNING NO_BANK_ACCOUNT
+members:26 accounts CREATED 
+members:26 members CREATED 
+members:26 dogs CREATED 
+members:27 members WARNING NO_BANK_ACCOUNT
+members:27 accounts CREATED 
+members:27 members CREATED 
+members:27 dogs CREATED 
+members:28 members WARNING AGE_SUSPECT
+members:28 members WARNING BIRTHDATE_SUSPECT
+members:28 accounts CREATED 
+members:28 members CREATED 
+members:28 dogs CREATED 
+members:29 members WARNING AGE_SUSPECT
+members:29 accounts CREATED 
+members:29 members CREATED 
+members:29 dogs CREATED 
+members:30 accounts CREATED 
+members:30 members CREATED 
+members:30 members WARNING DOG_NAME_FROM_SURNAME
+members:30 dogs CREATED 
+members:31 members WARNING IBAN_INVALID
+members:31 accounts CREATED 
+members:31 members CREATED 
+members:31 dogs CREATED 
+members:32 members WARNING PLAN_UNMAPPED
+members:32 accounts CREATED 
+members:32 members CREATED 
+members:32 dogs CREATED 
+members:33 members WARNING MAPPING_INVALID
+members:33 accounts CREATED 
+members:33 members CREATED 
+members:33 dogs CREATED 
+members:34 accounts CREATED 
+members:34 members CREATED 
+members:34 members WARNING LEVEL_PENDING
+members:34 dogs CREATED 
+members:35 accounts CREATED 
+members:35 members CREATED 
+members:35 dogs CREATED 
+members:36 accounts CREATED 
+members:36 members CREATED 
+members:36 dogs CREATED 
+members:37 accounts CREATED 
+members:37 members CREATED 
+members:37 dogs CREATED 
+members:38 accounts CREATED 
+members:38 members CREATED 
+members:38 dogs CREATED 
+members:39 members WARNING CARD_NOT_MIGRATED
+members:39 accounts CREATED 
+members:39 members CREATED 
+members:39 dogs CREATED 
+members:40 members WARNING MAPPING_INVALID
+members:40 accounts CREATED 
+members:40 members CREATED 
+members:40 dogs CREATED 
+members:41 accounts CREATED 
+members:41 members CREATED 
+members:41 dogs CREATED 
+members:42 accounts CREATED 
+members:42 members CREATED 
+members:42 dogs CREATED 
+members:43 accounts CREATED 
+members:43 members CREATED 
+members:43 dogs CREATED 
+members:44 accounts CREATED 
+members:44 members CREATED 
+members:44 dogs CREATED 
+members:45 accounts CREATED 
+members:45 members CREATED 
+members:45 dogs CREATED 
+members:46 accounts CREATED 
+members:46 members CREATED 
+members:46 members WARNING PLAN_UNMAPPED
+members:46 dogs CREATED 
+members:47 accounts CREATED 
+members:47 members CREATED 
+members:47 dogs CREATED 
+members:48 accounts CREATED 
+members:48 members CREATED 
+members:48 dogs CREATED 
+members:49 accounts CREATED 
+members:49 members CREATED 
+members:49 dogs CREATED 
+members:50 accounts CREATED 
+members:50 members CREATED 
+members:50 dogs CREATED 
+members:51 accounts CREATED 
+members:51 members CREATED 
+members:51 dogs CREATED 
+members:52 accounts CREATED 
+members:52 members CREATED 
+members:52 dogs CREATED 
+members:53 accounts CREATED 
+members:53 members CREATED 
+members:53 dogs CREATED 
+members:54 accounts CREATED 
+members:54 members CREATED 
+members:54 dogs CREATED 
+members:55 accounts CREATED 
+members:55 members CREATED 
+members:55 dogs CREATED 
+members:56 accounts CREATED 
+members:56 members CREATED 
+members:56 dogs CREATED 
+members:57 accounts CREATED 
+members:57 members CREATED 
+members:57 dogs CREATED 
+members:58 accounts CREATED 
+members:58 members CREATED 
+members:58 dogs CREATED 
+members:59 accounts CREATED 
+members:59 members CREATED 
+members:59 dogs CREATED 
+members:60 accounts CREATED 
+members:60 members CREATED 
+members:60 dogs CREATED 
+members:61 accounts CREATED 
+members:61 members CREATED 
+members:61 dogs CREATED 
+members:62 accounts CREATED 
+members:62 members CREATED 
+members:62 dogs CREATED 
+members:63 accounts CREATED 
+members:63 members CREATED 
+members:63 dogs CREATED 
+members:64 accounts CREATED 
+members:64 members CREATED 
+members:64 dogs CREATED 
+members:65 accounts CREATED 
+members:65 members CREATED 
+members:65 dogs CREATED 
+members:66 accounts CREATED 
+members:66 members CREATED 
+members:66 dogs CREATED 
+members:67 accounts CREATED 
+members:67 members CREATED 
+members:67 dogs CREATED 
+members:88 accounts CREATED 
+members:88 members CREATED 
+members:88 dogs CREATED 
+members:68 members WARNING EMAIL_SHARED
+members:68 accounts SKIPPED 
+members:68 members CREATED 
+members:68 dogs CREATED 
+members:69 accounts CREATED 
+members:69 members CREATED 
+members:69 dogs CREATED 
+members:70 accounts CREATED 
+members:70 members CREATED 
+members:70 dogs CREATED 
+members:71 accounts CREATED 
+members:71 members CREATED 
+members:71 dogs CREATED 
+members:72 accounts CREATED 
+members:72 members CREATED 
+members:72 dogs CREATED 
+members:73 accounts CREATED 
+members:73 members CREATED 
+members:73 dogs CREATED 
+members:74 accounts CREATED 
+members:74 members CREATED 
+members:74 dogs CREATED 
+members:75 accounts CREATED 
+members:75 members CREATED 
+members:75 dogs CREATED 
+members:76 accounts CREATED 
+members:76 members CREATED 
+members:76 dogs CREATED 
+members:77 accounts CREATED 
+members:77 members CREATED 
+members:77 dogs CREATED 
+members:78 accounts CREATED 
+members:78 members CREATED 
+members:78 dogs CREATED 
+members:79 accounts CREATED 
+members:79 members CREATED 
+members:79 dogs CREATED 
+members:80 accounts CREATED 
+members:80 members CREATED 
+members:80 dogs CREATED 
+members:81 accounts CREATED 
+members:81 members CREATED 
+members:81 dogs CREATED 
+members:82 members WARNING EMAIL_SHARED
+members:82 accounts SKIPPED 
+members:82 members CREATED 
+members:82 dogs CREATED 
+members:84 members WARNING EMAIL_SHARED
+members:84 accounts SKIPPED 
+members:84 members CREATED 
+members:84 dogs CREATED 
+members:85 members WARNING EMAIL_SHARED
+members:85 accounts SKIPPED 
+members:85 members CREATED 
+members:85 dogs CREATED 
+members:86 members WARNING EMAIL_SHARED
+members:86 accounts SKIPPED 
+members:86 members CREATED 
+members:86 dogs CREATED 
+members:87 members WARNING EMAIL_SHARED
+members:87 accounts SKIPPED 
+members:87 members CREATED 
+members:87 dogs CREATED 
+members:89 members WARNING EMAIL_SHARED
+members:89 accounts SKIPPED 
+members:89 members CREATED 
+members:89 dogs CREATED 
+members:90 members WARNING EMAIL_SHARED
+members:90 accounts SKIPPED 
+members:90 members CREATED 
+members:90 dogs CREATED 
+members:91 members WARNING EMAIL_SHARED
+members:91 accounts SKIPPED 
+members:91 members CREATED 
+members:91 dogs CREATED 
+members:92 members WARNING EMAIL_SHARED
+members:92 accounts SKIPPED 
+members:92 members CREATED 
+members:92 dogs CREATED 
+members:93 members WARNING EMAIL_SHARED
+members:93 accounts SKIPPED 
+members:93 members CREATED 
+members:93 dogs CREATED 
+members:94 members WARNING EMAIL_SHARED
+members:94 accounts SKIPPED 
+members:94 members CREATED 
+members:94 dogs CREATED 
+members:95 members WARNING EMAIL_SHARED
+members:95 accounts SKIPPED 
+members:95 members CREATED 
+members:95 dogs CREATED 
+members:96 members WARNING EMAIL_SHARED
+members:96 accounts SKIPPED 
+members:96 members CREATED 
+members:96 dogs CREATED 
+members:97 members WARNING EMAIL_SHARED
+members:97 accounts SKIPPED 
+members:97 members CREATED 
+members:97 dogs CREATED 
+members:98 members WARNING EMAIL_SHARED
+members:98 accounts SKIPPED 
+members:98 members CREATED 
+members:98 dogs CREATED 
+members:99 members WARNING EMAIL_SHARED
+members:99 accounts SKIPPED 
+members:99 members CREATED 
+members:99 dogs CREATED 
+members:100 members WARNING EMAIL_SHARED
+members:100 accounts SKIPPED 
+members:100 members CREATED 
+members:100 dogs CREATED 
+members:101 members WARNING EMAIL_SHARED
+members:101 accounts SKIPPED 
+members:101 members CREATED 
+members:101 dogs CREATED 
+members:102 accounts CREATED 
+members:102 members CREATED 
+members:102 dogs CREATED 
+members:103 accounts CREATED 
+members:103 members CREATED 
+members:103 dogs CREATED 
+members:104 accounts CREATED 
+members:104 members CREATED 
+members:104 dogs CREATED 
+members:105 accounts CREATED 
+members:105 members CREATED 
+members:105 dogs CREATED 
+members:106 accounts CREATED 
+members:106 members CREATED 
+members:106 dogs CREATED 
+members:107 accounts CREATED 
+members:107 members CREATED 
+members:107 dogs CREATED 
+members:108 accounts CREATED 
+members:108 members CREATED 
+members:108 dogs CREATED 
+members:109 accounts CREATED 
+members:109 members CREATED 
+members:109 dogs CREATED 
+members:110 accounts CREATED 
+members:110 members CREATED 
+members:110 dogs CREATED 
+members:111 accounts CREATED 
+members:111 members CREATED 
+members:111 dogs CREATED 
+members:112 accounts CREATED 
+members:112 members CREATED 
+members:112 dogs CREATED 
+members:113 accounts CREATED 
+members:113 members CREATED 
+members:113 dogs CREATED 
+members:114 accounts CREATED 
+members:114 members CREATED 
+members:114 dogs CREATED 
+members:115 accounts CREATED 
+members:115 members CREATED 
+members:115 dogs CREATED 
+members:116 accounts CREATED 
+members:116 members CREATED 
+members:116 dogs CREATED 
+members:117 accounts CREATED 
+members:117 members CREATED 
+members:117 dogs CREATED 
+members:118 accounts CREATED 
+members:118 members CREATED 
+members:118 dogs CREATED 
+members:119 accounts CREATED 
+members:119 members CREATED 
+members:119 dogs CREATED 
+members:120 accounts CREATED 
+members:120 members CREATED 
+members:120 dogs CREATED 
+members:121 accounts CREATED 
+members:121 members CREATED 
+members:121 dogs CREATED 
+members:122 accounts CREATED 
+members:122 members CREATED 
+members:122 dogs CREATED 
+members:123 accounts CREATED 
+members:123 members CREATED 
+members:123 dogs CREATED 
+members:124 accounts CREATED 
+members:124 members CREATED 
+members:124 dogs CREATED 
+members:125 accounts CREATED 
+members:125 members CREATED 
+members:125 dogs CREATED 
+members:126 accounts CREATED 
+members:126 members CREATED 
+members:126 dogs CREATED 
+members:127 accounts CREATED 
+members:127 members CREATED 
+members:127 dogs CREATED 
+members:128 accounts CREATED 
+members:128 members CREATED 
+members:128 dogs CREATED 
+members:129 accounts CREATED 
+members:129 members CREATED 
+members:129 dogs CREATED 
+members:130 accounts CREATED 
+members:130 members CREATED 
+members:130 dogs CREATED 
+members:131 accounts CREATED 
+members:131 members CREATED 
+members:131 dogs CREATED 
+members:132 accounts CREATED 
+members:132 members CREATED 
+members:132 dogs CREATED 
+members:133 accounts CREATED 
+members:133 members CREATED 
+members:133 dogs CREATED 
+members:134 accounts CREATED 
+members:134 members CREATED 
+members:134 dogs CREATED 
+members:135 accounts CREATED 
+members:135 members CREATED 
+members:135 dogs CREATED 
+members:136 accounts CREATED 
+members:136 members CREATED 
+members:136 dogs CREATED 
+members:137 accounts CREATED 
+members:137 members CREATED 
+members:137 dogs CREATED 
+members:138 accounts CREATED 
+members:138 members CREATED 
+members:138 dogs CREATED 
+members:139 accounts CREATED 
+members:139 members CREATED 
+members:139 dogs CREATED 
+members:140 accounts CREATED 
+members:140 members CREATED 
+members:140 dogs CREATED 
+members:141 accounts CREATED 
+members:141 members CREATED 
+members:141 dogs CREATED 
+members:142 accounts CREATED 
+members:142 members CREATED 
+members:142 dogs CREATED 
+members:143 accounts CREATED 
+members:143 members CREATED 
+members:143 dogs CREATED 
+members:144 accounts CREATED 
+members:144 members CREATED 
+members:144 dogs CREATED 
+members:145 accounts CREATED 
+members:145 members CREATED 
+members:145 dogs CREATED 
+members:146 accounts CREATED 
+members:146 members CREATED 
+members:146 dogs CREATED 
+members:147 accounts CREATED 
+members:147 members CREATED 
+members:147 dogs CREATED 
+members:148 accounts CREATED 
+members:148 members CREATED 
+members:148 dogs CREATED 
+members:149 accounts CREATED 
+members:149 members CREATED 
+members:149 dogs CREATED 
+members:150 accounts CREATED 
+members:150 members CREATED 
+members:150 dogs CREATED 
+members:151 accounts CREATED 
+members:151 members CREATED 
+members:151 dogs CREATED 
+members:152 accounts CREATED 
+members:152 members CREATED 
+members:152 dogs CREATED 
+members:153 accounts CREATED 
+members:153 members CREATED 
+members:153 dogs CREATED 
+members:154 accounts CREATED 
+members:154 members CREATED 
+members:154 dogs CREATED 
+members:155 accounts CREATED 
+members:155 members CREATED 
+members:155 dogs CREATED 
+members:156 accounts CREATED 
+members:156 members CREATED 
+members:156 dogs CREATED 
+members:157 accounts CREATED 
+members:157 members CREATED 
+members:157 dogs CREATED 
+members:158 accounts CREATED 
+members:158 members CREATED 
+members:158 dogs CREATED 
+members:159 accounts CREATED 
+members:159 members CREATED 
+members:159 dogs CREATED 
+members:160 accounts CREATED 
+members:160 members CREATED 
+members:160 dogs CREATED 
+members:161 accounts CREATED 
+members:161 members CREATED 
+members:161 dogs CREATED 
+members:162 accounts CREATED 
+members:162 members CREATED 
+members:162 dogs CREATED 
+members:163 accounts CREATED 
+members:163 members CREATED 
+members:163 dogs CREATED 
+members:164 accounts CREATED 
+members:164 members CREATED 
+members:164 dogs CREATED 
+members:165 accounts CREATED 
+members:165 members CREATED 
+members:165 dogs CREATED 
+members:166 accounts CREATED 
+members:166 members CREATED 
+members:166 dogs CREATED 
+members:167 accounts CREATED 
+members:167 members CREATED 
+members:167 dogs CREATED 
+members:168 accounts CREATED 
+members:168 members CREATED 
+members:168 dogs CREATED 
+members:169 accounts CREATED 
+members:169 members CREATED 
+members:169 dogs CREATED 
+members:170 accounts CREATED 
+members:170 members CREATED 
+members:170 dogs CREATED 
+members:171 accounts CREATED 
+members:171 members CREATED 
+members:171 dogs CREATED 
+members:172 accounts CREATED 
+members:172 members CREATED 
+members:172 dogs CREATED 
+members:173 accounts CREATED 
+members:173 members CREATED 
+members:173 dogs CREATED 
+members:174 accounts CREATED 
+members:174 members CREATED 
+members:174 dogs CREATED 
+members:175 accounts CREATED 
+members:175 members CREATED 
+members:175 dogs CREATED 
+members:176 accounts CREATED 
+members:176 members CREATED 
+members:176 dogs CREATED 
+members:177 accounts CREATED 
+members:177 members CREATED 
+members:177 dogs CREATED 
+members:178 accounts CREATED 
+members:178 members CREATED 
+members:178 dogs CREATED 
+members:179 accounts CREATED 
+members:179 members CREATED 
+members:179 dogs CREATED 
+members:180 accounts CREATED 
+members:180 members CREATED 
+members:180 dogs CREATED 
+members:181 accounts CREATED 
+members:181 members CREATED 
+members:181 dogs CREATED 
+members:182 accounts CREATED 
+members:182 members CREATED 
+members:182 dogs CREATED 
+members:183 accounts CREATED 
+members:183 members CREATED 
+members:183 dogs CREATED 
+members:184 members WARNING PLAN_UNMAPPED
+members:184 accounts CREATED 
+members:184 members CREATED 
+members:184 members WARNING LEVEL_PENDING
+members:184 dogs CREATED 
+members:185 members SKIPPED 
+members:185 members WARNING LEVEL_PENDING
+members:185 dogs CREATED 
+members:187 members WARNING NUMBER_CONFLICT
+members:187 members WARNING PLAN_UNMAPPED
+members:187 accounts SKIPPED 
+members:187 members CREATED 
+members:187 members WARNING LEVEL_PENDING
+members:187 dogs CREATED 
+members:186 members WARNING NUMBER_CONFLICT
+members:186 members WARNING PLAN_UNMAPPED
+members:186 accounts SKIPPED 
+members:186 members CREATED 
+members:186 members WARNING LEVEL_PENDING
+members:186 dogs CREATED 
+members:188 members WARNING NUMBER_CONFLICT
+members:188 members WARNING PLAN_UNMAPPED
+members:188 accounts SKIPPED 
+members:188 members CREATED 
+members:188 members WARNING LEVEL_PENDING
+members:188 dogs CREATED 
+members:189 members WARNING NUMBER_CONFLICT
+members:189 members WARNING PLAN_UNMAPPED
+members:189 accounts SKIPPED 
+members:189 members CREATED 
+members:189 members WARNING LEVEL_PENDING
+members:189 dogs CREATED 
+members:190 members WARNING PLAN_UNMAPPED
+members:190 accounts SKIPPED 
+members:190 members CREATED 
+members:190 members WARNING LEVEL_PENDING
+members:190 dogs CREATED 
+members:83 members WARNING PERSON_MERGED
+members:83 members SKIPPED 
+members:83 dogs CREATED 
+groups:2 familyGroups CREATED 
+members:68 familyGroups PROPOSED EMAIL_SHARED field=holder@88
+members:84 familyGroups PROPOSED EMAIL_SHARED field=holder@64
+members:85 familyGroups PROPOSED EMAIL_SHARED field=holder@65
+members:86 familyGroups PROPOSED EMAIL_SHARED field=holder@66
+members:87 familyGroups PROPOSED EMAIL_SHARED field=holder@67
+members:89 familyGroups PROPOSED EMAIL_SHARED field=holder@69
+members:90 familyGroups PROPOSED EMAIL_SHARED field=holder@70
+members:91 familyGroups PROPOSED EMAIL_SHARED field=holder@71
+members:92 familyGroups PROPOSED EMAIL_SHARED field=holder@72
+members:93 familyGroups PROPOSED EMAIL_SHARED field=holder@73
+members:94 familyGroups PROPOSED EMAIL_SHARED field=holder@74
+members:95 familyGroups PROPOSED EMAIL_SHARED field=holder@75
+members:96 familyGroups PROPOSED EMAIL_SHARED field=holder@76
+members:97 familyGroups PROPOSED EMAIL_SHARED field=holder@77
+members:98 familyGroups PROPOSED EMAIL_SHARED field=holder@78
+members:99 familyGroups PROPOSED EMAIL_SHARED field=holder@79
+members:100 familyGroups PROPOSED EMAIL_SHARED field=holder@80
+members:101 familyGroups PROPOSED EMAIL_SHARED field=holder@81
+receipts:2 invoices CREATED 
+receipts:3 invoices ERROR INPUT_SCHEMA_MISMATCH
+receipts:4 invoices ERROR INPUT_SCHEMA_MISMATCH
+receipts:5 invoices ERROR INPUT_SCHEMA_MISMATCH
+packs:2 packBalances WARNING PACK_DOG_AMBIGUOUS
+packs:2 packBalances CREATED 
+packs:3 packBalances WARNING PACK_DOG_AMBIGUOUS
+packs:3 packBalances ERROR INPUT_SCHEMA_MISMATCH
+packs:4 packBalances WARNING PACK_DOG_AMBIGUOUS
+packs:4 packBalances ERROR INPUT_SCHEMA_MISMATCH
+] 
+Expecting value to be false but was true
+[ERROR]   PlayoffMigrationIT.R_18_13_E146_aPaidUntilRowGivesTheMigratedMemberItsFirstInvoiceDate:654 
+expected: "2027-01-01"
+ but was: "2026-12-01"
+[ERROR]   E8ScheduledProcessesIT.R_18_10_R_13_14_aMigratedPackWithNothingLeftExpiresAndSchedulesTheLeave:219 
+expected: "ACTIVE"
+ but was: "CLOSED"
+[ERROR]   InvoiceActionsIT.R_12_19_R_12_26_aManualReceiptCarriesTheMonthItIsFor:172 
+expected: "2026-12"
+ but was: "2026-11"
+[ERROR]   MemberNextInvoiceDateIT.T_12_07_E146_theAdminSetsAMembersNextInvoiceDateWithItsReasonAndTheSimulationFollows:35->BillingItSupport.ok:205 [{"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3ecc78ad-d464-4fec-9273-d3be1de0d892"}] 
+expected: 200
+ but was: 404
+[ERROR]   MemberNextInvoiceDateIT.T_12_21_E146_theRouteIsTheAdminsOnlyWithinTwelveMonthsAndForAnActiveMember:73 [2025-07-31] 
+expected: 400
+ but was: 404
+[ERROR]   RemittancesIT.R_12_14_E147_aGeneratedRemittanceCannotBeRolledBackOnceItsCollectionDateHasCome:200 
+expected: "2026-09-01"
+ but was: ""
+[ERROR]   RemittancesIT.R_12_15_E147_theDayBeforeTheCollectionDateTheSubmissionIsDueAndTheRollbackStillWorks:233 
+Expecting value to be true but was false
+[ERROR] Tests run: 10, Failures: 10, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -3943,3 +3943,19 @@ Blocking: no.
 ## 2026-10-21 · organizer → executor · E149–E151: E11-T10 verified; E11-T17 installed (thread B, after E11-T15); the gate waits for it
 @executor E11-T10 is verified (ruling E151): the CI of `e9ab7c75` is green except the amd64 Compose step that E11-T09's round 2 fixes. Your two questions are ruled: **E149** — INC-39.2, option (a): a `PARTIAL` row that goes to checkout is closed with the E39b correction pattern and a new `DUE` row for the remainder is the one checked out (one provider per row); **E150** — INC-40.10, option (b): N-06 is skipped for `origin = BACKOFFICE` (N-47 is the member's notice), and S09 §8's N-07 row is aligned with the code. Question 3 agreed, proposal 1 accepted. Those, the three minors of the kit's review (audit before publish in `TrainingBookingService`, legacy `seat_locks` without `lockedAt`, the reorder audit), N-50's `params.jobId` and the 16 MB evidence log are **E11-T17** (thread B, `ready`, after E11-T15; order 112). E11-T12 (the gate) now also waits for E11-T17 (order 117); E11-T14 keeps the last place (118).
 Blocking: no.
+
+
+## 2026-10-21 · executor → organizer · E11-T15 handed off (thread B)
+@organizer **E11-T15 is `awaiting_verification`.** The audit's steps 1–11 are done.
+- Each step has a test that fails on the old code: 8 unit and 10 IT failures, logs `01`/`02`.
+- Step 10 is the diff of `docs/DEPLOY.md`.
+- Contract (snapshot + `docs/openapi/CHANGELOG.md`): `PUT /members/{id}/next-invoice-date` (E146); `nextInvoiceDate` on the plan change; `period` on `POST /invoices`; `requestedCollectionDate` + `submissionDue` on D6's period remittance (E147); `NO_NEXT_INVOICE_DATE` and `COLLECTION_DATE_PASSED`.
+- S12, S18 and S03 copies changed (E109). Web items to open: D10's date field and reason, and D6's `submissionDue` warning, the new incident and the new blocker label.
+- Host-locked `clean verify` exits 0: 4,830 unit and 2,203 integration tests, 0 failures (`15`/`16`). `bin/e8-smoke` and the targeted `PlayoffMigrationIT,RemittancesIT` exit 0 (`12`, `11`).
+- Step 8 also changed `bin/e10-smoke`'s creditor (`ES97000G…` → `ES26000G…`): its console save would now be refused.
+
+Questions (report §Questions):
+1. The demo's `referenceDate` (2026-09-01) seeds `nextInvoiceDate` 01-10, so the smoke's November run now bills October too (F4). Web e2e that pin D6's demo totals may need a new baseline. Should the demo anchor the date to the month after the run?
+2. A plan change to a plan with no `entryFee` answers 500 (`EntryFeeCalculator.perDog`). This was already so before this task; I propose an INC item.
+3. No N-41-style notice proposed: D6's warning seems enough.
+Blocking: no.

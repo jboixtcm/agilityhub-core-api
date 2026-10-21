@@ -48,7 +48,7 @@
                  "createdAt": "2026-10-01T05:00:00Z", "resolvedAt": "2026-10-01T05:00:04Z"},
   "Remittance": {"id": "4d5e6f70-0000-4000-8000-000000000004", "runId": "2b3c4d5e-0000-4000-8000-000000000002", "period": "2026-09",
                  "messageId": "canic-2026-09-1", "creationAt": "2026-08-25T09:30:00Z", "requestedCollectionDate": "2026-09-01",
-                 "creditor": {"name": "Club Example", "id": "ES00ZZZB00000000", "maskedIban": "···· ···· ···· ···· 9999", "bic": null},
+                 "creditor": {"name": "Club Example", "id": "ES81ZZZB00000000", "maskedIban": "···· ···· ···· ···· 9999", "bic": null},
                  "collectionIds": ["5e6f7081-0000-4000-8000-000000000005"], "count": 162, "total": {"amountMinor": 624000, "currency": "EUR"},
                  "sequenceBreakdown": {"FRST": 0, "RCUR": 162}, "fileAvailable": true, "xsdValidatedAt": "2026-08-25T09:30:00Z", "xsdValidationSkipped": null,
                  "status": "GENERATED", "submittedAt": null, "submittedByAccountId": null},
@@ -94,7 +94,8 @@
             "byProvider": {"SEPA_XML": {"count": 162, "total": {"amountMinor": 624000, "currency": "EUR"}, "remittanceId": "4d5e6f70-0000-4000-8000-000000000004"},
                            "MANUAL": {"count": 4, "total": {"amountMinor": 24000, "currency": "EUR"}}},
             "rollbackable": true, "rollbackBlockers": []},
-    "remittance": {"id": "4d5e6f70-0000-4000-8000-000000000004", "status": "GENERATED", "fileAvailable": true},
+    "remittance": {"id": "4d5e6f70-0000-4000-8000-000000000004", "status": "GENERATED", "fileAvailable": true, "requestedCollectionDate": "2026-09-01",
+                   "submissionDue": false},
     "counts": {"all": 168, "pending": 4, "remitted": 162, "paid": 2, "failed": 0}
   },
   "BillingPeriod#empty": {"period": "2026-12", "simulation": null, "run": null, "remittance": null, "counts": {"all": 0, "pending": 0, "remitted": 0, "paid": 0, "failed": 0}},

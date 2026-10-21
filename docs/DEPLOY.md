@@ -346,6 +346,8 @@ builds, GHCR release credentials, provider accounts/verified senders, S3 IAM/COR
 Twilio recipients, VAPID delivery, SendGrid webhook signatures, E8 Stripe keys
 and per-club webhook endpoints, bank settings/legal approval, and a real recovery
 rehearsal on the droplet. This local task neither accesses nor deploys production.
+Before the cut-over and the first billing runs, read «Billing and migration facts
+for the first runs (E11-T15)» under «Object storage» below.
 
 ### «Alta d'un domini de club» (S17 WP-17-D, R-17-02/R-17-03; E10-T03)
 
@@ -974,6 +976,41 @@ record of what went to the bank. Downloads are presigned GETs valid for five
 minutes, answering `Content-Disposition: attachment` with the stored
 `application/xml` type, and each link issued is audited (`DATA_EXPORTED`).
 Treat the bucket as holding bank data: private and encrypted at rest.
+
+### Billing and migration facts for the first runs (E11-T15)
+
+The pre-launch audit of 21-10 (ruling E145) left these facts for the cut-over
+runbook (E12-T02). They are rules of the specs, not defects:
+
+- **Run on the 26th or later.** The members' deadlines of day 25 are inclusive:
+  an inactivity request for next month (`InactivityCalendar.earliest`, S13
+  R-13-01) and the signup's cut-off day (`UpfrontLines.additionalDogOptions`, S04
+  R-04-14) still accept day 25. A run on the 25th freezes month M before the
+  members' deadline closes.
+- **The series is the year of the issue date** (`InvoiceNumbering.series`, S12
+  R-12-08). The January-2027 run, issued around 26-12-2026, is numbered
+  `2026-NNNN`. This is what the spec says; tell the bookkeeper.
+- **Count TARGET holidays yourself.** `CollectionDates.earliest` counts Monday to
+  Friday only (two business days, R-12-12). The bank also closes on TARGET
+  holidays (25-12 and 01-01 around the first runs). Choose a collection date at
+  least two TARGET business days after the run.
+- **Mark the remittance as sent the day you upload it.** From its collection
+  date on, a remittance still `GENERATED` blocks the rollback
+  (`COLLECTION_DATE_PASSED`, E147). From the day before, D6 shows
+  `submissionDue`. P5i settles only a `SUBMITTED` remittance.
+- **`--cut-over` is a day of the launch month**, never the rehearsal's today
+  (`PlayoffCommand`: the club's today when omitted). It sets the mandates'
+  signature date and every monthly member's first `nextInvoiceDate` (01 of the
+  next month, R-18-13).
+- **Cash members already paid in Playoff**: list them in `pagat_fins.csv`
+  (`Member ID;Paid until`, `YYYY-MM`). Without it, the first run bills the months
+  of their half-year that Playoff already charged. After the load, correct one
+  date with `PUT /api/v1/members/{id}/next-invoice-date {nextInvoiceDate, reason}`
+  (audited, E146).
+- **The anonymised rehearsal must include the real `rebuts.csv` and
+  `packs.csv`.** Their headings in `playoff-v2.yaml` have never been checked
+  against a real export. Since E11-T15 a row the importer cannot read is a
+  warning and is skipped, but a missing column still refuses the file.
 
 `staging`/`prod` require both sets of bucket, region and credentials; missing
 values fail startup with a missing-configuration error, even when `local` is also

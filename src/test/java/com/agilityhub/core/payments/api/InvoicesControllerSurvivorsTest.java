@@ -90,7 +90,7 @@ class InvoicesControllerSurvivorsTest {
     @Test void T_12_21_anErasedMembersManualInvoiceIsRefusedBeforeItIsIssued() {
         doThrow(new ApiException(ErrorCode.MEMBER_ERASED)).when(access).mutableMember("member-erased");
         var request = new BillingRequests.ManualInvoiceRequest("member-erased",
-                List.of(new BillingRequests.ManualInvoiceLine("Adjustment", new Money(-3000, "EUR"), BigDecimal.ZERO)), null, "Fictional adjustment");
+                List.of(new BillingRequests.ManualInvoiceLine("Adjustment", new Money(-3000, "EUR"), BigDecimal.ZERO)), null, "Fictional adjustment", null);
 
         assertCode(() -> controller.createManualInvoice(request, UUID.randomUUID()), ErrorCode.MEMBER_ERASED);
         verifyNoInteractions(actions, transactions);

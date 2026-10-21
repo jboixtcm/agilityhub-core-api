@@ -33,13 +33,17 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         this.events = events; this.clock = clock; this.clubClock = clubClock;
     }
     public boolean enabled() { return configs.get(TenantContext.require()).modules().contains(Module.PACKS); }
-    /** R-18-10: one imported balance with its original consumed amount; migration emits only the run event. */
+    /**
+     * R-18-10: one imported balance with its original consumed amount; migration emits only the run event. A pack with nothing
+     * left is `ACTIVE` with `remaining 0`, as `consume` leaves one (E11-T15 step 9): P5a expires it after its last day and R-13-14
+     * schedules the member's leave — a `CLOSED` one never expired (S12 §5: `CLOSED` is informative).
+     */
     public void openMigrated(String id, String sourceId, String memberId, String dogId, String planId, LocalDate openedOn, int consumed, LocalDate cutover) {
         if (!enabled() || packs.findById(id).isPresent()) { return; }
         var terms = catalog.pack(planId); int remaining = terms.sessions() - consumed;
         if (consumed < 0 || remaining < 0) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
         var expiresOn = openedOn.plusMonths(terms.validityMonths()).minusDays(1);
-        var state = expiresOn.isBefore(cutover) ? PackBalanceState.EXPIRED : remaining == 0 ? PackBalanceState.CLOSED : PackBalanceState.ACTIVE;
+        var state = expiresOn.isBefore(cutover) ? PackBalanceState.EXPIRED : PackBalanceState.ACTIVE;
         packs.insert(new PackBalance(id, TenantContext.require(), memberId, dogId, planId, null, terms.sessions(), consumed, remaining,
                 openedOn.toString(), expiresOn.toString(), state, List.of(movement(PackMovementType.OPEN, remaining, null, "MIGRATED")),
                 null, state == PackBalanceState.EXPIRED ? clock.instant() : null, null, Map.of("playoffPackId", sourceId), null, clock.instant(), null));
@@ -155,7 +159,8 @@ public class PackBalanceService implements PackBalanceOpeningPort {
     public void expire(String id) {
         if (!enabled()) { return; }
         var pack = get(id);
-        if (pack.state() != PackBalanceState.ACTIVE) { return; }
+        // E11-T15 step 9: a CLOSED pack (an earlier rehearsal migrated an empty one so) expires too.
+        if (pack.state() != PackBalanceState.ACTIVE && pack.state() != PackBalanceState.CLOSED) { return; }
         var next = write(pack, movement(PackMovementType.EXPIRE, 0, null, null), pack.consumed(), pack.remaining(),
                 PackBalanceState.EXPIRED, pack.expiresOn(), clock.instant(), pack.lowBalanceNotifiedAt());
         publish(BillingEvent.Kind.PackExpired, next, null, Map.of());

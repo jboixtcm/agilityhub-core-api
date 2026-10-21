@@ -29,6 +29,7 @@ public class MemberBillingController {
     static final String STUB = BillingController.STUB;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentCheckouts checkouts;
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.MemberNextInvoiceDateService nextInvoiceDates;
     private final BillingContractAccess access; private final com.agilityhub.core.payments.application.PendingChargeService charges;
     public MemberBillingController(BillingContractAccess access, com.agilityhub.core.payments.application.PendingChargeService charges) {
         this.access = access; this.charges = charges;
@@ -49,6 +50,22 @@ public class MemberBillingController {
             catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
         });
         return new CardSetupLink(result.checkoutUrl());
+    }
+
+    @PutMapping("/api/v1/members/{id}/next-invoice-date")
+    @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, INVALID_STATE, MODULE_DISABLED})
+    @Operation(summary = "setNextInvoiceDate", description = ROLES + "E146 (E11-T15; S12 R-12-01/05/06): sets the date the next run bills the member "
+            + "from — a migrated cash member already charged to the end of its half-year, a member without a date (simulation incident "
+            + "NO_NEXT_INVOICE_DATE). Never under impersonation (403). The date: from the first day of the club's current month twelve months back "
+            + "to the last day of the month twelve months ahead, else 400 VALIDATION_ERROR {fieldErrors: [{field: nextInvoiceDate, code: "
+            + "INVALID_VALUE}]}; reason required (≤ 200). The member must be ACTIVE (else 409 INVALID_STATE); a pending readmission's frozen record "
+            + "is 409 INVALID_STATE {reason: READMISSION_PENDING} (INC-39); another club's member 404; an erased one 409 MEMBER_ERASED. Audited "
+            + "MEMBER_UPDATED (changes[].path = nextInvoiceDate, the reason) with MemberUpdated{memberId, diff}; the same date again changes "
+            + "nothing. The next simulation reads the new date (a monthly member is billed every month from month(nextInvoiceDate))." + BillingController.SERVED,
+            responses = @ApiResponse(responseCode = "200", description = "NextInvoiceDate", useReturnTypeSchema = true))
+    public NextInvoiceDate setNextInvoiceDate(@PathVariable String id, @Valid @RequestBody NextInvoiceDateRequest request) {
+        return new NextInvoiceDate(nextInvoiceDates.set(id, request.nextInvoiceDate(), request.reason()));
     }
 
     @GetMapping("/api/v1/members/{id}/pending-charges")

@@ -265,6 +265,65 @@ class LifecycleIT extends BookingFixtures {
         for (String role : List.of("laura", "inst")) { call(POST, "/members/s08-m-laura/plan-change", body, as(role), 403, UUID.randomUUID().toString()); }
         call(POST, "/members/s08-m-laura/plan-change", Map.of("planId", "unknown", "priceId", "s13-price"), as("admin"), 404, UUID.randomUUID().toString());
     }
+    /**
+     * E11-T15 step 1 (the audit of 21-10, F1; R-12-01, R-12-06, S12 §6 plan-change, R-05-18b): a pack member has no
+     * `nextInvoiceDate`. Its change to a monthly plan writes R-12-06's default — the 1st of next month — or the admin's own date,
+     * so the next simulation bills it instead of leaving it out silently; a date before the club's current month is 400. A member
+     * that already has a date keeps it (the case above).
+     */
+    @Test void T_12_01_R_12_06_aPackToMonthlyChangeGivesTheMemberItsFirstInvoiceDate() throws Exception {
+        clock.setInstant(local("2026-11-20T12:00"));
+        openPack("s08-m-laura", "s08-d-duna", 10, 10, LocalDate.parse("2026-12-31"));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders", Map.of("MANUAL", Map.of("enabled", true))), "clubs");
+        configs.invalidate(CLUB);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("paymentMethod", new Document("type", "MANUAL").append("channel", "cash")), "members");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s13-monthly")), new Update().set("entryFee", new Document("mode", "AMOUNT")
+                .append("amount", new Document("amountMinor", 10000L).append("currency", "EUR"))), "plans");
+        var updated = Instant.parse("2026-01-01T00:00:00Z");
+        mongo.save(new com.agilityhub.core.clubs.catalogs.persistence.Price("s13-price", CLUB, "s13-monthly", com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept.MONTHLY_FEE,
+                new com.agilityhub.core.shared.domain.Money(6000, "EUR"), java.math.BigDecimal.ZERO, LocalDate.of(2026, 1, 1), null, 0, updated, updated, "s08-admin", "s08-admin"));
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members").get("nextInvoiceDate")).isNull();
+        // Without a date in the request: R-12-06 / R-18-13's default, audited with the plan change.
+        call(POST, "/members/s08-m-laura/plan-change", Map.of("planId", "s13-monthly", "priceId", "s13-price"), as("admin"), 204, UUID.randomUUID().toString());
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("nextInvoiceDate")).isEqualTo("2026-12-01");
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("MEMBER_PLAN_CHANGED")), Document.class, "audit_entries");
+        assertThat(audit.getList("changes", Document.class)).anySatisfy(change -> {
+            assertThat(change.getString("path")).isEqualTo("nextInvoiceDate");
+            assertThat(change.get("before")).isNull();
+            assertThat(String.valueOf(change.get("after"))).isEqualTo("2026-12-01");
+        });
+        // December's simulation previews her monthly fee (before E11-T15: no line and no incident).
+        var december = call(POST, "/billing/simulations", Map.of("period", "2026-12"), as("admin"), 201);
+        var preview = new ArrayList<com.fasterxml.jackson.databind.JsonNode>();
+        december.path("invoicesPreview").forEach(row -> { if (row.path("memberId").asText().equals("s08-m-laura")) { preview.add(row); } });
+        assertThat(preview).singleElement().satisfies(row -> {
+            assertThat(row.path("lines")).hasSize(1);
+            assertThat(row.at("/lines/0/origin").asText()).isEqualTo("MONTHLY_FEE");
+            assertThat(row.at("/total/amountMinor").asLong()).isEqualTo(6000);
+        });
+        assertThat(december.path("incidents").findValuesAsText("memberId")).doesNotContain("s08-m-laura");
+        // With the admin's date: written as given; December has nothing for her.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("planId", "s08-pack-plan").unset("nextInvoiceDate"), "members");
+        call(POST, "/members/s08-m-laura/plan-change", Map.of("planId", "s13-monthly", "priceId", "s13-price", "nextInvoiceDate", "2027-01-01"), as("admin"), 204,
+                UUID.randomUUID().toString());
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("nextInvoiceDate")).isEqualTo("2027-01-01");
+        var again = call(POST, "/billing/simulations", Map.of("period", "2026-12"), as("admin"), 201);
+        assertThat(again.path("invoicesPreview").findValuesAsText("memberId")).doesNotContain("s08-m-laura");
+        assertThat(again.path("incidents").findValuesAsText("memberId")).doesNotContain("s08-m-laura");
+        // A date before the first day of the club's current month is refused, and nothing changes.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("planId", "s08-pack-plan").unset("nextInvoiceDate"), "members");
+        var refused = call(POST, "/members/s08-m-laura/plan-change", Map.of("planId", "s13-monthly", "priceId", "s13-price", "nextInvoiceDate", "2026-10-31"),
+                as("admin"), 400, UUID.randomUUID().toString());
+        assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("nextInvoiceDate");
+        assertThat(refused.at("/details/fieldErrors/0/code").asText()).isEqualTo("INVALID_VALUE");
+        var unchanged = mongo.findById("s08-m-laura", Document.class, "members");
+        assertThat(unchanged.getString("planId")).isEqualTo("s08-pack-plan"); assertThat(unchanged.get("nextInvoiceDate")).isNull();
+        // The first day of the current month is accepted.
+        call(POST, "/members/s08-m-laura/plan-change", Map.of("planId", "s13-monthly", "priceId", "s13-price", "nextInvoiceDate", "2026-11-01"), as("admin"), 204,
+                UUID.randomUUID().toString());
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("nextInvoiceDate")).isEqualTo("2026-11-01");
+    }
     @Test void T_13_20_expirySchedulesOneLeaveAndRenewalCancelsIt() throws Exception {
         openPack("s08-m-laura", "s08-d-duna", 10, 0, LocalDate.parse("2026-11-12"));
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("planId", "s08-pack-plan"), "members");

@@ -70,8 +70,9 @@ public final class Pain008Document {
         for (var block : file.blocks()) {
             identifier("PmtInfId", block.paymentInformationId());
             for (var debit : block.debits()) {
-                identifier("EndToEndId", debit.endToEndId());
-                identifier("MndtId", debit.mandateRef());
+                identifier("EndToEndId", debit.endToEndId(), null);
+                // E11-T15 step 7: a debit's mandate names its owner (the receipt number), so the admin can find the member.
+                identifier("MndtId", debit.mandateRef(), debit.endToEndId());
             }
         }
         var factory = new ObjectFactory();
@@ -105,12 +106,19 @@ public final class Pain008Document {
         } catch (JAXBException failure) { throw new IllegalStateException("The pain.008 document cannot be marshalled", failure); }
     }
 
-    private static void identifier(String field, String value) {
-        if (value == null || value.isBlank() || value.length() > SepaDirectDebits.IDENTIFIER
-                || !com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(value)) {
-            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.SEPA_NOT_CONFIGURED,
-                    java.util.Map.of("reason", "IDENTIFIER", "field", field));
+    private static void identifier(String field, String value) { identifier(field, value, null); }
+    /** `Max35Text` in the SEPA set; {@code owner}: the `EndToEndId` of the debit the value belongs to (never the value itself). */
+    private static void identifier(String field, String value, String owner) {
+        if (!valid(value)) {
+            var details = new java.util.LinkedHashMap<String, Object>(); details.put("reason", "IDENTIFIER"); details.put("field", field);
+            if (valid(owner)) { details.put("endToEndId", owner); }
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.SEPA_NOT_CONFIGURED, details);
         }
+    }
+    /** `Max35Text` (`MsgId`, `PmtInfId`, `EndToEndId`, `MndtId`) in the EPC basic Latin set. */
+    public static boolean valid(String identifier) {
+        return identifier != null && !identifier.isBlank() && identifier.length() <= SepaDirectDebits.IDENTIFIER
+                && com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(identifier);
     }
 
     /** R-12-11: {@code xml} against the schema in use; {@link InvalidDocument} (line and column only) when it fails. */

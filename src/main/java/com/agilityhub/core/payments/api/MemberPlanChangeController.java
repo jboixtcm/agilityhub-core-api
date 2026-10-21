@@ -19,14 +19,18 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 @PreAuthorize(BillingController.ADMIN)
 public class MemberPlanChangeController {
     public record MemberPlanChangeRequest(@NotBlank String planId, @NotBlank String priceId,
-            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED) @Pattern(regexp="[0-9]{4}-(0[1-9]|1[0-2])") String effectiveMonth) { }
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED) @Pattern(regexp="[0-9]{4}-(0[1-9]|1[0-2])") String effectiveMonth,
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "E11-T15 (R-12-06): the first invoice date of a member that has none "
+                    + "(a pack member moving to a MONTHLY plan); absent → billing.nextInvoiceDayOfMonth of next month. Not before the first day of the "
+                    + "club's current month. A member that already has a date keeps it (use PUT /members/{id}/next-invoice-date).") java.time.LocalDate nextInvoiceDate) { }
     private final MemberPlanChangeService service; private final BillingTransactions transactions;
     public MemberPlanChangeController(MemberPlanChangeService service, BillingTransactions transactions) { this.service = service; this.transactions = transactions; }
     @PostMapping("/api/v1/members/{id}/plan-change")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, PLAN_NOT_AVAILABLE, IDEMPOTENCY_KEY_REUSED, INVALID_STATE})
-    @Operation(summary="changeMemberPlan", description=BillingController.ROLES + "Changes the current plan and price without moving nextInvoiceDate. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.")
+    @Operation(summary="changeMemberPlan", description=BillingController.ROLES + "Changes the current plan and price without moving an existing nextInvoiceDate. A member without one (every pack member) moving to a MONTHLY plan gets its first date (E11-T15, R-12-06): the request's nextInvoiceDate or, without it, billing.nextInvoiceDayOfMonth of next month (club-local), in the MEMBER_PLAN_CHANGED audit diff; a nextInvoiceDate before the first day of the club's current month → 400 VALIDATION_ERROR {fieldErrors: [{field: nextInvoiceDate, code: INVALID_VALUE}]}. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.")
     public void change(@PathVariable String id, @Valid @RequestBody MemberPlanChangeRequest request, @RequestHeader("Idempotency-Key") UUID key) {
-        transactions.keyed(204, () -> { service.change(id, request.planId(), request.priceId(), request.effectiveMonth()); return null; }, ignored -> new byte[0]);
+        transactions.keyed(204, () -> { service.change(id, request.planId(), request.priceId(), request.effectiveMonth(), request.nextInvoiceDate()); return null; },
+                ignored -> new byte[0]);
     }
 }

@@ -29,7 +29,10 @@ public final class BillingRequests {
             @NotNull @DecimalMin("0") @DecimalMax("100") BigDecimal taxPercent) { }
     public record ManualInvoiceRequest(@NotBlank @Schema(format = "uuid") String memberId, @NotEmpty List<@Valid ManualInvoiceLine> lines,
             @Schema(requiredMode = NOT_REQUIRED, description = "SEPA_DD only: collect it with the next run's remittance (R-12-19)") Boolean includeInNextRun,
-            @NotBlank @Size(max = 500) String note) { }
+            @NotBlank @Size(max = 500) String note,
+            @Schema(requiredMode = NOT_REQUIRED, pattern = BillingContracts.MONTH, description = "E11-T15 (R-12-19, R-12-26): the month the receipt is for — "
+                    + "D6's month list and the accounting export by period. Absent → the issue month; at most three months either side of it")
+            @Pattern(regexp = "[0-9]{4}-(0[1-9]|1[0-2])") String period) { }
     public record InvoicePaymentRequest(@NotNull LocalDate paidAt, @NotNull ManualChannel channel,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 140) String reference, @NotNull Long version) { }
     public record BulkPaymentRequest(@NotEmpty List<@NotBlank String> invoiceIds, @NotNull LocalDate paidAt, @NotNull ManualChannel channel) { }
@@ -43,6 +46,9 @@ public final class BillingRequests {
             @NotNull @Valid Money amountPaid, @NotNull ManualChannel channel, @NotNull LocalDate paidAt,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 140) String reference, @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String note) { }
     public record CardSetupRequest(@NotBlank @Schema(format = "uri") String successUrl, @NotBlank @Schema(format = "uri") String cancelUrl) { }
+    @Schema(description = "E146 (E11-T15): the admin's correction of a member's next invoice date, with its reason (audited)")
+    public record NextInvoiceDateRequest(@NotNull @Schema(description = "Any day from the first of the club's current month twelve months back to the last "
+            + "day of the month twelve months ahead") LocalDate nextInvoiceDate, @NotBlank @Size(max = 200) String reason) { }
     public record PackBalanceRequest(@NotBlank @Schema(format = "uuid") String memberId, @NotBlank @Schema(format = "uuid") String dogId,
             @NotBlank @Schema(format = "uuid") String planId, @Schema(requiredMode = NOT_REQUIRED, description = "Default: the plan's pack.sessions") @Positive Integer sessionsTotal,
             @NotNull LocalDate openedOn, @Schema(requiredMode = NOT_REQUIRED, description = "Default: openedOn + validityMonths − 1 day") LocalDate expiresOn,

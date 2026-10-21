@@ -60,8 +60,8 @@ public final class SepaDirectDebits {
 
     /**
      * The creditor scheme identifier (AT-02) with the club's `suffix`: the creditor business code is characters 5–7 of the
-     * identifier (`ES12ZZZB12345678` with suffix `001` → `ES12001B12345678`); the check digits do not cover it. No suffix →
-     * the identifier as configured.
+     * identifier (`ES97ZZZB12345678` with suffix `001` → `ES97001B12345678`); the check digits do not cover it
+     * ({@link com.agilityhub.core.shared.domain.SepaCreditorIdentifier}). No suffix → the identifier as configured.
      */
     public static String creditorIdentifier(String creditorId, String suffix) {
         String id = creditorId == null ? null : creditorId.replaceAll("\\s", "").toUpperCase(java.util.Locale.ROOT);

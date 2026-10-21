@@ -121,7 +121,7 @@ public abstract class BillingItSupport extends AbstractIntegrationTest {
     }
     protected static Map<String, Object> providers(boolean sepa, boolean manual, boolean stripe) {
         var providers = new LinkedHashMap<String, Object>();
-        if (sepa) { providers.put("SEPA_XML", Map.of("enabled", true, "creditorName", "Club Agility Facturació", "creditorId", "ES00ZZZB00000000", "iban", IBAN.replace("4321", "9876"))); }
+        if (sepa) { providers.put("SEPA_XML", Map.of("enabled", true, "creditorName", "Club Agility Facturació", "creditorId", "ES81ZZZB00000000", "iban", IBAN.replace("4321", "9876"))); }
         if (manual) { providers.put("MANUAL", Map.of("enabled", true)); }
         if (stripe) { providers.put("STRIPE", Map.of("enabled", true)); }
         return providers;

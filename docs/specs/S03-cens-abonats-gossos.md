@@ -36,7 +36,7 @@ Només el que aquesta spec crea o modifica; la resta d'atributs, al model. Tots 
 | `phones[]` | `[{prefix, number, label}]` 1..2 | sí (1) | `prefix` per defecte `countryProfile.phonePrefix`; `number` segons perfil (ES: 9 dígits); `label` ≤ 30 («Laura», «Joan») |
 | `address` | `{street, postalCode, city, province?, country?}` | sí | CP segons perfil; `city` proposada pel CP (S02) |
 | `paymentMethod` | veg. PLATAFORMA §3 | `BILLING` | `SEPA_DD {iban?, holderName, holderTaxId?, mandateRef, mandateSignedAt}` · `CARD {…}` · `MANUAL {channel}`; **l'IBAN mai surt de l'API** (només `maskedAccount` = 4 últims) |
-| `planId`, `priceId`, `nextInvoiceDate` | ref, ref, date | `BILLING` | els fixa S04/S12; aquí només lectura |
+| `planId`, `priceId`, `nextInvoiceDate` | ref, ref, date | `BILLING` | els fixa S04/S12; aquí només lectura (D10 no els edita amb `PATCH /members/{id}`: el pla, amb `POST /members/{id}/plan-change`, i la data, amb `PUT /members/{id}/next-invoice-date` amb motiu auditat, S12 §6; E11-T15, decisió E146) |
 | `consents` | `{privacyPolicy {acceptedAt, version}, imageRights {granted, at, version, byAccountId}}` | sí | `version` = `Club.legalTextsVersion` del moment; només `imageRights` és modificable (ADMIN, auditat) |
 | `remarks`, `internalNotes` | text ≤ 2000 | no | observacions visibles a l'abonat · notes internes (ADMIN) |
 | `status` | enum `PENDING`·`ACTIVE`·`LEFT` | sí | §5; mai s'esborra |
@@ -368,3 +368,4 @@ Ordre: A → (B ∥ C) → (D ∥ E ∥ F) → G. Tres fils típics: fil 1 = A +
 - 27-09-2026 · revisió global del 26-09 (decisió E42): R-03-07 i T-03-13, el `PATCH` SEPA→SEPA és parcial i conserva l'IBAN que no s'envia.
 - 28-09-2026 · verificació d'E6-T03, ronda 3 (decisió E70): §7, `MemberNoteChanged` porta `author{accountId, displayName, gender}`, qui ha escrit la nota tal com era en escriure-la.
 - 17-10-2026 · E11-T02 (INC-31, A37, decisió E109): R-03-07, l'IBAN es desa segellat (`ibanEncrypted` + `ibanLast4`); `census:seal-ibans` segella els desats en clar abans.
+- 21-10-2026 · E11-T15 (decisió E146, E109): §3, `nextInvoiceDate` el corregeix l'admin amb `PUT /members/{id}/next-invoice-date` (S12 §6), auditat `MEMBER_UPDATED` amb el motiu; el canvi de pla d'un membre sense data li'n dona una.

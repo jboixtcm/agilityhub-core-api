@@ -41,6 +41,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class InvoiceActions {
     public static final String BANK_RETURN = "BANK_RETURN";
+    /** A manual receipt's `period` is at most this many months from its issue month (E11-T15 step 11). */
+    static final int PERIOD_MONTHS = 3;
     /** An invoice with its attempts, oldest first (the drawer), and whether its run was rolled back (R-12-14, E8-T07 step 4). */
     public record InvoiceDetail(Invoice invoice, List<Collection> collections, boolean rolledBack) {
         /** A receipt an action just moved: a rolled-back one is `CANCELLED` and takes no action. */
@@ -115,6 +117,14 @@ public class InvoiceActions {
      * is at least 0.01, R-12-12).
      */
     public InvoiceDetail createManual(String memberId, List<ManualLine> lines, boolean includeInNextRun, String note) {
+        return createManual(memberId, lines, includeInNextRun, note, null);
+    }
+    /**
+     * E11-T15 step 11 (R-12-19, R-12-26): {@code period} (`YYYY-MM`) is the month the receipt is for — D6's month list and the
+     * accounting export by period read it — the issue month when absent, at most {@value #PERIOD_MONTHS} months either side of
+     * it (`400 VALIDATION_ERROR {field: period}` before any number is taken).
+     */
+    public InvoiceDetail createManual(String memberId, List<ManualLine> lines, boolean includeInNextRun, String note, String period) {
         if (locks.held(clock.instant())) { throw new ApiException(ErrorCode.BILLING_BUSY); }
         var member = census.member(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var context = invoicing.context();
@@ -130,10 +140,17 @@ public class InvoiceActions {
         var method = InvoicingService.member(member).method();
         if (method == null) { method = PaymentMethodType.MANUAL; }
         var issueDate = context.issueDate();
+        var month = YearMonth.from(issueDate);
+        if (period != null) {
+            try { month = YearMonth.parse(period); } catch (java.time.format.DateTimeParseException notAMonth) { throw BillingContractAccess.invalid("period"); }
+            if (month.isBefore(YearMonth.from(issueDate).minusMonths(PERIOD_MONTHS)) || month.isAfter(YearMonth.from(issueDate).plusMonths(PERIOD_MONTHS))) {
+                throw BillingContractAccess.invalid("period");
+            }
+        }
         var block = numbers.reserve(context, 1);
         String series = block.series(); long number = block.first();
         Instant now = clock.instant(); String actor = BillingEvents.actor();
-        var invoice = invoices.insert(BillingRunService.invoice(UUID.randomUUID().toString(), context, series, number, issueDate, YearMonth.from(issueDate), member,
+        var invoice = invoices.insert(BillingRunService.invoice(UUID.randomUUID().toString(), context, series, number, issueDate, month, member,
                 drafted, method, InvoiceStatus.PENDING, InvoiceKind.MANUAL, null, null, includeInNextRun && method == PaymentMethodType.SEPA_DD, note, now, actor));
         events.publish(BillingEvent.Kind.InvoiceIssued, invoice.id(), BillingRunService.issuedPayload(invoice));
         audit.write(new AuditCommand(AuditAction.INVOICE_CREATED_MANUAL, "Invoice", invoice.id(), memberId, null, invoice, note));

@@ -27,7 +27,7 @@ class BillingQueriesSurvivorsTest {
     final ClubConfigService configs = mock(ClubConfigService.class);
     final BillingCensusAccess census = mock(BillingCensusAccess.class);
     final BillingQueries queries = new BillingQueries(mock(BillingSimulationRepository.class), mock(BillingRunRepository.class), mock(RemittanceRepository.class),
-            mock(InvoiceRepository.class), mock(BillingRunService.class), census, configs);
+            mock(InvoiceRepository.class), mock(BillingRunService.class), census, configs, mock(com.agilityhub.core.shared.application.ClubClock.class));
 
     @Test void T_12_21_anUnknownRunOrReceiptIsNotFound() {
         assertThatThrownBy(() -> queries.run("run-unknown")).isInstanceOf(ApiException.class).hasMessage("NOT_FOUND");

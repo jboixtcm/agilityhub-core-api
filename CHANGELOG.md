@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T15: pre-launch money fixes from the audit of 21-10 (rulings E145–E147). The contract changes are listed in `docs/openapi/CHANGELOG.md`.
+  - S12 R-12-01/06 (F1): a pack member moving to a monthly plan gets its first `nextInvoiceDate`. `POST /members/{id}/plan-change` takes an optional `nextInvoiceDate`; without one, the default is `billing.nextInvoiceDayOfMonth` of next month.
+  - S12 R-12-04 (F2): a family holder without a payment method, or past its last billed month, pays for nobody. Its members are billed on their own.
+  - S12 R-12-07 (F1/F3): an `ACTIVE` monthly member without a date is the new incident `NO_NEXT_INVOICE_DATE`, never silently out of the month. `PUT /members/{id}/next-invoice-date` (E146) sets the date, audited `MEMBER_UPDATED` with the reason.
+  - S18 R-18-13 (F3): the optional `pagat_fins.csv` («paid until») gives migrated members a later first date.
+  - S12 R-12-02 (F4): a monthly member is billed every month from `month(nextInvoiceDate)` to the period, so a month skipped with an incident is billed with the next one.
+  - S12 R-12-14/15 (F5, E147): `COLLECTION_DATE_PASSED` blocks the rollback of a remittance still `GENERATED` once its collection date has come. `GET /billing/periods/{period}` gives the remittance's `requestedCollectionDate` and `submissionDue`.
+  - S18 R-18-11b (F6): an unreadable row of `rebuts.csv` or `packs.csv` is a warning and is skipped. It no longer refuses the whole load. Dates are read like the census's (`d/M/uuuu`), and a pack's plan goes through the mapping.
+  - S18 R-18-08 (F7): a number-conflict SEPA record gets no mandate (`MANDATE_PENDING`). A mandate over 35 characters names its member in `422 SEPA_NOT_CONFIGURED {memberIds}`.
+  - S17 R-17-05, S12 R-12-12 (F8): the creditor identifier's mod-97 check digits are verified at the console and again at run time. The test fixtures now carry valid identifiers.
+  - S18 R-18-10, R-13-14 (F9): a migrated pack with nothing left is `ACTIVE` with `remaining 0`, and P5a also expires a `CLOSED` pack. The member's automatic leave is then scheduled.
+  - `docs/DEPLOY.md` (F10): «Billing and migration facts for the first runs».
+  - S12 R-12-19/26 (F11): `POST /invoices` takes an optional `period`.
 - E11-T11: api correction pass, part 5 (the follow-ups of the second rounds of E11-T01 and E11-T02; ruling E134). No contract change.
   - S14 R-14-15: the files of a club erased for an `ACCOUNT` request leave the store once that club's part commits (`ErasureFilesCleanup.cleanAfterCommit`), while the request waits, is `BLOCKED` or is cancelled; `clean` and the daily `erasures` retry process pending files in any status and close only an `ERASING` request.
   - S14 R-14-13: `data.json` keeps only `status` and `holderMemberId` of `familyGroupClaim`; the fail-closed name filter covers `…Names` keys and keeps the actor flag in maps nested under a `…By` key.

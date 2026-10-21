@@ -204,6 +204,44 @@ class E8ScheduledProcessesIT extends BillingItSupport {
         assertThat(mongo.findById(untouched, Document.class, "pack_balances").getString("state")).isEqualTo("ACTIVE");
     }
 
+    /**
+     * E11-T15 step 9 (the audit of 21-10, F9; S18 R-18-10, S13 R-13-14, S12 §5): a Pack 10 with its ten sessions consumed before
+     * the cut-over is migrated `ACTIVE` with `remaining 0` (as `consume` leaves one), so P5a expires it after its last day and
+     * R-13-14 schedules the member's automatic leave. A `CLOSED` pack a rehearsal already wrote that way expires the same.
+     */
+    @Test void R_18_10_R_13_14_aMigratedPackWithNothingLeftExpiresAndSchedulesTheLeave() throws Exception {
+        dog("e8-dog-roca", "roca"); dog("e8-dog-vives", "vives");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("vives")), new Update().set("planId", "bill-plan-pack10"), "members");
+        try (var tenant = TenantContext.open(CLUB)) {
+            // Opened 20-03, 5 months of validity → last day 19-08; the cut-over on 01-08 finds it with nothing left.
+            packs.openMigrated("e8-migrated-pack", "playoff-pack-1", "roca", "e8-dog-roca", "bill-plan-pack10", LocalDate.of(2026, 3, 20), 10, LocalDate.of(2026, 8, 1));
+            var migrated = packs.get("e8-migrated-pack");
+            assertThat(migrated.state().name()).isEqualTo("ACTIVE");
+            assertThat(migrated.remaining()).isZero(); assertThat(migrated.expiresOn()).isEqualTo("2026-08-19");
+        }
+        // The same pack as an earlier rehearsal stored it: CLOSED.
+        mongo.insert(new Document("_id", "e8-closed-pack").append("clubId", CLUB).append("memberId", "vives").append("dogId", "e8-dog-vives")
+                .append("planId", "bill-plan-pack10").append("sessionsTotal", 10).append("consumed", 10).append("remaining", 0).append("openedOn", "2026-03-20")
+                .append("expiresOn", "2026-08-19").append("state", "CLOSED").append("version", 0L).append("sourceIds", Map.of("playoffPackId", "playoff-pack-2"))
+                .append("movements", List.of(new Document("type", "OPEN").append("delta", 0).append("reason", "MIGRATED").append("at", Date.from(NOW))))
+                .append("createdAt", Date.from(NOW)), "pack_balances");
+        var dry = expirationsAt("2026-08-26T04:00:00Z", true);
+        assertThat(actions(dry)).contains("e8-migrated-pack:WOULD_EXPIRE_PACK", "e8-closed-pack:WOULD_EXPIRE_PACK");
+        var real = runJob(JobName.EXPIRATIONS, false);
+        assertThat(counter(real, "expiredPacks")).isEqualTo(2);
+        for (String pack : List.of("e8-migrated-pack", "e8-closed-pack")) {
+            assertThat(mongo.findById(pack, Document.class, "pack_balances").getString("state")).as(pack).isEqualTo("EXPIRED");
+            assertThat(eventsOf("PackExpired", pack)).as(pack).hasSize(1);
+        }
+        outbox.dispatch(); outbox.dispatch();
+        for (String member : List.of("roca", "vives")) {
+            assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("memberId").is(member)), Document.class, "leave_requests")).as(member)
+                    .singleElement().satisfies(request -> assertThat(request.getString("source")).isEqualTo("PACK_EXPIRED"));
+        }
+        // A second run expires nothing more.
+        assertThat(counter(runJob(JobName.EXPIRATIONS, false), "expiredPacks")).isZero();
+    }
+
     /** T-12-24 (S12 schedulers contract): `PackExpired` twice → one `EXPIRED`; a second P5 run expires nothing more. */
     @Test void T_12_24_expiringAPackTwiceGivesOneExpiry() throws Exception {
         dog("e8-dog-a", "roca"); String pack;
@@ -335,7 +373,7 @@ class E8ScheduledProcessesIT extends BillingItSupport {
         admin("bill-admin", CLUB); clock.setInstant(Instant.parse("2026-08-22T04:00:00Z"));
         var fee = new com.agilityhub.core.shared.domain.Money(6000, "EUR"); var now = clock.instant();
         mongo.insert(new com.agilityhub.core.payments.persistence.Remittance("e8-remittance", CLUB, "e8-run", "2026-09", "bill-a-2026-09-1", now, "2026-09-01",
-                new com.agilityhub.core.payments.persistence.Remittance.Creditor("Club Example", "ES00ZZZB00000000", "ES0000000000000000000000", null), List.of(), 1, fee,
+                new com.agilityhub.core.payments.persistence.Remittance.Creditor("Club Example", "ES81ZZZB00000000", "ES0000000000000000000000", null), List.of(), 1, fee,
                 new com.agilityhub.core.payments.persistence.Remittance.SequenceBreakdown(0, 1), "remittances/bill-a/2026-09-1.xml", now, null,
                 com.agilityhub.core.payments.domain.RemittanceStatus.GENERATED, null, null, 0L, now, "bill-admin"));
         assertThat(counter(runJob(JobName.BILLING_REMINDER, false), "remittanceReminders")).isZero();

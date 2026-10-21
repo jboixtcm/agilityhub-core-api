@@ -188,6 +188,57 @@ class RemittancesIT extends BillingItSupport {
     }
 
     /**
+     * E11-T15 step 5 (the audit of 21-10, F5; ruling E147; R-12-14, R-12-15, E87): the admin downloads the file, sends it to the
+     * bank and forgets «Marca com a enviada». From the requested collection date on (club-local) the bank may have debited it, so
+     * the run is no longer rollbackable — `COLLECTION_DATE_PASSED` — instead of re-issuing the same numbers in a second remittance.
+     * Marking it sent afterwards still works, and P5i settles it as before.
+     */
+    @Test void R_12_14_E147_aGeneratedRemittanceCannotBeRolledBackOnceItsCollectionDateHasCome() throws Exception {
+        var result = generate();
+        String remittanceId = result.at("/remittance/id").asText(), runId = result.at("/run/id").asText();
+        var period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
+        assertThat(period.at("/remittance/requestedCollectionDate").asText()).isEqualTo("2026-09-01");
+        assertThat(period.at("/remittance/submissionDue").isBoolean()).isTrue();
+        assertThat(period.at("/remittance/submissionDue").asBoolean()).isFalse();
+        // The collection date, 09:00 club time.
+        clock.setInstant(Instant.parse("2026-09-01T07:00:00Z"));
+        var refused = call(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))));
+        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(409);
+        assertThat(json(refused).path("code").asText()).isEqualTo("RUN_NOT_ROLLBACKABLE");
+        assertThat(json(refused).at("/details/reasons").toString()).isEqualTo("[\"COLLECTION_DATE_PASSED\"]");
+        var run = ok(admin(get("/api/v1/billing/runs/" + runId)), 200);
+        assertThat(run.path("rollbackable").asBoolean()).isFalse();
+        assertThat(run.path("rollbackBlockers").toString()).isEqualTo("[\"COLLECTION_DATE_PASSED\"]");
+        period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
+        assertThat(period.at("/run/rollbackBlockers").toString()).isEqualTo("[\"COLLECTION_DATE_PASSED\"]");
+        assertThat(period.at("/remittance/submissionDue").asBoolean()).isTrue();
+        assertThat(mongo.findById(remittanceId, Document.class, "remittances").getString("status")).isEqualTo("GENERATED");
+        assertThat(invoices()).filteredOn(invoice -> "CANCELLED".equals(invoice.getString("status"))).isEmpty();
+        // «Marca com a enviada» afterwards: the day it went to the bank; then REMITTANCE_SUBMITTED, as before, and no more warning.
+        ok(admin(keyed(post("/api/v1/remittances/" + remittanceId + "/submission"), Map.of("submittedAt", "2026-08-31"))), 200);
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + runId)), 200).path("rollbackBlockers").toString()).isEqualTo("[\"REMITTANCE_SUBMITTED\"]");
+        period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
+        assertThat(period.at("/remittance/status").asText()).isEqualTo("SUBMITTED");
+        assertThat(period.at("/remittance/submissionDue").asBoolean()).isFalse();
+    }
+
+    /** E11-T15 step 5 (E147): the day before the collection date D6 warns «marca la remesa com a enviada»; the rollback is still allowed. */
+    @Test void R_12_15_E147_theDayBeforeTheCollectionDateTheSubmissionIsDueAndTheRollbackStillWorks() throws Exception {
+        var result = generate();
+        String runId = result.at("/run/id").asText();
+        clock.setInstant(Instant.parse("2026-08-30T21:59:00Z")); // 23:59 of 30-08 in Madrid: two days before, no warning yet
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-09")), 200).at("/remittance/submissionDue").asBoolean()).isFalse();
+        clock.setInstant(Instant.parse("2026-08-31T07:00:00Z"));
+        var period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
+        assertThat(period.at("/remittance/submissionDue").asBoolean()).isTrue();
+        assertThat(period.at("/run/rollbackable").asBoolean()).isTrue();
+        assertThat(period.at("/run/rollbackBlockers")).isEmpty();
+        ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-09")), 200).at("/remittance/status").asText()).isEqualTo("ROLLED_BACK");
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-09")), 200).at("/remittance/submissionDue").asBoolean()).isFalse();
+    }
+
+    /**
      * R-12-19 and R-12-07 (the E8-T02 review's finding 1): a pain.008 amount is at least 0.01, so a zero or negative adjustment
      * with `includeInNextRun` never rides a remittance — it waits as `PENDING` for R-12-16 — and never blocks the run.
      */
@@ -235,16 +286,38 @@ class RemittancesIT extends BillingItSupport {
     }
 
     @Test void R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing() throws Exception {
+        // A creditor account the schema's IBAN pattern refuses (E11-T15 step 8: a malformed creditor identifier is no longer
+        // configured at all, so it never reaches the schema — see the next test).
         club(CLUB, HOST, "Europe/Madrid", List.of(com.agilityhub.core.platform.application.Module.values()), Map.of("SEPA_XML",
-                Map.of("enabled", true, "creditorName", "Club", "creditorId", "NOT AN IDENTIFIER", "iban", IBAN.replace("4321", "9876")), "MANUAL", Map.of("enabled", true)));
+                Map.of("enabled", true, "creditorName", "Club", "creditorId", "ES81ZZZB00000000", "iban", "NOT AN ACCOUNT"), "MANUAL", Map.of("enabled", true)));
         var simulation = simulate("2026-09").path("id").asText();
         var files = storedFiles();
         var refused = call(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", simulation))));
         assertThat(refused.getStatus()).isEqualTo(422);
         assertThat(json(refused).path("code").asText()).isEqualTo("SEPA_NOT_CONFIGURED");
         assertThat(json(refused).at("/details/reason").asText()).isEqualTo("SCHEMA");
-        assertThat(refused.getContentAsString()).doesNotContain(IBAN, "NOT AN IDENTIFIER");
+        assertThat(refused.getContentAsString()).doesNotContain(IBAN, "NOT AN ACCOUNT", "NOTANACCOUNT");
         assertNothingWritten(files);
+    }
+
+    /**
+     * E11-T15 step 8 (the audit of 21-10, F8; R-12-12 `CdtrSchmeId`, S17 R-17-05): a stored creditor identifier with the right shape
+     * and wrong check digits («ES00ZZZB00000000», saved before the console checked them) is not configured: the simulation's
+     * direct debits are `PROVIDER_DISABLED` and the run is `422 SEPA_NOT_CONFIGURED`, writing nothing — not a file the bank refuses.
+     */
+    @Test void R_12_12_aStoredCreditorIdentifierWithWrongCheckDigitsIsNotConfiguredAtRunTime() throws Exception {
+        club(CLUB, HOST, "Europe/Madrid", List.of(com.agilityhub.core.platform.application.Module.values()), Map.of("SEPA_XML",
+                Map.of("enabled", true, "creditorName", "Club", "creditorId", "ES00ZZZB00000000", "iban", IBAN.replace("4321", "9876")), "MANUAL", Map.of("enabled", true)));
+        var simulation = simulate("2026-09");
+        var disabled = new ArrayList<String>();
+        simulation.path("incidents").forEach(incident -> { if (incident.path("code").asText().equals("PROVIDER_DISABLED")) { disabled.add(incident.path("memberId").asText()); } });
+        assertThat(disabled).contains("mas", "puig", "serra-laura", "torres");
+        var files = storedFiles();
+        error(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", simulation.path("id").asText()))), 422, "SEPA_NOT_CONFIGURED");
+        assertNothingWritten(files);
+        // The same identifier with its digits (81): the golden census remits as before.
+        club(CLUB, HOST, "Europe/Madrid", List.of(com.agilityhub.core.platform.application.Module.values()), providers(true, true, false));
+        assertThat(generate().at("/remittance/count").asInt()).isEqualTo(4);
     }
     /** R-12-11: a refused run leaves no invoice, collection, remittance, run, moved date or stored file behind. */
     private void assertNothingWritten(Set<Path> filesBefore) throws Exception {

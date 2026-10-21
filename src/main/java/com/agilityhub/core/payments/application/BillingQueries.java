@@ -24,23 +24,26 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BillingQueries {
-    public record Period(YearMonth period, BillingSimulation simulation, BillingRunService.RunOutcome run, Map<String, Long> counts) { }
+    /** {@code submissionDue}: the run's remittance should be marked as sent (E147, {@link BillingRunService#submissionDue}). */
+    public record Period(YearMonth period, BillingSimulation simulation, BillingRunService.RunOutcome run, Map<String, Long> counts, boolean submissionDue) { }
     /** A member's receipt and whether it is the family holder's. */
     public record MemberInvoice(Invoice invoice, boolean familyGroup) { }
     public record MemberInvoices(List<MemberInvoice> items, int page, int size, long totalItems) { }
 
     private final BillingSimulationRepository simulations; private final BillingRunRepository runs; private final RemittanceRepository remittances;
     private final InvoiceRepository invoices; private final BillingRunService runService; private final BillingCensusAccess census; private final ClubConfigService configs;
+    private final com.agilityhub.core.shared.application.ClubClock clock;
     public BillingQueries(BillingSimulationRepository simulations, BillingRunRepository runs, RemittanceRepository remittances, InvoiceRepository invoices,
-            BillingRunService runService, BillingCensusAccess census, ClubConfigService configs) {
+            BillingRunService runService, BillingCensusAccess census, ClubConfigService configs, com.agilityhub.core.shared.application.ClubClock clock) {
         this.simulations = simulations; this.runs = runs; this.remittances = remittances; this.invoices = invoices; this.runService = runService;
-        this.census = census; this.configs = configs;
+        this.census = census; this.configs = configs; this.clock = clock;
     }
 
     public Period period(YearMonth period) {
         var simulation = simulations.forPeriod(period.toString()).orElse(null);
         var run = runs.latest(period.toString()).map(this::outcome).orElse(null);
-        return new Period(period, simulation, run, invoices.countsByStatus(period.toString()));
+        boolean due = run != null && BillingRunService.submissionDue(run.remittance(), clock.today(TenantContext.require()));
+        return new Period(period, simulation, run, invoices.countsByStatus(period.toString()), due);
     }
     public BillingRunService.RunOutcome run(String id) {
         return outcome(runs.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)));

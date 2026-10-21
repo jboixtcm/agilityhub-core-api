@@ -38,9 +38,9 @@ import org.springframework.stereotype.Service;
  * entry with `details.invoiceIds`. Members with an incident are skipped (`skipped[]`) and never block; so is a waiting receipt
  * whose member can no longer be debited for it (E8-T07 step 3), which stays `PENDING` with its flag.
  *
- * <p>Rollback: allowed while the remittance is not submitted, no non-manual collection of the run is submitted or
- * succeeded, no receipt of the run (or of its remittance) is paid, the run is not `COMPLETED` and nothing was numbered after
- * the run's block — else `409 RUN_NOT_ROLLBACKABLE {reasons}`. Every invoice of the run is rolled back with a new
+ * <p>Rollback: allowed while the remittance is not submitted nor past its collection date (E147: `COLLECTION_DATE_PASSED`),
+ * no non-manual collection of the run is submitted or succeeded, no receipt of the run (or of its remittance) is paid, the run
+ * is not `COMPLETED` and nothing was numbered after the run's block — else `409 RUN_NOT_ROLLBACKABLE {reasons}`. Every invoice of the run is rolled back with a new
  * `FAILED{ROLLBACK}` collection and `InvoiceCancelled{ROLLBACK}`: the live ones are cancelled (`ROLLBACK`), one the admin
  * cancelled meanwhile keeps its own cancellation (E8-T07 step 2, ruling E89) — the run's `ROLLED_BACK` status is what makes
  * them all rolled back. The manual receipts the run remitted go back to `PENDING` (not cancelled: the run did not issue them;
@@ -62,14 +62,15 @@ public class BillingRunService {
     private final RemittanceRepository remittances; private final PendingChargeRepository charges; private final RemittanceWriterPort writer;
     private final InvoiceCounters counters; private final InvoiceNumbers numbers; private final BillingCensusAccess census; private final BillingCatalogAccess catalog;
     private final BillingEvents events; private final AuditWriter audit; private final BillingTransactions transactions; private final Clock clock;
+    private final com.agilityhub.core.shared.application.ClubClock clubClock;
     public BillingRunService(InvoicingService invoicing, BillingSimulationService simulator, BillingRunRepository runs, BillingSimulationRepository simulations,
             InvoiceRepository invoices, CollectionRepository collections, RemittanceRepository remittances, PendingChargeRepository charges,
             RemittanceWriterPort writer, InvoiceCounters counters, InvoiceNumbers numbers, BillingCensusAccess census, BillingCatalogAccess catalog,
-            BillingEvents events, AuditWriter audit, BillingTransactions transactions, Clock clock) {
+            BillingEvents events, AuditWriter audit, BillingTransactions transactions, Clock clock, com.agilityhub.core.shared.application.ClubClock clubClock) {
         this.invoicing = invoicing; this.simulator = simulator; this.runs = runs; this.simulations = simulations; this.invoices = invoices;
         this.collections = collections; this.remittances = remittances; this.charges = charges; this.writer = writer; this.counters = counters;
         this.numbers = numbers; this.census = census; this.catalog = catalog; this.events = events; this.audit = audit; this.transactions = transactions;
-        this.clock = clock;
+        this.clock = clock; this.clubClock = clubClock;
     }
 
     /** R-12-11: {@code work} under the club's billing lock (`409 BILLING_BUSY` while a simulation, run or rollback holds it). */
@@ -250,6 +251,8 @@ public class BillingRunService {
         var reasons = new ArrayList<RollbackBlocker>();
         var remittance = remittances.forRun(run.id()).orElse(null);
         if (remittance != null && remittance.status() == RemittanceStatus.SUBMITTED) { reasons.add(RollbackBlocker.REMITTANCE_SUBMITTED); }
+        // E147 (E11-T15 step 5, R-12-14/15): a file never marked as sent may already have been debited from its collection date on.
+        if (collectionDatePassed(remittance, clubClock.today(run.clubId()))) { reasons.add(RollbackBlocker.COLLECTION_DATE_PASSED); }
         var issued = invoices.forRun(run.id());
         // The manual receipts the run put into its remittance (R-12-19) count as the run's for a collection or a payment.
         var touched = new ArrayList<>(issued);
@@ -266,6 +269,22 @@ public class BillingRunService {
             reasons.add(RollbackBlocker.MANUAL_INVOICE_AFTER);
         }
         return reasons;
+    }
+
+    /**
+     * E147 (E11-T15 step 5, R-12-14): a remittance still `GENERATED` whose requested collection date has come, club-local — the
+     * bank may already have debited it, so the run is not rolled back (`COLLECTION_DATE_PASSED`) until the admin marks it sent.
+     */
+    public static boolean collectionDatePassed(Remittance remittance, LocalDate today) {
+        return remittance != null && remittance.status() == RemittanceStatus.GENERATED && !today.isBefore(LocalDate.parse(remittance.requestedCollectionDate()));
+    }
+    /**
+     * E147 (E11-T15 step 5, R-12-15): D6's «marca la remesa com a enviada» — the remittance is still `GENERATED` and the club-local
+     * day is the one before its collection date, or later. No automatic `SUBMITTED` and no notification: the admin marks it.
+     */
+    public static boolean submissionDue(Remittance remittance, LocalDate today) {
+        return remittance != null && remittance.status() == RemittanceStatus.GENERATED
+                && !today.isBefore(LocalDate.parse(remittance.requestedCollectionDate()).minusDays(1));
     }
 
     /**

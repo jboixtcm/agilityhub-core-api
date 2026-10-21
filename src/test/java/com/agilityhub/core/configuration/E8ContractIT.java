@@ -138,7 +138,7 @@ class E8ContractIT extends AbstractIntegrationTest {
                 new BillingRun.ByProvider(new BillingRun.Totals(1, fee, "e8-remittance-a", null, null), new BillingRun.Totals(0, zero, null, 0, 0), null), "2026-09-01", now, now, List.of(),
                 List.of(new BillingRun.PreviousDate("e8-member-a", "2026-09-01")), 912, "e8-ADMIN", null, null, 0L, now));
         mongo.insert(new Remittance("e8-remittance-a", CLUB, "e8-run-a", "2026-09", "e8-club-a-2026-09-1", now, "2026-09-01",
-                new Remittance.Creditor("Club Example", "ES00ZZZB00000000", "ES0000000000000000000000", null), List.of("e8-collection-a"), 1, fee,
+                new Remittance.Creditor("Club Example", "ES81ZZZB00000000", "ES0000000000000000000000", null), List.of("e8-collection-a"), 1, fee,
                 new Remittance.SequenceBreakdown(0, 1), "remittances/e8-club-a/2026-09-1.xml", now, null, RemittanceStatus.GENERATED, null, null, 0L, now, "e8-ADMIN"));
         mongo.insert(new UpfrontPayment("e8-upfront-a", CLUB, "e8-member-a", "e8-dog-a", "PACK", null, new Money(12000, "EUR"), new Money(12000, "EUR"), "PAID",
                 "STRIPE", "e8-checkout-a", now, now, null, null, null));
@@ -305,7 +305,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : clubRoutes().filter(r -> billing.contains(r.module())).toList()) {
             for (String role : route.roles()) { error(call(route, CLUB, role), 404, "MODULE_DISABLED"); }
         }
-        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(36);
+        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(37);
         error(as(get("/api/v1/me/invoices"), "MEMBER"), 404, "MODULE_DISABLED");
         // A delivery signed by the club's secret reaches the module guard; an unsigned one never does (R-12-21).
         String event = "{\"id\":\"evt_e8\",\"type\":\"payment_intent.succeeded\"}";
@@ -635,9 +635,9 @@ class E8ContractIT extends AbstractIntegrationTest {
 
     @Test void WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(58);
+        assertThat(routes().count()).isEqualTo(59);
         long s13 = routes().filter(r -> r.path().contains("inactivity") || r.path().contains("leave") || r.path().endsWith("/reactivation")).count();
-        assertThat(List.of(routes().count() - s13, s13)).containsExactly(37L, 21L);
+        assertThat(List.of(routes().count() - s13, s13)).containsExactly(38L, 21L);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();

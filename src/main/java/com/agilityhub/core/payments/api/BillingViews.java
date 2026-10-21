@@ -115,7 +115,8 @@ final class BillingViews {
             var view = run(outcome);
             run = new PeriodRun(view.id(), view.status(), view.byProvider(), view.rollbackable(), view.rollbackBlockers());
             if (outcome.remittance() != null) {
-                remittance = new PeriodRemittance(outcome.remittance().id(), outcome.remittance().status(), outcome.remittance().fileKey() != null);
+                remittance = new PeriodRemittance(outcome.remittance().id(), outcome.remittance().status(), outcome.remittance().fileKey() != null,
+                        LocalDate.parse(outcome.remittance().requestedCollectionDate()), period.submissionDue());
             }
         }
         return new BillingPeriod(period.period().toString(), simulation == null ? null : new PeriodSimulation(simulation.id(), simulation.at(),

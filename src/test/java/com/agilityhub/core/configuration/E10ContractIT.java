@@ -265,7 +265,7 @@ class E10ContractIT extends AbstractIntegrationTest {
         mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(
                 org.springframework.data.mongodb.core.query.Criteria.where("_id").is("e10-target")),
                 org.springframework.data.mongodb.core.query.Update.update("paymentProviders",Map.of(
-                        "SEPA_XML",Map.of("enabled",true,"creditorName","Example Club","creditorId","ES00000X0000000X","suffix","000","ibanLast4","1332","ibanEnc","fictional-ciphertext"),
+                        "SEPA_XML",Map.of("enabled",true,"creditorName","Example Club","creditorId","ES34000X0000000X","suffix","000","ibanLast4","1332","ibanEnc","fictional-ciphertext"),
                         "MANUAL",Map.of("enabled",true,"instructions",Map.of("ca","Pay at reception")))),
                 com.agilityhub.core.platform.persistence.Club.class);
         // E10-T01 review #5: the account id is the one the Stripe probe returned, never a value seeded into Mongo.
@@ -278,7 +278,7 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         var providers=mapper.readTree(response).path("paymentProviders");
         assertThat(providers.path("SEPA_XML").path("creditorName").asText()).isEqualTo("Example Club");
-        assertThat(providers.path("SEPA_XML").path("creditorId").asText()).isEqualTo("ES00000X0000000X");
+        assertThat(providers.path("SEPA_XML").path("creditorId").asText()).isEqualTo("ES34000X0000000X");
         assertThat(providers.path("SEPA_XML").path("suffix").asText()).isEqualTo("000");
         assertThat(providers.path("SEPA_XML").path("ibanMasked").asText()).isEqualTo("****1332");
         assertThat(providers.path("MANUAL").path("instructions").path("ca").asText()).isEqualTo("Pay at reception");
@@ -291,7 +291,7 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .content("{\"version\":"+mapper.readTree(response).path("version").asLong()+",\"instructions\":{\"ca\":\"Updated instructions\"}}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.instructions.ca").value("Updated instructions"));
         var audit=mongo.findAll(org.bson.Document.class,"audit_entries").toString();
-        assertThat(audit).doesNotContain("Updated instructions","Pay at reception","ES00000X0000000X","fictional-ciphertext");
+        assertThat(audit).doesNotContain("Updated instructions","Pay at reception","ES34000X0000000X","fictional-ciphertext");
     }
 
 }

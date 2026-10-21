@@ -176,7 +176,7 @@ class E10:
         # seeds/club-template-default.yaml has empty catalogs today (S17 §13 #5: who maintains the template's texts is open).
         self.record("POST /platform/clubs/{id}/catalog-clone (template club)", "200", f"copied {self.copied} from «{template['name']}»; "
                     f"{len(clone['warnings'])} coded warning(s); a second clone → {again.get('code', 200) if isinstance(again, dict) else 200}")
-        sepa = dict(version=self.version(), enabled=True, creditorName="Club Fictici del Smoke E10", creditorId="ES97000G12345678",
+        sepa = dict(version=self.version(), enabled=True, creditorName="Club Fictici del Smoke E10", creditorId="ES26000G12345678",
                     iban="ES9121000418450200051332", suffix="000")
         provider = self.console("PUT", f"/clubs/{self.club}/payment-providers/SEPA_XML", body=sepa, quiet=True)
         print("curl PUT /api/v1/platform/clubs/<id>/payment-providers/SEPA_XML -> 200", flush=True)

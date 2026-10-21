@@ -65,7 +65,7 @@ class SepaRemittanceWriterTest {
         when(club.slug()).thenReturn("canic"); when(club.currency()).thenReturn("EUR"); when(club.timeZone()).thenReturn("Europe/Madrid");
         when(config.get("billing.sepa.schema", String.class)).thenReturn("pain.008.001.02");
         when(config.get("billing.sepa.useFrst", Boolean.class)).thenReturn(false);
-        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club d'Agility Cànic", "ES00ZZZG00000000",
+        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club d'Agility Cànic", "ES10ZZZG00000000",
                 "ES00 0000 0000 0000 0000 9876", null, "001")));
         when(remittances.forPeriod("2026-09")).thenReturn(List.of());
         when(invoices.forIds(any())).thenAnswer(call -> List.copyOf(issued.values()));
@@ -87,7 +87,7 @@ class SepaRemittanceWriterTest {
         assertThat(remittance.xsdValidatedAt()).isEqualTo(NOW);
         assertThat(remittance.xsdValidationSkipped()).isNull();
         assertThat(remittance.fileKey()).isEqualTo("remittances/club-a/2026-09/canic-2026-09-1-remittance-1.xml");
-        assertThat(remittance.creditor().id()).isEqualTo("ES00001G00000000");
+        assertThat(remittance.creditor().id()).isEqualTo("ES10001G00000000");
         String xml = stored.get(remittance.fileKey());
         assertThat(xml.split("<PmtInf>", -1)).hasSize(2);
         assertThat(xml).contains("<SeqTp>RCUR</SeqTp>").doesNotContain("FRST").contains("<NbOfTxs>2</NbOfTxs>", "<CtrlSum>150.00</CtrlSum>",
@@ -193,7 +193,7 @@ class SepaRemittanceWriterTest {
         assertCode(() -> writer.write(run(), "r", debits, LocalDate.of(2026, 9, 1)), ErrorCode.SEPA_NOT_CONFIGURED);
         when(providers.sepaCreditor()).thenReturn(Optional.empty());
         assertCode(() -> writer.write(run(), "r", debits, LocalDate.of(2026, 9, 1)), ErrorCode.SEPA_NOT_CONFIGURED);
-        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", "CAIXESBBXXX", null)));
+        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club", "ES10ZZZG00000000", "ES0000000000000000009876", "CAIXESBBXXX", null)));
         when(config.get("billing.sepa.schema", String.class)).thenReturn("pain.008.001.08");
         assertCode(() -> writer.write(run(), "r", debits, LocalDate.of(2026, 9, 1)), ErrorCode.SEPA_NOT_CONFIGURED);
         when(config.get("billing.sepa.schema", String.class)).thenReturn(null);
@@ -207,24 +207,50 @@ class SepaRemittanceWriterTest {
         assertThatThrownBy(() -> writer.write(run(), "r", List.of(), LocalDate.of(2026, 9, 1))).isInstanceOf(IllegalArgumentException.class);
         // A configured BIC is the creditor's agent; the creditor identifier keeps its own business code without a suffix.
         var remittance = writer.write(run(), "remittance-10", debits, LocalDate.of(2026, 9, 1));
-        assertThat(stored.get(remittance.fileKey())).contains("<BIC>CAIXESBBXXX</BIC>", "<Id>ES00ZZZG00000000</Id>");
+        assertThat(stored.get(remittance.fileKey())).contains("<BIC>CAIXESBBXXX</BIC>", "<Id>ES10ZZZG00000000</Id>");
     }
 
     @Test void R_12_12_aDescriptionWithNothingInTheSepaSetHasNoRmtInfABlankBicIsNotProvidedAndAnAccountNeverPrintsItsIban() {
-        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", " ", null)));
+        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club", "ES10ZZZG00000000", "ES0000000000000000009876", " ", null)));
         var remittance = writer.write(run(), "remittance-13", List.of(debit("m1", 1, 6000, "Дуна")), LocalDate.of(2026, 9, 1));
         assertThat(stored.get(remittance.fileKey())).doesNotContain("<RmtInf>", "<BIC>").contains("<Id>NOTPROVIDED</Id>");
         assertThat(accounts.get("m1").toString()).doesNotContain("ES00", "iban").contains("canic-1-1");
     }
 
     @Test void R_12_11_aFileTheSchemaRefusesIs422WithoutItsValueAndIsNeverStored() {
-        // A creditor identifier the SEPA identifier pattern refuses: the XML is written but fails validation before the store.
-        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club", "NOT-AN-IDENTIFIER", "ES0000000000000000009876", null, null)));
+        // A creditor account the IBAN pattern of the schema refuses: the XML is written but fails validation before the store.
+        // (E11-T15 step 8: a malformed creditor identifier no longer gets this far — the creditor is not configured, R-12-12.)
+        when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club", "ES10ZZZG00000000", "NOT AN ACCOUNT", null, null)));
         assertThatThrownBy(() -> writer.write(run(), "r", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2026, 9, 1)))
                 .isInstanceOfSatisfying(ApiException.class, failure -> {
                     assertThat(failure.code()).isEqualTo(ErrorCode.SEPA_NOT_CONFIGURED);
                     assertThat(failure.details()).isEqualTo(Map.of("reason", "SCHEMA"));
-                    assertThat(failure.getMessage()).doesNotContain("ES0000");
+                    assertThat(failure.getMessage()).doesNotContain("NOTAN", "ACCOUNT");
+                });
+        verifyNoInteractions(files);
+    }
+
+    /**
+     * E11-T15 step 7 (the audit of 21-10, F7; S18 R-18-08, E43): a mandate reference longer than `Max35Text` (a migrated
+     * number-conflict member's `{slug}-{memberId}-1`, 44 characters) or with a character outside the SEPA set is an incomplete
+     * mandate: the 422 names its member, as a missing mandate does, instead of a nameless `{reason: IDENTIFIER, field: MndtId}`.
+     */
+    @Test void R_12_08_aMandateLongerThan35CharactersOrOutsideTheSepaSetNamesItsMember() {
+        var ok = debit("m1", 1, 6000, "Quota");
+        var tooLong = debit("m2", 2, 6000, "Quota");
+        String legacy = "canic-0f8fad5b-d9cb-469f-a165-70867728950e-1";
+        assertThat(legacy).hasSize(44);
+        var longMandate = new Collection(tooLong.id(), CLUB, tooLong.invoiceId(), CollectionProvider.SEPA_XML, tooLong.amount(), CollectionStatus.CREATED,
+                null, "remittance", 1, null, null, List.of(), NOW, null, legacy, tooLong.endToEndId(), null, null);
+        accounts.put("m2", new BillingCensusAccess.SepaAccount("m2", Map.of("iban", "ES0000000000000000000002"), null, legacy, Instant.parse("2026-07-15T10:00:00Z")));
+        var foreign = debit("m3", 3, 6000, "Quota");
+        var foreignMandate = new Collection(foreign.id(), CLUB, foreign.invoiceId(), CollectionProvider.SEPA_XML, foreign.amount(), CollectionStatus.CREATED,
+                null, "remittance", 1, null, null, List.of(), NOW, null, "canic_3_1", foreign.endToEndId(), null, null);
+        assertThatThrownBy(() -> writer.write(run(), "remittance-14", List.of(ok, longMandate, foreignMandate), LocalDate.of(2026, 9, 1)))
+                .isInstanceOfSatisfying(ApiException.class, failure -> {
+                    assertThat(failure.code()).isEqualTo(ErrorCode.SEPA_NOT_CONFIGURED);
+                    assertThat(failure.details()).isEqualTo(Map.of("memberIds", List.of("m2", "m3")));
+                    assertThat(failure.getMessage()).doesNotContain(legacy);
                 });
         verifyNoInteractions(files);
     }
@@ -251,7 +277,7 @@ class SepaRemittanceWriterTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"1", "1234", "12·", "   "})
     void R_12_12_anInvalidCreditorSuffixIsNotConfigured(String suffix) {
-        var creditor = new BillingProviderSettings.SepaCreditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", null, suffix);
+        var creditor = new BillingProviderSettings.SepaCreditor("Club", "ES10ZZZG00000000", "ES0000000000000000009876", null, suffix);
         assertThat(creditor.configured()).isFalse();
         when(providers.sepaCreditor()).thenReturn(Optional.of(creditor));
         assertCode(() -> writer.write(run(), "r", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2026, 9, 1)), ErrorCode.SEPA_NOT_CONFIGURED);
@@ -306,10 +332,12 @@ class SepaRemittanceWriterTest {
                 field.equals("MndtId") ? invalid : "mandate-1", LocalDate.of(2026, 8, 1), "Example", "ES0000000000000000000001", "Quota", SepaDirectDebits.SequenceType.RCUR);
         var block = new SepaDirectDebits.Block(field.equals("PmtInfId") ? invalid : "message-RCUR", SepaDirectDebits.SequenceType.RCUR, List.of(debit), new BigDecimal("1.00"));
         var file = new SepaDirectDebits.File(field.equals("MsgId") ? invalid : "message", LocalDateTime.of(2026, 8, 25, 10, 0),
-                new SepaDirectDebits.Creditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", null), LocalDate.of(2026, 9, 1), List.of(block), 1, new BigDecimal("1.00"));
+                new SepaDirectDebits.Creditor("Club", "ES10ZZZG00000000", "ES0000000000000000009876", null), LocalDate.of(2026, 9, 1), List.of(block), 1, new BigDecimal("1.00"));
         assertThatThrownBy(() -> Pain008Document.write(file)).isInstanceOfSatisfying(ApiException.class, failure -> {
             assertThat(failure.code()).isEqualTo(ErrorCode.SEPA_NOT_CONFIGURED);
-            assertThat(failure.details()).isEqualTo(Map.of("reason", "IDENTIFIER", "field", field));
+            // E11-T15 step 7: a debit's mandate names its owner, the debit's EndToEndId (the receipt number), never its own value.
+            assertThat(failure.details()).isEqualTo(field.equals("MndtId") ? Map.of("reason", "IDENTIFIER", "field", field, "endToEndId", "2026-0001")
+                    : Map.of("reason", "IDENTIFIER", "field", field));
             assertThat(failure.getMessage()).doesNotContain(invalid);
         });
     }

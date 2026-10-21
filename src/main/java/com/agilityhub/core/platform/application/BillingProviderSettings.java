@@ -18,9 +18,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BillingProviderSettings {
-    /** `configured` = name, identifier and IBAN present, and any suffix has exactly three SEPA characters (S17 R-17-05); otherwise a remittance is `SEPA_NOT_CONFIGURED`. */
+    /**
+     * `configured` = name, identifier and IBAN present, the identifier with valid check digits (R-12-12 `CdtrSchmeId`, E11-T15
+     * step 8: a stored identifier is re-checked at run time), and any suffix has exactly three SEPA characters (S17 R-17-05);
+     * otherwise a remittance is `SEPA_NOT_CONFIGURED` and the simulation's direct debits `PROVIDER_DISABLED`.
+     */
     public record SepaCreditor(String name, String id, @Sensitive String iban, String bic, String suffix) {
-        public boolean configured() { return present(name) && present(id) && present(iban)
+        public boolean configured() { return present(name) && com.agilityhub.core.shared.domain.SepaCreditorIdentifier.valid(id) && present(iban)
                 && (suffix == null || suffix.length() == 3 && !suffix.isBlank() && com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(suffix)); }
         @Override public String toString() { return "SepaCreditor[name=" + name + ", id=" + id + ", configured=" + configured() + "]"; }
     }

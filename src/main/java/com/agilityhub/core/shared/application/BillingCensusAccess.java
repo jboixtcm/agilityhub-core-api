@@ -52,7 +52,21 @@ public interface BillingCensusAccess {
     /** Serialize a plan change with other census decisions in the caller's transaction. */
     String packPlan(String memberId, String dogId);
     String lockPlan(String memberId);
-    void changePlan(String memberId, String planId, String priceId);
+    default void changePlan(String memberId, String planId, String priceId) { changePlan(memberId, planId, priceId, null); }
+    /**
+     * The plan and price; {@code firstInvoiceDate} (E11-T15 step 1, R-12-06) is written only for a member without
+     * `nextInvoiceDate` (a pack member moving to a monthly plan) — a member that has one keeps it. Null = no date to write.
+     */
+    void changePlan(String memberId, String planId, String priceId, LocalDate firstInvoiceDate);
+    /** A moved `nextInvoiceDate` (E146): the stored date before (maybe null) and after. */
+    record NextInvoiceDateChange(LocalDate before, LocalDate after) { }
+    /**
+     * E146 (E11-T15 step 3, S12 R-12-01/06): sets an `ACTIVE` member's `nextInvoiceDate` in the caller's transaction — a census
+     * change (version and `updatedAt` move) published as `MemberUpdated{diff}` — and returns the move; empty when the member
+     * already had {@code date}. Another club's member is 404, an erased one 409 `MEMBER_ERASED`, a pending readmission's frozen
+     * record 409 `INVALID_STATE {reason: READMISSION_PENDING}`, any other non-`ACTIVE` member 409 `INVALID_STATE`.
+     */
+    Optional<NextInvoiceDateChange> setNextInvoiceDate(String memberId, LocalDate date);
     Optional<Card> card(String memberId);
     void saveCard(String memberId, Card card);
     List<String> invalidateCards(String customerId, String paymentMethodId);

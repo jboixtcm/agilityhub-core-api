@@ -49,8 +49,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * least two business days after today (club-local) — else `422 COLLECTION_DATE_TOO_SOON {requested, earliest}`.</li>
  * <li>Each debit takes its amount, `EndToEndId`, mandate and signature from its collection (E90), and the frozen description
  * from the invoice. The current holder and full IBAN come from the member through {@link BankAccountVault}. Legacy
- * collections without a signature use the current mandate's signature. A missing current reference, signature or account
- * fails with `422 SEPA_NOT_CONFIGURED {memberIds}`. Waiting receipts use the new collection's current mandate.</li>
+ * collections without a signature use the current mandate's signature. A missing current reference, signature or account —
+ * or a mandate the file cannot carry (over 35 characters or outside the SEPA set, E11-T15) — fails with
+ * `422 SEPA_NOT_CONFIGURED {memberIds}`. Waiting receipts use the new collection's current mandate.</li>
  * <li>`FRST` only with `billing.sepa.useFrst` and for a mandate never submitted or collected before (a debit of a remittance
  * marked as sent counts); otherwise `RCUR`.</li>
  * <li>The bytes are validated against the schema before anything is stored; a failure is `422 SEPA_NOT_CONFIGURED {reason:
@@ -131,7 +132,9 @@ public class SepaRemittanceWriter implements RemittanceWriterPort {
             String mandate = debit.mandateRef();
             Instant signed = debit.mandateSignedAt() != null ? debit.mandateSignedAt() : account == null ? null : account.mandateSignedAt();
             String iban = account == null ? null : vault.resolve(account.account(), club, invoice.memberId());
-            if (mandate == null || mandate.isBlank() || signed == null || iban == null || account.mandateRef() == null
+            // R-18-08, E43 (E11-T15 step 7): a mandate the file cannot carry (longer than Max35Text, a character outside the SEPA
+            // set — a migrated `{slug}-{memberId}-1`) is as incomplete as a missing one: the 422 names the member.
+            if (!Pain008Document.valid(mandate) || signed == null || iban == null || account.mandateRef() == null
                     || account.mandateRef().isBlank() || account.mandateSignedAt() == null) {
                 incomplete.add(invoice.memberId()); continue;
             }

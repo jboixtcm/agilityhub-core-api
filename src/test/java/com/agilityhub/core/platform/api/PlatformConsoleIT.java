@@ -135,7 +135,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(call(put(BASE+"/console-target/payment-providers/STRIPE"),Map.of("version",version(),"publishableKey","pk_live_console4321","mode","live"),422).path("code").asText()).isEqualTo("PROVIDER_CONFIG_INVALID");
     }
     @Test void T_17_05_R_17_05_sepaIsValidatedEncryptedUsableAndCannotRemoveUsedProvider() throws Exception {
-        var config=new LinkedHashMap<String,Object>(Map.of("version",version(),"enabled",true,"creditorName","Example Association","creditorId","ES97000G12345678",
+        var config=new LinkedHashMap<String,Object>(Map.of("version",version(),"enabled",true,"creditorName","Example Association","creditorId","ES26000G12345678",
                 "iban","ES9121000418450200051332","suffix","000"));
         call(put(BASE+"/console-target/payment-providers/SEPA_XML"),config,200);
         assertThat(clubs.findById("console-target").orElseThrow().paymentProviders().toString()).doesNotContain("ES9121000418450200051332");

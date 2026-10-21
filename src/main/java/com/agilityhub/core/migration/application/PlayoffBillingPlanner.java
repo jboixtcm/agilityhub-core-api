@@ -10,7 +10,6 @@ import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.*;
 import java.math.BigDecimal;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import static com.agilityhub.core.clubs.census.application.CensusValues.*;
@@ -79,7 +78,9 @@ public class PlayoffBillingPlanner {
                     boolean existing = !receiptSources.add(source);
                     add(rows, row, "invoices", existing ? "SKIPPED" : "CREATED", ""); counters.merge("invoices" + status, 1L, Long::sum);
                     if (!existing) { receipts.add(receipt); }
-                } catch (RuntimeException invalid) { add(rows, row, "invoices", "ERROR", "INPUT_SCHEMA_MISMATCH"); }
+                // R-18-11b (E11-T15 step 6): a row the importer cannot read — an unknown status, an unparseable date, number or amount,
+                // a missing field — is skipped with a warning; it never refuses the whole load (the census included).
+                } catch (RuntimeException invalid) { skipReceipt(rows, row, "INPUT_SCHEMA_MISMATCH"); }
             }
         }
         if (config.modules().contains(Module.PACKS)) {
@@ -97,17 +98,19 @@ public class PlayoffBillingPlanner {
                                             sourceOrder.getOrDefault(string(map(e.getValue().get("sourceIds")).get("playoffMemberId")), Integer.MAX_VALUE))
                                     .thenComparing(Map.Entry::getKey)).toList();
                     if (memberDogs.isEmpty()) { throw invalid(); }
-                    if (memberDogs.size() > 1) { add(rows, row, "packBalances", "WARNING", "PACK_DOG_AMBIGUOUS"); }
-                    var plan = planByCode.get(row.get("plan"));
-                    if (plan == null) { plan = planByCode.values().stream().filter(p -> Objects.equals(p.get("_id"), members.get(memberId).get("planId"))).findFirst().orElseThrow(); }
+                    var plan = packPlan(row.get("plan"), mapping, planByCode, members.get(memberId));
+                    if (plan == null) { throw invalid(); }
                     var terms = map(plan.get("pack")); int total = ((Number) terms.get("sessions")).intValue(); int months = ((Number) terms.get("validityMonths")).intValue();
                     int consumed = Integer.parseInt(required(row, "consumed")); if (consumed < 0 || consumed > total) { throw invalid(); }
                     var opened = date(required(row, "openedOn")); var expires = opened.plusMonths(months).minusDays(1);
-                    String state = expires.isBefore(cutover) ? "EXPIRED" : total == consumed ? "CLOSED" : "ACTIVE";
+                    if (memberDogs.size() > 1) { add(rows, row, "packBalances", "WARNING", "PACK_DOG_AMBIGUOUS"); }
+                    // E11-T15 step 9: a pack with nothing left is ACTIVE with remaining 0 (PackBalanceService.openMigrated), never CLOSED.
+                    String state = expires.isBefore(cutover) ? "EXPIRED" : "ACTIVE";
                     boolean existing = !packSources.add(source); add(rows, row, "packBalances", existing ? "SKIPPED" : "CREATED", "");
                     counters.merge("packs" + state, 1L, Long::sum);
                     if (!existing) { packs.add(new BillingMigrationAccess.Pack(source, memberId, memberDogs.getFirst().getKey(), string(plan.get("_id")), opened, consumed, cutover)); }
-                } catch (RuntimeException invalid) { add(rows, row, "packBalances", "ERROR", "INPUT_SCHEMA_MISMATCH"); }
+                // R-18-11b (E11-T15 step 6): an unreadable pack row (unknown plan or member, a bad date or count) is skipped with a warning.
+                } catch (RuntimeException invalid) { add(rows, row, "packBalances", "WARNING", "INPUT_SCHEMA_MISMATCH"); add(rows, row, "packBalances", "SKIPPED", ""); }
             }
         }
         var forecast = new TreeMap<String, Long>();
@@ -127,8 +130,23 @@ public class PlayoffBillingPlanner {
         add(rows, row, "invoices", "WARNING", code);
         add(rows, row, "invoices", "SKIPPED", "");
     }
+    /**
+     * E11-T15 step 6 (R-18-11b): a pack row's plan — the Playoff typology through the mapping («Pack 10 classes» → `PACK10`), an
+     * exact seed code, then the member's own plan; only a `PACK` plan with its terms. Null = none: the row is skipped with a warning.
+     */
+    private static Map<String, Object> packPlan(String key, MappingConfig mapping, Map<String, Map<String, Object>> planByCode, Map<String, Object> member) {
+        var candidates = new ArrayList<Map<String, Object>>();
+        String code = key.isEmpty() ? null : mapping.plans().get(MappingConfig.normalize(key));
+        if (code != null && planByCode.containsKey(code)) { candidates.add(planByCode.get(code)); }
+        if (planByCode.containsKey(key)) { candidates.add(planByCode.get(key)); }
+        planByCode.values().stream().filter(p -> member != null && Objects.equals(p.get("_id"), member.get("planId"))).findFirst().ifPresent(candidates::add);
+        return candidates.stream().filter(p -> "PACK".equals(p.get("type")) && p.get("pack") instanceof Map).findFirst().orElse(null);
+    }
+    /** The census's dates (E11-T15 step 6): ISO or strict `d/M/uuuu` («1/2/2026»), as {@link PlayoffPlanner#date}; empty is unreadable. */
     static LocalDate date(String value) {
-        return value.contains("/") ? LocalDate.parse(value, DateTimeFormatter.ofPattern("dd/MM/uuuu")) : LocalDate.parse(value);
+        var date = PlayoffPlanner.date(value);
+        if (date == null) { throw invalid(); }
+        return date;
     }
     static BigDecimal decimal(String value) {
         String number = value.replace("€", "").replaceAll("\\s", "");

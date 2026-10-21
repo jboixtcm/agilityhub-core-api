@@ -59,16 +59,16 @@ class SepaDirectDebitsTest {
     }
 
     @Test void R_12_12_theCreditorIdentifierCarriesTheSuffixAsItsBusinessCode() {
-        assertThat(SepaDirectDebits.creditorIdentifier("ES12ZZZB12345678", "001")).isEqualTo("ES12001B12345678");
-        assertThat(SepaDirectDebits.creditorIdentifier("es12 zzz b12345678", null)).isEqualTo("ES12ZZZB12345678");
-        assertThat(SepaDirectDebits.creditorIdentifier("ES12ZZZB12345678", " ")).isEqualTo("ES12ZZZB12345678");
+        assertThat(SepaDirectDebits.creditorIdentifier("ES97ZZZB12345678", "001")).isEqualTo("ES97001B12345678");
+        assertThat(SepaDirectDebits.creditorIdentifier("es97 zzz b12345678", null)).isEqualTo("ES97ZZZB12345678");
+        assertThat(SepaDirectDebits.creditorIdentifier("ES97ZZZB12345678", " ")).isEqualTo("ES97ZZZB12345678");
         assertThat(SepaDirectDebits.creditorIdentifier("ES12", "001")).isEqualTo("ES12");
         assertThat(SepaDirectDebits.creditorIdentifier(null, "001")).isNull();
         assertThat(SepaDirectDebits.compactIban("es00 0000 0000 0000 0000 1234")).isEqualTo("ES0000000000000000001234");
         assertThat(SepaDirectDebits.compactIban(null)).isNull();
     }
 
-    static SepaDirectDebits.Creditor creditor() { return new SepaDirectDebits.Creditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", null); }
+    static SepaDirectDebits.Creditor creditor() { return new SepaDirectDebits.Creditor("Club", "ES10ZZZG00000000", "ES0000000000000000009876", null); }
     static SepaDirectDebits.Debit debit(String number, long cents, SepaDirectDebits.SequenceType sequence) {
         return new SepaDirectDebits.Debit(number, new Money(cents, "EUR"), "canic-1-1", LocalDate.of(2026, 7, 15), "Titular", "ES0000000000000000000001", "Quota",
                 sequence);

@@ -20,14 +20,20 @@ public class BillingExpirations {
         this.packs = packs; this.balances = balances; this.remittances = remittances; this.invoices = invoices;
         this.collections = collections; this.events = events; this.clock = clock;
     }
+    /**
+     * P5a (R-15-15a): an `ACTIVE` pack past its last day expires, one within `billing.packExpiryWarningDays` is warned once. A
+     * `CLOSED` pack past its last day expires too (E11-T15 step 9, R-13-14): a rehearsal migrated an empty pack so, and only its
+     * `PackExpired` schedules the member's automatic leave. A `CLOSED` pack is never warned.
+     */
     public List<JobItem> packs(JobContext context) {
         int warning = context.parameter("billing.packExpiryWarningDays", Integer.class);
-        return packs.of(null, null).stream().filter(p -> p.state() == PackBalanceState.ACTIVE)
-                .filter(p -> LocalDate.parse(p.expiresOn()).isBefore(context.localDate())
+        return packs.of(null, null).stream().filter(p -> p.state() == PackBalanceState.ACTIVE || p.state() == PackBalanceState.CLOSED && expired(p, context.localDate()))
+                .filter(p -> expired(p, context.localDate())
                         || p.expiryWarnedAt() == null && !LocalDate.parse(p.expiresOn()).isAfter(context.localDate().plusDays(warning)))
-                .map(p -> new JobItem("PackBalance", p.id(), LocalDate.parse(p.expiresOn()).isBefore(context.localDate()) ? "EXPIRE_PACK" : "WARN_PACK"))
+                .map(p -> new JobItem("PackBalance", p.id(), expired(p, context.localDate()) ? "EXPIRE_PACK" : "WARN_PACK"))
                 .toList();
     }
+    private static boolean expired(PackBalance pack, LocalDate today) { return LocalDate.parse(pack.expiresOn()).isBefore(today); }
     public List<JobItem> remittances(JobContext context) {
         return remittances.findAll().stream().filter(r -> due(r, context.localDate())).map(r -> {
             var due = unsettled(r); return new JobItem("Remittance", r.id(), "SETTLE",
@@ -51,7 +57,7 @@ public class BillingExpirations {
                     ? new JobEffect(item.action(), item.detail(), Map.of("warnedPacks", 1L)) : noEffect();
         }
         var pack = packs.findById(item.entityId()).orElse(null);
-        if (pack == null || pack.state() != PackBalanceState.ACTIVE || !LocalDate.parse(pack.expiresOn()).isBefore(context.localDate())) { return noEffect(); }
+        if (pack == null || pack.state() != PackBalanceState.ACTIVE && pack.state() != PackBalanceState.CLOSED || !expired(pack, context.localDate())) { return noEffect(); }
         balances.expire(pack.id()); return new JobEffect(item.action(), item.detail(), Map.of("expiredPacks", 1L));
     }
     private JobEffect settle(JobContext context, JobItem item) {

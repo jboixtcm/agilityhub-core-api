@@ -270,7 +270,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
                 null, null, zero, null, null, clock.instant(), "list-fields-admin", clock.instant(), "list-fields-admin"));
         // E8-T03: `GET /remittances` is served; a generated remittance not yet sent to the bank (`submittedAt` null).
         mongo.insert(new com.agilityhub.core.payments.persistence.Remittance("list-fields-remittance", canic, "list-fields-run", "2026-09", "canic-2026-09-1",
-                clock.instant(), "2026-09-01", new com.agilityhub.core.payments.persistence.Remittance.Creditor("Club Example", "ES00ZZZG00000000",
+                clock.instant(), "2026-09-01", new com.agilityhub.core.payments.persistence.Remittance.Creditor("Club Example", "ES10ZZZG00000000",
                 "ES0000000000000000009876", null), List.of("list-fields-collection"), 1, fee,
                 new com.agilityhub.core.payments.persistence.Remittance.SequenceBreakdown(0, 1), "remittances/" + canic + "/2026-09/canic-2026-09-1.xml",
                 clock.instant(), null, com.agilityhub.core.payments.domain.RemittanceStatus.GENERATED, null, null, 0L, clock.instant(), "list-fields-admin"));

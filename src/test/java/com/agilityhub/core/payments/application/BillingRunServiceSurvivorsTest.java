@@ -61,6 +61,13 @@ class BillingRunServiceSurvivorsTest {
     static final LocalDate ISSUE = LocalDate.of(2026, 8, 25);
     static final LocalDate COLLECTION = LocalDate.of(2026, 9, 1);
     static final Instant NOW = Instant.parse("2026-08-25T08:00:00Z");
+    /** The club-local day of {@link #NOW} in Madrid (E11-T15: the rollback blockers read it). */
+    static com.agilityhub.core.shared.application.ClubClock clubClock() {
+        return new com.agilityhub.core.shared.application.ClubClock() {
+            @Override public java.time.LocalDate today(String clubId) { return now(clubId).toLocalDate(); }
+            @Override public java.time.ZonedDateTime now(String clubId) { return NOW.atZone(java.time.ZoneId.of("Europe/Madrid")); }
+        };
+    }
     static final Instant SIGNED = Instant.parse("2025-01-10T09:00:00Z");
     static final Instant SIGNED_LATER = Instant.parse("2025-06-10T09:00:00Z");
 
@@ -76,7 +83,7 @@ class BillingRunServiceSurvivorsTest {
     final BillingEvents events = mock(BillingEvents.class);
     final BillingRunService service = new BillingRunService(invoicing, mock(BillingSimulationService.class), runs, simulations, invoices, collections,
             remittances, mock(PendingChargeRepository.class), writer, mock(InvoiceCounters.class), numbers, census, mock(BillingCatalogAccess.class), events,
-            mock(AuditWriter.class), mock(BillingTransactions.class), Clock.fixed(NOW, ZoneOffset.UTC));
+            mock(AuditWriter.class), mock(BillingTransactions.class), Clock.fixed(NOW, ZoneOffset.UTC), BillingRunServiceSurvivorsTest.clubClock());
 
     // --- generation ---------------------------------------------------------------------------------------------------------
 

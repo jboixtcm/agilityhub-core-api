@@ -1,0 +1,55 @@
+E11-T15 step 12 · the audit's reproductions of F1, F2, F3 and F5, before and after the fixes.
+
+BEFORE (old behaviour, from the red runs; the tests stop at their first failing assertion)
+- F1 (01-red-unit.log, 02-red-it.log):
+    LifecycleIT.T_12_01_R_12_06_aPackToMonthlyChangeGivesTheMemberItsFirstInvoiceDate:288  expected: "2026-12-01" but was: null
+      → after POST /members/{id}/plan-change {monthly plan} the pack member still has no nextInvoiceDate (the December simulation, asserted next, never ran)
+    InvoicingRulesTest.T_12_07_R_12_06_…:301  expected: Skipped[code=NO_NEXT_INVOICE_DATE] but was: Excluded[reason=NOT_DUE]
+      → linesFor(sepa("m", "abonat", null), 2026-12) was silently NOT_DUE: no line, no incident
+- F2 (01-red-unit.log):
+    InvoicingRulesTest.T_12_02_R_13_11_aLeavingHolderBillsNobodyAndTheMembersAreBilledOnTheirOwn:265  Expected size: 1 but was: 0 in: []
+      → month(2026-12) of the leaving holder (lastInvoicedMonth 2026-11) and its member, both due 01-12: invoices = [] (the member BILLED_VIA_HOLDER)
+- F3 (02-red-it.log):
+    PlayoffMigrationIT.R_18_13_E146_aPaidUntilRowGivesTheMigratedMemberItsFirstInvoiceDate:654  expected: "2027-01-01" but was: "2026-12-01"
+      → with pagat_fins.csv «2026-12» and --cut-over 2026-11-01 the cash member still got 2026-12-01 (the file was not read)
+- F5 (02-red-it.log):
+    RemittancesIT.R_12_14_E147_…:200  expected: "2026-09-01" but was: ""   (GET /billing/periods/2026-09 had no remittance.requestedCollectionDate)
+    RemittancesIT.R_12_15_E147_…:233  Expecting value to be true but was false   (no remittance.submissionDue the day before)
+      (the red test stopped there, so the rollback on the collection date was not reached in the red run)
+
+AFTER (this tree; temporary E11T15ReproductionIT, source below, run with
+`./mvnw -q -Djacoco.skip=true -Dtest=NoSuchUnitTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test='E11T15ReproductionIT' verify`, exit 0,
+"Tests run: 2, Failures: 0, Errors: 0, Skipped: 0"; deleted afterwards — not part of the commit)
+F5 31-08 09:00 GET /billing/periods/2026-09 .remittance = {"id":"e72bb5b6-35b5-451e-9c3c-5a5c2c861a93","status":"GENERATED","fileAvailable":true,"requestedCollectionDate":"2026-09-01","submissionDue":true}
+F5 01-09 09:00 POST /billing/runs/{id}/rollback → 409 {"code":"RUN_NOT_ROLLBACKABLE","message":"Aquesta execució de facturació no es pot desfer.","details":{"reasons":["COLLECTION_DATE_PASSED"]},"traceId":"52ab9452-125c-4ecf-9716-6538b8e58060"}
+F5 01-09 09:00 GET /billing/periods/2026-09 .run.rollbackBlockers = ["COLLECTION_DATE_PASSED"] .remittance = {"id":"e72bb5b6-35b5-451e-9c3c-5a5c2c861a93","status":"GENERATED","fileAvailable":true,"requestedCollectionDate":"2026-09-01","submissionDue":true}
+F1 POST /members/roca/plan-change {abonat} on 2026-11-20 → 204; members.roca.nextInvoiceDate = 2026-12-01
+F1 simulation 2026-12 invoicesPreview[roca] = {"memberId":"roca","memberName":"Marc Roca","paymentMethodType":"SEPA_DD","lines":[{"origin":"MONTHLY_FEE","description":"Quota Abonat — Desembre 2026","total":{"amountMinor":6000,"currency":"EUR"}}],"total":{"amountMinor":6000,"currency":"EUR"}}
+F1 simulation 2026-12 incident = {"memberId":"bosch","memberName":"Bet Bosch","code":"NO_BANK_ACCOUNT"}
+F1 simulation 2026-12 incident = {"memberId":"camps","memberName":"Carles Camps","code":"NO_PLAN"}
+F1 simulation 2026-12 incident = {"memberId":"font","memberName":"Fina Font","code":"CURRENCY_MISMATCH"}
+F1 simulation 2026-12 incident = {"memberId":"riera","memberName":"Pau Riera","code":"NO_PRICE"}
+F1 simulation 2026-12 incident = {"memberId":"sala","memberName":"Sara Sala","code":"PROVIDER_DISABLED"}
+F1 simulation 2026-12 incident = {"memberId":"soler","memberName":"Pere Soler","code":"CARD_INVALID"}
+F2 month(2026-12): invoices = [joan-antoni 1 line(s) Money[amountMinor=6000, currency=EUR]]; excluded = {laura=AFTER_LEAVE}; skipped = []
+F3 (09-clean-verify-attempt2.log and 11-targeted-playoff-remittances.log, PlayoffMigrationIT 43/43 green):
+   R_18_13_E146_…: without pagat_fins.csv every ACTIVE monthly member's planned nextInvoiceDate is 2026-12-01 (--cut-over 2026-11-01);
+   with «2026-12» the cash member gets 2027-01-01, with «15/2/2027» another gets 2027-03-01, «2026-09» and «someday» keep 2026-12-01
+   (the unreadable row and an unknown member are paidUntil WARNING MAPPING_INVALID rows 5 and 6).
+
+Note on F1's census: BillingItSupport's plans carry no entryFee and EntryFeeCalculator.perDog dereferences it, so the first try answered 500 (a fixture gap,
+not this change; LifecycleIT's plan has one). The reproduction gives «Abonat» the AMOUNT entry fee LifecycleIT uses.
+
+---- source of the temporary E11T15ReproductionIT (src/test/java/com/agilityhub/core/payments/api, extends BillingItSupport) ----
+@Test void collectionDateReproduction():
+    var run = run("2026-09", simulate("2026-09").path("id").asText());                         // 25-08-2026 10:00 Madrid
+    clock.setInstant(Instant.parse("2026-08-31T07:00:00Z"));  print GET /billing/periods/2026-09 .remittance
+    clock.setInstant(Instant.parse("2026-09-01T07:00:00Z"));  print POST /billing/runs/{id}/rollback {reason, confirmation: RETROCEDIR} status + body
+                                                               print GET /billing/periods/2026-09 .run.rollbackBlockers and .remittance
+@Test void reproductions():
+    unset members.roca.nextInvoiceDate (pack10, SEPA); plans.bill-plan-abonat.entryFee = {mode: AMOUNT, amount: 100.00 EUR}
+    clock.setInstant(Instant.parse("2026-11-20T11:00:00Z"))
+    POST /members/roca/plan-change {planId: bill-plan-abonat, priceId: bill-price-abonat-monthly_fee}  → print status and members.roca.nextInvoiceDate
+    POST /billing/simulations {period: 2026-12} → print invoicesPreview[roca] and every incident
+    InvoicingRules.month([joan-antoni (abonat, 01-12, SEPA), laura (abonat2, 01-12, SEPA, lastInvoicedMonth 2026-11)], group laura → [laura, joan-antoni],
+        2026-12, issue 2026-11-26, the Cànic's settings) → print invoices (payer, lines, total), excluded, skipped

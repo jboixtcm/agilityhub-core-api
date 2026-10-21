@@ -1,0 +1,33 @@
+E11-T15 · test summary of the final `./mvnw -q clean verify` (15-clean-verify-final.log, exit 0), read from target/surefire-reports and target/failsafe-reports
+
+surefire: 450 classes · tests 4830 · failures 0 · errors 0 · skipped 0
+  payments.domain.InvoicingRulesTest: tests 17 · failures 0 · errors 0 · skipped 0
+  payments.application.ConsolePaymentValidationTest: tests 2 · failures 0 · errors 0 · skipped 0
+  platform.application.BillingProviderSettingsTest: tests 1 · failures 0 · errors 0 · skipped 0
+  payments.application.sepa.SepaRemittanceWriterTest: tests 25 · failures 0 · errors 0 · skipped 0
+  payments.domain.SepaDirectDebitsTest: tests 5 · failures 0 · errors 0 · skipped 0
+  payments.application.MemberPlanChangeServiceSurvivorsTest: tests 5 · failures 0 · errors 0 · skipped 0
+  payments.application.BillingQueriesSurvivorsTest: tests 2 · failures 0 · errors 0 · skipped 0
+  payments.application.BillingRunServiceSurvivorsTest: tests 9 · failures 0 · errors 0 · skipped 0
+  payments.application.BillingRunServiceSurvivors2Test: tests 3 · failures 0 · errors 0 · skipped 0
+  payments.api.InvoicesControllerSurvivorsTest: tests 7 · failures 0 · errors 0 · skipped 0
+  configuration.E8ResponseContractTest: tests 11 · failures 0 · errors 0 · skipped 0
+  payments.application.PackBalanceServiceSurvivorsTest: tests 15 · failures 0 · errors 0 · skipped 0
+  payments.application.InvoiceActionsSurvivorsTest: tests 7 · failures 0 · errors 0 · skipped 0
+  arch.ArchitectureTest: tests 22 · failures 0 · errors 0 · skipped 0
+
+failsafe: 166 classes · tests 2203 · failures 0 · errors 0 · skipped 0
+  clubs.bookings.api.LifecycleIT: tests 45 · failures 0 · errors 0 · skipped 0
+  payments.api.MemberNextInvoiceDateIT: tests 2 · failures 0 · errors 0 · skipped 0
+  payments.api.RemittancesIT: tests 13 · failures 0 · errors 0 · skipped 0
+  payments.api.InvoiceActionsIT: tests 11 · failures 0 · errors 0 · skipped 0
+  payments.api.E8ScheduledProcessesIT: tests 17 · failures 0 · errors 0 · skipped 0
+  migration.PlayoffMigrationIT: tests 43 · failures 0 · errors 0 · skipped 0
+  configuration.E8ContractIT: tests 73 · failures 0 · errors 0 · skipped 0
+  configuration.E8PersistenceIT: tests 5 · failures 0 · errors 0 · skipped 0
+  configuration.E10ContractIT: tests 44 · failures 0 · errors 0 · skipped 0
+  configuration.ListFieldsContractIT: tests 4 · failures 0 · errors 0 · skipped 0
+  platform.api.PlatformConsoleIT: tests 42 · failures 0 · errors 0 · skipped 0
+  payments.api.BillingCycleIT: tests 22 · failures 0 · errors 0 · skipped 0
+  payments.api.AccountingExportIT: tests 4 · failures 0 · errors 0 · skipped 0
+  configuration.SecurityInventoryIT: tests 3 · failures 0 · errors 0 · skipped 0
