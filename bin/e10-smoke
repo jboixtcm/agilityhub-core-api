@@ -46,6 +46,8 @@ APP_HOST, ADMIN_HOST = "app.e10-smoke.example.test", "admin.e10-smoke.example.te
 ADMIN_EMAIL = "e10.admin@example.test"
 WEEK = 7 * 86400
 TARGET_SECONDS = 3600
+# The template club's starter set (seeds/club-template-default.yaml, E11-T18): the rows each part copies.
+TEMPLATE_PARTS = dict(LEVELS=6, RINGS=2, PLANS=5, FAQ=3, MESSAGE_TEMPLATES=52)
 
 
 def load_smoke():
@@ -162,20 +164,29 @@ class E10:
         self.require(theme["colors"]["primary"] == THEME["colors"]["primary"], "The theme was not stored")
         self.record("PUT /platform/clubs/{id}/theme", "200", f"primary {THEME['colors']['primary']}, light; a low-contrast onPrimary → 422 {contrast['code']}")
         missing = self.console("PUT", f"/clubs/{self.club}/modules", 422, body=dict(version=self.version(), modules=["PACKS"]), error="MODULE_DEPENDENCY")
-        modules = self.console("PUT", f"/clubs/{self.club}/modules", body=dict(version=self.version(), preset="CANIC"))
-        self.require("BILLING" in modules["modules"], "The CANIC preset has no BILLING")
-        self.record("PUT /platform/clubs/{id}/modules", "200", f"preset CANIC → {len(modules['modules'])} modules; PACKS alone → 422 {missing['code']}")
-        # seeds/club-template-default.yaml (the template list has no slug).
+        preset = self.console("PUT", f"/clubs/{self.club}/modules", body=dict(version=self.version(), preset="CANIC"))
+        self.require("BILLING" in preset["modules"], "The CANIC preset has no BILLING")
+        # The template's plans are of the three types (E11-T18): its single class needs SINGLE_CLASS, which CANIC leaves off.
+        modules = self.console("PUT", f"/clubs/{self.club}/modules", body=dict(version=self.version(), modules=sorted(set(preset["modules"]) | {"SINGLE_CLASS"})))
+        self.require({"BILLING", "PACKS", "SINGLE_CLASS"} <= set(modules["modules"]), f"The modules of the template's plans: {modules['modules']}")
+        self.record("PUT /platform/clubs/{id}/modules", "200 · 200", f"preset CANIC → {len(preset['modules'])} modules, + SINGLE_CLASS → "
+                    f"{len(modules['modules'])}; PACKS alone → 422 {missing['code']}")
+        # seeds/club-template-default.yaml (the template list has no slug): its starter set (A41.1, ruling E153), one part at a time.
         template = next(t for t in self.console("GET", "/club-templates", quiet=True) if t["name"] == "AgilityHub template")
-        clone = self.console("POST", f"/clubs/{self.club}/catalog-clone", body=dict(fromClubId=template["id"],
-                             parts=["LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES"]), idempotent=True)
-        self.copied = clone["copied"]
-        self.require(set(self.copied) == {"LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES"}, f"The clone answered {self.copied}")
-        again = self.console("POST", f"/clubs/{self.club}/catalog-clone", 409 if self.copied["LEVELS"] else 200, quiet=True, idempotent=True,
-                             body=dict(fromClubId=template["id"], parts=["LEVELS"]))
-        # seeds/club-template-default.yaml has empty catalogs today (S17 §13 #5: who maintains the template's texts is open).
-        self.record("POST /platform/clubs/{id}/catalog-clone (template club)", "200", f"copied {self.copied} from «{template['name']}»; "
-                    f"{len(clone['warnings'])} coded warning(s); a second clone → {again.get('code', 200) if isinstance(again, dict) else 200}")
+        self.copied, warnings = {}, []
+        for part in TEMPLATE_PARTS:
+            clone = self.console("POST", f"/clubs/{self.club}/catalog-clone", body=dict(fromClubId=template["id"], parts=[part]), idempotent=True)
+            self.copied.update(clone["copied"])
+            warnings += clone["warnings"]
+        self.require(self.copied == TEMPLATE_PARTS, f"The clone answered {self.copied}, expected {TEMPLATE_PARTS}")
+        # The club's languages are ca/es: only the template's `en` texts are left out (a ring's name is a plain text).
+        self.require(sorted((w["code"], w["part"], w["from"]) for w in warnings) == sorted(("LOCALE_OMITTED", part, "en") for part in TEMPLATE_PARTS
+                     if part != "RINGS"), f"The clone's warnings: {warnings}")
+        again = self.console("POST", f"/clubs/{self.club}/catalog-clone", 409, quiet=True, idempotent=True,
+                             body=dict(fromClubId=template["id"], parts=["LEVELS"]), error="CATALOG_NOT_EMPTY")
+        self.record("POST /platform/clubs/{id}/catalog-clone ×5 (template club, part by part)", "200 ×5 · 409",
+                    f"copied {self.copied} from «{template['name']}»; {len(warnings)} coded warning(s) (LOCALE_OMITTED en); "
+                    f"a second clone → 409 {again['code']}")
         sepa = dict(version=self.version(), enabled=True, creditorName="Club Fictici del Smoke E10", creditorId="ES26000G12345678",
                     iban="ES9121000418450200051332", suffix="000")
         provider = self.console("PUT", f"/clubs/{self.club}/payment-providers/SEPA_XML", body=sepa, quiet=True)
@@ -242,15 +253,19 @@ class E10:
         print("curl POST /oauth2/token (password, clubs-admin, the club's back-office host) -> 200", flush=True)
         me = self.s.call("GET", "/api/v1/me", host=ADMIN_HOST, access=admin)
         self.require(me["membership"]["clubId"] == self.club and "ADMIN" in me["membership"]["roles"], f"The admin's membership: {me.get('membership')}")
-        levels = self.s.call("GET", "/api/v1/levels", host=ADMIN_HOST, access=admin)
-        count = len(levels["items"] if isinstance(levels, dict) else levels)
-        self.require(count == self.copied["LEVELS"], f"The admin sees {count} levels, {self.copied['LEVELS']} cloned")
+        listed = {}
+        for path, part in (("/levels", "LEVELS"), ("/rings", "RINGS"), ("/plans", "PLANS"), ("/faq-entries", "FAQ")):
+            rows = self.s.call("GET", "/api/v1" + path, host=ADMIN_HOST, access=admin)
+            listed[part] = len(rows["items"] if isinstance(rows, dict) else rows)
+            self.require(listed[part] == self.copied[part], f"The admin sees {listed[part]} rows of {path}, {self.copied[part]} cloned")
+        count = listed["LEVELS"]
         self.s.call("GET", "/api/v1/members", host=ADMIN_HOST, access=admin)
         self.s.call("GET", "/api/v1/levels", 403, host=APP_HOST, access=self.platform, error="NO_MEMBERSHIP")
         checklist = self.console("GET", f"/clubs/{self.club}/checklist", quiet=True)
         print("Checklist after the admin's first sign-in (R-17-06): " + ", ".join(f"{k} {'✓' if v else '·'}" for k, v in checklist.items()), flush=True)
         self.record("The second club in use", "200 · 200 · 200 · 200", f"GET /branding on {APP_HOST}: ACTIVE, own theme and modules; the invited admin "
-                    f"redeems N-53, sets a password and signs in on {ADMIN_HOST} as ADMIN; {count} cloned levels, /members answers; "
+                    f"redeems N-53, sets a password and signs in on {ADMIN_HOST} as ADMIN; {count} cloned levels, {listed['RINGS']} rings, "
+                    f"{listed['PLANS']} plans, {listed['FAQ']} FAQ entries, /members answers; "
                     "the platform token on the club → 403 NO_MEMBERSHIP")
 
     def trigger(self, label):

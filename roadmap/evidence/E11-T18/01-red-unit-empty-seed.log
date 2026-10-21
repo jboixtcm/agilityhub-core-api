@@ -1,0 +1,287 @@
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' seeds/club-template-default.yaml: 0 matches
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' src/main/resources/seed/message-templates.ca.json: 0 matches
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' src/main/resources/seed/message-templates.es.json: 0 matches
+E11-T18 grep -iE 'canic|cànic|7:30|agilitycanic|cabrera|llavaneres' src/main/resources/seed/message-templates.en.json: 0 matches
+[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.219 s <<< FAILURE! -- in com.agilityhub.core.platform.application.definition.TemplateClubSeedTest
+[ERROR] com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.T_17_14_E11_T18_theTemplateListsExactlyTheTemplatedCodesOfTheNotificationCatalog -- Time elapsed: 0.014 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[parity with CATALEG_NOTIFICACIONS.md, in its order] 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["N-01",
+    "N-02",
+    "N-03",
+    "N-04",
+    "N-05",
+    "N-06",
+    "N-07",
+    "N-08a",
+    "N-08b",
+    "N-09",
+    "N-10",
+    "N-11a",
+    "N-11b",
+    "N-13",
+    "N-14",
+    "N-15",
+    "N-16",
+    "N-17",
+    "N-18a",
+    "N-18b",
+    "N-18c",
+    "N-19",
+    "N-20",
+    "N-21",
+    "N-22",
+    "N-23",
+    "N-24",
+    "N-28",
+    "N-29",
+    "N-30",
+    "N-31",
+    "N-32a",
+    "N-32b",
+    "N-32c",
+    "N-33",
+    "N-34",
+    "N-35",
+    "N-36",
+    "N-37",
+    "N-38",
+    "N-18d",
+    "N-32d",
+    "N-40",
+    "N-41",
+    "N-42",
+    "N-46",
+    "N-47",
+    "N-49",
+    "N-50",
+    "N-51",
+    "N-54",
+    "N-55"]
+but could not find the following elements:
+  ["N-01",
+    "N-02",
+    "N-03",
+    "N-04",
+    "N-05",
+    "N-06",
+    "N-07",
+    "N-08a",
+    "N-08b",
+    "N-09",
+    "N-10",
+    "N-11a",
+    "N-11b",
+    "N-13",
+    "N-14",
+    "N-15",
+    "N-16",
+    "N-17",
+    "N-18a",
+    "N-18b",
+    "N-18c",
+    "N-19",
+    "N-20",
+    "N-21",
+    "N-22",
+    "N-23",
+    "N-24",
+    "N-28",
+    "N-29",
+    "N-30",
+    "N-31",
+    "N-32a",
+    "N-32b",
+    "N-32c",
+    "N-33",
+    "N-34",
+    "N-35",
+    "N-36",
+    "N-37",
+    "N-38",
+    "N-18d",
+    "N-32d",
+    "N-40",
+    "N-41",
+    "N-42",
+    "N-46",
+    "N-47",
+    "N-49",
+    "N-50",
+    "N-51",
+    "N-54",
+    "N-55"]
+
+	at com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.T_17_14_E11_T18_theTemplateListsExactlyTheTemplatedCodesOfTheNotificationCatalog(TemplateClubSeedTest.java:127)
+
+[ERROR] com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.T_17_14_E11_T18_theTemplateSeedValidatesAndCarriesEveryPartOfTheStarterSet -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting ArrayList:
+  ["FAQ", "PUSH", "WAITLIST"]
+to contain:
+  ["BILLING", "PACKS", "SINGLE_CLASS"]
+but could not find the following element(s):
+  ["BILLING", "PACKS", "SINGLE_CLASS"]
+
+	at com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.T_17_14_E11_T18_theTemplateSeedValidatesAndCarriesEveryPartOfTheStarterSet(TemplateClubSeedTest.java:55)
+
+[ERROR] com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.T_17_14_E11_T18_everyLocalizedTextOfTheTemplateIsCompleteInCaEsEn -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 23 but was: 0 in:
+[]
+	at com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.T_17_14_E11_T18_everyLocalizedTextOfTheTemplateIsCompleteInCaEsEn(TemplateClubSeedTest.java:99)
+
+E11-T18 A40.4 ca: no error.* message in «vosaltres»/«usted» (248 checked)
+E11-T18 A40.4 es: no error.* message in «vosaltres»/«usted» (248 checked)
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.020 s <<< FAILURE! -- in com.agilityhub.core.shared.application.ErrorMessagesRegisterTest
+[ERROR] com.agilityhub.core.shared.application.ErrorMessagesRegisterTest.E11_T18_A40_4_theErrorMessagesOfTheTableUseTheWordingTheWebAdopts -- Time elapsed: 0.007 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[ca ACCOUNT_BLOCKED] 
+expected: "El teu compte està bloquejat."
+ but was: "El compte està bloquejat."
+	at com.agilityhub.core.shared.application.ErrorMessagesRegisterTest.lambda$E11_T18_A40_4_theErrorMessagesOfTheTableUseTheWordingTheWebAdopts$1(ErrorMessagesRegisterTest.java:60)
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:986)
+	at com.agilityhub.core.shared.application.ErrorMessagesRegisterTest.E11_T18_A40_4_theErrorMessagesOfTheTableUseTheWordingTheWebAdopts(ErrorMessagesRegisterTest.java:55)
+
+[ERROR] Failures: 
+[ERROR]   TemplateClubSeedTest.T_17_14_E11_T18_everyLocalizedTextOfTheTemplateIsCompleteInCaEsEn:99 
+Expected size: 23 but was: 0 in:
+[]
+[ERROR]   TemplateClubSeedTest.T_17_14_E11_T18_theTemplateListsExactlyTheTemplatedCodesOfTheNotificationCatalog:127 [parity with CATALEG_NOTIFICACIONS.md, in its order] 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["N-01",
+    "N-02",
+    "N-03",
+    "N-04",
+    "N-05",
+    "N-06",
+    "N-07",
+    "N-08a",
+    "N-08b",
+    "N-09",
+    "N-10",
+    "N-11a",
+    "N-11b",
+    "N-13",
+    "N-14",
+    "N-15",
+    "N-16",
+    "N-17",
+    "N-18a",
+    "N-18b",
+    "N-18c",
+    "N-19",
+    "N-20",
+    "N-21",
+    "N-22",
+    "N-23",
+    "N-24",
+    "N-28",
+    "N-29",
+    "N-30",
+    "N-31",
+    "N-32a",
+    "N-32b",
+    "N-32c",
+    "N-33",
+    "N-34",
+    "N-35",
+    "N-36",
+    "N-37",
+    "N-38",
+    "N-18d",
+    "N-32d",
+    "N-40",
+    "N-41",
+    "N-42",
+    "N-46",
+    "N-47",
+    "N-49",
+    "N-50",
+    "N-51",
+    "N-54",
+    "N-55"]
+but could not find the following elements:
+  ["N-01",
+    "N-02",
+    "N-03",
+    "N-04",
+    "N-05",
+    "N-06",
+    "N-07",
+    "N-08a",
+    "N-08b",
+    "N-09",
+    "N-10",
+    "N-11a",
+    "N-11b",
+    "N-13",
+    "N-14",
+    "N-15",
+    "N-16",
+    "N-17",
+    "N-18a",
+    "N-18b",
+    "N-18c",
+    "N-19",
+    "N-20",
+    "N-21",
+    "N-22",
+    "N-23",
+    "N-24",
+    "N-28",
+    "N-29",
+    "N-30",
+    "N-31",
+    "N-32a",
+    "N-32b",
+    "N-32c",
+    "N-33",
+    "N-34",
+    "N-35",
+    "N-36",
+    "N-37",
+    "N-38",
+    "N-18d",
+    "N-32d",
+    "N-40",
+    "N-41",
+    "N-42",
+    "N-46",
+    "N-47",
+    "N-49",
+    "N-50",
+    "N-51",
+    "N-54",
+    "N-55"]
+
+[ERROR]   TemplateClubSeedTest.T_17_14_E11_T18_theTemplateSeedValidatesAndCarriesEveryPartOfTheStarterSet:55 
+Expecting ArrayList:
+  ["FAQ", "PUSH", "WAITLIST"]
+to contain:
+  ["BILLING", "PACKS", "SINGLE_CLASS"]
+but could not find the following element(s):
+  ["BILLING", "PACKS", "SINGLE_CLASS"]
+
+[ERROR]   ErrorMessagesRegisterTest.E11_T18_A40_4_theErrorMessagesOfTheTableUseTheWordingTheWebAdopts:55->lambda$E11_T18_A40_4_theErrorMessagesOfTheTableUseTheWordingTheWebAdopts$1:60 [ca ACCOUNT_BLOCKED] 
+expected: "El teu compte està bloquejat."
+ but was: "El compte està bloquejat."
+[ERROR] Tests run: 6, Failures: 4, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

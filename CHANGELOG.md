@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T18: the template club's starter catalogs (A41.1, ruling E153) and the api's error messages in tu/tú (A40.4). No contract change.
+  - `seeds/club-template-default.yaml` (S17 R-17-08/R-17-13, §13 #5 resolved): 6 levels, 2 rings, 5 plans with their current EUR prices, 3 FAQ categories with one R-05-21b placeholder each, and the 52 templated notification codes, every text in ca/es/en and none naming a club. D19's «Catàlegs base» clones them part by part. The template now declares its modules (`FREE_TRAINING`, `BILLING`, `PACKS`, `SINGLE_CLASS`, `WAITLIST`, `FAQ`, `PUSH`) instead of the `MINIM` preset; a club that clones `PLANS` needs `PACKS` and `SINGLE_CLASS`.
+  - `bin/e10-smoke` turns `SINGLE_CLASS` on for the second club, clones the five parts one at a time and checks their row counts, the `LOCALE_OMITTED` warnings, the `409 CATALOG_NOT_EMPTY` of a second clone and what the invited admin lists.
+  - `messages_{ca,es}.properties`: the 26 error messages of A40.4 take the wording the web adopts in E11-W05 (`INTERNAL_ERROR` keeps `{traceId}`; `en` unchanged). None of them used «vosaltres»/«usted» before; the wording differed.
+  - `seeds/README.md`: the starter set, and 52 templated codes (N-55 included).
 - E11-T16: RGPD and support-access follow-ups of the audit of 21-10 (ruling E145), and INC-82. No contract change (`bin/openapi-snapshot`: no diff).
   - S14 R-14-15 (S1): an erased member's name as the booker or canceller of another member's booking, and as the registrant of another member's activity registration, goes too. Another applicant's `FOUND` family claim on the erased holder keeps `status` and `holderMemberId` without `holderName`/`dogName` (the census version moves).
   - S14 R-14-15 / S15 R-15-19 (S2): the erasure deletes the `FAILED` outbox records about its subject as well as the `PUBLISHED` ones, and unsets the dog names of P3's run traces (`job_runs.items.detail.attendances[].dogName`). The monthly `retention-sweep` gets the `PURGE_ERASED_TRACES` task (counter `erasedTracesPurged`): records published after the erasure and traces stored after it.

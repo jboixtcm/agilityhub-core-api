@@ -1,0 +1,94 @@
++ club added
+  null -> {"slug":"club-template-default","name":"AgilityHub template","contactEmail":"template@example.test","locales":["ca","es","en"],"defaultLocale":"en","timeZone":"UTC","currency":"EUR","countryProfile":"GENERIC","status":"ONBOARDING","template":true}
++ domains added
+  null -> []
++ theme added
+  null -> {"colors":{"primary":"#2563EB","onPrimary":"#FFFFFF","background":"#F8FAFC","surface":"#FFFFFF","surfaceAlt":"#F1F5F9","text":"#0F172A","textMuted":"#475569","border":"#CBD5E1","success":"#15803D","warning":"#A16207","danger":"#B91C1C","info":"#0369A1"},"fontFamily":"system-ui","radius":"8px","ringPalette":[],"mode":"light"}
++ modules added
+  null -> ["BILLING","FAQ","FREE_TRAINING","PACKS","PUSH","SINGLE_CLASS","WAITLIST"]
++ paymentProviders added
+  null -> {}
++ legal added
+  null -> {"privacyPolicyUrl":"","imageConsentText":{},"legalTextsVersion":""}
++ pwa added
+  null -> {"name":"AgilityHub template","shortName":"AgilityHub template","icons":[]}
++ parameters: no declared overrides
++ admins: 0 to provision
+= accounts: 0 to provision
++ catalogs.levels.CAD
++ catalogs.levels.INI
++ catalogs.levels.INT
++ catalogs.levels.AVA
++ catalogs.levels.TER
++ catalogs.levels.PENDENT
++ catalogs.rings.P1
++ catalogs.rings.P2
++ catalogs.plans.MONTHLY
++ catalogs.plans.MONTHLY_FAMILY
++ catalogs.plans.PACK10
++ catalogs.plans.SINGLE_CLASS
++ catalogs.plans.THERAPY
++ catalogs.prices.MONTHLY:MONTHLY_FEE:2026-01-01
++ catalogs.prices.MONTHLY_FAMILY:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.SINGLE_CLASS:SINGLE_CLASS:2026-01-01
++ catalogs.prices.THERAPY:MAINTENANCE_FEE:2026-01-01
++ catalogs.faq.FAQ_CLUB_LIFE
++ catalogs.faq.FAQ_BOOKINGS
++ catalogs.faq.FAQ_COMPETITIONS
++ catalogs: 21 catalog changes
++ messageTemplates.N-01
++ messageTemplates.N-02
++ messageTemplates.N-03
++ messageTemplates.N-04
++ messageTemplates.N-05
++ messageTemplates.N-06
++ messageTemplates.N-07
++ messageTemplates.N-08a
++ messageTemplates.N-08b
++ messageTemplates.N-09
++ messageTemplates.N-10
++ messageTemplates.N-11a
++ messageTemplates.N-11b
++ messageTemplates.N-13
++ messageTemplates.N-14
++ messageTemplates.N-15
++ messageTemplates.N-16
++ messageTemplates.N-17
++ messageTemplates.N-18a
++ messageTemplates.N-18b
++ messageTemplates.N-18c
++ messageTemplates.N-19
++ messageTemplates.N-20
++ messageTemplates.N-21
++ messageTemplates.N-22
++ messageTemplates.N-23
++ messageTemplates.N-24
++ messageTemplates.N-28
++ messageTemplates.N-29
++ messageTemplates.N-30
++ messageTemplates.N-31
++ messageTemplates.N-32a
++ messageTemplates.N-32b
++ messageTemplates.N-32c
++ messageTemplates.N-33
++ messageTemplates.N-34
++ messageTemplates.N-35
++ messageTemplates.N-36
++ messageTemplates.N-37
++ messageTemplates.N-38
++ messageTemplates.N-18d
++ messageTemplates.N-32d
++ messageTemplates.N-40
++ messageTemplates.N-41
++ messageTemplates.N-42
++ messageTemplates.N-46
++ messageTemplates.N-47
++ messageTemplates.N-49
++ messageTemplates.N-50
++ messageTemplates.N-51
++ messageTemplates.N-54
++ messageTemplates.N-55
++ messageTemplates: 52 templates to seed
+= pages: 0 page changes
+9 changes (applied)

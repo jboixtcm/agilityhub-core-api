@@ -1,0 +1,149 @@
+ca ACCOUNT_BLOCKED
+  - El compte està bloquejat.
+  + El teu compte està bloquejat.
+ca CANNOT_CHANGE_OWN_ADMIN_ROLE
+  - No pots canviar el teu propi rol d'administració.
+  + No pots canviar el teu rol d'administrador.
+ca DESCRIPTION_REQUIRED
+  - Cal indicar una descripció.
+  + Escriu una descripció.
+ca DOG_NOT_ACCESSIBLE
+  - El gos no està disponible.
+  + No pots accedir a aquest gos.
+ca INTERNAL_ERROR
+  - S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi {traceId} al club.
+  + S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi de referència {traceId} al club.
+ca LEVEL_REQUIRED
+  - Cal indicar un nivell.
+  + Tria un nivell.
+ca LEVEL_UNCHANGED
+  - El nivell ja és el mateix.
+  + Tria un nivell diferent.
+ca NEXT_INVOICE_DATE_REQUIRED
+  - Cal indicar la data del proper rebut.
+  + Escriu la data de la factura següent.
+ca NO_MEMBERSHIP
+  - El compte no té accés a aquest club.
+  + No tens cap abonament per a aquest club.
+ca PASSWORD_COMPROMISED
+  - Aquesta contrasenya no és segura. Tria'n una altra.
+  + Tria una contrasenya que no hagi aparegut en una filtració de dades.
+ca RATE_LIMITED
+  - S'han fet massa peticions. Torna-ho a provar més tard.
+  + Hi ha massa sol·licituds. Torna-ho a provar més tard.
+ca REFRESH_EXPIRED
+  - La sessió ha caducat. Torna a iniciar sessió.
+  + La sessió ha caducat. Torna a iniciar la sessió.
+ca REFRESH_REUSED
+  - La sessió ja s'ha renovat amb aquest token. Torna a iniciar sessió.
+  + La sessió ja no és vàlida. Torna a iniciar la sessió.
+ca SAME_MEMBER
+  - Cal seleccionar un altre abonat.
+  + Tria un abonat diferent.
+ca SETUP_SOURCE_REQUIRED
+  - Cal indicar l'origen del muntatge.
+  + Tria l'origen del muntatge.
+ca SIMULATION_STALE
+  - La simulació ha quedat desactualitzada. Torna a generar-la.
+  + La simulació no està actualitzada. Torna-la a executar.
+ca SMS_BODY_REQUIRED
+  - Cal indicar el text del SMS.
+  + Escriu el contingut del missatge de text.
+ca STALE_VERSION
+  - Les dades han canviat. Actualitza-les i torna-ho a provar.
+  + Aquest element s'ha modificat des d'un altre lloc. Actualitza'l i torna-ho a provar.
+ca VALIDATION_ERROR
+  - Les dades de la petició no són vàlides.
+  + Revisa els camps destacats.
+ca UNAUTHENTICATED
+  - Cal iniciar sessió.
+  + Inicia la sessió per continuar.
+ca ACTIVITY_INCOMPLETE
+  - Cal completar les dades de l'activitat.
+  + Completa l'activitat abans de continuar.
+ca CONSENT_VERSION_OUTDATED
+  - Cal acceptar la versió actual de les condicions.
+  + Accepta la versió actual del consentiment.
+ca MODULE_DEPENDENCY
+  - Cal activar els mòduls requerits.
+  + Activa primer el mòdul necessari.
+ca PRODUCTION_REQUIRES_CONFIRMATION
+  - Cal confirmar l'operació en producció.
+  + Confirma l'operació abans d'executar-la a producció.
+ca TASK_NOT_DONE
+  - La tasca encara no està completada.
+  + Completa primer aquesta tasca.
+ca: 25 of 26 messages changed
+es ACCOUNT_BLOCKED
+  - La cuenta está bloqueada.
+  + Tu cuenta está bloqueada.
+es CANNOT_CHANGE_OWN_ADMIN_ROLE
+  - No puedes cambiar tu propio rol de administración.
+  + No puedes cambiar tu propio rol de administrador.
+es DESCRIPTION_REQUIRED
+  - Se requiere una descripción.
+  + Escribe una descripción.
+es DOG_NOT_ACCESSIBLE
+  - El perro no está disponible.
+  + No puedes acceder a este perro.
+es INTERNAL_ERROR
+  - Se ha producido un error inesperado. Vuelve a intentarlo; si persiste, indica el código {traceId} al club.
+  + Se ha producido un error inesperado. Vuelve a intentarlo; si persiste, indica el código de referencia {traceId} al club.
+es LEVEL_REQUIRED
+  - Se requiere un nivel.
+  + Elige un nivel.
+es LEVEL_UNCHANGED
+  - El nivel ya es el mismo.
+  + Elige un nivel diferente.
+es NEXT_INVOICE_DATE_REQUIRED
+  - Se requiere la fecha del próximo recibo.
+  + Escribe la fecha de la siguiente factura.
+es NO_MEMBERSHIP
+  - La cuenta no tiene acceso a este club.
+  + No tienes ningún abono para este club.
+es PASSWORD_COMPROMISED
+  - Esta contraseña no es segura. Elige otra.
+  + Elige una contraseña que no haya aparecido en una filtración de datos.
+es RATE_LIMITED
+  - Se han realizado demasiadas peticiones. Inténtalo más tarde.
+  + Hay demasiadas solicitudes. Vuelve a intentarlo más tarde.
+es REFRESH_REUSED
+  - La sesión ya se ha renovado con este token. Vuelve a iniciar sesión.
+  + La sesión ya no es válida. Vuelve a iniciar sesión.
+es SAME_MEMBER
+  - Hay que seleccionar otro abonado.
+  + Elige un abonado diferente.
+es SETUP_SOURCE_REQUIRED
+  - Se requiere el origen del montaje.
+  + Elige el origen del montaje.
+es SIMULATION_STALE
+  - La simulación ha quedado desactualizada. Vuelve a generarla.
+  + La simulación no está actualizada. Vuelve a ejecutarla.
+es SMS_BODY_REQUIRED
+  - Se requiere el texto del SMS.
+  + Escribe el contenido del mensaje de texto.
+es STALE_VERSION
+  - Los datos han cambiado. Actualízalos e inténtalo de nuevo.
+  + Este elemento se ha modificado desde otro lugar. Actualízalo y vuelve a intentarlo.
+es VALIDATION_ERROR
+  - Los datos de la petición no son válidos.
+  + Revisa los campos destacados.
+es UNAUTHENTICATED
+  - Debes iniciar sesión.
+  + Inicia sesión para continuar.
+es ACTIVITY_INCOMPLETE
+  - Hay que completar los datos de la actividad.
+  + Completa la actividad antes de continuar.
+es CONSENT_VERSION_OUTDATED
+  - Hay que aceptar la versión actual de las condiciones.
+  + Acepta la versión actual del consentimiento.
+es MODULE_DEPENDENCY
+  - Hay que activar los módulos requeridos.
+  + Activa primero el módulo necesario.
+es PRODUCTION_REQUIRES_CONFIRMATION
+  - Hay que confirmar la operación en producción.
+  + Confirma la operación antes de ejecutarla en producción.
+es TASK_NOT_DONE
+  - La tarea aún no está completada.
+  + Completa primero esta tarea.
+es: 24 of 26 messages changed

@@ -65,7 +65,7 @@ class ResponseLocaleIT extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("No tienes permiso para realizar esta acción."));
         mvc.perform(get("/api/v1/missing").with(jwt().jwt(token -> token.subject("account-a").claim("locale", "es"))))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NO_MEMBERSHIP"))
-                .andExpect(jsonPath("$.message").value("La cuenta no tiene acceso a este club."));
+                .andExpect(jsonPath("$.message").value("No tienes ningún abono para este club."));
         mvc.perform(get("/api/v1/branding").header("Host", "unknown.example.test").header("Accept-Language", "es"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"))
                 .andExpect(jsonPath("$.message").value("No hay ningún club asociado a este dominio."));
