@@ -1,0 +1,25 @@
+$ ./mvnw -q -Dtest='PriceStartupHelpersTest,PriceDateConverterTest' -Dsurefire.failIfNoSpecifiedTests=false -Dit.test='PriceDatesIT' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify
+# old code: the helpers public; surefire stopped the build before failsafe, so PriceDatesIT ran alone in log 04
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.043 s <<< FAILURE! -- in com.agilityhub.core.clubs.catalogs.persistence.PriceStartupHelpersTest
+[ERROR] com.agilityhub.core.clubs.catalogs.persistence.PriceStartupHelpersTest.INC_74_theCrossTenantStartupHelpersAreNotPublic -- Time elapsed: 0.035 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[normaliseValidityDates] 
+Expecting value to be false but was true
+	at com.agilityhub.core.clubs.catalogs.persistence.PriceStartupHelpersTest.INC_74_theCrossTenantStartupHelpersAreNotPublic(PriceStartupHelpersTest.java:17)
+
+[ERROR] Failures: 
+[ERROR]   PriceStartupHelpersTest.INC_74_theCrossTenantStartupHelpersAreNotPublic:17 [normaliseValidityDates] 
+Expecting value to be false but was true
+[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit 1

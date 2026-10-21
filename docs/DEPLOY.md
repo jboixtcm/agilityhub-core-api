@@ -283,8 +283,11 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
   re-encryption tool is provided here: keep it for every retained record and
   backup, and rotate it only with a reviewed re-encryption. Never rotate it by
   just editing env. Since E11-T11, Core does not start outside the `local` and
-  `test` profiles when the key is missing or is not Base64 of 32 bytes (staging,
-  `prod` and a run with no profile included).
+  `test` profiles when the key is missing or is not Base64 of 32 bytes (staging
+  and `prod` included). A run with no active profile is the local stack by
+  design (`spring.profiles.default: local` in `application.yml`, ruling E139): it
+  starts without the key and keeps the IBAN in clear with the WARN, so every
+  deployment sets its profile explicitly (`prod` in the production Compose).
 - `MIGRATION_BANK_KEY` is retired (ruling E85): Core no longer reads it. No
   release imported bank data with it; a local database imported before needs a
   new `migration:apply` with `BILLING_BANK_KEY`. The production Compose stops
@@ -598,27 +601,31 @@ Before INC-68 a price written whole (`POST /prices`, a seed, a catalog clone, th
 converts the dates that remain (`CatalogPersistence`, idempotent; log `Price validity days converted for N prices`).
 
 - **Time zone of a legacy date.** Such a date is the writer JVM's local midnight. The API reads its day as the UTC day of
-  the nearest UTC midnight (`StoredDays`), which is right for every writer zone from UTC-11:59 to UTC+12:00, so the
+  the nearest UTC midnight (`StoredDays`), which is right for every writer UTC offset from -11:59 to +12:00 at that
+  midnight (the rule is by offset, not by zone: `Pacific/Auckland` is +12:00 only in its winter), so the
   conversion does not depend on the `TZ` of the API or `bin/core` container that runs it, nor on the one that wrote the
   date. Nothing to configure. A date written by a JVM at UTC+13 or UTC+14 would read a day early.
 - **Price start twins.** The old unique index `price_start` saw a date start and a string start as two keys, so two prices
   of one plan and concept could start on the same day. The conversion removes a legacy twin that has the same amount, tax
   and end as the string price it would duplicate, when no document names it (`members.priceId`,
-  `invoices.lines.priceId`, `pending_charges`, `collections` and `pack_balances` `priceId`); log
-  `Price start twins removed count=N ids=[…]`. Any other twin stays as it is, and every start logs
+  `invoices.lines.priceId` and `pending_charges.priceId`; a collection or a pack balance names no price); log
+  `WARN Price start twins removed count=N ids=[…]`. Any other twin stays as it is, and every start logs
   `WARN PriceStartTwins count=N ids=[…]`. Meanwhile billing refuses to choose: `POST /billing/simulations` and
   `POST /billing/runs` answer `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`, and the outbox
   consumer that creates a single-class charge of that plan fails and retries with backoff; after its attempts it leaves
-  the event `FAILED` (gauge `outbox.failed`). No amount is ever chosen between the twins.
+  the event `FAILED` (gauge `outbox.failed`). No amount is ever chosen between the twins. The plan is not offered
+  publicly (ruling E138): it leaves `GET /signup` and `GET /public/{clubSlug}/plans`, a new signup that requests it
+  answers `422 PLAN_NOT_AVAILABLE`, and D2's validation of a submission on it (dry run included) answers the same
+  `409 PRICE_OVERLAP`. The administrator's plan list keeps showing it with both prices.
 - **Resolving a reported twin by hand** (one per id; production was not live when INC-68 was fixed, so this concerns
   local and staging data):
   1. Compare the twin with the price it duplicates:
      `db.prices.find({clubId: "<club>", planId: "<plan>", concept: "<concept>"}, {amount: 1, taxPercent: 1, validFrom: 1, validTo: 1})`.
   2. Find what names each of them: `db.members.countDocuments({clubId: "<club>", priceId: "<id>"})`,
-     `db.invoices.countDocuments({clubId: "<club>", "lines.priceId": "<id>"})`, and the same `priceId` count on
-     `pending_charges`, `collections` and `pack_balances`.
-  3. Keep the price the club's administrator confirms. When only `members`, `pending_charges`, `collections` or
-     `pack_balances` name the other one, point them at the kept one
+     `db.invoices.countDocuments({clubId: "<club>", "lines.priceId": "<id>"})` and
+     `db.pending_charges.countDocuments({clubId: "<club>", priceId: "<id>"})` (the only three references to a price).
+  3. Keep the price the club's administrator confirms. When only `members` or `pending_charges` name the other one,
+     point them at the kept one
      (`updateMany({clubId: "<club>", priceId: "<other>"}, {$set: {priceId: "<kept>"}})`) and delete it with
      `deleteOne({_id: "<other>", clubId: "<club>"})`. When an invoice line names it, stop: invoice lines are frozen and
      are never edited; report the case to the organizer.

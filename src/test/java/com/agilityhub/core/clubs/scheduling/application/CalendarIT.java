@@ -496,6 +496,39 @@ class CalendarIT extends AbstractIntegrationTest {
         dispatcher.dispatch();assertThat(notifications("N-08a")).isNotEmpty().allSatisfy(n -> assertThat(n.getString("audience")).isEqualTo("MEMBER"));
         assertThat(session(risk).at("/cancellation/reason").asText()).isEqualTo("RISK_REVIEW");
     }
+    /**
+     * INC-41 (E11-T13), S06 §3 `cancellation`, R-06-13: a class the risk review cancelled carries the club's review time,
+     * `classes.riskReviewTime` (`HH:mm`, read when the view is), in the three staff views that carry the cancellation (the class,
+     * the list row and the week calendar); a club's manual cancellation carries `reviewTime: null`. The time is the parameter's,
+     * never a literal: the club here reviews at 08:15.
+     */
+    @Test void T_06_25_INC_41_aRiskReviewCancellationCarriesTheClubsReviewTimeAndAManualOneNone() throws Exception {
+        parameter("classes.riskReviewTime","08:15","time");
+        String risk=session("2026-08-26","18:00","plan-ring"),manual=session("2026-08-26","19:30","plan-ring");validate(risk);
+        try(var tenant=TenantContext.open(CLUB)) {
+            cancellations.cancel(risk,ClassCancellationReason.RISK_REVIEW,"Minimum not reached",null);
+            cancellations.cancel(manual,ClassCancellationReason.CLUB_MANUAL,"Rain",null);
+        }
+        var detail=session(risk);
+        assertThat(detail.at("/cancellation/reason").asText()).isEqualTo("RISK_REVIEW");
+        assertThat(detail.at("/cancellation/reviewTime").asText()).isEqualTo("08:15").matches("^\\d{2}:\\d{2}$");
+        // As RiskReviewJob cancels: by the system, so no account (the snapshot declares byAccountId nullable since E11-T13).
+        assertThat(detail.at("/cancellation/byAccountId").isNull()).isTrue();
+        assertThat(session(manual).path("cancellation").has("reviewTime")).isTrue();
+        assertThat(session(manual).at("/cancellation/reviewTime").isNull()).isTrue();
+        var rows=ok("GET","/class-sessions?filter=weekId:eq:"+detail.path("weekId").asText()+"&filter=state:eq:CANCELLED&fields=id,cancellation",null).path("items");
+        var times=new java.util.HashMap<String,JsonNode>(); rows.forEach(row -> times.put(row.path("id").asText(),row.at("/cancellation/reviewTime")));
+        assertThat(times.get(risk).asText()).isEqualTo("08:15");
+        assertThat(times.get(manual).isNull()).isTrue();
+        JsonNode calendarRisk=null;
+        for(var c:ok("GET","/weeks/"+detail.path("weekId").asText()+"/calendar?filter=CANCELLED",null).path("classes")) if(c.path("id").asText().equals(risk)) calendarRisk=c;
+        assertThat(calendarRisk).as("the week calendar lists the cancelled class").isNotNull();
+        assertThat(calendarRisk.at("/cancellation/reviewTime").asText()).isEqualTo("08:15");
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(detail,"ClassSession")).isEmpty();
+        // The view reads the parameter in force: a later change shows the new time.
+        parameter("classes.riskReviewTime","07:45","time");
+        assertThat(session(risk).at("/cancellation/reviewTime").asText()).isEqualTo("07:45");
+    }
     @Autowired com.agilityhub.core.clubs.dashboard.application.ports.RiskReviewSource dashboardRisk;
     @Autowired com.agilityhub.core.clubs.dashboard.application.ports.ClassOccupancyQuery occupancy;
     @Autowired FinishEndedCommand finishCommand;

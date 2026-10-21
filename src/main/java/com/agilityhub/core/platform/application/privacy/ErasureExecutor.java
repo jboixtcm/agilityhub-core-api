@@ -64,7 +64,13 @@ public class ErasureExecutor {
     }
 
     /** One request's part in the current club, in its own transaction (or the caller's: a job item's). */
-    public Outcome execute(String requestId) {
+    public Outcome execute(String requestId) { return execute(requestId, () -> { }); }
+
+    /**
+     * {@link #execute(String)}; {@code filesCleaned} runs once a part that does not complete the request has had its files
+     * deleted after the commit (INC-74, E11-T13: the daily run counts them in `filesCleaned`).
+     */
+    public Outcome execute(String requestId, Runnable filesCleaned) {
         return transactions.write(() -> {
             String clubId = TenantContext.require();
             var request = requests.findById(requestId).orElse(null);
@@ -102,7 +108,7 @@ public class ErasureExecutor {
             compareAndSet(request, update);
             if (completes) { events.publish(erased(request, clubId, !erasedAccounts.isEmpty(), now)); }
             // E11-T11: an erased club's files leave the store now, not when (or if) the whole request completes.
-            else if (!effect.files().isEmpty()) { cleanup.cleanAfterCommit(request.id()); }
+            else if (!effect.files().isEmpty()) { cleanup.cleanAfterCommit(request.id(), filesCleaned); }
             return completes ? Outcome.ERASED : Outcome.PARTIAL;
         });
     }

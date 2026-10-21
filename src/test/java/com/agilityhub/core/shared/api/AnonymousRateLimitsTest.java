@@ -112,6 +112,24 @@ class AnonymousRateLimitsTest {
         assertThat(call(filter, "POST", "/oauth2/token", "203.0.113.7").getStatus()).isEqualTo(429);
     }
 
+    /**
+     * INC-74 (E11-T13): with Mongo down the known-clubs lookup throws; the webhook is then counted as `unknown:<ip>` and goes on
+     * to the controller (which answers what it answers), never a 500 from the filter.
+     */
+    @org.junit.jupiter.api.Test void INC_74_aFailingKnownClubsLookupCountsTheWebhookAsUnknownAndGoesOn() throws Exception {
+        var limits = new RateLimits(true, policies(), new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        var filter = filter(limits);
+        filter.knownClubs(clubId -> { throw new org.springframework.dao.DataAccessResourceFailureException("Mongo is down"); });
+        var limit = new RateLimits.Limit(2, Duration.ofMinutes(1));
+        assertThat(call(filter, "POST", "/webhooks/stripe/club-a").getStatus()).isEqualTo(204);
+        assertThat(limits.available(RateLimits.Route.STRIPE_WEBHOOK, "unknown:127.0.0.1", limit)).isTrue();
+        assertThat(call(filter, "POST", "/webhooks/stripe/club-b").getStatus()).isEqualTo(204);
+        // Both requests took the `unknown:<ip>` bucket (two of two), not a bucket of their club.
+        assertThat(limits.available(RateLimits.Route.STRIPE_WEBHOOK, "unknown:127.0.0.1", limit)).isFalse();
+        assertThat(limits.available(RateLimits.Route.STRIPE_WEBHOOK, "club-a:127.0.0.1", limit)).isTrue();
+        assertThat(call(filter, "POST", "/webhooks/stripe/club-a").getStatus()).isEqualTo(429);
+    }
+
     /** INC-67 (E11-T08), CONVENCIONS_API §9: with a token, the checkout status is counted per account, not per shared address. */
     @org.junit.jupiter.api.Test void INC_67_anAuthenticatedCheckoutStatusIsCountedPerAccount() throws Exception {
         var filter = filter(new MockClock(Instant.parse("2026-01-01T00:00:00Z")));

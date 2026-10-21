@@ -506,6 +506,59 @@ class ErasureIT extends PrivacyItFixtures {
     }
 
     /**
+     * INC-74 (E11-T13, review #1 of E11-T11): the cancel path deletes the files at once. An `ACCOUNT` request `BLOCKED` halfway
+     * keeps a pending file of its erased club (a cleanup that failed); `DELETE /platform/erasure-requests/{id}` answers `204`
+     * and, right after the response and before any daily run, the file has left the store and `filesPending` is empty.
+     */
+    @Test @AuditCovers(AuditAction.ERASURE_CANCELLED)
+    void R_14_15_INC_74_theCancelOfARequestBlockedHalfwayDeletesItsPendingFilesAtOnce() throws Exception {
+        String id = accountRequestAcrossTwoClubs();
+        clock.setInstant(DUE);
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(List.of(photo, card, taskFile)).allSatisfy(key -> assertThat(stored(key)).as("after club A's part: " + key).isFalse());
+        raw("invoices", "_id", "invoice-open-b", "clubId", OTHER, "memberId", "montse-b", "status", "FAILED");
+        runner.manual(OTHER, JobName.ERASURES, false, "other-admin-account");
+        assertThat(request(id).status()).isEqualTo("BLOCKED");
+        // A file of club A whose cleanup failed: still in the store and pending on the blocked request.
+        String left = UUID.randomUUID().toString();
+        storage.put(left, "image/jpeg", 3, new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new org.springframework.data.mongodb.core.query.Update().push("filesPending", "attachments:" + left), ErasureRequest.class);
+        assertThat(stored(left)).isTrue();
+        long runs = mongo.count(new Query(), "job_runs");
+
+        json(platform(delete("/api/v1/platform/erasure-requests/" + id)), 204);
+        assertThat(stored(left)).as("the file left the store with the cancel").isFalse();
+        assertThat(request(id).filesPending()).isEmpty();
+        assertThat(request(id).status()).isEqualTo("CANCELLED");
+        assertThat(mongo.count(new Query(), "job_runs")).as("no daily run in between").isEqualTo(runs);
+    }
+
+    /**
+     * INC-74 (E11-T13, step 9): the files a club's part deletes right after its commit (E11-T11's after-commit cleanup) count in
+     * `filesCleaned` of the run that executed it, one per request cleaned, like a `DELETE_FILES` item.
+     */
+    @Test void R_14_15_INC_74_theRunOfAClubsPartCountsTheFilesItsAfterCommitCleanupDeleted() throws Exception {
+        accountRequestAcrossTwoClubs();
+        clock.setInstant(DUE);
+        var partA = runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(List.of(photo, card, taskFile)).allSatisfy(key -> assertThat(stored(key)).as("after club A's part: " + key).isFalse());
+        assertThat(partA.counters()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("partial", 1L),
+                new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("filesCleaned", 1L));
+        assertThat(mongo.findById(partA.id(), com.agilityhub.core.platform.persistence.jobs.JobRun.class).counters())
+                .contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("filesCleaned", 1L));
+    }
+
+    /** Montse's files in club A and her suspended membership of club B, one account: the platform's `ACCOUNT` request over both. */
+    String accountRequestAcrossTwoClubs() throws Exception {
+        seedFiles();
+        member(OTHER, "montse-b", 3, "87654321X", LocalDate.of(2026, 8, 1));
+        mongo.remove(Query.query(Criteria.where("accountId").is("montse-b-account")), "memberships");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("montse-b")), new org.springframework.data.mongodb.core.query.Update().set("accountId", "montse-account"), "members");
+        membership("montse-account", OTHER, "montse-b", Membership.Status.SUSPENDED);
+        return json(platform(body(post("/api/v1/accounts/montse-account/erasure"), Map.of())), 201).path("id").asText();
+    }
+
+    /**
      * R-14-15 (E11-T01 round 2, question 3): an erased member who is an instructor keeps the profile, named «Abonat suprimit #87»,
      * and the attendance summaries it saved (`savedByAccountId`) name it the same way. A summary saved before the account was stored
      * has nothing to match and keeps its name.

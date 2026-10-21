@@ -92,8 +92,12 @@ public final class SchedulingContracts {
             long version, List<String> inconsistencyIds) { }
     public record ClassCounters(int booked, int waiting) { }
     public record ClassCancellation(ClassCancellationReason reason,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String adminText, String byAccountId, Instant at,
-            int affectedBookings, int affectedWaitlist) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String adminText,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The cancelling account; null for the risk review's "
+                    + "cancellation (RISK_REVIEW, run by the system, R-06-13), always sent") String byAccountId, Instant at,
+            int affectedBookings, int affectedWaitlist,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = "^\\d{2}:\\d{2}$", description = "INC-41 (E11-T13): the club's classes.riskReviewTime (HH:mm, club-local) "
+                    + "when the view is read, for the risk review's label (R-06-13); always sent, null unless reason = RISK_REVIEW") String reviewTime) { }
     public record ClassOrigin(@Schema(requiredMode = NOT_REQUIRED) String templateId,
             @Schema(requiredMode = NOT_REQUIRED) String templateClassId) { }
     public record ClassSessionMemberView(String id, LocalDate date, String startTime, String endTime,

@@ -30,7 +30,7 @@ public final class RateLimits {
             "signupPerDay", Route.SIGNUP_DAILY, "checkoutSessionsAnonymousPerHour", Route.SIGNUP_CHECKOUT, "townsPerHour", Route.SIGNUP_TOWNS,
             "notificationsPerRecipientPerHour", Route.SIGNUP_RECIPIENT);
     private record Key(Route route, String subject, Limit limit) { }
-    private static final long MAXIMUM_BUCKETS = 100_000;
+    static final long MAXIMUM_BUCKETS = 100_000;
     private final boolean enabled;
     private final Map<Route, Limit> limits;
     private final TimeMeter time;
@@ -39,8 +39,11 @@ public final class RateLimits {
     public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock) { this(enabled, limits, clock, MAXIMUM_BUCKETS); }
 
     /**
-     * {@code maximumBuckets}: the cap of the buckets kept per route (tests use a small one). Maintenance runs on the caller's
-     * thread, so an eviction is never left to a background pool.
+     * {@code maximumBuckets}: the cap of the buckets kept over every route (tests use a small one). INC-74 (E11-T13): each
+     * route keeps its equal share, {@code maximumBuckets / routes} (4 761 of the default 100 000), so the worst-case heap stays
+     * the single cache's (≈ 52 MB) and a flood on one route still evicts only that route's buckets. An equal share rather than
+     * a fixed 10 000 per route, because only the share keeps the sum at {@code maximumBuckets} whatever the number of routes.
+     * Maintenance runs on the caller's thread, so an eviction is never left to a background pool.
      */
     public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock, long maximumBuckets) {
         this.enabled = enabled;
@@ -62,10 +65,11 @@ public final class RateLimits {
         // INC-67 round 2 (E11-T08): one cache per route, so a flood of new keys on one route (made-up webhook clubs, rotating
         // addresses) evicts only that route's buckets and never resets another route's count (TOKEN, SIGNUP_*).
         var caches = new EnumMap<Route, Cache<Key, Bucket>>(Route.class);
+        long share = Math.max(1, maximumBuckets / Route.values().length);
         for (var route : Route.values()) {
             // A bucket idle for its whole period is full again: dropping it then changes nothing (a club's signup limit keeps the period).
             Duration idle = this.limits.containsKey(route) ? this.limits.get(route).period() : longest;
-            caches.put(route, Caffeine.newBuilder().maximumSize(maximumBuckets).expireAfterAccess(idle)
+            caches.put(route, Caffeine.newBuilder().maximumSize(share).expireAfterAccess(idle)
                     .ticker(time::currentTimeNanos).executor(Runnable::run).build());
         }
         this.buckets = caches;
@@ -102,6 +106,11 @@ public final class RateLimits {
     private Bucket bucket(Route route, String subject, Limit limit) {
         return buckets.get(route).get(new Key(route, subject, limit), key -> Bucket.builder().withCustomTimePrecision(time)
                 .addLimit(bandwidth -> bandwidth.capacity(key.limit().capacity()).refillIntervally(key.limit().capacity(), key.limit().period())).build());
+    }
+
+    /** INC-74 (E11-T13), tests: the buckets {@code route} keeps now, after the pending evictions ran on this thread. */
+    long kept(Route route) {
+        var cache = buckets.get(route); cache.cleanUp(); return cache.estimatedSize();
     }
 
     /** The limit of {@code route} for a club whose `signup.rateLimit` is {@code parameter} (null: the defaults). */

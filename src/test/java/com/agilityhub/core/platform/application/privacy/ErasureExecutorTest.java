@@ -157,8 +157,9 @@ class ErasureExecutorTest {
         var update = ArgumentCaptor.forClass(Update.class);
         verify(requests).update(any(), update.capture());
         assertThat(update.getValue().getUpdateObject().toString()).contains("SCHEDULED", "erasedClubIds", "attachments:photo-key").doesNotContain("ERASING");
-        // E11-T11: club A's files leave the store once its part commits, not when the request completes.
-        verify(cleanup).cleanAfterCommit("r");
+        // E11-T11: club A's files leave the store once its part commits, not when the request completes. INC-74 (E11-T13): with
+        // the hook that lets a daily run count them (a no-op outside one).
+        verify(cleanup).cleanAfterCommit(eq("r"), any(Runnable.class));
         // The other club completes it: the account goes.
         tenant.close(); tenant = TenantContext.open("club-b"); reset(requests); when(requests.update(any(), any())).thenReturn(true);
         when(directory.member("montse")).thenReturn(Optional.empty());

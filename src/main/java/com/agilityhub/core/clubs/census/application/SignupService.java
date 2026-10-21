@@ -983,7 +983,10 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> dryRun(String id,Map<String,Object> request) {
         var member=access.mutableMember(id);var dogs=selection(member,request);
         // R-04-19 (INC-39): with a gone requested plan and none chosen, the preview is the rows as they are.
-        boolean gone=planGone(member,request,dogs);var plan=gone?null:proposedPlan(member,request,dogs);var quote=gone?noQuote():validationQuote(member,plan,dogs);
+        boolean gone=planGone(member,request,dogs);var plan=gone?null:proposedPlan(member,request,dogs);
+        // Ruling E138 (E11-T13): never a preview priced from one of two current prices; billing refuses that plan too.
+        policy.requireOnePricePerConcept(plan);
+        var quote=gone?noQuote():validationQuote(member,plan,dogs);
         var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);nextInvoiceDate(request,first);
         var warnings=new ArrayList<>(warnings(member,dogs));Map<String,Object> upfront=null;
         if(billing()) {
@@ -1030,7 +1033,10 @@ public class SignupService implements SignupPaymentAccess {
         // allocation reads them, whether or not the provider ever had it and with the provider switched off.
         checkouts.getObject().releaseLapsed(id);
         if(addDog!= "ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.INVALID_STATE);
-        var plan=proposedPlan(member,request,dogs);var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,firstMonth(member,plan,dogs,quote));
+        var plan=proposedPlan(member,request,dogs);
+        // Ruling E138 (E11-T13): a plan with a price twin is not validated: 409 PRICE_OVERLAP with billing's details, nothing written.
+        policy.requireOnePricePerConcept(plan);
+        var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,firstMonth(member,plan,dogs,quote));
         var levels=new LinkedHashMap<String,String>();
         if(access.levels()) for(var raw:rows(request.get("dogs"))) {
             if(raw.get("levelId")==null) throw new ApiException(ErrorCode.LEVEL_REQUIRED);

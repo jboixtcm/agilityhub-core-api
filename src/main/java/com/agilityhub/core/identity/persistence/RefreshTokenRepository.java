@@ -46,7 +46,8 @@ public class RefreshTokenRepository extends TenantRepository<RefreshToken> {
      * INC-36 (S01 R-01-06): the live child a rotated token was replaced by, if nobody has rotated or revoked it since, claimed for a
      * grace sibling. The check is a conditional write on the child (`replacedByHash: null` → `graceSiblingAt`, E11-T11), not a
      * read: inside the grace's transaction, a concurrent rotation of the child is a write conflict, so it cannot slip between the
-     * check and the sibling.
+     * check and the sibling. INC-74 (E11-T13): `graceSiblingAt` is a marker, never read (S01 §3), so {@link RefreshToken} does
+     * not map it.
      */
     public Optional<RefreshToken> claimLiveChild(RefreshToken rotated, Instant now) {
         return Optional.ofNullable(mongo.findAndModify(contextQuery().addCriteria(active(rotated.accountId(), now)

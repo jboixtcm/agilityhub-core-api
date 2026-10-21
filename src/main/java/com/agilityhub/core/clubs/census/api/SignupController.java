@@ -217,12 +217,15 @@ public class SignupController {
     @PostMapping("/api/v1/members/{id}/validation")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({VALIDATION_ERROR, MEMBER_ERASED, INVALID_STATE, STALE_VERSION, LEVEL_REQUIRED, LEVEL_NOT_ACTIVE, NEXT_INVOICE_DATE_REQUIRED,
-            UPFRONT_AMOUNT_EXCEEDS_DUE, PLAN_NOT_AVAILABLE, MEMBERSHIP_EXISTS, FAMILY_HOLDER_NOT_FOUND, FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP, CURRENCY_MISMATCH})
+            UPFRONT_AMOUNT_EXCEEDS_DUE, PLAN_NOT_AVAILABLE, MEMBERSHIP_EXISTS, FAMILY_HOLDER_NOT_FOUND, FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP, CURRENCY_MISMATCH,
+            PRICE_OVERLAP})
     @Operation(summary = "Validate member signup", description = "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. "
             + "409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change, or an upfrontAmountPaid above 0, while a checkout of the submission is in progress, "
             + "S04 §5 E39 and R-04-16; dryRun warns CHECKOUT_PENDING whenever a line waits for a checkout). "
             + "upfrontAmountPaid in another currency than the club's → 422 CURRENCY_MISMATCH with details.field = upfrontAmountPaid, before any write. "
             + "Without planId and priceId, a requested plan that is no longer assignable gives a dryRun of the rows as they are (no price) and a validation 422 PLAN_NOT_AVAILABLE. "
+            + "With BILLING, a plan with two current prices of one concept (a legacy price twin, INC-68, ruling E138) → 409 PRICE_OVERLAP "
+            + "{planId, concept, priceId, conflictingPriceId}, dryRun included and nothing written: the details billing answers for that plan. "
             + "nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate; while the plan is the requested one, that start is the one frozen at submission. "
             + "The levels are assigned by the validation itself: MemberValidated/DogRegistered carry the stored levelId, and no DogLevelChanged is emitted. "
             + "A member who has an account (a readmission, R-04-06/R-04-22) keeps it: no second Account, and the account's login email never changes; "

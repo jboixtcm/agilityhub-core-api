@@ -1,0 +1,43 @@
+# Summary of 24-clean-verify.log (exit 0), read from target/surefire-reports and target/failsafe-reports after the run
+
+surefire totals: tests=4828 failures=0 errors=0 skipped=0
+failsafe totals: tests=2199 failures=0 errors=0 skipped=0
+
+# Classes this task adds or changes (and the real-wiring RateLimitIT):
+com.agilityhub.core.shared.application.RateLimitsTest: tests=5 failures=0 errors=0 skipped=0
+    INC_74_eachRoutesCacheKeepsItsShareSoTheTotalStaysBounded: passed
+com.agilityhub.core.shared.api.AnonymousRateLimitsTest: tests=27 failures=0 errors=0 skipped=0
+    INC_74_aFailingKnownClubsLookupCountsTheWebhookAsUnknownAndGoesOn: passed
+com.agilityhub.core.clubs.catalogs.persistence.PriceStartupHelpersTest: tests=1 failures=0 errors=0 skipped=0
+    INC_74_theCrossTenantStartupHelpersAreNotPublic: passed
+com.agilityhub.core.clubs.catalogs.persistence.PriceDateConverterTest: tests=12 failures=0 errors=0 skipped=0
+    INC_74_theRuleIsByWriterOffsetAndADateWrittenAtPlusThirteenReadsADayEarly: passed
+com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT: tests=7 failures=0 errors=0 skipped=0
+    INC_74_anIdenticalTwinThatOnlyAPendingChargeNamesIsKeptAndReported(CapturedOutput): passed
+com.agilityhub.core.clubs.catalogs.api.PlansIT: tests=17 failures=0 errors=0 skipped=0
+    E138_aPlanWithAPriceTwinLeavesThePublicOfferAndTheAdminsListKeepsIt: passed
+com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT: tests=7 failures=0 errors=0 skipped=0
+    E138_aPlanWithAPriceTwinLeavesTheSignupOfferAndD2RefusesItsValidation: passed
+com.agilityhub.core.platform.privacy.ErasureIT: tests=14 failures=0 errors=0 skipped=0
+    R_14_15_INC_74_theRunOfAClubsPartCountsTheFilesItsAfterCommitCleanupDeleted: passed
+    R_14_15_INC_74_theCancelOfARequestBlockedHalfwayDeletesItsPendingFilesAtOnce: passed
+com.agilityhub.core.platform.application.privacy.PrivacyJobsTest: tests=4 failures=0 errors=0 skipped=0
+    R_14_15_INC_74_theFilesTheAfterCommitCleanupDeletesCountInTheRun: passed
+com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest: tests=4 failures=0 errors=0 skipped=0
+    R_14_15_INC_74_theAfterCommitCleanupTellsTheCallerOnlyWhenItCleaned: passed
+    T_14_19_onlyAnUnknownStoreFailsForTheOutboxToRetryAndARequestWithNothingPendingIsLeftAlone: passed
+com.agilityhub.core.platform.application.privacy.ErasureExecutorTest: tests=9 failures=0 errors=0 skipped=0
+com.agilityhub.core.payments.application.BankAccountVaultTest: tests=6 failures=0 errors=0 skipped=0
+    INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns(CapturedOutput): passed
+com.agilityhub.core.shared.domain.ErrorCatalogContractTest: tests=6 failures=0 errors=0 skipped=0
+    T_12_21_T_13_24_billingInactivityAndLeaveErrorsFollowTheCatalogStatuses: passed
+com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+    T_04_25_errorRowHasExactlyTheCanonicalCodesStatusesAndThreeTranslations: passed
+com.agilityhub.core.configuration.E5BackOfficeContractTest: tests=7 failures=0 errors=0 skipped=0
+    S06_3_INC_41_theClassCancellationCarriesTheReviewTime: passed
+com.agilityhub.core.clubs.scheduling.application.CalendarIT: tests=24 failures=0 errors=0 skipped=0
+    T_06_25_INC_41_aRiskReviewCancellationCarriesTheClubsReviewTimeAndAManualOneNone: passed
+com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=12 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.S04ErrorContractTest: tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.RateLimitIT: tests=10 failures=0 errors=0 skipped=0
+# per-test status: a <failure>, <error> or <skipped> child of the testcase; <system-out> is captured output, not a failure

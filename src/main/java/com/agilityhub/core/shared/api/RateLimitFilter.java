@@ -60,7 +60,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
             // so one address rotating made-up ids shares one bucket.
             if (route == Route.STRIPE_WEBHOOK) {
                 String pathClub = path.substring(STRIPE_WEBHOOKS.length()).split("/", 2)[0];
-                subject = (knownClubs.test(pathClub) ? pathClub : "unknown") + ":" + request.getRemoteAddr();
+                subject = (known(pathClub) ? pathClub : "unknown") + ":" + request.getRemoteAddr();
             }
             String clubId = jwt == null ? null : jwt.getToken().getClaimAsString("clubId");
             if (route.name().startsWith("SIGNUP_")) {
@@ -137,6 +137,15 @@ public final class RateLimitFilter extends OncePerRequestFilter {
             return Route.ANONYMOUS;
         }
         return null;
+    }
+
+    /**
+     * INC-74 (E11-T13): a lookup that fails (Mongo down, the snapshot cannot load) names no club: the webhook takes the
+     * `unknown:<ip>` bucket and goes on to the controller, which answers what it answers; never a 500 from this filter.
+     */
+    private boolean known(String clubId) {
+        try { return knownClubs.test(clubId); }
+        catch (RuntimeException unavailable) { return false; }
     }
 
     private static String fingerprint(String value) {

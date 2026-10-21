@@ -148,15 +148,15 @@ class ErrorCatalogContractTest {
                 "400:VALIDATION_ERROR,INVALID_FILTER", "405:METHOD_NOT_ALLOWED",
                 // Explicit in §1 since 26-09 (E50): the state conflicts.
                 "409:INACTIVITY_INVALID_STATE,LEAVE_ALREADY_REQUESTED,LEAVE_ALREADY_SCHEDULED,LEAVE_INVALID_STATE,CLUB_NOT_EMPTY",
-                // Rule 0: the _OVERLAP suffix.
-                "409:INACTIVITY_OVERLAP",
+                // Rule 0: the _OVERLAP suffix. INC-74 (E11-T13): S12 §6's PRICE_OVERLAP (billing's twin refusal, E11-T08) is in the row.
+                "409:INACTIVITY_OVERLAP,PRICE_OVERLAP",
                 // Rule 0: everything else is 422.
                 "422:NO_INVOICES,SEPA_NOT_CONFIGURED,NO_PAYMENT_METHOD,AMOUNT_EXCEEDS_DUE,PLAN_NOT_PACK,PACK_NEGATIVE,REFUND_EXCEEDS_PAID,INACTIVITY_DEADLINE_PASSED,"
                         + "INACTIVITY_INVALID_RANGE,INACTIVITY_NOT_APPLICABLE,LEAVE_DATE_INVALID,LEAVE_REASON_UNKNOWN,MEMBER_NOT_LEFT,NO_PLANNED_LEAVE,MEMBER_LEAVING")) {
             String[] pair = names.split(":");
             for (String name : pair[1].split(",")) { expected.put(name, Integer.parseInt(pair[0])); }
         }
-        assertThat(expected).hasSize(43);
+        assertThat(expected).hasSize(44);
         expected.forEach((name, status) -> {
             assertThat(catalog).contains("`" + name + "`");
             assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);
@@ -169,7 +169,7 @@ class ErrorCatalogContractTest {
         }
         assertThat(s12).containsExactlyInAnyOrder("BILLING_BUSY", "RUN_EXISTS", "SIMULATION_STALE", "RUN_NOT_ROLLBACKABLE", "COLLECTION_DATE_TOO_SOON", "NO_INVOICES",
                 "SEPA_NOT_CONFIGURED", "MAX_ATTEMPTS", "NO_PAYMENT_METHOD", "REFUND_EXCEEDS_PAID", "AMOUNT_EXCEEDS_DUE", "PLAN_NOT_PACK", "PACK_NEGATIVE",
-                "CURRENCY_MISMATCH", "PAYMENT_PROVIDER_NOT_ENABLED", "WEBHOOK_SIGNATURE_INVALID");
+                "CURRENCY_MISMATCH", "PAYMENT_PROVIDER_NOT_ENABLED", "WEBHOOK_SIGNATURE_INVALID", "PRICE_OVERLAP");
         // S13 R-13-02's INACTIVITY_NOT_APPLICABLE is in the §2 row (since 19-09) and in the enum, with its three messages.
         assertThat(s13).containsExactlyInAnyOrder("INACTIVITY_NOT_APPLICABLE", "INACTIVITY_DEADLINE_PASSED", "INACTIVITY_INVALID_RANGE", "INACTIVITY_INVALID_STATE",
                 "INACTIVITY_OVERLAP", "LEAVE_ALREADY_REQUESTED", "LEAVE_ALREADY_SCHEDULED", "LEAVE_DATE_INVALID", "LEAVE_INVALID_STATE", "LEAVE_REASON_UNKNOWN",

@@ -10,11 +10,15 @@ import com.agilityhub.core.shared.domain.Money;
 import java.time.LocalDate;
 import java.util.List;
 
-/** Catalog application projection for pure signup calculations; source records never escape it. */
+/**
+ * Catalog application projection for pure signup calculations; source records never escape it. `overlap` (ruling E138,
+ * E11-T13): the first concept with two current prices (a legacy start twin INC-68's conversion reported), null otherwise; such
+ * a plan is never offered publicly and D2 refuses it, as billing does (`PRICE_OVERLAP`).
+ */
 public record SignupPlanData(String id, String clubId, Type type, String billingMode, int dogsIncluded,
         LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
         boolean active, boolean showOnSignup, int order, Entry entryFee, Pack pack, List<CurrentPrice> currentPrices,
-        LocalizedText priceLabel) {
+        LocalizedText priceLabel, PriceOverlap overlap) {
     public enum Type { MONTHLY, PACK, SINGLE_CLASS }
     public enum Concept { MONTHLY_FEE, MAINTENANCE_FEE, PACK, SINGLE_CLASS }
     public record Entry(Money amount, Integer percentOfStandard, boolean waived, boolean useStandard) {
@@ -22,12 +26,21 @@ public record SignupPlanData(String id, String clubId, Type type, String billing
     }
     public record Pack(int sessions, int validityMonths) { }
     public record CurrentPrice(String id, Concept concept, Money amount) { }
+    /** Two current prices of {@code concept}, in the order billing names them (`PriceRepository.current`). */
+    public record PriceOverlap(Concept concept, String priceId, String conflictingPriceId) { }
     public SignupPlanData { currentPrices = List.copyOf(currentPrices); }
+    /** A plan without a price twin. */
+    public SignupPlanData(String id, String clubId, Type type, String billingMode, int dogsIncluded,
+            LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
+            boolean active, boolean showOnSignup, int order, Entry entryFee, Pack pack, List<CurrentPrice> currentPrices,
+            LocalizedText priceLabel) {
+        this(id, clubId, type, billingMode, dogsIncluded, name, description, conditions, offerLabel, active, showOnSignup, order, entryFee, pack, currentPrices, priceLabel, null);
+    }
     /** A plan without `texts.priceLabel` (R-05-19). */
     public SignupPlanData(String id, String clubId, Type type, String billingMode, int dogsIncluded,
             LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
             boolean active, boolean showOnSignup, int order, Entry entryFee, Pack pack, List<CurrentPrice> currentPrices) {
-        this(id, clubId, type, billingMode, dogsIncluded, name, description, conditions, offerLabel, active, showOnSignup, order, entryFee, pack, currentPrices, null);
+        this(id, clubId, type, billingMode, dogsIncluded, name, description, conditions, offerLabel, active, showOnSignup, order, entryFee, pack, currentPrices, null, null);
     }
     public CurrentPrice currentPrice(Concept concept) {
         return currentPrices.stream().filter(p -> p.concept() == concept).findFirst().orElse(null);
@@ -62,6 +75,17 @@ public record SignupPlanData(String id, String clubId, Type type, String billing
                 plan.name(), plan.texts() == null ? null : plan.texts().description(), plan.conditions(),
                 plan.texts() == null ? null : plan.texts().offerLabel(), plan.active(), plan.showOnSignup(), plan.order(),
                 entry, plan.pack() == null ? null : new Pack(plan.pack().sessions(), plan.pack().validityMonths()), current,
-                plan.texts() == null ? null : plan.texts().priceLabel());
+                plan.texts() == null ? null : plan.texts().priceLabel(), overlap(current));
+    }
+    /** E138: the first concept with two current prices, in the order of {@code current} (the plan's prices by concept, start, id). */
+    private static PriceOverlap overlap(List<CurrentPrice> current) {
+        for (int index = 0; index < current.size(); index++) {
+            for (int other = index + 1; other < current.size(); other++) {
+                if (current.get(index).concept() == current.get(other).concept()) {
+                    return new PriceOverlap(current.get(index).concept(), current.get(index).id(), current.get(other).id());
+                }
+            }
+        }
+        return null;
     }
 }

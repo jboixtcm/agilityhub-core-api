@@ -280,6 +280,48 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
     }
 
     /**
+     * Ruling E138 (E11-T13, INC-74): with a legacy start twin (two current MONTHLY_FEE prices of ABONAT, INC-68), ABONAT leaves the
+     * public signup offer (`GET /signup`, and a new submission that requests it), and D2 refuses to validate a submission on it,
+     * dry run included, with billing's `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`; nothing is written. The
+     * admin's list keeps the plan with both prices, and once the twin is resolved the same submission validates.
+     */
+    @Test void E138_aPlanWithAPriceTwinLeavesTheSignupOfferAndD2RefusesItsValidation() throws Exception {
+        assertThat(ids(anonymous("ca").path("plans"))).contains(planId("ABONAT"));
+        String id=submitted(request(planId("ABONAT")));
+        var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);
+        String priceId=review.at("/proposals/priceId").asText();
+        var body=validation(review);body.put("nextInvoiceDate",review.at("/proposals/nextInvoiceDate").asText());
+        // The twin as INC-68 left it: ABONAT's current monthly price again, with its start stored as a BSON date of the same day.
+        var twin=new Document(mongo.getCollection("prices").find(new Document("_id",priceId).append("clubId",club)).first());
+        twin.put("_id","e138-twin");twin.put("validFrom",Date.from(java.time.LocalDate.parse(twin.getString("validFrom")).atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));
+        twin.put("amount",new Document("amountMinor",twin.get("amount",Document.class).get("amountMinor",Number.class).longValue()+500).append("currency","EUR"));
+        mongo.getCollection("prices").insertOne(twin);
+
+        assertThat(ids(anonymous("ca").path("plans"))).doesNotContain(planId("ABONAT")).contains(planId("PACK6"));
+        assertThat(result(postJson("/signup",request(planId("ABONAT"))).header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr("198.51.100.252");return r;}),422)
+                .path("code").asText()).isEqualTo("PLAN_NOT_AVAILABLE");
+        for(String dryRun:List.of("true","false")) {
+            var refused=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun",dryRun)),409);
+            assertThat(refused.path("code").asText()).as(dryRun).isEqualTo("PRICE_OVERLAP");
+            assertThat(refused.at("/details/planId").asText()).as(dryRun).isEqualTo(planId("ABONAT"));
+            assertThat(refused.at("/details/concept").asText()).as(dryRun).isEqualTo("MONTHLY_FEE");
+            assertThat(List.of(refused.at("/details/priceId").asText(),refused.at("/details/conflictingPriceId").asText())).as(dryRun).containsExactlyInAnyOrder(priceId,"e138-twin");
+        }
+        assertThat(member(id).getString("status")).isEqualTo("PENDING");assertThat(member(id).getString("priceId")).isNull();
+        JsonNode row=null;for(var item:result(admin(get("/api/v1/plans")),200).path("items")) if(item.path("id").asText().equals(planId("ABONAT"))) row=item;
+        assertThat(row).as("the admin's list keeps ABONAT").isNotNull();
+        assertThat(row.path("currentPrices").findValuesAsText("id")).containsExactlyInAnyOrder(priceId,"e138-twin");
+
+        mongo.getCollection("prices").deleteOne(new Document("_id","e138-twin").append("clubId",club));
+        var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
+        assertThat(dry.at("/price/id").asText()).isEqualTo(priceId);
+        body.put("upfrontAmountPaid",mapper.convertValue(dry.at("/upfront/totalDue"),Map.class));
+        result(admin(postJson("/members/"+id+"/validation",body)),200);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");assertThat(member(id).getString("priceId")).isEqualTo(priceId);
+        assertThat(ids(anonymous("ca").path("plans"))).contains(planId("ABONAT"));
+    }
+
+    /**
      * R-04-13, T-04-16, INC-39 (E11-T10): the family-fare proposal counts the dogs of the group the validation leaves the member in,
      * every member's. An applicant without a claim whom D2 puts in a group (`familyGroupId`) with two dogs gets the largest
      * family fare (no plan includes three); a claim on the holder of that group counts three and, once a fare includes three,

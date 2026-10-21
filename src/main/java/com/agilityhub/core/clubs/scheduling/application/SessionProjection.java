@@ -80,10 +80,23 @@ public class SessionProjection {
             out.put("weekId",c.weekId()); out.put("startsAt",c.startsAt()); out.put("endsAt",c.endsAt()); out.put("ringId",c.ringId()); out.put("instructorIds",c.instructorIds());
             out.put("capacityMode",c.capacityMode()); out.put("description",c.description());
             out.put("counters",Map.of("booked",c.counters().booked(),"waiting",enabled(Module.WAITLIST)?c.counters().waiting():0));
-            out.put("atRisk",risk(c).atRisk()); out.put("riskExempt",c.risk().exempt()); out.put("cancellation",c.cancellation()); out.put("origin",c.origin());
+            out.put("atRisk",risk(c).atRisk()); out.put("riskExempt",c.risk().exempt()); out.put("cancellation",cancellation(c)); out.put("origin",c.origin());
             if(enabled(Module.COURSES)) out.put("placementId",c.placementId()); if(RingBlockService.role("ADMIN")) out.put("notes",c.notes());
             out.put("version",c.version()); out.put("inconsistencyIds",inconsistencyIds);
         }
+        return out;
+    }
+    /**
+     * S06 §3 `cancellation` (INC-41, E11-T13): the stored cancellation and `reviewTime`, the club's `classes.riskReviewTime`
+     * (`HH:mm`, club-local) at the time of the view, only for the risk review's (R-06-13); null otherwise. Never a literal time.
+     */
+    private Map<String,Object> cancellation(ClassSession c) {
+        var stored=c.cancellation(); if(stored==null) return null;
+        var out=new LinkedHashMap<String,Object>();
+        out.put("reason",stored.reason()); out.put("adminText",stored.adminText()); out.put("byAccountId",stored.byAccountId()); out.put("at",stored.at());
+        out.put("affectedBookings",stored.affectedBookings()); out.put("affectedWaitlist",stored.affectedWaitlist());
+        out.put("reviewTime",stored.reason()!=ClassCancellationReason.RISK_REVIEW?null
+                :LocalTime.parse(context.config().get("classes.riskReviewTime",String.class)).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
         return out;
     }
     /**

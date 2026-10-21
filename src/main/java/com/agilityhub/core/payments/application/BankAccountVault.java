@@ -64,9 +64,10 @@ public class BankAccountVault implements BankAccounts {
 
     /**
      * {@link BankAccounts#seal}: `{ibanEncrypted, ibanLast4}`. Without `BILLING_BANK_KEY`, E11-T02 round 2 (review #8): the local
-     * stack and the tests keep `{iban}` in clear with a WARN; any other profile (staging, prod, none) does not start without it,
-     * and a vault that still has no key refuses with `500 INTERNAL_ERROR` (AGENTS rule 9, E11-T11), a server misconfiguration,
-     * so that a deployment without the key never quietly undoes INC-31.
+     * stack and the tests keep `{iban}` in clear with a WARN; any other profile (staging, prod) does not start without it, and a
+     * vault that still has no key refuses with `500 INTERNAL_ERROR` (AGENTS rule 9, E11-T11), a server misconfiguration, so that
+     * a deployment without the key never quietly undoes INC-31. A run with no active profile is `local` by design
+     * (`spring.profiles.default: local`, ruling E139): it starts and keeps the IBAN in clear with the WARN.
      */
     @Override public Map<String, Object> seal(String iban, String clubId, String memberId) {
         var stored = new LinkedHashMap<String, Object>();

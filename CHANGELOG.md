@@ -19,6 +19,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - S18 R-18-10, R-13-14 (F9): a migrated pack with nothing left is `ACTIVE` with `remaining 0`, and P5a also expires a `CLOSED` pack. The member's automatic leave is then scheduled.
   - `docs/DEPLOY.md` (F10): «Billing and migration facts for the first runs».
   - S12 R-12-19/26 (F11): `POST /invoices` takes an optional `period`.
+- E11-T13: api correction pass, part 6 (INC-74, rulings E138 and E139) and the club's risk-review time (INC-41). Contract changes in `docs/openapi/CHANGELOG.md` (2026-10-21 · E11-T13).
+  - Rate limits: each route's bucket cache keeps an equal share of the 100 000-bucket bound (4 761), so the total stays bounded; a failing known-clubs lookup (Mongo down) counts the Stripe webhook as `unknown:<ip>` and goes on to the controller instead of a 500 from the filter.
+  - Ruling E138: a plan with two current prices of one concept (a legacy start twin of INC-68) leaves `GET /signup` and `GET /public/{clubSlug}/plans`; D2's validation (dry run included) answers `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`; the admin's plan list keeps it.
+  - `PriceRepository`'s two cross-tenant startup helpers are package-private; a twin removal logs at WARN; the references to a price are `members`, `invoices.lines` and `pending_charges` (DEPLOY.md's twin procedure too). `StoredDays` documents the writer-offset rule and its +13:00 limit.
+  - `CATALEG_ERRORS.md`: `PRICE_OVERLAP` in the S12 and S04 rows. S01 §3 `graceSiblingAt` is a marker never read; CONVENCIONS_API §7 defines the «Idempotent» column.
+  - S14: an IT proves the platform's cancel deletes a blocked request's pending files at once; `filesCleaned` of the daily `erasures` run counts the files a club's part deletes after its commit.
+  - Ruling E139: a run with no active profile is `local` (DEPLOY.md, `BankAccountVault.seal`, the vault test reads `spring.profiles.default` from `application.yml`).
+  - INC-41: `ClassCancellation.reviewTime` (`HH:mm` of `classes.riskReviewTime`, only for `RISK_REVIEW`) in the staff class views; `ClassCancellation.byAccountId` is nullable (the risk review cancels as the system). The member's views carry no reason and gain nothing.
+
 - E11-T11: api correction pass, part 5 (the follow-ups of the second rounds of E11-T01 and E11-T02; ruling E134). No contract change.
   - S14 R-14-15: the files of a club erased for an `ACCOUNT` request leave the store once that club's part commits (`ErasureFilesCleanup.cleanAfterCommit`), while the request waits, is `BLOCKED` or is cancelled; `clean` and the daily `erasures` retry process pending files in any status and close only an `ERASING` request.
   - S14 R-14-13: `data.json` keeps only `status` and `holderMemberId` of `familyGroupClaim`; the fail-closed name filter covers `…Names` keys and keeps the actor flag in maps nested under a `…By` key.

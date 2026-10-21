@@ -282,7 +282,8 @@ class E3ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_04_25_errorRowHasExactlyTheCanonicalCodesStatusesAndThreeTranslations() throws Exception {
         var expected = new LinkedHashMap<String, Integer>();
-        for (String code : List.of("MEMBER_ALREADY_EXISTS","MEMBERSHIP_EXISTS")) { expected.put(code,409); }
+        // Ruling E138 (E11-T13): D2's validation of a plan with a price twin answers billing's PRICE_OVERLAP.
+        for (String code : List.of("MEMBER_ALREADY_EXISTS","MEMBERSHIP_EXISTS","PRICE_OVERLAP")) { expected.put(code,409); }
         for (String code : List.of("INVALID_ID_DOCUMENT","INVALID_PHONE","FILE_NOT_FOUND")) { expected.put(code,400); }
         for (String code : List.of("SIGNUP_CLOSED","SIGNUP_ALREADY_PENDING","ID_DOCUMENT_AMBIGUOUS","PLAN_NOT_AVAILABLE","PAYMENT_METHOD_NOT_AVAILABLE","PAYMENT_PROVIDER_NOT_ENABLED","DOG_CHIP_ALREADY_REGISTERED","DOG_DOCUMENT_REQUIRED","CONSENT_VERSION_OUTDATED","LEVEL_REQUIRED","NEXT_INVOICE_DATE_REQUIRED","UPFRONT_AMOUNT_EXCEEDS_DUE","FAMILY_HOLDER_NOT_FOUND",
                 "CURRENCY_MISMATCH")) { expected.put(code,422); } // INC-39 (E11-T10): the validation's currency check, R-04-16

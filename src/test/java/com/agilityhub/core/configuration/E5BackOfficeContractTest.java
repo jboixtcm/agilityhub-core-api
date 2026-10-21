@@ -112,6 +112,28 @@ class E5BackOfficeContractTest {
         }
     }
 
+    /**
+     * INC-41 (E11-T13), S06 §3: `ClassCancellation.reviewTime`, the club's review time as `HH:mm`, null unless the risk review
+     * cancelled the class (nullable, so not in `required`, like `adminText`: RequiredPropertiesModelConverter); both class forms (the
+     * class and the list row) embed that one schema. The behaviour, the field always sent, is
+     * {@code CalendarIT.T_06_25_INC_41_aRiskReviewCancellationCarriesTheClubsReviewTimeAndAManualOneNone}.
+     */
+    @Test void S06_3_INC_41_theClassCancellationCarriesTheReviewTime() {
+        assertThat(nullable("ClassCancellation", "reviewTime")).containsExactlyInAnyOrder("string", "null");
+        assertThat(texts(schema("ClassCancellation").path("required"))).contains("reason", "at").doesNotContain("reviewTime", "adminText", "byAccountId");
+        // RiskReviewJob cancels as the system: byAccountId is null there, as the api sends it (found by the snapshot check of CalendarIT).
+        assertThat(nullable("ClassCancellation", "byAccountId")).containsExactlyInAnyOrder("string", "null");
+        assertThat(schema("ClassCancellation").at("/properties/reviewTime/pattern").asText()).isEqualTo("^\\d{2}:\\d{2}$");
+        assertThat(schema("ClassCancellation").at("/properties/reviewTime/description").asText()).contains("classes.riskReviewTime", "RISK_REVIEW");
+        for (String form : List.of("ClassSession", "ClassSessionListItem")) {
+            assertThat(document.toString()).contains("\"" + form + "\"");
+            var cancellation = schema(form).at("/properties/cancellation");
+            assertThat(cancellation.toString()).as(form).contains("#/components/schemas/ClassCancellation");
+        }
+        // The members' booking views carry no reason today (BookingCancellation): nothing is added there (INC-41's labels are the admin's).
+        assertThat(schema("BookingCancellation").path("properties").has("reviewTime")).isFalse();
+    }
+
     /** Steps 13 and 14: the owner's first name, and the impersonated member's name on `/me`. */
     @Test void R_10_00_T_01_11_theOwnersFirstNameAndTheImpersonatedMembersName() {
         assertThat(texts(schema("OwnerSummary").path("required"))).contains("firstName");

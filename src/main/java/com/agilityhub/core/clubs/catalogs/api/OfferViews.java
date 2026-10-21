@@ -86,10 +86,18 @@ public class OfferViews {
         catalogs.checkInactive(inactive); var items = plans.list(inactive).stream().map(item -> plan(item, false, false)).toList();
         return new CatalogItems<>(items, items.size());
     }
+    /**
+     * Ruling E138 (E11-T13, INC-68): whether a concept has two of {@code current} (a legacy start twin), which billing refuses
+     * to bill (`PRICE_OVERLAP`). Such a plan leaves the public offer; the admin's views keep it with both prices.
+     */
+    private static boolean twinned(List<Price> current) {
+        return current.stream().map(Price::concept).distinct().count() < current.size();
+    }
     CatalogResponses.PublicPlans publicPlans(Locale locale) {
         var club = plans.config().club();
-        var items = plans.list(false).stream().filter(plan -> plan.showOnWeb() && plans.offered(plan)).map(plan -> {
-            var current = billing() ? current(plan) : List.<Price>of();
+        var items = plans.list(false).stream().filter(plan -> plan.showOnWeb() && plans.offered(plan))
+                .map(plan -> Map.entry(plan, billing() ? current(plan) : List.<Price>of())).filter(row -> !twinned(row.getValue())).map(row -> {
+            var plan = row.getKey(); var current = row.getValue();
             return new CatalogResponses.PublicPlan(plan.id(), plan.code(), text(plan.name(), locale), plan.name().values(),
                     map(plan.type(), CatalogResponses.PlanType.class), map(plan.billingMode(), CatalogResponses.BillingMode.class), plan.dogsIncluded(),
                     billing() ? priceLine(plan, locale, current) : null, text(plan.conditions(), locale), translations(plan.conditions(), true),

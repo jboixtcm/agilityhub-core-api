@@ -14,7 +14,10 @@ public final class SignupPlanCatalog {
                         LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
                         Pack pack, CurrentPrice price, Money entryFee, Money maintenanceFee, List<CurrentPrice> prices,
                         LocalizedText priceLabel) { }
-    /** The public offer of `GET /signup` and of the applicant's `planIdRequested`: `active ∧ showOnSignup ∧ module`. */
+    /**
+     * The public offer of `GET /signup` and of the applicant's `planIdRequested`: `active ∧ showOnSignup ∧ module`. Ruling E138
+     * (E11-T13): with BILLING, never a plan with a price twin ({@link SignupPlanData#overlap()}), which billing refuses to bill.
+     */
     public static List<Offer> list(String clubId, List<SignupPlanData> plans, Set<Module> modules, Money standardEntryFee) {
         return select(clubId, plans, modules, standardEntryFee, true);
     }
@@ -27,7 +30,7 @@ public final class SignupPlanCatalog {
     }
     private static List<Offer> select(String clubId, List<SignupPlanData> plans, Set<Module> modules, Money standardEntryFee, boolean offered) {
         boolean billing = modules.contains(Module.BILLING);
-        return plans.stream().filter(p -> p.clubId().equals(clubId) && p.active() && (!offered || p.showOnSignup()))
+        return plans.stream().filter(p -> p.clubId().equals(clubId) && p.active() && (!offered || p.showOnSignup() && !(billing && p.overlap() != null)))
                 .filter(p -> switch (p.type()) {
                     case MONTHLY -> true;
                     case PACK -> modules.contains(Module.PACKS);

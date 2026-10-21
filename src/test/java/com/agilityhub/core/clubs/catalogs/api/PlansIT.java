@@ -228,6 +228,30 @@ class PlansIT extends AbstractIntegrationTest {
         club.put("status", "SUSPENDED"); club.put("version", clubs.findById(CLUB).orElseThrow().version()); clubs.save(mapper.convertValue(club, Club.class));
         error(mvc.perform(get("/api/v1/public/canic/plans").header("X-Api-Key", publicKey)), 403, "CLUB_SUSPENDED");
     }
+    /**
+     * Ruling E138 (E11-T13, INC-74): a plan whose concept has two current prices (a legacy start twin INC-68's conversion
+     * reported) is not offered publicly; the admin's list keeps showing it, with both prices.
+     */
+    @Test void E138_aPlanWithAPriceTwinLeavesThePublicOfferAndTheAdminsListKeepsIt() throws Exception {
+        String twinned = plan("TWINNED", "MONTHLY"), other = plan("OTHER", "MONTHLY");
+        String kept = price(twinned, 6000, "2026-01-01", null).at("/price/id").asText();
+        price(other, 5000, "2026-01-01", null);
+        var before = json(mvc.perform(get("/api/v1/public/canic/plans").header("X-Api-Key", publicKey)), 200);
+        assertThat(before.path("plans").findValuesAsText("id")).containsExactlyInAnyOrder(twinned, other);
+        // The twin as INC-68 left it: the same plan, concept and start, the start still a BSON date (the old index saw two starts).
+        mongo.insert(new Document("_id", "price-twin").append("clubId", CLUB).append("planId", twinned).append("concept", "MONTHLY_FEE")
+                .append("amount", new Document("amountMinor", 6500L).append("currency", "EUR")).append("taxPercent", "0")
+                .append("validFrom", Date.from(Instant.parse("2026-01-01T00:00:00Z"))).append("validTo", null).append("version", 0L)
+                .append("createdAt", Date.from(clock.instant())).append("updatedAt", Date.from(clock.instant())).append("_class", Price.class.getName()), "prices");
+
+        var after = json(mvc.perform(get("/api/v1/public/canic/plans").header("X-Api-Key", publicKey)), 200);
+        assertThat(after.path("plans").findValuesAsText("id")).containsExactly(other);
+        var listed = json(admin(get("/api/v1/plans")), 200);
+        JsonNode row = null; for (var item : listed.path("items")) { if (item.path("id").asText().equals(twinned)) { row = item; } }
+        assertThat(row).as("the admin's list keeps the twinned plan").isNotNull();
+        assertThat(row.path("currentPrices").findValuesAsText("id")).containsExactlyInAnyOrder(kept, "price-twin");
+        assertThat(json(admin(get("/api/v1/plans/" + twinned)), 200).path("currentPrices")).hasSize(2);
+    }
     @Test void T_05_20_concurrentPriceCreationAndPlanEditsHaveOneWinner() throws Exception {
         String plan = plan("CONCURRENT", "MONTHLY"); price(plan, 6000, "2026-01-01", null);
         try (var executor = Executors.newFixedThreadPool(2)) {

@@ -61,10 +61,18 @@ public class ErasureFilesCleanup {
      * The cleanup once the caller's transaction commits (nothing on a rollback); at once without one. A failure here is only
      * logged: the files stay in `filesPending[]` and the next daily run deletes them.
      */
-    public void cleanAfterCommit(String requestId) {
+    public void cleanAfterCommit(String requestId) { cleanAfterCommit(requestId, () -> { }); }
+
+    /**
+     * {@link #cleanAfterCommit(String)}, and {@code cleaned} runs on the same thread once the cleanup deleted a file or closed the
+     * request, never after a failure. INC-74 (E11-T13): the daily run's item counts it in `filesCleaned` of that run.
+     */
+    public void cleanAfterCommit(String requestId, Runnable cleaned) {
         Runnable work = () -> {
-            try { outside.executeWithoutResult(status -> clean(requestId)); }
+            boolean done = false;
+            try { done = Boolean.TRUE.equals(outside.execute(status -> clean(requestId))); }
             catch (RuntimeException failure) { log.warn("Erasure files of request {} left for the daily retry: {}", requestId, failure.getClass().getName()); }
+            if (done) { cleaned.run(); }
         };
         if (!TransactionSynchronizationManager.isSynchronizationActive()) { work.run(); return; }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() { @Override public void afterCommit() { work.run(); } });

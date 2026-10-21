@@ -54,12 +54,15 @@ class BankAccountVaultTest {
 
     /**
      * INC-31, E11-T02 round 2 (review #8): without `BILLING_BANK_KEY` only the local stack and the tests store an IBAN in clear,
-     * with a WARN that names no account; staging, prod or no profile refuse it as a misconfiguration, never undoing INC-31: they do
-     * not start (E11-T11), and a keyless vault's refusal is `500 INTERNAL_ERROR`.
+     * with a WARN that names no account; staging and prod refuse it as a misconfiguration, never undoing INC-31: they do not start
+     * (E11-T11), and a keyless vault's refusal is `500 INTERNAL_ERROR`. Ruling E139 (INC-74, E11-T13): a run with no active
+     * profile is `local` by design (`spring.profiles.default: local` in `application.yml`), so it keeps the clear IBAN with the
+     * WARN; that case reads the default profile from the real `application.yml` instead of a bare `MockEnvironment`, whose
+     * default profile (`default`) the real configuration never has.
      */
     @Test @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
-    void INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns(org.springframework.boot.test.system.CapturedOutput output) {
-        for (var profiles : java.util.List.of(new String[]{"prod"}, new String[]{"staging"}, new String[]{})) {
+    void INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+        for (var profiles : java.util.List.of(new String[]{"prod"}, new String[]{"staging"})) {
             var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profiles);
             // E11-T11: the application does not start without a usable key outside local and test (missing or malformed).
             for (String unusable : new String[]{"", "%%%"}) {
@@ -81,6 +84,13 @@ class BankAccountVaultTest {
             var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profile);
             assertThat(new BankAccountVault("", environment).seal(IBAN, "club-a", "member-a")).containsExactly(Map.entry("iban", IBAN));
         }
+        // No active profile, as the real configuration resolves it: `spring.profiles.default` of application.yml, i.e. `local`.
+        var yaml = new org.springframework.boot.env.YamlPropertySourceLoader().load("application", new org.springframework.core.io.ClassPathResource("application.yml"));
+        String defaults = String.valueOf(yaml.getFirst().getProperty("spring.profiles.default"));
+        assertThat(defaults).isEqualTo("local");
+        var profileless = new org.springframework.mock.env.MockEnvironment(); profileless.setDefaultProfiles(defaults);
+        assertThat(profileless.getActiveProfiles()).isEmpty();
+        assertThat(new BankAccountVault("", profileless).seal(IBAN, "club-a", "member-a")).containsExactly(Map.entry("iban", IBAN));
         assertThat(output.getAll()).contains("BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a")
                 .doesNotContain(IBAN).doesNotContain("member-a");
     }

@@ -75,6 +75,19 @@ public class SignupPolicy {
         if (id == null && offers(today()).isEmpty()) { return null; }
         return plan(SignupPlanCatalog.require(plans, id));
     }
+    /**
+     * Ruling E138 (E11-T13, INC-68's twins): with BILLING, D2 never validates {@code plan} while one of its concepts has two
+     * current prices: `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`, the details billing answers for it.
+     */
+    public void requireOnePricePerConcept(Plan plan) {
+        if (plan == null || !config().modules().contains(com.agilityhub.core.platform.application.Module.BILLING)) { return; }
+        var overlap = catalogs.at(today()).stream().filter(p -> p.id().equals(plan.id()) && p.clubId().equals(TenantContext.require()))
+                .map(com.agilityhub.core.clubs.catalogs.application.SignupPlanData::overlap).filter(java.util.Objects::nonNull).findFirst().orElse(null);
+        if (overlap != null) {
+            throw new ApiException(ErrorCode.PRICE_OVERLAP, Map.of("planId", plan.id(), "concept", overlap.concept().name(),
+                    "priceId", overlap.priceId(), "conflictingPriceId", overlap.conflictingPriceId()));
+        }
+    }
     private Plan plan(SignupPlanCatalog.Offer offer) {
         var price = offer.price();
         return new Plan(offer.id(), offer.type().name(), offer.billingMode(), offer.dogsIncluded(), offer.name(), offer.description(),

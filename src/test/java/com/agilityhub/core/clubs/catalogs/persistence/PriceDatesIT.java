@@ -45,6 +45,7 @@ class PriceDatesIT extends AbstractIntegrationTest {
     @AfterEach void dropPrices() {
         mongo.getCollection("prices").deleteMany(eq("clubId", CLUB));
         mongo.getCollection("members").deleteMany(eq("clubId", CLUB));
+        mongo.getCollection("pending_charges").deleteMany(eq("clubId", CLUB));
     }
 
     @Test void INC_68_aPriceWrittenWholeOrPatchedIsStoredAsADayStringAndChosenForTheBillingDate() {
@@ -104,9 +105,27 @@ class PriceDatesIT extends AbstractIntegrationTest {
         assertThat(raw("inc68-legacy-twin")).isNull();
         assertThat(raw("inc68-string")).containsEntry("validFrom", "2026-01-01");
         assertThat(output).contains("Price start twins removed count=1 ids=[inc68-legacy-twin]").doesNotContain("PriceStartTwins");
+        // INC-74 (E11-T13): a removal at startup is logged at WARN, with the same text.
+        assertThat(output.getOut()).containsPattern("WARN +\\[[^]]*] \\S*PriceRepository .*: Price start twins removed count=1 ids=\\[inc68-legacy-twin]");
         try (var tenant = TenantContext.open(CLUB)) {
             assertThat(resolver.current(PLAN, PriceConcept.MONTHLY_FEE, LocalDate.parse("2026-02-01"))).get().extracting(Price::id).isEqualTo("inc68-string");
         }
+    }
+
+    /**
+     * INC-74 (E11-T13): the references that name a price are `members.priceId`, `invoices.lines.priceId` and
+     * `pending_charges.priceId` (`Collection` and `PackBalance` carry none). An identical twin that only a pending charge
+     * names is kept and reported.
+     */
+    @Test void INC_74_anIdenticalTwinThatOnlyAPendingChargeNamesIsKeptAndReported(CapturedOutput output) throws Exception {
+        mongo.getCollection("prices").insertOne(legacy("inc68-legacy-twin", "2026-01-01", null, 4500));
+        try (var tenant = TenantContext.open(CLUB)) { prices.insert(price("inc68-string", "2026-01-01", null, 0)); }
+        mongo.getCollection("pending_charges").insertOne(new Document("_id", "inc74-charge").append("clubId", CLUB).append("memberId", "inc74-member")
+                .append("priceId", "inc68-legacy-twin").append("amount", new Document("amountMinor", 4500L).append("currency", "EUR")));
+
+        startup();
+        assertThat(raw("inc68-legacy-twin").get("validFrom")).isInstanceOf(Date.class);
+        assertThat(output).contains("PriceStartTwins count=1 ids=[inc68-legacy-twin]").doesNotContain("Price start twins removed");
     }
 
     @Test void INC_68_round2_anIdenticalTwinThatADocumentNamesIsKeptAndReported(CapturedOutput output) throws Exception {

@@ -57,10 +57,13 @@ public class PriceRepository extends TenantRepository<Price> {
      *
      * <p>Round 2: a converted start that would duplicate another price's (unique `price_start`; before the fix the index saw a
      * date and a string as two starts) is a twin. A twin identical to the price kept (amount, tax, end) that no document names
-     * (`members.priceId`, `invoices.lines.priceId`, `pending_charges`, `collections`, `pack_balances`) is removed. Any other
+     * (`members.priceId`, `invoices.lines.priceId`, `pending_charges.priceId`) is removed, with a WARN. Any other
      * twin stays a date and is reported by {@link #legacyStartTwins()}: billing then refuses to choose ({@link #current}).
+     *
+     * <p>INC-74 (E11-T13): a startup helper of {@link CatalogPersistence} that reads and writes every club (no tenant, the
+     * documented exception to `TenantRepository`), hence package-private.
      */
-    public long normaliseValidityDates() {
+    long normaliseValidityDates() {
         String collection = mongo.getCollectionName(Price.class);
         int date = BsonType.DATE_TIME.getValue();
         var legacy = Query.query(new Criteria().orOperator(Criteria.where("validFrom").type(date), Criteria.where("validTo").type(date)));
@@ -78,7 +81,7 @@ public class PriceRepository extends TenantRepository<Price> {
             }
         }
         if (!removed.isEmpty()) {
-            LoggerFactory.getLogger(PriceRepository.class).info("Price start twins removed count={} ids={}", removed.size(), removed);
+            LoggerFactory.getLogger(PriceRepository.class).warn("Price start twins removed count={} ids={}", removed.size(), removed);
         }
         return converted;
     }
@@ -86,8 +89,9 @@ public class PriceRepository extends TenantRepository<Price> {
     /**
      * INC-68 round 2: the ids of the prices whose start is still a BSON date after {@link #normaliseValidityDates()}, i.e. the
      * twins it kept (or a price written meanwhile by an old process). `docs/DEPLOY.md` says how to resolve them by hand.
+     * INC-74 (E11-T13): a startup helper of {@link CatalogPersistence} over every club (no tenant), hence package-private.
      */
-    public List<String> legacyStartTwins() {
+    List<String> legacyStartTwins() {
         var legacy = Query.query(Criteria.where("validFrom").type(BsonType.DATE_TIME.getValue())).with(Sort.by("_id"));
         legacy.fields().include("_id");
         return mongo.find(legacy, Document.class, mongo.getCollectionName(Price.class)).stream().map(row -> String.valueOf(row.get("_id"))).toList();
@@ -104,10 +108,12 @@ public class PriceRepository extends TenantRepository<Price> {
                 && (twin.taxPercent() == null ? price.taxPercent() == null : price.taxPercent() != null && twin.taxPercent().compareTo(price.taxPercent()) == 0);
     }
 
-    /** Whether a document of the club names the price (its member, invoice line, pending charge, upfront collection or pack). */
+    /**
+     * Whether a document of the club names the price: a member, an invoice line or a pending charge. INC-74 (E11-T13): a
+     * `Collection` or a `PackBalance` carries no `priceId` (the model's rows), so neither names one.
+     */
     private boolean named(Object clubId, Object priceId) {
-        var references = Map.of("members", "priceId", "invoices", "lines.priceId", "pending_charges", "priceId",
-                "collections", "priceId", "pack_balances", "priceId");
+        var references = Map.of("members", "priceId", "invoices", "lines.priceId", "pending_charges", "priceId");
         return references.entrySet().stream().anyMatch(reference -> mongo.exists(
                 Query.query(Criteria.where("clubId").is(clubId).and(reference.getValue()).is(priceId)), reference.getKey()));
     }

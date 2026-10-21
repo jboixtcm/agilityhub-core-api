@@ -46,12 +46,28 @@ class PrivacyJobsTest {
         var items = job.plan(context(false));
         assertThat(items).extracting(JobItem::entityId, JobItem::action).containsExactly(tuple("due", "ERASE"), tuple("stuck", "DELETE_FILES"));
         verify(recorder).count("erased", 0); verify(recorder).count("blocked", 0);
-        when(executor.execute("due")).thenReturn(ErasureExecutor.Outcome.BLOCKED);
+        when(executor.execute(eq("due"), any())).thenReturn(ErasureExecutor.Outcome.BLOCKED);
         assertThat(job.apply(context(false), items.get(0)).counters()).containsEntry("blocked", 1L);
         when(cleanup.clean("stuck")).thenReturn(true);
         assertThat(job.apply(context(false), items.get(1)).counters()).containsEntry("filesCleaned", 1L);
         when(cleanup.clean("stuck")).thenReturn(false);
         assertThat(job.apply(context(false), items.get(1)).action()).isEqualTo("NOT_IN_SCOPE");
+    }
+
+    /**
+     * INC-74 (E11-T13, step 9): a club's part that does not complete its request deletes its files once the item commits
+     * (E11-T11); that cleanup counts one `filesCleaned` in the run's recorder, and a part with no file cleaned counts none.
+     */
+    @Test void R_14_15_INC_74_theFilesTheAfterCommitCleanupDeletesCountInTheRun() {
+        var job = new ErasuresJob(requests, executor, cleanup);
+        var item = new JobItem("ErasureRequest", "half", "ERASE");
+        when(executor.execute(eq("half"), any())).thenAnswer(call -> { call.<Runnable>getArgument(1).run(); return ErasureExecutor.Outcome.PARTIAL; });
+        assertThat(job.apply(context(false), item).counters()).containsEntry("partial", 1L);
+        verify(recorder).count("filesCleaned", 1L);
+        reset(recorder);
+        when(executor.execute(eq("half"), any())).thenReturn(ErasureExecutor.Outcome.PARTIAL);
+        job.apply(context(false), item);
+        verify(recorder, never()).count(eq("filesCleaned"), anyLong());
     }
 
     @Test void T_14_20_theSweepFindsLeftMembersRejectedSignupsOwnedTasksAndOldAuditEntries() {

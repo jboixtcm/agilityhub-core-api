@@ -1,0 +1,7 @@
+$ ./mvnw -q test -Dtest='BankAccountVaultTest' -Dsurefire.failIfNoSpecifiedTests=false -Djacoco.skip=true
+# the relabelled case reads spring.profiles.default from application.yml
+18:59:07.516 [main] WARN com.agilityhub.core.payments.application.BankAccountVault -- BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a
+18:59:07.538 [main] WARN com.agilityhub.core.payments.application.BankAccountVault -- BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a
+18:59:07.538 [main] WARN com.agilityhub.core.payments.application.BankAccountVault -- BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a
+18:59:07.564 [main] WARN com.agilityhub.core.payments.application.BankAccountVault -- BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a
+exit 0

@@ -3959,3 +3959,22 @@ Questions (report §Questions):
 2. A plan change to a plan with no `entryFee` answers 500 (`EntryFeeCalculator.perDog`). This was already so before this task; I propose an INC item.
 3. No N-41-style notice proposed: D6's warning seems enough.
 Blocking: no.
+
+## 2026-10-21 · organizer → executor · E152: E11-T09 round 2 verified on a green CI; INC-82 → E11-T16 (two new steps)
+@executor E11-T09's round 2 is verified once the CI run of `78161c81` is green (the organizer's reviewer confirmed the five points and reproduced the Compose and Maven reds locally). One latent finding: `alterIndex` → `collMod`, which the production `readWrite` user cannot run (`ImpersonationGrantRepository`, `SecurityEventRepository`) → **E11-T16 step 5** (drop + create, IT on an authenticated Mongo) and **step 6** (`deploy/test_e11_t09.py` in CI). The api-c publish of round 2 conflicted with the organizer's edits of E11-T10.md/E11-T12.md; the organizer resolved it (`78161c81`).
+Blocking: no.
+
+## 2026-10-21 · organizer → executor · E153: Jordi's copy decisions; E11-T14 (Jackson 3) is a task now, after E11-T17; E11-T18 (the template club's catalogs) installed on thread D
+@executor Ruling E153 (`docs/DECISIONS_PENDENTS.md`). Jordi answered the copy register: the error messages go to tu/tú (the `CATALEG_ERRORS.md` texts change with the web's translations in E11-W05 — the api's ICU messages for those codes follow the same register: when E11-W05 lands, a small api follow-up aligns `messages_{ca,es}.properties` if they differ), es says «Bono» for the 10-session pack everywhere, es «revertir» for the remittance rollback (the technical value `RETROCEDIR` stays). **E11-T14 (Jackson 3 + springdoc 3.1) is done now**, on thread B after E11-T17; the gate run waits for it. **E11-T18** (thread D, after E11-T16): the template club's starter catalogs in ca/es/en (levels, rings, plans with es «Bono», FAQ categories with the R-05-21b marker, the 52 message templates without any club literal), so D19's «Catàlegs base» clones part by part. E11-T12 waits for both.
+Blocking: no.
+
+## 2026-10-21 · executor → organizer · E11-T13 handed off (thread D)
+@organizer **E11-T13 is `awaiting_verification`.** Steps 1–11 are done, each with a red → green test (or a mutation red where the code was already right: step 3's D2 refusal and step 7's cancel). The host-locked clean verify exits 0: surefire 4 828 and failsafe 2 199, 0 failures (`24`/`25`). `bin/e8-smoke` and `bin/e5-smoke` PASS (`26`/`27`).
+- Step 1: the equal share, 100 000 / 21 = 4 761 buckets per route.
+- Step 9: counted, not documented. The after-commit hook charges the run's recorder before the runner stores the counters.
+- Step 10: `graceSiblingAt` is marked «marcador, no es llegeix» in S01 §3.
+- One finding beyond the task (step 11): `RiskReviewJob` cancels with a null actor, so `ClassCancellation.byAccountId` was `null` in the api's answers against a required string in the contract. It is now nullable, in the same snapshot entry.
+- Member views carry no cancellation reason (`BookingCancellation`, the live rows of `/me/home`), so `reviewTime` is only in the staff class views. S08 03/07 say so.
+- To sync under E109: CATALEG_ERRORS rows S12 **and S04** (`PRICE_OVERLAP`), CONVENCIONS_API §7, S01 §3, S04 R-04-09/§6, S05 R-05-15, S06 §3, S08 03/07.
+- The web's item: `reviewTime`, the nullable `byAccountId`, and D2's `409 PRICE_OVERLAP`.
+Blocking: no.

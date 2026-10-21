@@ -57,6 +57,22 @@ class RateLimitsTest {
         assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", new RateLimits.Limit(3, Duration.ofHours(1)))).isZero();
     }
 
+    /**
+     * INC-74 (E11-T13): one cache per route (INC-67 round 2) keeps the total bounded: each route keeps at most
+     * {@code MAXIMUM_BUCKETS / routes} buckets, so the sum over every route never passes {@code MAXIMUM_BUCKETS}.
+     */
+    @Test void INC_74_eachRoutesCacheKeepsItsShareSoTheTotalStaysBounded() {
+        var limits = new RateLimits(true, Map.of(), new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        long cap = RateLimits.MAXIMUM_BUCKETS / RateLimits.Route.values().length;
+        for (var route : java.util.List.of(RateLimits.Route.SIGNUP_SUBMIT, RateLimits.Route.SIGNUP_TOWNS)) {
+            for (long subject = 0; subject < cap + 500; subject++) { limits.retryAfter(route, route + ":" + subject, new RateLimits.Limit(5, Duration.ofHours(1))); }
+            assertThat(limits.kept(route)).as(route.name()).isPositive().isLessThanOrEqualTo(cap);
+        }
+        long total = 0;
+        for (var route : RateLimits.Route.values()) { total += limits.kept(route); }
+        assertThat(total).isLessThanOrEqualTo(RateLimits.MAXIMUM_BUCKETS);
+    }
+
     @Test void R_04_20_availableProbesWithoutTakingAndChargeTakesTheToken() {
         var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
         var limits = new RateLimits(true, Map.of(), clock);

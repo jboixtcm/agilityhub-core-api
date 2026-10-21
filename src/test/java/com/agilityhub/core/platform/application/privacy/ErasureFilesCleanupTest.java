@@ -38,7 +38,11 @@ class ErasureFilesCleanupTest {
         verify(requests).fileDeleted("r", "exports:exports/club-a/x.zip", NOW);
     }
 
-    @Test void T_14_19_anUnknownStoreFailsForTheOutboxToRetryAndOtherStatesAreLeftAlone() {
+    /**
+     * Since E11-T11 the pending files of a request in any status are deleted (see the next test); only a file of an unknown
+     * store fails, for the outbox to retry, and a request with nothing pending, or none at all, is left untouched.
+     */
+    @Test void T_14_19_onlyAnUnknownStoreFailsForTheOutboxToRetryAndARequestWithNothingPendingIsLeftAlone() {
         var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments")), new MockClock(NOW), mock(org.springframework.transaction.PlatformTransactionManager.class));
         var request = new com.agilityhub.core.platform.persistence.privacy.ErasureRequest("r", "club-a", "MEMBER", null, List.of("m"), List.of("club-a"), "ADMIN",
                 null, NOW, null, "ERASING", NOW, List.of(), null, null, null, List.of("nowhere:key"), List.of("club-a"), false, true, null, 4);
@@ -76,5 +80,23 @@ class ErasureFilesCleanupTest {
         verify(requests).findById("r");
         when(requests.findById("broken")).thenThrow(new IllegalStateException("store down"));
         assertThatCode(() -> cleanup.cleanAfterCommit("broken")).doesNotThrowAnyException();
+    }
+
+    /** INC-74 (E11-T13, step 9): the caller hears of a cleanup that deleted a file, never of one that failed or found nothing. */
+    @Test void R_14_15_INC_74_theAfterCommitCleanupTellsTheCallerOnlyWhenItCleaned() {
+        var manager = mock(org.springframework.transaction.PlatformTransactionManager.class);
+        when(manager.getTransaction(any())).thenReturn(new org.springframework.transaction.support.SimpleTransactionStatus());
+        var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments")), new MockClock(NOW), manager);
+        var heard = new ArrayList<String>();
+        when(requests.findById("r")).thenReturn(Optional.of(new com.agilityhub.core.platform.persistence.privacy.ErasureRequest("r", null, "ACCOUNT", "montse-account",
+                List.of("m", "n"), List.of("club-a", "club-b"), "PLATFORM", null, NOW, null, "SCHEDULED", NOW, List.of(), null, null, null,
+                List.of("attachments:dogs/photo.jpg"), List.of("club-a"), false, true, null, 4)));
+        cleanup.cleanAfterCommit("r", () -> heard.add("r"));
+        assertThat(deleted).containsExactly("attachments:dogs/photo.jpg");
+        when(requests.findById("s")).thenReturn(Optional.of(PrivacyFixtures.request("s", "ACCOUNT", "SCHEDULED", List.of("m"), List.of("club-a"), List.of("club-a"), null)));
+        cleanup.cleanAfterCommit("s", () -> heard.add("s"));
+        when(requests.findById("broken")).thenThrow(new IllegalStateException("store down"));
+        cleanup.cleanAfterCommit("broken", () -> heard.add("broken"));
+        assertThat(heard).containsExactly("r");
     }
 }
