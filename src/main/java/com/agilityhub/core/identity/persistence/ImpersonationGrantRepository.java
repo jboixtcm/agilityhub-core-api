@@ -34,12 +34,16 @@ public class ImpersonationGrantRepository extends TenantRepository<Impersonation
     }
     /**
      * INC-37, across clubs (the sweep opens each grant's club before it ends it): the impersonations (never a support access)
-     * past their `expiresAt` that nothing ended yet, oldest first, at most {@code limit}.
+     * past their `expiresAt` that nothing ended yet, oldest first (`expiresAt`, then `_id`), at most {@code limit}. E11-T09 round
+     * 2: only those after {@code after} (null: from the first), so a sweep pages past the grants it could not end.
      */
-    public List<ImpersonationGrant> expiredOpen(Instant now, int limit) {
-        var query = Query.query(Criteria.where("revokedAt").is(null).and("expiresAt").lte(now).and("type").ne(ImpersonationGrant.Type.SUPPORT))
-                .with(Sort.by("expiresAt")).limit(limit);
-        return mongo.find(query, ImpersonationGrant.class);
+    public List<ImpersonationGrant> expiredOpen(Instant now, ImpersonationGrant after, int limit) {
+        var query = Query.query(Criteria.where("revokedAt").is(null).and("expiresAt").lte(now).and("type").ne(ImpersonationGrant.Type.SUPPORT));
+        if (after != null) {
+            query.addCriteria(new Criteria().orOperator(Criteria.where("expiresAt").gt(after.expiresAt()),
+                    Criteria.where("expiresAt").is(after.expiresAt()).and("_id").gt(after.id())));
+        }
+        return mongo.find(query.with(Sort.by("expiresAt", "_id")).limit(limit), ImpersonationGrant.class);
     }
     /**
      * INC-37 (S01 R-01-16), across clubs: whether a grant whose JWT can still be valid at {@code now} was signed before

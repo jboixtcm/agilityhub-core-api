@@ -1,0 +1,49 @@
+RED RUN against .local/e11-t09-head/local-proof.py and .local/e11-t09-head/Dockerfile
+test_round2_no_helper_of_the_proof_is_rebound (test_e11_t09.LocalProofTest.test_round2_no_helper_of_the_proof_is_rebound) ... FAIL
+test_round2_the_image_build_retries_a_transient_502 (test_e11_t09.MavenRetryTest.test_round2_the_image_build_retries_a_transient_502) ... MAVEN -B -q -s /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-opzg29er/settings.xml -Dmaven.repo.local=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-opzg29er/repository -DskipTests -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-opzg29er/pom.xml validate -> exit 1; requests [('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 502)]
+FAIL
+
+======================================================================
+FAIL: test_round2_no_helper_of_the_proof_is_rebound (test_e11_t09.LocalProofTest.test_round2_no_helper_of_the_proof_is_rebound)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/test_e11_t09.py", line 205, in test_round2_no_helper_of_the_proof_is_rebound
+    self.assertEqual([], rebound)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['main: record bound 2 times']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'main: record bound 2 times'
+
+- []
++ ['main: record bound 2 times']
+
+======================================================================
+FAIL: test_round2_the_image_build_retries_a_transient_502 (test_e11_t09.MavenRetryTest.test_round2_the_image_build_retries_a_transient_502)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/test_e11_t09.py", line 258, in test_round2_the_image_build_retries_a_transient_502
+    self.assertEqual(0, result.returncode, (result.stdout + result.stderr)[-3000:])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : [ERROR] [ERROR] Some problems were encountered while processing the POMs:
+[FATAL] Non-resolvable parent POM for test.e11t09:retry-child:1.0: The following artifacts could not be resolved: test.e11t09:retry-parent:pom:1.0 (absent): Could not transfer artifact test.e11t09:retry-parent:pom:1.0 from/to central (http://127.0.0.1:62419/): status code: 502, reason phrase: Bad Gateway (502) and 'parent.relativePath' points at no local POM @ line 1, column 52
+ @ 
+[ERROR] The build could not read 1 project -> [Help 1]
+[ERROR]   
+[ERROR]   The project test.e11t09:retry-child:1.0 (/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-opzg29er/pom.xml) has 1 error
+[ERROR]     Non-resolvable parent POM for test.e11t09:retry-child:1.0: The following artifacts could not be resolved: test.e11t09:retry-parent:pom:1.0 (absent): Could not transfer artifact test.e11t09:retry-parent:pom:1.0 from/to central (http://127.0.0.1:62419/): status code: 502, reason phrase: Bad Gateway (502) and 'parent.relativePath' points at no local POM @ line 1, column 52 -> [Help 2]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/ProjectBuildingException
+[ERROR] [Help 2] http://cwiki.apache.org/confluence/display/MAVEN/UnresolvableModelException
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.442s
+
+FAILED (failures=2)
+exit 1

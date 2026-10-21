@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v4.4 · 21-10-2026** (v4.3 18-10 · v4.2 18-10 · v4.1 18-10 · v4.0 17-10 · v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v4.6 · 21-10-2026** (v4.5 21-10 · v4.4 21-10 · v4.3 18-10 · v4.2 18-10 · v4.1 18-10 · v4.0 17-10 · v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -47,13 +47,13 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-35 | 26-09 | api (cens) | El `PATCH` d'un gos actiu desa el xip sense normalitzar | Baixa | **resolta 30-09 (E5-T28 ✅, pas 6)** |
 | INC-36 | 26-09 | api (autenticació) | Causa d'INC-07: reutilitzar un refresh token ja rotat revoca el fill viu, sense cap gràcia, i dues renovacions concurrents competeixen a `Account.sessionSequence` | **Alta** (= INC-07) | **resolta 18-10 (E11-T02 ✅, ronda 2; E134)** |
 | INC-37 | 26-09 | api (identitat, menors) | Menors d'identitat: esdeveniments, auditoria, temps de resposta, importació de Learn, rotació de claus | Baixa | oberta — E11-T09 (E132) |
-| INC-38 | 26-09 | api (cens i catàlegs, menors) | Menors de cens i catàlegs: emmascarament de les exportacions, exportació asíncrona amb filtre numèric, auditoria sense `entityLabel`, … | Baixa | oberta — E11-T10 (E132; la regla del grup familiar, a E8-T02) |
-| INC-39 | 26-09 | api (alta, menors) | Menors d'alta: rutes de D10 no congelades durant una readmissió, codi mort, … | Baixa | oberta — E11-T10 (E132; part a E8-T04) |
-| INC-40 | 26-09 | api (planificació, reserves i processos, menors) | Menors: text del risc, finestra de bloqueig no alineada, `instructorIds` buit, nivell inactiu, cursa de l'slug, … | Baixa | oberta — E11-T10 (E132) · E11-T03 |
+| INC-38 | 26-09 | api (cens i catàlegs, menors) | Menors de cens i catàlegs: emmascarament de les exportacions, exportació asíncrona amb filtre numèric, auditoria sense `entityLabel`, … | Baixa | **resolta 21-10 (E11-T10 ✅; E151)**; el punt 11 queda per a E12 com deia la tasca |
+| INC-39 | 26-09 | api (alta, menors) | Menors d'alta: rutes de D10 no congelades durant una readmissió, codi mort, … | Baixa | **resolta 21-10 (E11-T10 ✅; E151)**, llevat del punt 2 (la procedència de l'efectiu d'una fila parcial que va al checkout) → E11-T17 (E149) |
+| INC-40 | 26-09 | api (planificació, reserves i processos, menors) | Menors: text del risc, finestra de bloqueig no alineada, `instructorIds` buit, nivell inactiu, cursa de l'slug, … | Baixa | **resolta 21-10 (E11-T10 ✅; E151)**, llevat del punt 10 (N-06 + N-47 per a una reserva feta pel club) → E11-T17 (E150); els menors (auditoria abans de publicar, `seat_locks` antics, auditoria d'un reordenament) també a E11-T17 |
 | INC-41 | 26-09 | web (fonaments i pantalles, menors) | Menors del web: `apps/id` en fallar la renovació, logout amb bearer refusat, pàgina en blanc si `/branding` falla, esquemes de `pending.json` ja publicats, tema `auto`, … | Baixa (la llista de traspàs, un botó mort i el router: Mitjana) | oberta — E4-W16 pas 12 · E8-W03 · E11-W02 (el router, A38 ✓ Jordi 27-09; la llista completa, a la ronda 2, E132) |
 | INC-42 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | **resolta 18-10 (E11-T02 ✅; E134)** |
 | INC-43 | 27-09 | api · fitxers | Revisió d'E5-T26: l'IT de les descàrregues locals no descarrega cap `DOG_PHOTO` ni `ACTIVITY_IMAGE` i els seus camins de reserva no tenen test; les descàrregues locals no admeten `Range` | Baixa | **resolta 18-10 (E11-T02 ✅; E134)** |
-| INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — l'ítem 3, resolt (E11-T02 ✅); els ítems 1–2, E11-T10 (E132); la part del web, després |
+| INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | **api resolta 21-10 (E11-T10 ✅)**; el punt 3 del web (`classStartsAtLocal` a la graella) a E11-W02 ronda 3 |
 | INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — E11-T03 (pas 1) |
 | INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | **resolta 18-10 (E11-T02 ✅; E134)** |
 | INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | **resolta 18-10 (E11-T02 ✅; E134)** |
@@ -82,10 +82,15 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-70 | 18-10 | api (Spring Boot 4, menors) | Menors d'E11-T07: la prova de l'escaneig exigeix que no hi hagi cap excepció, els pedaços de Jackson de la mateixa línia (2.21.7 i 3.1.7), una línia de `DEPLOY.md` sobre els fitxers de Compose i una sobre Micrometer | Baixa | oberta — E11-T09 (E132) |
 | INC-71 | 18-10 | api (proves) | `BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream` falla de tant en tant: llegeix el `Content-Type` de l'SSE abans que estigui fixat quan diverses compilacions comparteixen el contenidor | Baixa | oberta — E11-T09 (E132) |
 | INC-72 | 18-10 | web (recorreguts, menors) | Menors d'E9-W06: el pas normal d'`e9-core` no s'ha executat en verd amb el codi final (i depèn del diumenge), el plànol del soci no fa servir `resolvedObstacles`, el gestor MSW de `GET /rings/:id` no mira el rol, i dos detalls | Baixa | oberta — E11-W03 (E134) |
-| INC-73 | 18-10 | web (perfil, impersonació) | L'app dels socis encara mostra l'edició del nom i de l'idioma durant una impersonació, i l'API ja refusa `PATCH /me` a aquest token (E11-T09) | Baixa | oberta — E11-W03 (E136) |
+| INC-73 | 18-10 | web (perfil, impersonació) | L'app dels socis encara mostra l'edició del nom i de l'idioma durant una impersonació, i l'API ja refusa `PATCH /me` a aquest token (E11-T09) | Baixa | **resolta 21-10 (E11-W01 ✅ ronda 2; E151)** |
 | INC-74 | 21-10 | api (límits de peticions, preus, RGPD, menors) | Menors de la verificació d'E11-T08 ronda 2 i d'E11-T11: les memòries cau dels límits ara són per ruta i la suma no té límit (×21), la consulta dels clubs coneguts fa un 500 si Mongo cau, un pla amb un preu bessó encara s'ofereix públicament, els ajudants d'arrencada dels preus són públics i sense tenant, `named()` mira camps que no existeixen, la regla de `StoredDays` és per desplaçament i no per zona, `CATALEG_ERRORS` S12 sense `PRICE_OVERLAP`; el camí de cancel·lació d'una supressió sense IT, el text «sense perfil» del vault, `filesCleaned` no compta els fitxers de l'`afterCommit`, `graceSiblingAt` no mapat, un nom de prova i la columna «Idempotent» | Baixa | oberta — E11-T13 (E141) |
 | INC-75 | 21-10 | web (estats, consola, auditoria, diners, menors) | Menors de la ronda 2 d'E11-W02 i restes d'INC-41: els chunks mandrosos de la consola sense boundary ni càrrega, 21 sense estat buit (i 22/tasques sense `EmptyState`), la restauració del desplaçament en recarregar, el text del boundary en fallar un chunk, el límit superior del rang d'auditoria, un canal de pagament desconegut mostra la clau, noms de proves sense T-xx-nn, la prova de sondeig d'E8-W01 amb rellotge real; i d'INC-41: els diners dividits per 100 a 40 llocs (`fmtMinor`), «7:30» a dues etiquetes (`reviewTime` de l'api, E11-T13), la confirmació `RING_HAS_BOOKINGS` sense text, «DNI», la forma neutra d'`OTHER`, el registre d'`errors` | Baixa | oberta — E11-W05 (E144) |
 | INC-76 | 21-10 | web (rendiment) | La home amb sessió (03, `/inici`) triga 4,0–4,2 s (TTI) amb la build de producció: el camí carrega ≈330 kB en cinc onades seqüencials des de l'únic chunk `screens` (A38). Un chunk per pestanya amb les fonts precarregades el baixaria; no es fa abans del llançament (E142: la fita de 3 s es demana a la 01 i la 03 queda amb un pressupost de 4,5 s) | Baixa | oberta — després del llançament |
+| INC-77 | 21-10 | api (facturació, migració) — **auditoria del 21-10** | Cadena de diners: un abonat que passa de pack a mensual sense `nextInvoiceDate` no es factura mai (F1, crítica); el grup d'un titular que es dona de baixa no es factura el darrer mes (F2, crítica); els abonats en efectiu migrats es facturen de nou al desembre (F3); un mes saltat per `NO_BANK_ACCOUNT` no es recupera (F4); la remesa es pot retrocedir després de la data de cobrament (F5); una fila desconeguda de `rebuts.csv`/`packs.csv` anul·la tota la càrrega del dia D (F6); referències de mandat de 44 caràcters (F7); identificador de creditor sense mod-97 (F8); packs migrats `CLOSED` que mai caduquen (F9); `period` dels rebuts manuals (F11); i tres fets per al runbook (F10) | **Alta** | oberta — E11-T15 (E145) |
+| INC-78 | 21-10 | api (RGPD, accés de suport) — auditoria del 21-10 | La supressió deixa el nom de l'actor a les reserves i inscripcions d'altres abonats (`bookedBy`/`cancelledBy`/`registeredBy.displayName` només es buiden quan `memberId` és el suprimit; `attendances.markedBy` ho fa bé) i els `familyGroupClaim.holderName/dogName` que altres sol·licitants van escriure (S1, major); els registres `FAILED`/`PENDING` de l'outbox i `job_runs.items.detail…dogName` conserven dades (S2); un token de suport pot demanar o cancel·lar una supressió (S3); els escriptors de reserves no reintenten `DuplicateKey` (S4) | Mitjana | oberta — E11-T16 (E145) |
+| INC-79 | 21-10 | web (accés, sessió, estats) — auditoria del 21-10 | Els enllaços profunds dels correus (`/espera/:id`, `/reserves/:id`, `/preinscripcions/:id`) no sobreviuen a l'inici de sessió (W1, major); un administrador sense rol MEMBER amb la tria recordada acaba a `/inici` amb dos 403 (W2, major); tres pestanyes que renoven alhora revoquen tota la família de tokens (W3, major); el «Menú d'usuari» del back-office és mort i no hi ha «Tanca la sessió» (W4); `Account.locale` no s'aplica en un segon dispositiu (W5); `<html lang>` fix (W6); instants en UTC a D10 (W7); la 30 sense reintent (W8); `PRICE_OVERLAP`, `READMISSION_PENDING`, `CURRENCY_MISMATCH` i tres codis de l'alta sense text ni ruta de camp (W9–W12); una ruta sense rol pinta un `main` buit (W13) | Alta | oberta — E11-W06 (E145) |
+| INC-80 | 21-10 | web (back-office, rendiment, empaquetat) — auditoria del 21-10, menors | Els enllaços de la barra lateral del back-office són càrregues de document senceres (una rotació de token per clic; A38 només a l'app dels socis) (W14); «Entra com l'abonat» obre la pestanya després de l'`await` (bloquejador de Safari) (W15); `mockServiceWorker.js` publicat a producció (W16); el pressupost de JS de `clubs-admin` a 1,2 % del límit (W17) | Baixa | oberta — E11-W05 (W15) · després del llançament (W14, W16, W17) |
+| INC-81 | 21-10 | web (consola, RGPD, mocks, menors) | Menors de les verificacions d'E10-W03 ronda 3 i d'E11-W01 ronda 2: els mocks dels accessos de suport no aïllen el club (cap prova pot cobrir una concessió d'un altre club → 404); `ParametersTab` no actualitza la fila des de la resposta del PUT si la relectura falla; l'e2e deixa un domini verificat al «club mínim»; `MemberPrivacyCard` no posa `erasureLoading` quan l'estat passa a LEFT en memòria; `DataExportCard` sobreescriu el paquet desat amb un `jobId` de l'URL abans de llegir-lo; el mock `GET /exports` respon 200 a un token MEMBER (el core, 403); el codi del mock de `PATCH /me` impersonat s'ha d'alinear amb l'snapshot; `ExportsDrawer` manté «Preparant l'exportació…» quan la feina ja és READY | Baixa | oberta — E11-W05 |
 
 ---
 
@@ -940,3 +945,79 @@ Solució probable:
 **S'espera**: un chunk per pestanya amb les fonts precarregades, mesurat igual. Després del llançament; la fita de 3 s es demana a la 01 i la 03 queda amb un pressupost de 4,5 s com a línia de base (E142).
 
 **On mirar**: `apps/clubs/src/App.tsx` (el chunk `screens`), `vite.config.ts`, `roadmap/evidence/E11-W02/82-*.log`.
+
+## INC-77 · La cadena de diners abans del llançament — auditoria del 21-10 (api)
+
+**Gravetat**: alta. Dues troballes són crítiques (F1 i F2: abonats que no es facturen mai, sense cap incidència visible); quatre són majors (F3–F6); la resta, menors.
+
+**Origen**: auditoria independent de l'organitzador (sessió del núvol, 21-10, E145) de S12/S13/S18 contra el codi de `main` `8d73ad2a`, amb les regles comprovades amb sondes jshell sobre les classes compilades. Detall complet (fitxer:línia, escenari, prova que ha de fallar primer) a la tasca E11-T15.
+
+**El problema** (resum):
+- **F1 (crítica)** `MemberPlanChangeService.change` no escriu mai `nextInvoiceDate`: un abonat de pack (data nul·la) que passa a mensual (el flux del 40 %) queda `NOT_DUE` a totes les execucions i no es factura mai; no hi ha cap ruta d'administració per posar-li la data.
+- **F2 (crítica)** `InvoicingRules.month` assigna els membres del grup al titular sempre que el titular és ACTIVE; si el mes del titular queda exclòs (`AFTER_LEAVE`), els membres surten `BILLED_VIA_HOLDER` i ningú els factura aquell mes.
+- **F3 (major)** La migració posa `nextInvoiceDate = 1 del mes següent al tall` a tots els mensuals, també als d'efectiu que ja han pagat el semestre: al desembre se'ls emet un rebut (o dos si el tall és d'octubre).
+- **F4 (major)** Un mensual no-efectiu factura només el mes M: un mes saltat (`NO_BANK_ACCOUNT`) no es recupera mai.
+- **F5 (major)** Es pot retrocedir una remesa `GENERATED` després de la data de cobrament (si l'administrador no l'ha marcat «enviada»): el banc ja ha cobrat i la següent execució en torna a emetre una → doble cobrament; i P5i no liquida mai.
+- **F6 (major, dia D)** Una fila de `rebuts.csv`/`packs.csv` amb estat/data/pla desconeguts és `ERROR` i «Validation failed; no changes applied»: no es carrega res (R-18-11b diu que la qualitat de dades mai refusa).
+- **F7–F9, F11 (menors)** referències de mandat de 44 caràcters; identificador de creditor sense mod-97; packs migrats `CLOSED` que no caduquen; `period` del rebut manual.
+- **F10 (runbook)** l'execució de facturació el dia 26 o després; la sèrie de numeració és l'any d'emissió (el gener de 2027 s'emet el 25-12-2026 amb sèrie 2026: avisar la gestoria); dies TARGET a Nadal.
+
+**S'espera**: E11-T15 (fil B, després d'E11-T10), amb les decisions E146 (ruta `PUT /members/{id}/next-invoice-date` auditada + fitxer «pagat fins» a la migració) i E147 (bloquejador `COLLECTION_DATE_PASSED` + avís a D6 el dia abans del cobrament; «Marca com a enviada» segueix sent explícita). La porta E11 (E11-T12) l'espera. El runbook d'E12-T02 recull F10, el `--cut-over` del mes de llançament i l'assaig amb els `rebuts.csv`/`packs.csv` reals.
+
+**On mirar**: `payments/domain/InvoicingRules.java`, `payments/application/MemberPlanChangeService.java`, `payments/application/{BillingRunService,BillingExpirations,RemittanceService}.java`, `migration/application/{PlayoffPlanner,PlayoffBillingPlanner,PlayoffImportService}.java`, `payments/domain/SepaDirectDebits.java`, `PackBalanceService.java`.
+
+## INC-78 · Supressió de dades i accés de suport — auditoria del 21-10 (api)
+
+**Gravetat**: mitjana (S1 és major: una supressió deixa un nom de pila).
+
+**Origen**: la mateixa auditoria (E145), part de reserves/identitat/RGPD. Detall a E11-T16.
+
+**El problema**: (S1) `BookingErasureRepository` i `ActivityErasureRepository` només buiden `bookedBy/cancelledBy/registeredBy.displayName` quan `memberId` és el suprimit: la reserva d'un altre abonat feta pel suprimit (grup familiar) o l'anul·lació feta per un instructor-abonat conserven el seu nom; també els `familyGroupClaim.holderName/dogName` que altres sol·licitants van escriure sobre el titular suprimit. (S2) L'outbox ja esborra els registres `PUBLISHED` del subjecte, però no els `FAILED` ni els `PENDING`, i `job_runs.items.detail…dogName` queda 90 dies (les cinc darreres execucions, per sempre). (S3) Un token de suport pot `POST`/`DELETE /members/{id}/erasure`; només `DELETE /support-accesses/{id}` porta `@SupportRestricted`. (S4) `BookingTransactions` no reintenta `DuplicateKey` (amb els carrils locals no pot passar).
+
+**S'espera**: E11-T16 (fil D, després d'E11-T13). La porta E11 l'espera.
+
+**On mirar**: `clubs/bookings/persistence/BookingErasureRepository.java:28-31`, `clubs/activities/persistence/ActivityErasureRepository.java:26-28`, `identity/application/SupportAccessService.java:49-53`, `identity/api/CurrentUserFilter.java:55-57`, `clubs/bookings/application/BookingTransactions.java:52-57`.
+
+## INC-79 · Accés, sessió i estats del web — auditoria del 21-10 (web)
+
+**Gravetat**: alta (tres majors que un abonat o un administrador trobarà la primera setmana).
+
+**Origen**: auditoria independent de l'organitzador (E145) del web `main` `10644b87` contra el contracte `openapi.next.json` (= api `8d73ad2a`). Detall a E11-W06.
+
+**El problema**: (W1) `RequireAuth` envia a `/entrar` sense adreça de retorn: l'enllaç profund d'N-15 «AGAFA LA PLAÇA», d'N-04 o de la D2 d'N-01 acaba a `/inici`. (W2) Un administrador sense rol MEMBER que ha marcat «Recorda la meva tria» → `/inici` amb `GET /me/home` i `/me/bookable-classes` a 403 (el mock MSW no comprova el rol). (W3) Tres pestanyes que renoven alhora dins del marge de 30 s → `REFRESH_REUSED` i tota la família revocada. (W4) El «Menú d'usuari» del back-office no fa res i no hi ha «Tanca la sessió». (W5) `Account.locale` no s'aplica en un segon dispositiu. (W6) `<html lang="ca">` fix. (W7) D10 formata instants en UTC. (W8) La 30 formata amb un `Intl` propi i no té reintent. (W9–W11) Els codis nous del contracte (`PRICE_OVERLAP`, `READMISSION_PENDING` a D10, `CURRENCY_MISMATCH`, `proposals.planId` nul) no tenen text ni destí. (W12) Tres codis de l'alta surten al pas de pagament. (W13) Una ruta sense el rol pinta un `main` buit.
+
+**S'espera**: E11-W06 (fil C, després d'E10-W02 i abans d'E11-W03, que fa els E2E).
+
+**On mirar**: `packages/auth/src/{session.tsx,auth-client.ts}`, `apps/clubs/src/App.tsx`, `apps/clubs-admin/src/App.tsx`, `apps/clubs-admin/src/census/CensusRecordPage.tsx`, `apps/clubs/src/InfoPage.tsx`, `apps/clubs/src/SignupPage.tsx`.
+
+## INC-80 · Menors del back-office i de l'empaquetat — auditoria del 21-10 (web)
+
+**Gravetat**: baixa.
+
+**Origen**: la mateixa auditoria (E145), punts W14–W17 exclosos d'E11-W06.
+
+**El problema**: (W14) la barra lateral del back-office són `<a href>` plans: cada clic recarrega el document i fa una rotació de token (A38 només es va aplicar a l'app dels socis); (W15) «Entra com l'abonat» obre la pestanya després de l'`await` i Safari la pot bloquejar; (W16) `mockServiceWorker.js` es publica a producció; (W17) el pressupost de JS de `clubs-admin` és a 661,9/670 kB.
+
+**S'espera**: W15 a E11-W05; W14, W16 i W17 després del llançament (W14 és una millora de rendiment que canvia la navegació del back-office: no abans de l'assaig).
+
+**On mirar**: `packages/ui/src/components.tsx:645-651`, `apps/clubs-admin/src/App.tsx:1005-1008`, `apps/clubs-admin/src/census/CensusRecordPage.tsx:1074-1085`, `apps/clubs/public/mockServiceWorker.js`, `.size-limit.json`.
+
+## INC-81 · Menors de les verificacions d'E10-W03 (ronda 3) i d'E11-W01 (ronda 2) (web)
+
+**Gravetat**: baixa. Cap afecta un flux crític; són acabats i cobertura de proves.
+
+**Origen**: les verificacions de l'organitzador del 21-10 (revisors propis + la revisió del kit, E151).
+
+**El problema**:
+- (a) `packages/api-client/src/mocks/console-handlers.ts:1351-1373`: el `DELETE` d'un accés de suport no compara el club de qui crida amb el de la concessió, i `POST …/support-access` torna el mateix token per a tots els clubs; cap prova pot exercir el camí «concessió d'un altre club → 404» (S17 R-17-10). No és un forat de producció.
+- (b) `apps/clubs-admin/src/console/tabs/ParametersTab.tsx:140-143`: si la relectura després d'un `PUT` 200 falla, la fila manté el valor anterior al costat de «Desat» fins que el reintent funciona; cal pintar la fila amb la resposta del `PUT`.
+- (c) `e2e/core/e10-core.spec.ts:484-489`: cada execució deixa un domini verificat no principal al «club mínim» (es pot eliminar amb [Elimina] després del `/branding`, E123).
+- (d) `apps/clubs-admin/src/census/MemberPrivacyCard.tsx:185-206`: `erasureLoading` només s'inicialitza; si l'abonat passa a LEFT en memòria, «Suprimeix les dades (RGPD)» surt abans que `GET …/erasure` respongui.
+- (e) `apps/clubs/src/profile/DataExportCard.tsx:73-77`: el `jobId` de l'URL sobreescriu el paquet desat abans de llegir-lo; un 404 esborra un paquet vàlid. Desar l'id de l'URL només després d'una lectura bona.
+- (f) `packages/api-client/src/mocks/handlers.ts:2863`: `GET /exports` respon 200 a un token MEMBER; el core respon 403 (ajustar la prova «list leaves it out»).
+- (g) El mock de `PATCH /me` amb impersonació respon `IMPERSONATION_DENIED`; l'snapshot adoptat diu `403 FORBIDDEN`: alinear-ho quan E11-W06 adopti l'snapshot.
+- (h) `apps/clubs-admin/src/audit/ExportsDrawer.tsx:165-169` (E8-W04): l'avís «Preparant l'exportació…» es manté quan la feina seguida ja és READY.
+
+**S'espera**: ho fa E11-W05, amb una prova per punt.
+
+**On mirar**: els fitxers citats.

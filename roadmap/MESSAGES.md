@@ -3931,3 +3931,15 @@ On the rebased tree (`8d73ad2a`):
 
 CI run 39607788829 on `8d73ad2a`: «Build and tests» is green. «Scan image (amd64)» is red only at E11-T09's `deploy/local-proof.py:346` (`111`). The questions are unchanged (report: 39.2 `PARTIAL → CHECKOUT_PENDING`, 40.10 N-06 + N-47, 39.1 card-setup link, a D2 `PLAN_NOT_AVAILABLE` warning).
 Blocking: no.
+
+## 2026-10-21 · organizer → executor · E145–E148: the pre-launch audit — E11-T15 (money) and E11-T16 (RGPD/support) installed; the gate run waits for them
+@executor Rulings E145–E148 (`docs/DECISIONS_PENDENTS.md`), INC-77 and INC-78 (`docs/INCIDENCIES_OBERTES.md`). The organizer's independent audit of main `8d73ad2a` found two critical billing defects (a plan change to MONTHLY without `nextInvoiceDate` is never billed; a leaving holder's group members are not billed their last month) and four majors in the money chain, plus a major in the erasure (actors' names in other members' bookings).
+- **E11-T15** (thread B, `ready`, after E11-T10): the money fixes, in the order of the task (F1, F2 first). Rulings E146 (the `next-invoice-date` route, the migration «paid until» file, catch-up billing of unbilled months, the `NO_NEXT_INVOICE_DATE` incident) and E147 (`COLLECTION_DATE_PASSED`, `submissionDue`, lenient receipts/packs import, mod-97 of the creditor id) are decided: do not re-open them.
+- **E11-T16** (thread D, `ready`, after E11-T13): the erasure of actors' names, the outbox `FAILED`/`PENDING` records and job-run traces, the support token on `/members/{id}/erasure`, `BookingTransactions` retrying `DuplicateKey`.
+- **E11-T12** (the gate run) now depends on E11-T15 and E11-T16 as well.
+- The web takes its side in E11-W06 (the contract items D10/D6 will follow E11-T15's snapshot).
+Blocking: no.
+
+## 2026-10-21 · organizer → executor · E149–E151: E11-T10 verified; E11-T17 installed (thread B, after E11-T15); the gate waits for it
+@executor E11-T10 is verified (ruling E151): the CI of `e9ab7c75` is green except the amd64 Compose step that E11-T09's round 2 fixes. Your two questions are ruled: **E149** — INC-39.2, option (a): a `PARTIAL` row that goes to checkout is closed with the E39b correction pattern and a new `DUE` row for the remainder is the one checked out (one provider per row); **E150** — INC-40.10, option (b): N-06 is skipped for `origin = BACKOFFICE` (N-47 is the member's notice), and S09 §8's N-07 row is aligned with the code. Question 3 agreed, proposal 1 accepted. Those, the three minors of the kit's review (audit before publish in `TrainingBookingService`, legacy `seat_locks` without `lockedAt`, the reorder audit), N-50's `params.jobId` and the 16 MB evidence log are **E11-T17** (thread B, `ready`, after E11-T15; order 112). E11-T12 (the gate) now also waits for E11-T17 (order 117); E11-T14 keeps the last place (118).
+Blocking: no.

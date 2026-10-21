@@ -87,6 +87,7 @@ http://127.0.0.1:9080 {
     route {
         request_header -X-Club-App
         forward_auth {$CADDY_APP_UPSTREAM} {
+            # Caddy query-escapes a placeholder in this query: a Host with `&` or `=` stays one `host` value (E11-T09 round 2).
             uri /internal/domains/app?host={host}
             header_up Host {upstream_hostport}
             header_up -X-Forwarded-For

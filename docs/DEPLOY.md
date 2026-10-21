@@ -583,8 +583,8 @@ with `spring-boot-starter-actuator`, and `micrometer-registry-prometheus` only a
   would silently connect to its default instead.
 - `GET /api/v1/health` and the management `/actuator/health` answer as before (`{"status":"UP"}`). Boot 4's
   liveness/readiness groups stay off (`management.endpoint.health.probes.enabled: false`). The image `HEALTHCHECK` and
-  `deploy/compose.prod.yaml` are unchanged. The one Compose file that changed is the local override
-  `deploy/compose.prod.local.yaml`: its seed sets `SPRING_MONGODB_URI` (it was `SPRING_DATA_MONGODB_URI`).
+  `deploy/compose.prod.yaml` are unchanged by the Boot 4 upgrade. The one Compose file that the upgrade changed is the
+  local override `deploy/compose.prod.local.yaml`: its seed sets `SPRING_MONGODB_URI` (it was `SPRING_DATA_MONGODB_URI`).
 - Stored data keeps its representation: UUIDs `JAVA_LEGACY`, `BigDecimal`/`BigInteger` as strings, which Boot 4 no
   longer chooses by default (`StoredRepresentationIT`).
 - `bin/security-scan-suppressions.json` is empty again: Spring Framework 7.0.9 fixes CVE-2026-47884 and CVE-2026-47890.

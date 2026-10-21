@@ -45,6 +45,7 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
     @Autowired TokenService tokens;
     @Autowired org.springframework.security.oauth2.jwt.JwtEncoder encoder;
     @Autowired ImpersonationExpiry expiry;
+    @Autowired ImpersonationGrantRepository grantRepository;
     @org.springframework.beans.factory.annotation.Value("${identity.issuer}") String issuer;
     static final String ADMIN_HOST = "admin.example.test";
 
@@ -205,6 +206,63 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         assertThat(mongo.indexOps(ImpersonationGrant.class).getIndexInfo()).anySatisfy(index -> {
             assertThat(index.getIndexFields()).singleElement().satisfies(field -> assertThat(field.getKey()).isEqualTo("expiresAt"));
             assertThat(index.getExpireAfter()).contains(Duration.ofDays(1));
+        });
+    }
+
+    /**
+     * E11-T09 round 2 (review #4): a grant whose end keeps failing (here one stored without a club, so its tenant cannot open) is
+     * logged and tried again by the next sweep, but it never starves a newer grant. A whole page of them, all older, still lets
+     * the grants behind them end `EXPIRED` in the same sweep: one that expired at the same instant (after them by `_id`) and the
+     * impersonation that expired later.
+     */
+    @Test void T_01_11_INC_37_grantsThatKeepFailingNeverStarveANewerOne() throws Exception {
+        String expiring = grantId(impersonate(bearer(login())));
+        var expiredAt = clock.instant().plusSeconds(1);
+        var stored = new java.util.ArrayList<ImpersonationGrant>();
+        for (int index = 0; index < ImpersonationExpiry.BATCH; index++) {
+            stored.add(new ImpersonationGrant("inc37-failing-%03d".formatted(index), "", "account-a", "member-target", "account-member",
+                    null, expiredAt, null, ImpersonationGrant.Type.IMPERSONATION, clock.instant()));
+        }
+        stored.add(new ImpersonationGrant("inc37-tied", "club-a", "account-a", "member-target", "account-member", null, expiredAt,
+                null, ImpersonationGrant.Type.IMPERSONATION, clock.instant()));
+        mongo.insertAll(stored);
+        clock.advance(Duration.ofMinutes(60));
+        assertThat(expiry.sweep(clock.instant())).isEqualTo(2);
+        for (String ended : List.of(expiring, "inc37-tied")) {
+            assertThat(mongo.findById(ended, ImpersonationGrant.class).endReason()).as(ended).isEqualTo(ImpersonationGrant.EndReason.EXPIRED);
+        }
+        assertThat(events("ImpersonationEnded")).extracting(e -> e.payload().get("grantId"), e -> e.payload().get("reason"))
+                .containsExactlyInAnyOrder(tuple(expiring, "EXPIRED"), tuple("inc37-tied", "EXPIRED"));
+        Query stillOpen = Query.query(Criteria.where("_id").regex("^inc37-failing-").and("revokedAt").is(null));
+        assertThat(mongo.count(stillOpen, ImpersonationGrant.class)).isEqualTo(ImpersonationExpiry.BATCH);
+        // The next sweep tries them again, and ends nothing twice.
+        assertThat(expiry.sweep(clock.instant())).isZero();
+        assertThat(mongo.count(stillOpen, ImpersonationGrant.class)).isEqualTo(ImpersonationExpiry.BATCH);
+    }
+
+    /**
+     * E11-T09 round 2 (review #3), the production upgrade: a database from before INC-37 has the grants' TTL index `expiresAt_1`
+     * with `expireAfterSeconds: 0`, under which Mongo could delete a grant before the sweep ends it. At start, `ensureIndexes()`
+     * turns that same index into the day of retention; a second start changes nothing.
+     */
+    @Test void T_01_11_INC_37_theOldExpiryIndexBecomesTheDayOfRetention() {
+        var collection = mongo.getCollection("impersonation_grants");
+        for (var index : mongo.indexOps(ImpersonationGrant.class).getIndexInfo()) {
+            if (index.getIndexFields().getFirst().getKey().equals("expiresAt")) { collection.dropIndex(index.getName()); }
+        }
+        collection.createIndex(com.mongodb.client.model.Indexes.ascending("expiresAt"),
+                new com.mongodb.client.model.IndexOptions().expireAfter(0L, java.util.concurrent.TimeUnit.SECONDS));
+        java.util.function.Supplier<List<Document>> onExpiresAt = () -> collection.listIndexes().into(new java.util.ArrayList<>()).stream()
+                .filter(index -> index.get("key", Document.class).containsKey("expiresAt")).toList();
+        assertThat(onExpiresAt.get()).singleElement().satisfies(index -> {
+            assertThat(index.getString("name")).isEqualTo("expiresAt_1");
+            assertThat(index.get("expireAfterSeconds", Number.class).longValue()).isZero();
+        });
+        grantRepository.ensureIndexes();
+        grantRepository.ensureIndexes();
+        assertThat(onExpiresAt.get()).singleElement().satisfies(index -> {
+            assertThat(index.getString("name")).isEqualTo("expiresAt_1");
+            assertThat(index.get("expireAfterSeconds", Number.class).longValue()).isEqualTo(86_400);
         });
     }
 

@@ -1,0 +1,167 @@
+# --- run output (the command, its exit code and the test reports follow it) ---
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+16:15:55.810 [main] WARN org.springframework.security.crypto.argon2.Argon2PasswordEncoder -- Malformed password hash
+java.lang.IllegalArgumentException: Invalid encoded Argon2-hash
+	at org.springframework.security.crypto.argon2.Argon2EncodingUtils.decode(Argon2EncodingUtils.java:107)
+	at org.springframework.security.crypto.argon2.Argon2PasswordEncoder.matchesNonNull(Argon2PasswordEncoder.java:133)
+	at org.springframework.security.crypto.password.AbstractValidatingPasswordEncoder.matches(AbstractValidatingPasswordEncoder.java:52)
+	at com.agilityhub.core.identity.application.PasswordHasher.check(PasswordHasher.java:44)
+	at com.agilityhub.core.identity.application.PasswordHasher.verify(PasswordHasher.java:35)
+	at com.agilityhub.core.identity.application.PasswordHasherTest.T_01_02_missingAndUnusableHashesFailThroughDummyVerification(PasswordHasherTest.java:88)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+PROBE round 2: floor 276 ms, busy bcrypt-12 runs [277, 281, 416, 421, 421] ms
+PROBE round 1: missing median 280 ms, busy bcrypt-12 median 417 ms, band 224..337 ms
+# --- summary ---
+# Command: ./mvnw -q test -Dtest='PasswordHasher*Test' -Djacoco.skip=true  -> exit 0
+# Temporary class src/test/java/com/agilityhub/core/identity/application/PasswordHasherNoiseProbeTest.java (deleted after the run, not committed):
+#   package com.agilityhub.core.identity.application;
+#   
+#   import java.util.concurrent.locks.LockSupport;
+#   import org.junit.jupiter.api.Test;
+#   import static org.assertj.core.api.Assertions.assertThat;
+#   import static org.assertj.core.api.Assertions.assertThatThrownBy;
+#   
+#   /**
+#    * Temporary (E11-T09 round 2, review #1 evidence; deleted after the run, not committed): a busy host adds half a floor to three
+#    * of five bcrypt-12 runs, as a GC pause or a shared CI runner would. Round 1's assertion (the median against a missing account's
+#    * median, ±20 %) fails; round 2's (every run ≥ the floor, the fastest run ≤ 1.2 × the floor) holds.
+#    */
+#   class PasswordHasherNoiseProbeTest {
+#       static final PasswordHasher hasher = PasswordHasherTest.hasher;
+#   
+#       /** Round 1's estimator, copied from HEAD's PasswordHasherTest. */
+#       static long median(Runnable verification) {
+#           long[] times = new long[5];
+#           for (int run = 0; run < times.length; run++) {
+#               long start = System.nanoTime();
+#               verification.run();
+#               times[run] = System.nanoTime() - start;
+#           }
+#           java.util.Arrays.sort(times);
+#           return times[2];
+#       }
+#   
+#       static Runnable busy(Runnable verification) {
+#           int[] run = {0};
+#           return () -> {
+#               verification.run();
+#               if (run[0]++ % 2 == 0) { LockSupport.parkNanos(hasher.floor().toNanos() / 2); }
+#           };
+#       }
+#   
+#       @Test void round1AssertionFailsOnABusyHost() {
+#           var cost12 = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(
+#                   org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2Y, 12).encode("Example password");
+#           hasher.verify("warm-up", cost12); hasher.verify("warm-up", null);
+#           long missing = median(() -> hasher.verify("Example password", null));
+#           long noisy = median(busy(() -> hasher.verify("wrong", cost12)));
+#           System.out.printf("PROBE round 1: missing median %d ms, busy bcrypt-12 median %d ms, band %d..%d ms%n",
+#                   missing / 1_000_000, noisy / 1_000_000, (long) (missing * 0.8) / 1_000_000, (long) (missing * 1.2) / 1_000_000);
+#           assertThatThrownBy(() -> assertThat((double) noisy).isBetween(missing * 0.8, missing * 1.2)).isInstanceOf(AssertionError.class);
+#       }
+#   
+#       @Test void round2AssertionHoldsOnTheSameBusyHost() {
+#           var cost12 = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(
+#                   org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2Y, 12).encode("Example password");
+#           hasher.verify("warm-up", cost12);
+#           long floor = hasher.floor().toNanos();
+#           long[] times = PasswordHasherTest.times("busy bcrypt 12, wrong", busy(() -> hasher.verify("wrong", cost12)));
+#           System.out.printf("PROBE round 2: floor %d ms, busy bcrypt-12 runs %s ms%n", floor / 1_000_000,
+#                   java.util.Arrays.toString(java.util.Arrays.stream(times).map(t -> t / 1_000_000).toArray()));
+#           assertThat((double) times[0]).isBetween((double) floor, floor * 1.2);
+#       }
+#   }
+# target/surefire-reports/TEST-com.agilityhub.core.identity.application.PasswordHasherNoiseProbeTest.xml: time="6.353" tests="2" errors="0" skipped="0" failures="0"
+#   round2AssertionHoldsOnTheSameBusyHost  2.341s  PASSED
+#   round1AssertionFailsOnABusyHost  4.01s  PASSED
+# target/surefire-reports/TEST-com.agilityhub.core.identity.application.PasswordHasherTest.xml: time="18.692" tests="5" errors="0" skipped="0" failures="0"
+#   T_01_02_newHashesUseSaltedOwaspArgon2id  0.623s  PASSED
+#   T_01_02_missingAccountStillInvokesTheAdaptiveVerifier  1.873s  PASSED
+#   T_01_02_missingAndUnusableHashesFailThroughDummyVerification  0.845s  PASSED
+#   T_01_02_learnPhpCost12HashAndAllBcryptPrefixesVerify  1.686s  PASSED
+#   T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent  12.314s  PASSED

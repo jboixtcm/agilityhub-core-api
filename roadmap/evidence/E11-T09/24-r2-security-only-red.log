@@ -1,0 +1,67 @@
+heavy.sh: 15:29 waiting for the host lock, held by: 15:29 agilityhub-core-api: ./mvnw -q clean verify
+heavy.sh: 16:09 got the host lock after 39 min 49 s
+PASS prod Core, local seed, both billing keys, private network with no provider egress
+IMAGE revision=unlabelled id=sha256:0709f2041276[truncated]
+COMMAND docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-kup24wq9/local.env -p e11-t04-e2dfa375 -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.local.yaml -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-kup24wq9/security.yaml up -d --wait --wait-timeout 420
+ Volume e11-t04-e2dfa375_exports Creating 
+ Volume e11-t04-e2dfa375_caddy-config Creating 
+ Volume e11-t04-e2dfa375_caddy-config Creating 
+ Network e11-t04-e2dfa375_ingress Creating 
+ Network e11-t04-e2dfa375_default Creating 
+ Volume e11-t04-e2dfa375_mongo-data Creating 
+ Volume e11-t04-e2dfa375_mongo-data Creating 
+ Network e11-t04-e2dfa375_ingress Creating 
+ Volume e11-t04-e2dfa375_caddy-data Creating 
+ Volume e11-t04-e2dfa375_caddy-data Creating 
+ Volume e11-t04-e2dfa375_attachments Creating 
+ Network e11-t04-e2dfa375_default Creating 
+ Volume e11-t04-e2dfa375_attachments Creating 
+ Volume e11-t04-e2dfa375_exports Creating 
+ Volume e11-t04-e2dfa375_caddy-config Created 
+ Volume e11-t04-e2dfa375_caddy-config Created 
+ Volume e11-t04-e2dfa375_exports Created 
+ Volume e11-t04-e2dfa375_exports Created 
+ Volume e11-t04-e2dfa375_attachments Created 
+ Volume e11-t04-e2dfa375_attachments Created 
+ Volume e11-t04-e2dfa375_caddy-data Created 
+ Volume e11-t04-e2dfa375_caddy-data Created 
+ Volume e11-t04-e2dfa375_mongo-data Created 
+ Volume e11-t04-e2dfa375_mongo-data Created 
+ Network e11-t04-e2dfa375_ingress Created 
+ Network e11-t04-e2dfa375_ingress Created 
+ Network e11-t04-e2dfa375_default Created 
+ Network e11-t04-e2dfa375_default Created 
+ Container e11-t04-e2dfa375-ask-stub-1 Creating 
+ Container e11-t04-e2dfa375-mongo-1 Creating 
+ Container e11-t04-e2dfa375-mongo-1 Created 
+ Container e11-t04-e2dfa375-seed-1 Creating 
+ Container e11-t04-e2dfa375-ask-stub-1 Created 
+ Container e11-t04-e2dfa375-seed-1 Created 
+ Container e11-t04-e2dfa375-local-hosts-1 Creating 
+ Container e11-t04-e2dfa375-local-hosts-1 Created 
+ Container e11-t04-e2dfa375-core-1 Creating 
+ Container e11-t04-e2dfa375-core-1 Created 
+ Container e11-t04-e2dfa375-caddy-1 Creating 
+ Container e11-t04-e2dfa375-caddy-1 Created 
+ Container e11-t04-e2dfa375-mongo-1 Starting 
+ Container e11-t04-e2dfa375-ask-stub-1 Starting 
+ Container e11-t04-e2dfa375-mongo-1 Started 
+ Container e11-t04-e2dfa375-mongo-1 Waiting 
+ Container e11-t04-e2dfa375-ask-stub-1 Started 
+ Container e11-t04-e2dfa375-mongo-1 Healthy 
+ Container e11-t04-e2dfa375-seed-1 Starting 
+ Container e11-t04-e2dfa375-seed-1 Started 
+ Container e11-t04-e2dfa375-seed-1 Waiting 
+ Container e11-t04-e2dfa375-seed-1 Error service "seed" didn't complete successfully: exit 1
+service "seed" didn't complete successfully: exit 1
+
+STARTUP_EXIT 1
+seed: seed-1  | VALIDATION_ERROR {reason=Unreadable or invalid YAML}
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 476, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 212, in main
+    raise RuntimeError('Local stack failed readiness')
+RuntimeError: Local stack failed readiness

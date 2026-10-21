@@ -8,7 +8,10 @@ COPY mvnw pom.xml ./
 COPY src/ src/
 COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
 # Integration tests run on the host with Docker, not inside the image build.
-RUN ./mvnw -B -q -DskipTests package
+# E11-T09 round 2: Maven 3.9's resolver retries a transfer that Maven Central answers with a transient 5xx (by default only
+# 429 and 503), so a single 502 does not fail the image job (deploy/test_e11_t09.py MavenRetryTest).
+RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3 \
+    -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
 
 FROM eclipse-temurin:21-jre
 RUN apt-get update \

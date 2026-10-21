@@ -66,3 +66,5 @@ __pycache__/
 .local/e11-broken.Dockerfile
 # E11-T06 scratch: staged copies of tests, report drafts, the PIT classpath.
 .local/e11-t06-*
+# E11-T09 round 2 scratch: HEAD copies for the red runs and their runners.
+.local/e11-t09-*

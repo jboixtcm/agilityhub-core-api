@@ -78,7 +78,9 @@ class ScanPolicyTest(unittest.TestCase):
         # Framework 7.0.9 (Spring Boot 4.1) is that fix, so neither exception may come back and the old finding would block again.
         # INC-70: only these two are ruled out; another exception that meets the policy can still be added.
         document = json.loads(scanner['SUPPRESSIONS'].read_text())
-        active, _ = suppressions(document, datetime.date.today())
+        # E11-T09 round 2: no wall clock. Each committed exception counts on its own recorded date, the most it can ever apply.
+        active = [row for committed in document['suppressions']
+                  for row in suppressions({'suppressions': [committed]}, datetime.date.fromisoformat(committed['recorded']))[0]]
         self.assertEqual(retired_spring_webmvc_exceptions(document), [])
         for advisory in ('CVE-2026-47884', 'CVE-2026-47890'):
             critical = {'VulnerabilityID': advisory, 'Severity': 'CRITICAL', 'FixedVersion': '7.0.9',

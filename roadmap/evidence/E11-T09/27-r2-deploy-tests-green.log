@@ -1,0 +1,15 @@
+test_INC_64_no_static_admin_host_list_is_left (__main__.ClubAppTest.test_INC_64_no_static_admin_host_list_is_left) ... ok
+test_INC_64_production_caddyfile_validates (__main__.ClubAppTest.test_INC_64_production_caddyfile_validates) ... ok
+test_INC_64_real_caddy_serves_each_host_the_app_the_core_names (__main__.ClubAppTest.test_INC_64_real_caddy_serves_each_host_the_app_the_core_names) ... CADDY ASKED THE CORE ["/internal/domains/app?host=office.example.test%26x%3Dy", "/internal/domains/app?host=x%26host%3Doffice.example.test"]
+ok
+test_INC_64_the_internal_routes_never_leave_through_the_public_sites (__main__.ClubAppTest.test_INC_64_the_internal_routes_never_leave_through_the_public_sites) ... ok
+test_INC_37_every_production_variable_is_in_the_deploy_inventory (__main__.InventoryTest.test_INC_37_every_production_variable_is_in_the_deploy_inventory) ... ok
+test_round2_no_helper_of_the_proof_is_rebound (__main__.LocalProofTest.test_round2_no_helper_of_the_proof_is_rebound) ... ok
+test_round2_the_image_build_retries_a_transient_502 (__main__.MavenRetryTest.test_round2_the_image_build_retries_a_transient_502) ... MAVEN -B -q -s /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-mth_jhlo/settings.xml -Dmaven.repo.local=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-mth_jhlo/repository -Daether.connector.http.retryHandler.count=3 -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-mth_jhlo/pom.xml validate -> exit 0; requests [('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 200), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 200)]
+ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 12.351s
+
+OK
+exit 0

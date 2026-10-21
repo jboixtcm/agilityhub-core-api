@@ -1,0 +1,324 @@
+# --- run output (the command, its exit code and the test reports follow it) ---
+17:27:48.212 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ImpersonationHandoffIT
+17:27:48.273 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:27:48.273 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:27:48.278 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ImpersonationHandoffIT
+17:27:48.369 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+17:27:48.376 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+17:27:48.385 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+17:27:48.583 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+17:27:54.548 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+17:27:54.548 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+17:27:56.025 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+17:28:36.072 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+17:28:36.147 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+17:28:37.130 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: c94a4c2c97dea1090e05c2473ca9f7cb8594b599640fd5ec91d2f8cdf34af1bf
+17:28:37.482 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT1.41081S
+17:28:37.489 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+17:28:37.489 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+17:28:37.489 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+17:28:37.490 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+17:28:37.595 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 4b2df79bd5bfe18277a52e4600d02f155fa726d9fda7c34b59ebc8277e0bd387
+17:28:38.393 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.902919S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-21T17:28:39.676+02:00 INFO  [main] c.a.c.i.api.ImpersonationHandoffIT traceId= clubId= accountId= : Starting ImpersonationHandoffIT using Java [redacted] with PID 74401 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-21T17:28:39.679+02:00 INFO  [main] c.a.c.i.api.ImpersonationHandoffIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-21T17:28:41.551+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-21T17:28:41.653+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 87 ms. Found 0 MongoDB repository interfaces.
+2026-10-21T17:28:42.332+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@75c0e6be], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3dfe520, com.mongodb.Jep395RecordCodecProvider@42516ce2, com.mongodb.KotlinCodecProvider@74e111a8, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:65184], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6e6ec9c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-21T17:28:42.341+02:00 INFO  [cluster-6ad8da2add266bcb84a19788-localhost:65184] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:65184, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11304125, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4b2df79bd5bf:27017, hosts=[4b2df79bd5bf:27017], passives=[], arbiters=[], primary='4b2df79bd5bf:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad8da259c9142bdfd77aa66, counter=6}, lastWriteDate=Wed Oct 21 17:28:39 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-21T17:28:44.543+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:44.589+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:44.631+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:45.887+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:45.914+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:45.943+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:46.048+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-21T17:28:51.035+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-21T17:28:51.035+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-21T17:28:51.049+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 14 ms
+2026-10-21T17:28:51.167+02:00 INFO  [main] c.a.c.i.api.ImpersonationHandoffIT traceId= clubId= accountId= : Started ImpersonationHandoffIT in 11.8 seconds (process running for 63.736)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-21T17:28:53.425+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-000 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.425+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-001 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.425+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-002 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-003 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-004 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-005 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-006 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-007 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-008 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-009 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-010 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.426+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-011 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-012 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-013 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-014 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-015 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-016 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-017 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-018 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-019 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-020 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-021 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.427+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-022 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-023 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-024 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-025 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-026 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-027 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-028 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-029 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-030 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-031 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-032 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.428+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-033 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-034 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-035 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-036 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-037 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-038 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-039 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-040 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-041 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-042 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.429+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-043 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-044 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-045 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-046 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-047 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-048 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-049 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-050 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-051 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-052 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-053 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.430+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-054 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-055 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-056 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-057 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-058 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-059 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-060 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-061 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-062 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-063 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-064 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-065 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-066 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-067 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.431+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-068 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-069 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-070 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-071 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-072 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-073 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-074 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-075 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-076 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-077 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-078 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-079 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.432+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-080 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-081 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-082 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-083 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-084 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-085 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-086 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-087 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-088 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-089 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-090 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-091 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.433+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-092 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-093 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-094 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-095 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-096 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-097 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-098 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-099 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-100 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-101 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-102 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-103 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-104 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-105 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.434+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-106 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-107 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-108 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-109 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-110 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-111 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-112 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-113 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-114 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-115 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-116 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-117 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-118 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-119 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-120 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.435+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-121 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-122 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-123 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-124 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-125 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-126 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-127 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-128 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-129 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-130 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-131 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-132 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-133 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-134 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-135 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.436+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-136 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-137 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-138 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-139 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-140 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-141 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-142 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-143 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-144 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-145 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-146 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-147 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-148 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-149 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-150 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.437+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-151 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-152 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-153 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-154 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-155 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-156 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-157 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-158 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-159 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-160 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-161 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-162 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-163 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-164 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-165 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-166 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.438+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-167 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-168 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-169 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-170 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-171 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-172 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-173 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-174 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-175 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-176 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-177 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-178 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-179 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.439+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-180 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-181 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-182 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-183 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-184 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-185 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-186 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-187 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-188 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-189 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-190 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-191 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.440+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-192 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-193 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-194 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-195 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-196 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-197 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-198 error=com.agilityhub.core.shared.domain.ApiException
+2026-10-21T17:28:53.441+02:00 WARN  [main] c.a.c.i.application.ImpersonationExpiry traceId= clubId= accountId= : Impersonation expiry failed grantId=inc37-failing-199 error=com.agilityhub.core.shared.domain.ApiException
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 65.50 s <<< FAILURE! -- in com.agilityhub.core.identity.api.ImpersonationHandoffIT
+[ERROR] com.agilityhub.core.identity.api.ImpersonationHandoffIT.T_01_11_INC_37_grantsThatKeepFailingNeverStarveANewerOne -- Time elapsed: 1.638 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 2
+ but was: 1
+	at com.agilityhub.core.identity.api.ImpersonationHandoffIT.T_01_11_INC_37_grantsThatKeepFailingNeverStarveANewerOne(ImpersonationHandoffIT.java:230)
+
+[ERROR] Failures: 
+[ERROR]   ImpersonationHandoffIT.T_01_11_INC_37_grantsThatKeepFailingNeverStarveANewerOne:230 
+expected: 2
+ but was: 1
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+# --- summary ---
+# Command: python3 .local/e11-t09-swap.py no-tie-break (a page starts strictly after the last expiresAt); ./mvnw -q verify -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Djacoco.skip=true -Dit.test='ImpersonationHandoffIT#T_01_11_INC_37_grantsThatKeepFailingNeverStarveANewerOne'; python3 .local/e11-t09-swap.py restore  -> exit 1
+# Temporary class .local/e11-t09-swap.py (deleted after the run, not committed):
+#   """E11-T09 round 2 scratch (not committed): swap the sweep's two files for a red variant, and restore them.
+#   Usage: python3 .local/e11-t09-swap.py head|no-tie-break|restore"""
+#   import shutil
+#   import subprocess
+#   import sys
+#   from pathlib import Path
+#   
+#   J = 'src/main/java/com/agilityhub/core/identity/'
+#   FILES = [J + 'application/ImpersonationExpiry.java', J + 'persistence/ImpersonationGrantRepository.java']
+#   SAVE = Path('.local/e11-t09-saved')
+#   mode = sys.argv[1]
+#   if mode == 'restore':
+#       for path in FILES:
+#           shutil.copyfile(SAVE / Path(path).name, path)
+#           print('RESTORED ' + path)
+#       sys.exit(0)
+#   SAVE.mkdir(exist_ok=True)
+#   for path in FILES:
+#       if not (SAVE / Path(path).name).exists():
+#           shutil.copyfile(path, SAVE / Path(path).name)
+#   if mode == 'head':
+#       # Before round 2: one page of the oldest 200, sorted by expiresAt only. BATCH is made public so the new test compiles.
+#       for path in FILES:
+#           Path(path).write_bytes(subprocess.check_output(['git', 'show', 'HEAD:' + path]))
+#       expiry = Path(FILES[0])
+#       expiry.write_text(expiry.read_text().replace('    static final int BATCH = 200;', '    public static final int BATCH = 200;'))
+#   elif mode == 'no-tie-break':
+#       # Round 2's paging, but a page starts strictly after the last expiresAt: a grant that expired at the same instant is skipped.
+#       repository = Path(FILES[1])
+#       text = repository.read_text()
+#       old = ('query.addCriteria(new Criteria().orOperator(Criteria.where("expiresAt").gt(after.expiresAt()),\n'
+#              '                    Criteria.where("expiresAt").is(after.expiresAt()).and("_id").gt(after.id())));')
+#       assert text.count(old) == 1, 'tie-break not found'
+#       repository.write_text(text.replace(old, 'query.addCriteria(new Criteria().orOperator(Criteria.where("expiresAt").gt(after.expiresAt())));'))
+#   print('SWAPPED ' + mode)

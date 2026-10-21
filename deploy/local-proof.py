@@ -290,19 +290,20 @@ def main():
                 probe, _ = request('clubs.localhost', '/api/v1/me', expected=400, method='PATCH', json_body='{',
                                    bearer=json.loads(body)['access_token'])
                 trace = json.loads(probe)['traceId']
-                records = []
+                # E11-T09 round 2: a log line is an `entry`; naming it `record` rebound the evidence helper below to a dict.
+                entries = []
                 for attempt in range(20):
                     raw = docker('logs', '--no-log-prefix', '--no-color', 'core', text=True).stdout
                     for line in raw.splitlines():
                         if line.startswith('{'):
-                            record = json.loads(line)
-                            if record.get('traceId') == trace and all(record.get(key) not in (None, '', '-') for key in ('clubId', 'accountId')):
-                                records.append(record)
-                    if records:
+                            entry = json.loads(line)
+                            if entry.get('traceId') == trace and all(entry.get(key) not in (None, '', '-') for key in ('clubId', 'accountId')):
+                                entries.append(entry)
+                    if entries:
                         break
                     time.sleep(0.1)
-                assert records, 'structured request log with the response trace id and both trusted identity ids'
-                print('PASS JSON request log ' + json.dumps(records[-1]), flush=True)
+                assert entries, 'structured request log with the response trace id and both trusted identity ids'
+                print('PASS JSON request log ' + json.dumps(entries[-1]), flush=True)
 
             initial = refresh_cookie(headers)
             body, headers = request('clubs.localhost', '/oauth2/token',

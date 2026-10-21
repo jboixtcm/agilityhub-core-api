@@ -258,13 +258,13 @@ class OidcIT extends IdentityIntegrationSupport {
         mvc.perform(authorize("id-web", "openid").with(request -> { request.setParameter("client_id", " "); return request; })).andExpect(status().isBadRequest());
         mvc.perform(authorize("learn", "openid").with(request -> { request.removeParameter("code_challenge"); return request; })).andExpect(status().isBadRequest());
     }
-    /**
-     * INC-37 (S01 R-01-16): an impersonation JWT lives as long as its grant (`auth.impersonationMinutes`, 60), longer than an access
-     * token. A key is not retired while a grant created before the rotation that made it the previous key is still live; once
-     * that grant has ended, or has run out, the rotation goes ahead.
-     */
     /** Other tests reset the clock but not the stored ring: start 16 minutes after its last rotation, so only the grants hold it. */
     void agePreviousRotation() { clock.setInstant(keyRepository.findById("active").orElseThrow().rotatedAt().plus(Duration.ofMinutes(16))); }
+    /**
+     * INC-37 (S01 R-01-16): an impersonation JWT lives as long as its grant (`auth.impersonationMinutes`, 60), longer than an access
+     * token. A key is not retired while a grant created before the rotation that made it the previous key is still live; a grant
+     * created after that rotation was signed by the current key and holds nothing.
+     */
     @Test void T_01_13_INC_37_aLiveImpersonationSignedByThePreviousKeyHoldsTheRotation() {
         mongo.remove(new Query(), ImpersonationGrant.class);
         agePreviousRotation();
@@ -279,6 +279,10 @@ class OidcIT extends IdentityIntegrationSupport {
         signing.rotate();
         mongo.remove(new Query(), ImpersonationGrant.class);
     }
+    /**
+     * INC-37 (S01 R-01-16): once a grant signed by the previous key has ended («Surt») or has run out, it no longer holds the
+     * rotation; a grant stored before INC-37 (no `createdAt`) counts as signed before any rotation until it runs out.
+     */
     @Test void T_01_13_INC_37_anEndedOrExpiredGrantNoLongerHoldsTheRotation() {
         mongo.remove(new Query(), ImpersonationGrant.class);
         agePreviousRotation();

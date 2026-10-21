@@ -1,0 +1,9 @@
+test_round2_no_helper_of_the_proof_is_rebound (__main__.LocalProofTest.test_round2_no_helper_of_the_proof_is_rebound) ... ok
+test_round2_the_image_build_retries_a_transient_502 (__main__.MavenRetryTest.test_round2_the_image_build_retries_a_transient_502) ... MAVEN -B -q -s /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-or248s9_/settings.xml -Dmaven.repo.local=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-or248s9_/repository -Daether.connector.http.retryHandler.count=3 -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-or248s9_/pom.xml validate -> exit 0; requests [('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 200), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 200)]
+ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 11.254s
+
+OK
+exit 0

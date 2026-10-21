@@ -1,0 +1,6 @@
+# Command: heavy.sh ./mvnw -q clean verify > roadmap/evidence/E11-T09/48-r2-final-clean-verify.log 2>&1 -> exit 0
+surefire: classes 449, tests 4821, failures 0, errors 0, skipped 0
+  com.agilityhub.core.identity.application.PasswordHasherTest: tests 5, failures 0, errors 0, skipped 0
+failsafe: classes 165, tests 2193, failures 0, errors 0, skipped 0
+  com.agilityhub.core.identity.api.ImpersonationHandoffIT: tests 13, failures 0, errors 0, skipped 0
+  com.agilityhub.core.identity.api.OidcIT: tests 10, failures 0, errors 0, skipped 0
