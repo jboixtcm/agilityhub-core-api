@@ -1,0 +1,32 @@
+# E11-T10 (21-10): CI of main 8d73ad2a (it contains this task code from a1f247bd, the organizer-finished rebase). Read-only gh queries.
+$ gh run list --branch main --limit 6
+completed	failure	executor: E11-T08 verified, E11-T09 changes_requested, E11-T11 verifi…	CI	main	push	39607788829	1h8m0s	2026-10-21T13:24:57Z
+completed	failure	executor: E11-T11 awaiting_verification · claude:claude-opus-5-5	CI	main	push	39129028531	43m18s	2026-10-18T12:51:16Z
+completed	failure	executor: E11-T01 verified, E11-T02 verified, E11-T09 awaiting_verifi…	CI	main	push	39125075611	52m57s	2026-10-18T11:53:53Z
+completed	success	executor: executor session (no task status change)	CI	main	push	39123262690	53m43s	2026-10-18T11:26:46Z
+completed	success	executor: E11-T02 awaiting_verification · claude:claude-opus-5-5	CI	main	push	39118024597	54m48s	2026-10-18T10:07:39Z
+completed	failure	executor: E11-T01 awaiting_verification · claude:claude-opus-5-5	CI	main	push	39116057604	47m40s	2026-10-18T09:37:23Z
+exit=0
+$ gh run view 39607788829 --json headSha,jobs --jq ...
+8d73ad2a2183911005e1fe5489d049cec89ed232
+Secret scan	success
+Build and tests	success
+Dependency vulnerability audit	success
+Scan image (amd64)	failure
+Scan image (arm64)	success
+Publish API image	skipped
+exit=0
+$ gh run view 39607788829 --log-failed | tail -12
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:31:21.7878594Z PASS JSON request log {"timestamp": "2026-10-21T14:31:21.587648553Z", "level": "WARN", "logger": "com.agilityhub.core.shared.api.ApiExceptionHandler", "message": "Framework request rejected code=VALIDATION_ERROR traceId=2ff6d13f-205a-4299-[redacted]", "traceId": "2ff6d13f-205a-4299-ad45-376885343ab8", "clubId": "f321fdd7-0504-4a41-9508-c84335c62e2b", "accountId": "613778dc-c898-4450-95d6-d4646679b561", "exception": ""}
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:31:21.8721080Z PASS proxy refresh rotates host-only ah_refresh; Secure HttpOnly SameSite=Strict Path=/oauth2/token
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:31:52.9213305Z PASS old refresh cookie rejected through Caddy
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:31:53.4836638Z PASS TLS certificate issued only for approved.localhost; real bridge forwards host=; other host denied
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.8657973Z CLEANUP disposable project, volumes and private credentials removed
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9277351Z Traceback (most recent call last):
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9278461Z   File "/home/runner/work/agilityhub-core-api/agilityhub-core-api/deploy/local-proof.py", line 476, in <module>
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9279452Z     main()
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9280370Z   File "/home/runner/work/agilityhub-core-api/agilityhub-core-api/deploy/local-proof.py", line 346, in main
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9281589Z     record(verify_command, verified)
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9282042Z TypeError: 'dict' object is not callable
+Scan image (amd64)	Compose startup, HTTPS headers, CORS, logs, health and branding	2026-10-21T14:32:04.9420446Z ##[error]Process completed with exit code 1.
+exit=0 (tail of the failed step)

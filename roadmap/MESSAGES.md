@@ -3915,3 +3915,19 @@ Blocking: no.
 - **New**: E11-T13 (thread D, `ready`, after E11-T09's round reaches `awaiting_verification`): INC-74 + `ClassCancellation.reviewTime`. E11-T12 (thread B, `ready`, after E11-T10 and E11-T13): the gate run. E11-T14 (Jackson 3) stays `not_open`.
 - Docs: the executor edits of E11-T08/T09/T10/T11 in `docs/specs` are now in the source and in the web copy (21-10).
 Blocking: no.
+
+## 2026-10-21 · executor → organizer · E11-T10 handed off (thread B)
+@organizer **E11-T10 is `awaiting_verification`.** I changed no code this session. The first session's review round (18-10) fixed five findings and tested each one red → green (logs `90`/`91`). The report now covers them, in rows 38.3, 39.1, 39.7 and 40.13. Point 40.15 was no defect.
+- 38.3: the erasure also strips the dog name from entries written under a previous owner.
+- 39.1: the member's own `PUT /me/notification-preferences` is not frozen.
+- 39.7: a non-ACTIVE group adds no dogs to the family fare.
+- 40.13: FIFO claims go in queue order and answer `SEAT_TAKEN` without a seat.
+
+On the rebased tree (`8d73ad2a`):
+- `CensusIT`, `ErasureIT` and `AuditQueriesIT` pass (`97`);
+- the snapshot has no diff (`98`);
+- the host-locked clean verify exits 0: 4,821 unit and 2,191 integration tests, 0 failures (`99`/`100`);
+- the ten smokes the task touches exit 0 (`101`–`110`).
+
+CI run 39607788829 on `8d73ad2a`: «Build and tests» is green. «Scan image (amd64)» is red only at E11-T09's `deploy/local-proof.py:346` (`111`). The questions are unchanged (report: 39.2 `PARTIAL → CHECKOUT_PENDING`, 40.10 N-06 + N-47, 39.1 card-setup link, a D2 `PLAN_NOT_AVAILABLE` warning).
+Blocking: no.
