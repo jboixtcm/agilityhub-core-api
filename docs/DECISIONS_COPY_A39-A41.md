@@ -1,6 +1,6 @@
 # Decisions pendents de copy — A39 · A40 · A41 (per a Jordi)
 
-**v1.1 · 21-10-2026** (respostes del Jordi al xat, E153 — tancat) · v1.0 · 21-10-2026 · Consolida, en una sola passada, tots els literals i regles de copy que les tasques web tenen «pendents de Jordi» (E144): els literals proposats per E10-W01, E9-W03, E9-W04, E11-W01 i E11-W02 (**A39**), les regles de copy que E11-W05 espera (**A40**) i els noms del club plantilla (S17 §13 #5) i els sis textos d'`auth.refreshReuseGraceSeconds` (**A41**). Fonts: `roadmap/tasks/*.md` (secció «Questions / catalog proposals» i «Organizer verification»), `roadmap/MESSAGES.md` dels dos repos, els locals `packages/i18n/src/locales/{ca,es,en}/*.json` del web `main` `08e4702d` i els seeds de l'api `main` `8d73ad2a`. Les cadenes són **literals** (copiades dels fitxers); on només hi havia proposta en ca, l'es/en és meu i porta «(proposta nova)». La regla dels botons en castellà (219 textos, infinitiu) ja està decidida (E137/E144) i no hi és.
+**v1.2 · 22-10-2026** (A39.D.2: els 25 textos afegits per la ronda 2 d'E11-W01 i la ronda 3 d'E10-W03, OK en bloc llevat de correcció) · v1.1 · 21-10-2026 (respostes del Jordi al xat, E153 — tancat) · v1.0 · 21-10-2026 · Consolida, en una sola passada, tots els literals i regles de copy que les tasques web tenen «pendents de Jordi» (E144): els literals proposats per E10-W01, E9-W03, E9-W04, E11-W01 i E11-W02 (**A39**), les regles de copy que E11-W05 espera (**A40**) i els noms del club plantilla (S17 §13 #5) i els sis textos d'`auth.refreshReuseGraceSeconds` (**A41**). Fonts: `roadmap/tasks/*.md` (secció «Questions / catalog proposals» i «Organizer verification»), `roadmap/MESSAGES.md` dels dos repos, els locals `packages/i18n/src/locales/{ca,es,en}/*.json` del web `main` `08e4702d` i els seeds de l'api `main` `8d73ad2a`. Les cadenes són **literals** (copiades dels fitxers); on només hi havia proposta en ca, l'es/en és meu i porta «(proposta nova)». La regla dels botons en castellà (219 textos, infinitiu) ja està decidida (E137/E144) i no hi és.
 
 **Com respondre**: a cada grup hi ha una línia `Decisió Jordi:`. Un `OK` aprova tot el grup tal com és a la columna «ca · es · en» (les files on «recomanació» diu «OK» no cal tocar-les); per canviar una fila, escriu-hi l'id i el text nou (`A39.24: «Club pilot»`). A la columna «recomanació» només hi ha text quan proposo un canvi o un matís. Quan ho responguis, l'organitzador omple l'«Approved copy» d'E11-W05 (passos 3, 4 i 6), sincronitza `CATALEG_ERRORS.md` (A40.4) i crea la tasca de seed del club plantilla (A41.1).
 
@@ -274,6 +274,44 @@ Textos del `main` `08e4702d` (ronda 1). La ronda 2 (E136, fil D) canvia «7 dies
 **Decisió Jordi:** OK en bloc amb les 11 correccions recomanades (21-10, E153).
 
 ---
+
+### A39.D.2 · RGPD, ronda 2 d'E11-W01 (E151) i ronda 3 d'E10-W03 — els textos afegits després de l'aprovació en bloc
+
+Textos del `main` 49d2744. Segueixen el patró aprovat a A39.D (E153); es donen per acceptats llevat que Jordi en corregeixi algun.
+
+| id | pantalla/clau | ca | es | en | recomanació |
+|---|---|---|---|---|---|
+| A39.212 | `auth:profile.dataExport.preparing` | Preparant el paquet… | Preparando el paquete… | Preparing the package… | OK |
+| A39.213 | `auth:profile.dataExport.stillPreparing` | El paquet encara s'està preparant. T'avisarem quan estigui a punt. | El paquete todavía se está preparando. Te avisaremos cuando esté listo. | The package is still being prepared. We will let you know when it is ready. | OK |
+| A39.214 | `auth:profile.dataExport.refresh` | Actualitza | Actualizar | Refresh | OK |
+| A39.215 | `auth:profile.dataExport.availableUntil` | Disponible fins al {date}. | Disponible hasta el {date}. | Available until {date}. | OK |
+| A39.216 | `auth:profile.dataExport.download` | Descarrega el paquet | Descargar el paquete | Download the package | OK |
+| A39.217 | `auth:profile.dataExport.downloading` | Descarregant el paquet… | Descargando el paquete… | Downloading the package… | OK |
+| A39.218 | `auth:profile.dataExport.error` | No s'ha pogut consultar el paquet. | No se ha podido consultar el paquete. | The package could not be checked. | OK |
+| A39.219 | `auth:profile.dataExport.downloadError` | No s'ha pogut descarregar el paquet. | No se ha podido descargar el paquete. | The package could not be downloaded. | OK |
+| A39.220 | `admin-census:member.privacy.exportPreparing` | S'està preparant el paquet de dades. | Se está preparando el paquete de datos. | The data package is being prepared. | OK |
+| A39.221 | `admin-census:member.privacy.consents.loading` | Carregant els consentiments… | Cargando los consentimientos… | Loading consents… | OK |
+| A39.222 | `admin-census:member.privacy.consents.empty` | No hi ha consentiments registrats. | No hay consentimientos registrados. | There are no recorded consents. | OK |
+| A39.223 | `admin-census:member.privacy.consents.detail` | versió {version} · {date} · {locale} | versión {version} · {date} · {locale} | version {version} · {date} · {locale} | OK |
+| A39.224 | `admin-census:member.privacy.consents.types.other` | Consentiment | Consentimiento | Consent | OK |
+| A39.225 | `admin-census:member.privacy.erasure.leaveFirst` | Per suprimir les dades, primer cal tramitar la baixa de l'abonat. | Para suprimir los datos, primero hay que tramitar la baja del abonado. | To erase the data, the member's leave must be processed first. | OK |
+| A39.226 | `admin-census:member.privacy.erasure.loading` | Comprovant si hi ha una supressió programada… | Comprobando si hay una supresión programada… | Checking for a scheduled erasure… | OK |
+| A39.227 | `admin-census:member.privacy.erasure.reason` | Motiu (opcional) | Motivo (opcional) | Reason (optional) | OK |
+| A39.228 | `admin-census:member.privacy.erasure.requesting` | Programant la supressió… | Programando la supresión… | Scheduling erasure… | OK |
+| A39.229 | `admin-census:member.privacy.erasure.requested` | La supressió s'ha programat. | La supresión se ha programado. | Erasure was scheduled. | OK |
+| A39.230 | `admin-census:member.privacy.erasure.blocked` | La supressió prevista per al {date} està bloquejada: es torna a provar cada dia. | La supresión prevista para el {date} está bloqueada: se vuelve a intentar cada día. | The erasure planned for {date} is blocked: it is retried every day. | OK |
+| A39.231 | `admin-census:member.privacy.erasure.erasing` | La supressió està en curs. | La supresión está en curso. | The erasure is in progress. | OK |
+| A39.232 | `admin-census:member.privacy.erasure.cancelling` | Anul·lant la supressió… | Cancelando la supresión… | Cancelling erasure… | OK |
+| A39.233 | `admin-census:member.privacy.erasure.cancelConfirm` | ANUL·LA LA SUPRESSIÓ | CANCELAR LA SUPRESIÓN | CANCEL ERASURE | OK |
+| A39.234 | `admin-census:member.privacy.erasure.cancelled` | La sol·licitud s'ha anul·lat. | La solicitud se ha cancelado. | The request was cancelled. | OK |
+| A39.235 | `admin-audit:support.loadFailed` | No s'han pogut llegir els accessos de suport en curs. | No se han podido leer los accesos de soporte en curso. | The live support accesses could not be read. | OK |
+| A39.236 | `admin-audit:support.retry` | Torna-ho a provar | Volver a intentarlo | Try again | OK |
+
+25 files, 0 marcades: 6 claus noves de la ronda 2 d'E11-W01, 2 de la ronda 3 d'E10-W03 (`admin-audit:support.*`) i 17 de la ronda 1 que A39.188 aprovava en bloc sense mostrar-ne el text.
+
+També de la ronda 2 (ja llistades a A39.D, text nou): `auth:profile.dataExport.description` → «Prepara un paquet amb les dades del teu compte.» (la data viu a `availableUntil`, A39.215) i `auth:profile.dataExport.ready` → «Les teves dades estan a punt.» (N-50, com recomanava A39.160). Fora de `member.privacy`: `admin-census:member.readmissionPending` (D10, readmissió pendent). `blockReasons.other` = «La supressió està bloquejada.» (A39.188).
+
+**Decisió Jordi:** (pendent; es dona per OK en bloc com A39.D si no hi ha correcció)
 
 ## A40 · Regles de copy (E11-W05 passos 3 i 4; E142)
 
