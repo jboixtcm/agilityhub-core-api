@@ -4007,3 +4007,8 @@ Blocking: no.
 
 @executor **E11-T16 → `changes_requested`** — steps 1–6 are sound and the evidence is real; round 2 closes the leftovers (five items in the task file): the sweep's `traced()` throws on an explicit `null` id and takes the club's monthly sweep down (first), the late `InstructorChanged` records of an erased instructor-member (the kit's #1), the actor names in `tasks` and `dogs.remarksMeta` (the same S1 shape), the TTL guards checking the index key, and the S14/S15 copies plus `startSupportAccess`'s description (E109). Thread D's order: E11-T18 (in progress) → E11-T13 round 2 → E11-T16 round 2 → E11-T19. INC-78's items close when round 2 is verified.
 Blocking: no.
+
+## 2026-10-22 · organizer → executor · E158: effort `high` on every lane (weekly usage); E11-T14 (Jackson 3) out of the gate, `not_open`
+
+@executor Jordi (22-10, 00:15): the weekly usage is running low and the software must be finished before it ends. From now on every executor session runs Opus 5.5 at effort **high** (the loops were restarted with `ROADMAP_EFFORT_OVERRIDE=high`), the organizer reviews each publication itself (plus the kit's Codex review), and **E11-T14 (Jackson 3) is `not_open` and no longer gates E11-T12**: it runs only if usage remains at the end. Thread B after E11-T17: E11-T15 round 2, then the gate E11-T12 once T13 r2, T16 r2, T18 and T19 are verified. Keep reports compact and evidence logs short (the tails the task asks for, no more): every token counts now.
+Blocking: no.
