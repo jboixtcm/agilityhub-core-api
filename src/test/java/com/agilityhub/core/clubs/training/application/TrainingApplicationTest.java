@@ -70,8 +70,10 @@ class TrainingApplicationTest {
         assertThat(TrainingNotificationFacts.applies("N-06", trigger(booked))).isTrue();
         assertThat(TrainingNotificationFacts.applies("N-47", trigger(booked))).isFalse();
         assertThat(TrainingNotificationFacts.applies("N-07", trigger(booked))).isFalse();
+        // INC-40.10 (ruling E150, E11-T17): a booking the club makes sends the member one notice, N-47, never N-06 as well.
         var byClub = event(TrainingEvent.Kind.TrainingBooked, "BACKOFFICE", null, null);
-        assertThat(TrainingNotificationFacts.applies("N-06", trigger(byClub))).isTrue(); assertThat(TrainingNotificationFacts.applies("N-47", trigger(byClub))).isTrue();
+        assertThat(TrainingNotificationFacts.applies("N-06", trigger(byClub))).as("N-47 replaces N-06").isFalse();
+        assertThat(TrainingNotificationFacts.applies("N-47", trigger(byClub))).isTrue();
         var member = event(TrainingEvent.Kind.TrainingCancelled, "APP", "MEMBER", "MEMBER_REQUEST");
         assertThat(TrainingNotificationFacts.applies("N-07", trigger(member))).isTrue(); assertThat(TrainingNotificationFacts.applies("N-47", trigger(member))).isFalse();
         assertThat(TrainingNotificationFacts.applies("N-06", trigger(member))).isFalse();

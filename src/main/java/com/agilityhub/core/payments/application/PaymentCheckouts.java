@@ -52,18 +52,20 @@ public class PaymentCheckouts {
                 if (!payment.memberId().equals(memberId)) { throw new ApiException(ErrorCode.NOT_FOUND); }
                 if (!Set.of("DUE", "PARTIAL").contains(payment.status())) { throw new ApiException(ErrorCode.INVALID_STATE); }
             }
+            // INC-39.2 (ruling E149): a named PARTIAL row is closed with its cash correction; its rest is charged as a new DUE row.
+            var charged = payments.toCharge(memberId, selected.stream().map(UpfrontPayment::id).toList());
             String id = UUID.randomUUID().toString(); var expires = clock.instant().plus(Duration.ofHours(24));
             var metadata = new LinkedHashMap<String, Object>();
             metadata.put("clubId", TenantContext.require()); metadata.put("memberId", memberId);
             metadata.put("currency", configs.get(TenantContext.require()).club().currency());
-            metadata.put("upfrontPaymentIds", selected.stream().map(UpfrontPayment::id).toList());
-            var lines = selected.stream().map(p -> new PaymentProvider.Item(p.id(), p.concept(), p.amountDue().minus(p.amountPaid()))).toList();
+            metadata.put("upfrontPaymentIds", charged.stream().map(UpfrontPayment::id).toList());
+            var lines = charged.stream().map(p -> new PaymentProvider.Item(p.id(), p.concept(), p.amountDue().minus(p.amountPaid()))).toList();
             var requestValue = new PaymentProvider.Request(id, TenantContext.require(), memberId, setup ? "setup" : "payment", lines,
                     null, bookingId == null ? memberId : bookingId, metadata, setup ? null : "off_session", success, cancel, expires);
             sessions.insert(new SignupCheckoutSession(id, TenantContext.require(), memberId, "PENDING", requestValue.mode(),
-                    selected.stream().map(UpfrontPayment::id).toList(), expires, bookingId, null, null, IdempotentOperation.reference(), requestValue));
+                    charged.stream().map(UpfrontPayment::id).toList(), expires, bookingId, null, null, IdempotentOperation.reference(), requestValue));
             if (setup) { sessions.markStandaloneCardSetup(id); }
-            payments.pending(memberId, selected.stream().map(UpfrontPayment::id).toList(), id); return requestValue;
+            payments.pending(memberId, charged.stream().map(UpfrontPayment::id).toList(), id); return requestValue;
         });
         var result = new CheckoutService.Result(provider.createCheckoutSession(request), request.sessionId());
         tx.keyed(201, () -> { if (!sessions.answered(request.sessionId())) { throw new ApiException(ErrorCode.INVALID_STATE); } return result; }, answer);

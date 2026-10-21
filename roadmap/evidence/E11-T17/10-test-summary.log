@@ -1,0 +1,19 @@
+E11-T17 · test summary of the final ./mvnw -q clean verify (09-clean-verify.log, exit 0), read from target/surefire-reports and target/failsafe-reports by roadmap/evidence/E11-T17/summary.py; the classes this task adds or changes
+
+surefire: 450 classes · tests 4835 · failures 0 · errors 0 · skipped 0
+  payments.application.UpfrontPaymentsSurvivorsTest: tests 14 · failures 0 · errors 0 · skipped 0
+  payments.application.PaymentCheckoutsSurvivorsTest: tests 18 · failures 0 · errors 0 · skipped 0
+  clubs.training.application.TrainingApplicationTest: tests 4 · failures 0 · errors 0 · skipped 0
+  clubs.messaging.domain.NotificationLinksTest: tests 41 · failures 0 · errors 0 · skipped 0
+  platform.application.audit.AuditedAspectTest: tests 6 · failures 0 · errors 0 · skipped 0
+  platform.application.audit.AuditWriterTest: tests 6 · failures 0 · errors 0 · skipped 0
+
+failsafe: 166 classes · tests 2209 · failures 0 · errors 0 · skipped 0
+  clubs.census.api.SignupMinorFixesIT: tests 23 · failures 0 · errors 0 · skipped 0
+  payments.api.CardPaymentsIT: tests 119 · failures 0 · errors 0 · skipped 0
+  clubs.training.api.TrainingIT: tests 30 · failures 0 · errors 0 · skipped 0
+  clubs.bookings.api.NotificationActionsIT: tests 15 · failures 0 · errors 0 · skipped 0
+  configuration.E5PersistenceIT: tests 9 · failures 0 · errors 0 · skipped 0
+  clubs.bookings.api.CleanupJobIT: tests 9 · failures 0 · errors 0 · skipped 0
+  clubs.scheduling.application.CalendarIT: tests 23 · failures 0 · errors 0 · skipped 0
+  platform.privacy.MemberDataExportIT: tests 2 · failures 0 · errors 0 · skipped 0

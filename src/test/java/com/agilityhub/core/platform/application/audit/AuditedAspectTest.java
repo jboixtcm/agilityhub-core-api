@@ -16,7 +16,7 @@ class AuditedAspectTest {
         MutableClub club = new MutableClub();
         assertThat(proxy.update(club, "Corrected name")).isSameAs(club);
         verify(writer).write(AuditAction.CLUB_UPDATED, "Club", "club-a", null, "Corrected name",
-                List.of(new AuditChange("name", "before", "after")), null);
+                List.of(new AuditChange("name", "before", "after")), null, null);
     }
 
     @Test void T_14_12_missingLoaderFailsBeforeMutationAndDuplicateLoadersAreRejected() {
@@ -37,7 +37,7 @@ class AuditedAspectTest {
         AuditWriter writer = mock(AuditWriter.class);
         proxy(writer, new DetachedService()).create();
         verify(writer).write(AuditAction.CLUB_UPDATED, "Club", "club-a", null, null,
-                List.of(new AuditChange("name", null, "before")), null);
+                List.of(new AuditChange("name", null, "before")), null, null);
     }
 
     /**
@@ -50,11 +50,28 @@ class AuditedAspectTest {
         var proxy = proxy(writer, new DetachedService());
         proxy.send("template-a", 3);
         verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-a", null, null, List.of(),
-                Map.of("batchId", "batch-template-a", "recipientCount", 3));
+                Map.of("batchId", "batch-template-a", "recipientCount", 3), null);
         proxy.send("template-b", 0);
-        verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-b", null, null, List.of(), null);
+        verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-b", null, null, List.of(), null, null);
         assertThatThrownBy(() -> proxy.sendWithTextDetails("template-c")).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("@Audited details must be a map");
+    }
+
+    /**
+     * R-14-10 (E11-T17): `events` names the outbox events the entry links (each entry of a batch its own one); a null id is no
+     * link, no expression links every event of the transaction (null), anything else than a collection is a programming error.
+     */
+    @Test void R_14_10_theEventsExpressionNamesTheEventsTheEntryLinks() {
+        AuditWriter writer = mock(AuditWriter.class);
+        var proxy = proxy(writer, new DetachedService());
+        proxy.sendWithEvent("template-a", "event-a");
+        verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-a", null, null, List.of(), Map.of("batchId", "batch-template-a", "recipientCount", 1),
+                List.of("event-a"));
+        proxy.sendWithEvent("template-b", null);
+        verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-b", null, null, List.of(), Map.of("batchId", "batch-template-b", "recipientCount", 1),
+                List.of());
+        assertThatThrownBy(() -> proxy.sendWithTextEvents("template-c")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("@Audited events must be a collection of event ids");
     }
 
     /**
@@ -114,5 +131,11 @@ class AuditedAspectTest {
 
         @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()", details = "'not a map'")
         public Sent sendWithTextDetails(String templateId) { return new Sent(templateId, 1); }
+
+        @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()", details = "#result.details()", events = "{#p1}")
+        public Sent sendWithEvent(String templateId, String eventId) { return new Sent(templateId, 1); }
+
+        @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()", events = "'event-a'")
+        public Sent sendWithTextEvents(String templateId) { return new Sent(templateId, 1); }
     }
 }

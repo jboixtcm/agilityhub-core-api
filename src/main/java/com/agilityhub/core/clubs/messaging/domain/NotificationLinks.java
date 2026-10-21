@@ -17,7 +17,8 @@ import java.util.Optional;
  * `OPEN_BOOKING` → 07 `/reserves/{bookingId}`, a training booking → 08's detail `/entrenaments/{trainingBookingId}` (S09
  * §2), otherwise 04; `OPEN_DOG` → 13 `/gossos?dogId=`; `OPEN_TASKS` → 13 `/gossos?dogId=&taskId=`; `OPEN_INVOICES` → 12
  * `/rebuts?invoiceId=` (until E8 builds the receipts screen); `OPEN_ACTIVITY` → `/activitats/{activityId}`; `OPEN_EXPORT` →
- * 12 `/perfil`. `OPEN_SETUP` (N-31, a new course on a ring; APP only) opens no training screen and has no e-mail route.</li>
+ * 12 `/perfil?jobId=` (N-50's export job, E11-T17). `OPEN_SETUP` (N-31, a new course on a ring; APP only) opens no training
+ * screen and has no e-mail route.</li>
  * <li>`INSTRUCTORS`: a class (`CHANGE_CLASS`, `OPEN_BOOKING`) → 21 `/instructor/classes/{classSessionId}`; `OPEN_DOG` → 22
  * `/instructor/alumnes/{dogId}`; `OPEN_TASKS` → 26 `/instructor/alumnes/{dogId}/tasques`; otherwise 23 `/instructor/avui`.</li>
  * <li>`ADMINS`: `OPEN_SIGNUP` → D2 `/preinscripcions/{memberId}` (without a member, the pending card of D1 `/tauler`);
@@ -54,7 +55,7 @@ public final class NotificationLinks {
             case OPEN_TASKS -> query("/gossos", p, "dogId", "taskId");
             case OPEN_INVOICES -> query("/rebuts", p, "invoiceId");
             case OPEN_ACTIVITY -> p.get("activityId") == null ? null : "/activitats/" + encode(p.get("activityId"));
-            case OPEN_EXPORT -> "/perfil";
+            case OPEN_EXPORT -> query("/perfil", p, "jobId");
             case OPEN_SETUP, OPEN_SIGNUP, OPEN_MEMBER, OPEN_JOBS, OPEN_CHALLENGE -> null;
         };
         return path == null ? null : new Link(CLUBS, path);

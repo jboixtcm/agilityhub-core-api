@@ -88,7 +88,8 @@ public class ClassSessionService {
             // INC-40 (E11-T10, R-06-09): the instructors are a set; a reorder is kept as sent but is no change (no diff, no N-08b).
             for (String key : patch.keySet()) { Object old = field(before, key), next = field(after, key); if (!same(key, old, next)) { var change = new LinkedHashMap<String, Object>(); change.put("before", old); change.put("after", next); diff.put(key, change); } }
             events.publish(SchedulingEvent.Kind.ClassSessionUpdated, id, Map.of("classId", id, "diff", diff, "bookedCount", before.counters().booked()));
-            if (before.counters().booked() > 0) { audit.updated(before, after); }
+            // E11-T17 (N3 of E11-T10's review): a pure reorder changes nothing, so it is not audited either.
+            if (before.counters().booked() > 0 && !diff.isEmpty()) { audit.updated(before, after); }
             if (before.risk().exempt() != after.risk().exempt()) { riskEvent(before, after); }
             return after;
         });

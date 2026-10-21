@@ -420,6 +420,8 @@ class TrainingIT extends TrainingFixtures {
     @Test @AuditCovers(AuditAction.TRAINING_CANCELLED_BY_CLUB)
     void T_09_21_INC_40_aClubCancellationKeepsTheAdminTextForN47AndIsAudited() throws Exception {
         var thai = book(as("sergio"), "s09-d-thai", "2026-10-06T17:00", CAR, 201);
+        // E11-T17 (R-14-10, N1 of E11-T10's review): a second booking in the same block, cancelled in the same transaction.
+        var lluna = book(as("julia"), "s09-d-lluna", "2026-10-06T16:30", CAR, 201);
         String text = "Torneig d'estiu: la pista Carretera és de l'activitat.";
         var request = new com.agilityhub.core.clubs.scheduling.application.ActivityBlockRequest("s09-activity", List.of(CAR), local("2026-10-06T16:00"),
                 local("2026-10-06T18:00"), "s09-admin");
@@ -432,9 +434,13 @@ class TrainingIT extends TrainingFixtures {
         var stored = training(thai.path("id").asText());
         assertThat(stored.getString("state")).isEqualTo("CANCELLED_BY_CLUB"); assertThat(stored.getString("cancelReason")).isEqualTo("RING_BLOCK");
         assertThat(stored.getString("cancelNote")).isEqualTo(text);
-        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("TRAINING_CANCELLED_BY_CLUB")), Document.class, "audit_entries");
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("TRAINING_CANCELLED_BY_CLUB").and("entityId").is(thai.path("id").asText())),
+                Document.class, "audit_entries");
         assertThat(audit).isNotNull();
         assertThat(audit).containsEntry("entityId", thai.path("id").asText()).containsEntry("actorAccountId", "s09-admin").containsEntry("reason", "RING_BLOCK");
+        // Each entry links its own TrainingCancelled, and only it: not the other cancellation of the batch.
+        assertThat(training(lluna.path("id").asText()).getString("state")).isEqualTo("CANCELLED_BY_CLUB");
+        assertOwnEventOnly("TRAINING_CANCELLED_BY_CLUB", "TrainingCancelled", List.of(thai.path("id").asText(), lluna.path("id").asText()));
         dispatch(); dispatch();
         assertThat(notifications("N-47")).isNotEmpty().allSatisfy(n -> assertThat(n.get("variables", Document.class))
                 .containsEntry("admin_text", text).containsEntry("change", "CANCELLED"));
@@ -444,6 +450,20 @@ class TrainingIT extends TrainingFixtures {
                 "kind", "BLOCK", "reason", "MAINTENANCE", "note", "Només per a l'equip", "cancelBookings", true), as("admin"), 201, UUID.randomUUID().toString());
         assertThat(training(pau.path("id").asText()).getString("cancelNote")).isNull();
         assertThat(count("audit_entries", Criteria.where("action").is("TRAINING_CANCELLED_BY_CLUB").and("entityId").is(pau.path("id").asText()))).isEqualTo(1);
+        assertOwnEventOnly("TRAINING_CANCELLED_BY_CLUB", "TrainingCancelled", List.of(pau.path("id").asText()));
+    }
+    /**
+     * R-14-10 (E11-T17): the {@code action} entry of each booking links exactly the {@code type} event published for that booking
+     * (`aggregateId` = the booking), never another booking's.
+     */
+    void assertOwnEventOnly(String action, String type, List<String> bookingIds) {
+        for (String bookingId : bookingIds) {
+            var entry = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is(action).and("entityId").is(bookingId)), Document.class, "audit_entries");
+            assertThat(entry).as("%s of %s", action, bookingId).isNotNull();
+            var own = eventsOf(type).stream().filter(e -> bookingId.equals(e.getString("aggregateId"))).map(e -> e.getString("_id")).toList();
+            assertThat(own).as("%s of %s", type, bookingId).hasSize(1);
+            assertThat(entry.getList("eventIds", String.class)).as("eventIds of the %s entry of %s", action, bookingId).containsExactlyElementsOf(own);
+        }
     }
 
     /** R-09-08 (S08 R-08-05: the dog owner or the booker) — INC-40 (E11-T10): the owner's booking block also stops a family member booking the owner's dog. */
@@ -485,10 +505,16 @@ class TrainingIT extends TrainingFixtures {
                 .and("reason").is("Lesió del gos"))).isEqualTo(1);
         var event = eventsOf("TrainingCancelled").getFirst();
         assertThat(event.get("payload", Document.class)).containsEntry("late", true).containsEntry("by", "ADMIN").containsEntry("origin", "BACKOFFICE");
+        // E11-T17 (R-14-10, N1 of E11-T10's review): each club entry links its own event, published before it in its transaction.
+        assertOwnEventOnly("TRAINING_BOOKED_BY_CLUB", "TrainingBooked", List.of(booked.path("id").asText(), over.path("id").asText()));
+        assertOwnEventOnly("TRAINING_CANCELLED_BY_CLUB", "TrainingCancelled", List.of(booked.path("id").asText()));
         dispatch(); dispatch();
-        // Booked by the club: N-06 + N-47 (two bookings); cancelled by the club: N-47 only, never N-07.
+        // Booked by the club: N-47 only (two bookings), never N-06 as well (INC-40.10, ruling E150); cancelled by the club: N-47
+        // only, never N-07. Maria's own two bookings: N-06.
         assertThat(count("notifications", Criteria.where("code").is("N-47").and("channel").is("SMS"))).isEqualTo(3);
         assertThat(notifications("N-07")).isEmpty();
+        assertThat(notifications("N-06")).as("only the member's own bookings").hasSize(2)
+                .noneMatch(n -> List.of(booked.path("id").asText(), over.path("id").asText()).contains(n.get("subject", Document.class).getString("trainingBookingId")));
         var sms = com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-47").and("channel").is("SMS")).stream().findFirst().orElse(null);
         assertThat(sms.getString("status")).isEqualTo("SENT");
         // SMS off: the intent is recorded as SKIPPED_MODULE_OFF.

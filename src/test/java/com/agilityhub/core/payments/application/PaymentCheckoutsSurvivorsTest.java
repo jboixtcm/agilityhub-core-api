@@ -70,6 +70,8 @@ class PaymentCheckoutsSurvivorsTest {
         when(configs.get(CLUB)).thenReturn(config());
         when(provider.createCheckoutSession(any())).thenReturn(URL);
         when(sessions.answered(anyString())).thenReturn(true);
+        // The fixture's rows are DUE, which UpfrontPayments.toCharge charges as they are (a PARTIAL row's rest, INC-39.2: its own test).
+        when(payments.toCharge(anyString(), anyList())).thenAnswer(call -> call.<List<String>>getArgument(1).stream().map(id -> row(id, call.getArgument(0), null)).toList());
         checkouts = new PaymentCheckouts(sessions, rows, payments, signup, members, tx, provider, configs, Clock.fixed(NOW, ZoneOffset.UTC));
         ReflectionTestUtils.setField(checkouts, "bookings", bookings);
     }
@@ -174,6 +176,7 @@ class PaymentCheckoutsSurvivorsTest {
         assertThat(request.clientReferenceId()).isEqualTo("member-1");
         assertThat(request.setupFutureUsage()).isEqualTo("off_session");
         assertThat(result).isEqualTo(new CheckoutService.Result(URL, request.sessionId()));
+        verify(payments).toCharge("member-1", List.of("pay-1"));
         verify(payments).pending("member-1", List.of("pay-1"), request.sessionId());
         verify(sessions, never()).markStandaloneCardSetup(any());
         // The key's row and the census are locked before the session is read or written.
@@ -200,6 +203,29 @@ class PaymentCheckoutsSurvivorsTest {
         assertThat(request.clientReferenceId()).isEqualTo("booking-1");
         assertThat(request.setupFutureUsage()).isEqualTo("off_session");
         verify(rows, never()).member(any());
+    }
+
+    /**
+     * INC-39.2 (ruling E149, E11-T17): a named PARTIAL row is charged through the rows {@link UpfrontPayments#toCharge} returns
+     * (its rest's new DUE row): the provider's lines, the metadata, the session and the rows put pending are those, never the
+     * closed row.
+     */
+    @Test void T_12_16_INC_39_theCheckoutChargesTheRowsToChargeReturnsNotTheClosedPartialRow() {
+        var partial = new UpfrontPayment("pay-partial", CLUB, "member-1", "dog-1", "ENTRY_FEE", "ENTRY_FEE", new Money(1000, "EUR"), new Money(400, "EUR"), "PARTIAL",
+                "MANUAL", null, NOW, NOW, null, "sub-1", null);
+        when(rows.findById("pay-partial")).thenReturn(Optional.of(partial));
+        var rest = new UpfrontPayment("pay-rest", CLUB, "member-1", "dog-1", "ENTRY_FEE", "ENTRY_FEE", new Money(600, "EUR"), new Money(0, "EUR"), "DUE",
+                null, null, NOW, null, null, "sub-1", null);
+        when(payments.toCharge("member-1", List.of("pay-partial"))).thenReturn(List.of(rest));
+
+        create(null, List.of("pay-partial"), false);
+
+        var request = sent();
+        assertThat(request.lines()).containsExactly(new PaymentProvider.Item("pay-rest", "ENTRY_FEE", new Money(600, "EUR")));
+        assertThat(request.metadata()).containsEntry("upfrontPaymentIds", List.of("pay-rest"));
+        var session = ArgumentCaptor.forClass(SignupCheckoutSession.class); verify(sessions).insert(session.capture());
+        assertThat(session.getValue().upfrontPaymentIds()).containsExactly("pay-rest");
+        verify(payments).pending("member-1", List.of("pay-rest"), request.sessionId());
     }
 
     @Test void T_12_16_anUnknownExplicitPaymentIsNotFound() {

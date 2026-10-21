@@ -301,13 +301,15 @@ public class NotificationEngine {
 
     /**
      * R-11-11: the native action fixed by the code for the audience, with the subject's ids as parameters. `OPEN_SETUP` (N-31) opens
-     * the viewer of the ring's setup, `/recorreguts/muntat/{ringId}`, so it carries the event's `ringId` (ruling E81).
+     * the viewer of the ring's setup, `/recorreguts/muntat/{ringId}`, so it carries the event's `ringId` (ruling E81). `OPEN_EXPORT`
+     * (N-50) names the export job it opens, `jobId` (S14 §8, E11-T17): the app reopens that package (`/perfil?jobId=`).
      */
     static Notification.Action action(NotificationSpec spec, RecipientResolver.Recipient recipient, NotificationTrigger trigger) {
         var type = spec.action(recipient.audience());
         if (type == null) { return null; }
         var params = new LinkedHashMap<String, String>();
         if (type == NotificationActionType.OPEN_SETUP && trigger.text("ringId") != null) { params.put("ringId", trigger.text("ringId")); }
+        if (type == NotificationActionType.OPEN_EXPORT && trigger.text("exportId") != null) { params.put("jobId", trigger.text("exportId")); }
         var s = recipient.subject();
         if (s.dogId() != null) { params.put("dogId", s.dogId()); }
         if (s.classSessionId() != null) { params.put("classSessionId", s.classSessionId()); }

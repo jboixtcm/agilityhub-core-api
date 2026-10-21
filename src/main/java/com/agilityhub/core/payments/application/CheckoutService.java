@@ -113,11 +113,13 @@ public class CheckoutService {
         releaseLapsed(memberId);
         String currency=configs.get(TenantContext.require()).club().currency();
         var scope=members.submissions(memberId);
-        var lines=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
+        var payable=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
         var due=payments.due(memberId,scope,currency);var method=member.get("paymentMethod") instanceof Map<?,?> map?map:Map.of();
         boolean card="CARD".equals(method.get("type"));
         if(due.amountMinor()==0&&!card) throw new ApiException(ErrorCode.INVALID_STATE);
-        if(lines.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
+        if(payable.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
+        // INC-39.2 (ruling E149): a row paid in part in cash is closed with its correction, and the rest is charged as a new DUE row.
+        var lines=payments.linesToCharge(memberId,payable);
         // Milliseconds, as the session document keeps it: a retry replays this very request.
         String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24)).truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
         var ids=lines.stream().map(UpfrontPayments.Line::id).toList();String mode=due.amountMinor()==0?"setup":"payment";
@@ -250,7 +252,8 @@ public class CheckoutService {
         if (session.bookingId() == null && (session.status().equals("EXPIRED") || !session.expiresAt().isAfter(at))) {
             var rows = session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow()).toList();
             long due = rows.stream().mapToLong(p -> p.amountDue().amountMinor() - p.amountPaid().amountMinor()).sum();
-            if (!rows.isEmpty() && rows.stream().allMatch(p -> Set.of("DUE", "PARTIAL").contains(p.status())
+            // A session charges only DUE rows (INC-39.2, ruling E149): a row that received cash since is no longer what it charged.
+            if (!rows.isEmpty() && rows.stream().allMatch(p -> "DUE".equals(p.status())
                     || ("CHECKOUT_PENDING".equals(p.status()) && sessionId.equals(p.checkoutSessionId()))) && due == amount) {
                 payments.pending(session.memberId(), rows.stream().filter(p -> !"CHECKOUT_PENDING".equals(p.status())).map(UpfrontPayment::id).toList(), sessionId);
                 sessions.reopenForSettlement(sessionId);

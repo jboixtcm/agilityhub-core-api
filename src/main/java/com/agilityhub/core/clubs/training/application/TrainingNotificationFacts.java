@@ -17,9 +17,10 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 /**
- * S09 notices explained to the S11 engine (E7-T02; replaces `TrainingNotifications`, rules unchanged): N-06
- * `TrainingBooked`; N-47 `TrainingBooked/Cancelled` made by the club (`origin = BACKOFFICE` or `by = ADMIN`), with the
- * cancellation note as `admin_text`; N-07 `TrainingCancelled` otherwise, except `cancelReason = MEMBER_LEFT` (S09); the
+ * S09 notices explained to the S11 engine (E7-T02; replaces `TrainingNotifications`, rules unchanged): N-47
+ * `TrainingBooked/Cancelled` made by the club (`origin = BACKOFFICE` or `by = ADMIN`), with the cancellation note as
+ * `admin_text`; otherwise N-06 `TrainingBooked` (INC-40.10, ruling E150: one notice per club booking, N-47) and N-07
+ * `TrainingCancelled`, except `cancelReason = MEMBER_LEFT` (S09); the
  * N-13 reminder of a training booking (`kind = TRAINING`). `time` = «8:30–9:00» in the club's time zone. Also the
  * {@link BookingRelevancePort} of R-11-16 for both kinds of booking (the class one through S08's facts).
  */
@@ -39,7 +40,7 @@ public class TrainingNotificationFacts implements NotificationFactsPort, Booking
         boolean booked = "TrainingBooked".equals(trigger.type());
         boolean club = "BACKOFFICE".equals(trigger.text("origin")) || "ADMIN".equals(trigger.text("by"));
         return switch (code) {
-            case "N-06" -> booked; // as E5-T04: every booking, also the club's (which gets N-47 too)
+            case "N-06" -> booked && !club; // a club booking gets N-47 instead (S09 §8, ruling E150), as N-07 for a club cancellation
             case "N-47" -> club;
             case "N-07" -> !booked && !club && !"MEMBER_LEFT".equals(trigger.text("cancelReason"));
             default -> false;

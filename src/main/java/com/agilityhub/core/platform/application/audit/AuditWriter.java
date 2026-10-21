@@ -56,7 +56,7 @@ public class AuditWriter {
      */
     public void write(AuditCommand command, String origin) {
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
-                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, null, null);
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, null, null, null);
     }
 
     /**
@@ -66,7 +66,7 @@ public class AuditWriter {
     public void write(AuditCommand command, Map<String, Object> details) {
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
                 AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), null, null,
-                details == null || details.isEmpty() ? null : details);
+                details == null || details.isEmpty() ? null : details, null);
     }
 
     /**
@@ -78,7 +78,7 @@ public class AuditWriter {
         requireText(process, "Audit process is required");
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
                 AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), "SYSTEM",
-                new AuditActor(null, null, "SYSTEM", null, null, null, null, UUID.randomUUID().toString()), Map.of("job", process));
+                new AuditActor(null, null, "SYSTEM", null, null, null, null, UUID.randomUUID().toString()), Map.of("job", process), null);
     }
 
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
@@ -87,11 +87,20 @@ public class AuditWriter {
     /** `@Audited`'s entry, with the `details` its expression gives (S14 §3; null or empty writes none). */
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
                List<AuditChange> changes, Map<String, Object> details) {
-        write(action, entityType, entityId, memberId, reason, changes, null, null, details == null || details.isEmpty() ? null : details);
+        write(action, entityType, entityId, memberId, reason, changes, details, null);
+    }
+
+    /**
+     * `@Audited`'s entry linking {@code eventIds}, the outbox events of its own change (R-14-10, E11-T17: one entry per booking of
+     * a batch, each with its own event); null links every event published so far in the transaction.
+     */
+    void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
+               List<AuditChange> changes, Map<String, Object> details, List<String> eventIds) {
+        write(action, entityType, entityId, memberId, reason, changes, null, null, details == null || details.isEmpty() ? null : details, eventIds);
     }
 
     private void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes, String origin, AuditActor system, Map<String, Object> details) {
+               List<AuditChange> changes, String origin, AuditActor system, Map<String, Object> details, List<String> eventIds) {
         Objects.requireNonNull(action, "Audit action is required");
         requireText(entityType, "Audit entity type is required");
         requireText(entityId, "Audit entity id is required");
@@ -116,7 +125,8 @@ public class AuditWriter {
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),
                 auditOrigin(origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name()),
-                details, labeler == null ? null : labeler.label(entityId), events == null ? null : events.publishedInTransaction());
+                details, labeler == null ? null : labeler.label(entityId),
+                eventIds != null ? List.copyOf(eventIds) : events == null ? null : events.publishedInTransaction());
         // MongoTemplate participates in the caller's transaction, or inserts immediately without one.
         repository.append(entry);
     }

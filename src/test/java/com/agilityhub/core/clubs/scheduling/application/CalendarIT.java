@@ -646,8 +646,12 @@ class CalendarIT extends AbstractIntegrationTest {
         assertThat(session(id).path("instructorIds")).extracting(JsonNode::asText).containsExactly("plan-instructor-2","plan-instructor");
         var updated=mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("ClassSessionUpdated")),Document.class,"domain_events");
         assertThat(updated).hasSize(1);assertThat(updated.getFirst().get("payload",Document.class).get("diff",Document.class)).doesNotContainKey("instructorIds");
+        // E11-T17 (N3 of E11-T10's review): a pure reorder changes nothing, so the class with bookings gets no audit entry either.
+        var edits=Query.query(Criteria.where("clubId").is(CLUB).and("action").is("CLASS_UPDATED_WITH_BOOKINGS").and("entityId").is(id));
+        assertThat(mongo.count(edits,"audit_entries")).as("no CLASS_UPDATED_WITH_BOOKINGS for a reorder").isZero();
         patch(id,Map.of("instructorIds",List.of("plan-instructor")));dispatcher.dispatch();
         assertThat(notifications("N-08b")).isNotEmpty();
+        assertThat(mongo.count(edits,"audit_entries")).as("a real change of the instructors is audited").isEqualTo(1);
     }
     @TestConfiguration(proxyBeanMethods=false) static class Ports {
         @Bean @org.springframework.context.annotation.Primary Doubles schedulingTestPorts(EventPublisher events,ClubConfigService configs,java.time.Clock clock) { return new Doubles(events,configs,clock); }

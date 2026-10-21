@@ -330,6 +330,22 @@ class CleanupJobIT extends BookingFixtures {
         System.out.println("E5-T05 cleanup JobRun real " + mongo.findById(real.id(), Document.class, "job_runs").toJson());
     }
 
+    @Autowired com.agilityhub.core.clubs.bookings.persistence.SeatLockRepository seatLocks;
+    /**
+     * R-15-19, S08 §3 (E11-T17, N2 of E11-T10's review): a lock written before `lockedAt` existed gets it at start-up, so 7 days
+     * later P9 reports it like any lock untouched for 7 days (the TTL drops it); one day before, it is not due yet.
+     */
+    @Test void R_15_19_INC_40_aLegacySeatLockIsCountedSevenDaysAfterTheStartUpThatStampedIt() {
+        mongo.insert(new Document("_id", "s08-lock-legacy").append("clubId", CLUB).append("version", 5L), "seat_locks");
+        clock.setInstant(RUN.minus(Duration.ofDays(8)));
+        seatLocks.ensureIndexes();
+        clock.setInstant(RUN.minus(Duration.ofDays(2)));
+        assertThat(counters(runner.manual(CLUB, JobName.CLEANUP, true, "s08-admin"))).as("6 days after the start-up").containsEntry("ttlPendingSeatLocks", 0L);
+        clock.setInstant(RUN);
+        // The fixture's lock of 8 days and the legacy one, stamped 8 days ago; not the one of yesterday.
+        assertThat(counters(runner.manual(CLUB, JobName.CLEANUP, true, "s08-admin"))).containsEntry("ttlPendingSeatLocks", 2L);
+    }
+
     /**
      * R-15-19 (`domain_events` row), INC-40 (E11-T10): the club's `jobs.retention.domainEventsDays` alone decides when a processed
      * event goes. At 120 days, events of 91 and 100 days stay and only the one of 130 days is deleted; no TTL index on the outbox

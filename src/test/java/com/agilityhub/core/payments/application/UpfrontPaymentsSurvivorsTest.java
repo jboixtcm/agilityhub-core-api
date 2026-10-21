@@ -176,14 +176,11 @@ class UpfrontPaymentsSurvivorsTest {
     static final Set<String> S04_EDGES = Set.of("[*] → DUE", "DUE → CHECKOUT_PENDING", "CHECKOUT_PENDING → PAID", "CHECKOUT_PENDING → DUE", "DUE → PAID",
             "DUE → PARTIAL", "PARTIAL → PAID", "DUE → CANCELLED", "PARTIAL → CANCELLED", "CHECKOUT_PENDING → CANCELLED", "PAID → REFUNDED");
     /**
-     * What the writers do that the diagram does not draw, with where it was decided. PARTIAL → CHECKOUT_PENDING and back: E5-T30
-     * (verified, step 3) lets a row that received cash enter a checkout for the rest and gives it back with its payment history;
-     * INC-39, pending question (E11-T10): S04 §5 does not draw it, and the behaviour (a money path) stays until the owner decides.
-     * [*] → PAID: the correction row of a closed PARTIAL row, in §5's text (ruling E39b).
+     * What the writers do that the diagram does not draw, with where it was decided. [*] → PAID: the correction row of a closed
+     * PARTIAL row, in §5's text (ruling E39b). INC-39.2 (ruling E149, E11-T17): a PARTIAL row no longer enters a checkout, so
+     * PARTIAL → CHECKOUT_PENDING and CHECKOUT_PENDING → PARTIAL are no exception any more.
      */
     static final Map<String, String> DOCUMENTED = Map.of(
-            "PARTIAL → CHECKOUT_PENDING", "INC-39, pending question (E11-T10): E5-T30 step 3",
-            "CHECKOUT_PENDING → PARTIAL", "INC-39, pending question (E11-T10): E5-T30 step 3, the release of such a checkout",
             "[*] → PAID", "S04 §5 text, ruling E39b: the PAID correction of a closed PARTIAL row");
 
     /** Runs a writer over {@code rows} and returns each status change it writes: `before → after`, or `[*] → status` for a new row. */
@@ -205,7 +202,8 @@ class UpfrontPaymentsSurvivorsTest {
     /**
      * T-04-22 (R-04-26, S04 §5), INC-39 (E11-T10): every status change the production writers of {@link UpfrontPayments} make is
      * an edge of S04 §5's diagram or one of the documented exceptions, and each of those is really made (so the list cannot
-     * rot). The refund (PAID → REFUNDED) is S12's writer. A checkout never takes a row that is not DUE or PARTIAL.
+     * rot). The refund (PAID → REFUNDED) is S12's writer. INC-39.2 (ruling E149, E11-T17): only a DUE row waits for a checkout;
+     * a PARTIAL row meets it through {@link UpfrontPayments#toCharge}, which closes it (E39b) and charges its rest as a new DUE row.
      */
     @Test void T_04_22_INC_39_everyStatusChangeOfTheWritersIsAnEdgeOfS04sDiagramOrADocumentedException() {
         var scope = List.of(new Submission("dog-1", "sub-1"));
@@ -215,17 +213,21 @@ class UpfrontPaymentsSurvivorsTest {
         produced.addAll(changes(List.of(row("p-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1")), () -> payments.allocate(MEMBER, scope, eur(10000))));
         produced.addAll(changes(List.of(row("p-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1")), () -> payments.allocate(MEMBER, scope, eur(4000))));
         produced.addAll(changes(List.of(row("p-partial", "ENTRY_FEE", "dog-1", 10000, 4000, "PARTIAL", null, NOW, null, "sub-1")), () -> payments.allocate(MEMBER, scope, eur(6000))));
-        for (var status : List.of("DUE", "PARTIAL")) {
-            produced.addAll(changes(List.of(row("p-open", "ENTRY_FEE", "dog-1", 10000, status.equals("DUE") ? 0 : 4000, status, null, NOW, null, "sub-1")),
-                    () -> payments.pending(MEMBER, List.of("p-open"), "cs_fake_1")));
-        }
-        for (var status : List.of("CHECKOUT_PENDING", "PAID", "CANCELLED", "REFUNDED")) {
-            var closed = List.of(row("p-closed", "ENTRY_FEE", "dog-1", 10000, 0, status, null, NOW, null, "sub-1"));
+        produced.addAll(changes(List.of(row("p-open", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1")),
+                () -> payments.pending(MEMBER, List.of("p-open"), "cs_fake_1")));
+        for (var status : List.of("PARTIAL", "CHECKOUT_PENDING", "PAID", "CANCELLED", "REFUNDED")) {
+            var closed = List.of(row("p-closed", "ENTRY_FEE", "dog-1", 10000, status.equals("PARTIAL") ? 4000 : 0, status, null, NOW, null, "sub-1"));
             assertThatThrownBy(() -> changes(closed, () -> payments.pending(MEMBER, List.of("p-closed"), "cs_fake_2"))).as(status)
                     .isInstanceOfSatisfying(ApiException.class, refused -> assertThat(refused.code()).isEqualTo(ErrorCode.INVALID_STATE));
+            if (!status.equals("PARTIAL")) {
+                assertThatThrownBy(() -> changes(closed, () -> payments.toCharge(MEMBER, List.of("p-closed")))).as("toCharge %s", status)
+                        .isInstanceOfSatisfying(ApiException.class, refused -> assertThat(refused.code()).isEqualTo(ErrorCode.INVALID_STATE));
+            }
         }
-        produced.addAll(changes(List.of(waiting("p-paying", 10000, 0, null), waiting("p-paying-rest", 10000, 4000, null)), () -> payments.checkout(MEMBER, "cs_fake_1", true)));
-        produced.addAll(changes(List.of(waiting("p-expiring", 10000, 0, null), waiting("p-expiring-partial", 10000, 4000, null), waiting("p-booking", 1500, 0, "booking-1")),
+        produced.addAll(changes(List.of(row("t-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1"),
+                row("t-partial", "FIRST_MONTH", "dog-1", 6000, 4000, "PARTIAL", null, NOW, null, "sub-1")), () -> payments.toCharge(MEMBER, List.of("t-due", "t-partial"))));
+        produced.addAll(changes(List.of(waiting("p-paying", 10000, 0, null)), () -> payments.checkout(MEMBER, "cs_fake_1", true)));
+        produced.addAll(changes(List.of(waiting("p-expiring", 10000, 0, null), waiting("p-booking", 1500, 0, "booking-1")),
                 () -> payments.checkout(MEMBER, "cs_fake_1", false)));
         var open = List.of(row("r-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1"), row("r-partial", "FIRST_MONTH", "dog-1", 6000, 1000, "PARTIAL", null, NOW, null, "sub-1"),
                 waiting("r-waiting", 3000, 0, null), row("r-paid", "PACK", "dog-1", 2000, 2000, "PAID", null, NOW, null, "sub-1"));
@@ -238,6 +240,40 @@ class UpfrontPaymentsSurvivorsTest {
         assertThat(produced).as("only S04 §5's edges and the documented exceptions").isSubsetOf(allowed);
         var expected = new HashSet<>(allowed); expected.remove("PAID → REFUNDED");
         assertThat(produced).as("every edge but S12's refund, and every documented exception, is really written").containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    /**
+     * INC-39.2 (ruling E149, E11-T17), S04 §5: the rows {@link UpfrontPayments#toCharge} writes for a PARTIAL row — the row
+     * `CANCELLED` with its amounts, provider and cash `paidAt`; a `PAID` correction with the cash (provider, `paidAt`, amount and
+     * its S12 channel and reference); a new `DUE` row for the rest under the same dog, concept and submission — and the rows it
+     * returns, in the order asked. No event: the cash part was reported when it was received.
+     */
+    @Test void T_04_22_INC_39_aPartialRowToChargeIsClosedWithItsCashAndItsRestIsANewDueRow() {
+        Instant cashAt = NOW.minusSeconds(7200);
+        var partial = new UpfrontPayment("t-partial", CLUB, MEMBER, "dog-1", "OTHER", "ADDITIONAL_DOG_FEE", eur(6000), eur(4000), "PARTIAL", "MANUAL", null,
+                NOW.minusSeconds(86400), cashAt, null, "sub-1", null, null, null, null, "BIZUM", "Fictional ref 7", List.of(), null);
+        when(repository.member(MEMBER)).thenReturn(List.of(partial, row("t-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1")));
+        List<UpfrontPayment> charged;
+        try (var tenant = TenantContext.open(CLUB)) { charged = payments.toCharge(MEMBER, List.of("t-partial", "t-due")); }
+        var updated = ArgumentCaptor.forClass(UpfrontPayment.class); verify(repository).update(updated.capture());
+        assertThat(updated.getValue()).extracting(UpfrontPayment::id, UpfrontPayment::status, p -> p.amountDue().amountMinor(), p -> p.amountPaid().amountMinor(),
+                UpfrontPayment::provider, UpfrontPayment::paidAt).containsExactly("t-partial", "CANCELLED", 6000L, 4000L, "MANUAL", cashAt);
+        var inserted = ArgumentCaptor.forClass(UpfrontPayment.class); verify(repository, times(2)).insert(inserted.capture());
+        var correction = inserted.getAllValues().get(0); var rest = inserted.getAllValues().get(1);
+        assertThat(correction).extracting(UpfrontPayment::status, p -> p.amountDue().amountMinor(), p -> p.amountPaid().amountMinor(), UpfrontPayment::provider,
+                UpfrontPayment::paidAt, UpfrontPayment::correctionOf, UpfrontPayment::channel, UpfrontPayment::reference)
+                .containsExactly("PAID", 4000L, 4000L, "MANUAL", cashAt, "t-partial", "BIZUM", "Fictional ref 7");
+        assertThat(rest).extracting(UpfrontPayment::status, p -> p.amountDue().amountMinor(), p -> p.amountPaid().amountMinor(), UpfrontPayment::provider,
+                UpfrontPayment::paidAt, UpfrontPayment::correctionOf, UpfrontPayment::checkoutSessionId).containsExactly("DUE", 2000L, 0L, null, null, null, null);
+        assertThat(rest).extracting(UpfrontPayment::clubId, UpfrontPayment::memberId, UpfrontPayment::dogId, UpfrontPayment::concept, UpfrontPayment::signupConcept,
+                UpfrontPayment::submissionId, UpfrontPayment::createdAt).containsExactly(CLUB, MEMBER, "dog-1", "OTHER", "ADDITIONAL_DOG_FEE", "sub-1", NOW);
+        assertThat(rest.id()).isNotIn("t-partial", correction.id());
+        assertThat(charged).extracting(UpfrontPayment::id).containsExactly(rest.id(), "t-due");
+        verifyNoInteractions(events);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThatThrownBy(() -> payments.toCharge(MEMBER, List.of("t-missing"))).isInstanceOfSatisfying(ApiException.class,
+                    refused -> assertThat(refused.code()).isEqualTo(ErrorCode.INVALID_STATE));
+        }
     }
 
     // --- fixture ------------------------------------------------------------------------------------------------------------

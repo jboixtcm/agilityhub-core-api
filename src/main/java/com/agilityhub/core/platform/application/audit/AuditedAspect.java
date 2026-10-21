@@ -58,8 +58,15 @@ public class AuditedAspect {
         AuditableLoader loader = loaders.get(type);
         Object after = loader == null ? result : loader.load(id);
         writer.write(audited.action(), type, id, text(audited.member(), context), text(audited.reason(), context),
-                AuditDiff.between(snapshot, AuditDiff.snapshot(after)), details(evaluate(audited.details(), context)));
+                AuditDiff.between(snapshot, AuditDiff.snapshot(after)), details(evaluate(audited.details(), context)), eventIds(evaluate(audited.events(), context)));
         return result;
+    }
+
+    /** `@Audited.events`: null (no expression) links every event of the transaction; a collection names the ones to link. */
+    private static List<String> eventIds(Object value) {
+        if (value == null) { return null; }
+        if (!(value instanceof java.util.Collection<?> ids)) { throw new IllegalArgumentException("@Audited events must be a collection of event ids"); }
+        return ids.stream().filter(java.util.Objects::nonNull).map(Object::toString).toList();
     }
 
     private static Map<String, Object> details(Object value) {

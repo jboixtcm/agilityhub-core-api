@@ -129,9 +129,8 @@ class NotificationActionsIT extends BookingFixtures {
                 String toby = act(() -> as("s08-admin", "ADMIN", () -> trainings.book(club, "s08-d-toby", local("2026-10-07T11:00"), "s08-ring", null,
                         UUID.randomUUID().toString()).booking().id()));
                 act(() -> as("s08-admin", "ADMIN", () -> trainings.cancel(toby, TrainingActor.club(), "Pista ocupada")));
-                // The booking's N-06 and N-47 twice (booked, then cancelled with the admin's text); never N-07.
-                expect(notice("N-06", "MEMBER", "s08-joan", "es", "Reserva confirmada", "Entrenamiento libre · mañana · 11:00–11:30 · Central · con Toby.", APP),
-                        notice("N-47", "MEMBER", "s08-joan", "es", "Entrenamiento gestionado por el club",
+                // N-47 twice (booked, then cancelled with the admin's text); never N-06 (INC-40.10, ruling E150) nor N-07.
+                expect(notice("N-47", "MEMBER", "s08-joan", "es", "Entrenamiento gestionado por el club",
                                 "El club te ha reservado un entrenamiento: mañana · 11:00–11:30 · Central, con Toby.", APP, EMAIL, SMS),
                         notice("N-47", "MEMBER", "s08-joan", "es", "Entrenamiento gestionado por el club",
                                 "El club te ha anulado un entrenamiento: mañana · 11:00–11:30 · Central, con Toby. Pista ocupada", APP, EMAIL, SMS));

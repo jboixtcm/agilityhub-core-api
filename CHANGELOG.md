@@ -18,6 +18,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - R-08-07 (S4): `BookingTransactions` retries a `DuplicateKey` like the other writers (`TransactionRetries.conflict`).
   - INC-82: the impersonation-grant and security-event TTL indexes change their retention by drop + create, never `collMod`, which the production `readWrite` user cannot run (`TtlIndexUpgradeIT` on an authenticated Mongo 7).
   - CI runs `deploy/test_e11_t09.py`. Caddy's `forward_auth` ask drops `X-Forwarded-Uri`/`X-Forwarded-Method`. DEPLOY.md notes that the Maven wrapper's distribution download has no retry.
+- E11-T17: the api correction pass, part 7 (rulings E149–E151). No contract change.
+  - S04 §5, R-04-26 (INC-39.2, E149): a `PARTIAL` row that goes to a checkout is closed as E39b closes it (`CANCELLED`, and a `PAID` correction that keeps the cash: `MANUAL`, its `paidAt`, its amount, and its S12 channel and reference). A new `DUE` row for the rest is the one checked out (`STRIPE`, the provider's `paidAt`). An expired session gives that row back `DUE`. One provider per row; `UpfrontPaymentSucceeded.amountPaid` is the rest. Both checkout routes (`POST /checkout-sessions` with a signup token or with `upfrontPaymentIds`).
+  - S09 §8, `CATALEG_NOTIFICACIONS` N-06 (INC-40.10, E150): a training booking the club makes sends N-47 only, no longer N-06 as well.
+  - S14 R-14-10: `@Audited(events = …)` names the events an entry links. Each training audit entry of the club links its own `TrainingBooked`/`TrainingCancelled`, published first, never another booking's of the same batch.
+  - S08 §3, S15 R-15-19: seat locks written before `lockedAt` existed get it at start-up, so the TTL drops them and P9 counts them.
+  - S06 R-06-09: a pure reorder of a class's instructors no longer writes `CLASS_UPDATED_WITH_BOOKINGS`.
+  - S14 §8: N-50's `OPEN_EXPORT` carries `params.jobId`, and its e-mail link opens `/perfil?jobId=`.
+  - Docs: S04 WP-04-2 no longer names `UpfrontAllocator`. The 16 MB log `roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log` is trimmed to 16 KB.
 - E11-T15: pre-launch money fixes from the audit of 21-10 (rulings E145–E147). The contract changes are listed in `docs/openapi/CHANGELOG.md`.
   - S12 R-12-01/06 (F1): a pack member moving to a monthly plan gets its first `nextInvoiceDate`. `POST /members/{id}/plan-change` takes an optional `nextInvoiceDate`; without one, the default is `billing.nextInvoiceDayOfMonth` of next month.
   - S12 R-12-04 (F2): a family holder without a payment method, or past its last billed month, pays for nobody. Its members are billed on their own.

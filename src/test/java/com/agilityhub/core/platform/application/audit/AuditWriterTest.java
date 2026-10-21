@@ -105,6 +105,24 @@ class AuditWriterTest {
         assertThat(entries.getAllValues().get(1).entityId()).isEqualTo("template-b"); assertThat(entries.getAllValues().get(1).details()).isNull();
     }
 
+    /**
+     * R-14-10 (E11-T17): an entry links the events of its own change when they are named (each entry of a batch its own event);
+     * without names, every event published so far in the transaction, as before.
+     */
+    @Test void R_14_10_anEntryLinksTheEventsItNamesOrElseEveryEventOfItsTransaction() {
+        var repository = mock(AuditRepository.class); var events = mock(com.agilityhub.core.shared.application.EventPublisher.class);
+        when(events.publishedInTransaction()).thenReturn(List.of("event-a", "event-b"));
+        var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", null, false, null, null, "trace-a"),
+                Clock.fixed(Instant.parse("2026-10-01T06:00:00Z"), ZoneOffset.UTC), List.of(), events);
+        var changes = List.of(new AuditChange("state", "ACTIVE", "CANCELLED_BY_CLUB"));
+        writer.write(AuditAction.TRAINING_CANCELLED_BY_CLUB, "TrainingBooking", "booking-b", "member-b", "RING_BLOCK", changes, null, List.of("event-b"));
+        writer.write(AuditAction.TRAINING_CANCELLED_BY_CLUB, "TrainingBooking", "booking-c", "member-c", "RING_BLOCK", changes, null);
+        var entries = ArgumentCaptor.forClass(AuditEntry.class);
+        verify(repository, times(2)).append(entries.capture());
+        assertThat(entries.getAllValues().get(0).eventIds()).containsExactly("event-b");
+        assertThat(entries.getAllValues().get(1).eventIds()).containsExactly("event-a", "event-b");
+    }
+
     /** A request's entry written without details has none (ruling E83: never the system process's `job`). */
     @Test void R_14_10_aRequestsEntryHasNoDetails() {
         var repository = mock(AuditRepository.class);

@@ -23,7 +23,8 @@ import org.springframework.transaction.annotation.*;
  * the S05/S06/S07 writes checking the ring's bookings also touch (R-09-13: a concurrent block, class or ring change
  * conflicts in Mongo; bookings of other slots do not);
  * (6) insert with the lowest free `seatIndex`, the partial unique index being the final guard; (7)
- * `Member.lastDogForTraining`, audit when impersonated, `TrainingBooked`. Step (1) also `$inc`s `Dog.trainingSeq`
+ * `Member.lastDogForTraining`, `TrainingBooked`, then the audit when impersonated, which links that event (R-14-10). Step (1)
+ * also `$inc`s `Dog.trainingSeq`
  * whatever the unit, so two bookings of one shared dog conflict in Mongo.
  */
 @Service
@@ -106,10 +107,10 @@ public class TrainingBookingService {
         var booking = bookings.insert(new TrainingBooking(id, TenantContext.require(), actor.memberId(), dog.id(), chosen, slot.startsAt(), slot.endsAt(),
                 slot.slotId(chosen), cell.freeSeat(), week.start(), TrainingBookingState.ACTIVE, actor.origin(), actor.accountId(),
                 actor.impersonated() ? actor.accountId() : null, null, null, null, null, idempotencyKey, null, null, now, now, actor.accountId()));
-        // (7) memory of the last dog, audit, outbox
+        // (7) memory of the last dog, outbox, then the audit that links the event (R-14-10)
         census.lastDogForTraining(actor.memberId(), dog.id());
-        if (actor.impersonated()) { audit.bookedByClub(booking, override == null ? null : override.reason()); }
-        events.booked(booking, actor);
+        String event = events.booked(booking, actor);
+        if (actor.impersonated()) { audit.bookedByClub(booking, override == null ? null : override.reason(), event); }
         return new Booked(booking, new Counter(counted.size() + 1, limit, week.start(), week.end()));
     }
     private static ApiException slotTaken(String ringId, Instant startsAt, Map<String, TrainingGrid.Cell> cells, TrainingGrid.Cell cell) {
@@ -172,8 +173,8 @@ public class TrainingBookingService {
                 cancelReason = TrainingCancelReason.ADMIN_LATE; by = TrainingCancelledBy.ADMIN;
             }
             var after = transition(b, TrainingBookingState.CANCELLED, by, cancelReason, reason, actor.accountId(), now);
-            if (actor.impersonated()) { audit.cancelledByClub(b, after, reason); }
-            events.cancelled(after, actor.as(by), late);
+            String event = events.cancelled(after, actor.as(by), late);
+            if (actor.impersonated()) { audit.cancelledByClub(b, after, reason, event); }
             return after;
         });
     }
@@ -198,8 +199,9 @@ public class TrainingBookingService {
             var b = bookings.findById(id).orElse(null);
             if (b == null || b.state() != TrainingBookingState.ACTIVE) { continue; }
             var after = transition(b, TrainingBookingState.CANCELLED_BY_CLUB, TrainingCancelledBy.ADMIN, reason, note, actor.accountId(), now);
-            audit.cancelledByClub(b, after, reason.name());
-            events.cancelled(after, actor, false); result.add(after);
+            // R-14-10 (E11-T17): each entry of the batch links its own TrainingCancelled, published first.
+            String event = events.cancelled(after, actor, false);
+            audit.cancelledByClub(b, after, reason.name(), event); result.add(after);
         }
         return result;
     }

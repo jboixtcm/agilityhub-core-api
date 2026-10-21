@@ -236,8 +236,8 @@ Errors amb `details`: `TRAINING_LIMIT_REACHED {limit, used, weekStart, weekEnd, 
 
 | Codi | Moment | Públic → canals | Variables |
 |---|---|---|---|
-| N-06 Entrenament reservat | `TrainingBooked` (qualsevol origen) | MEMBER → APP | `dog_name`, `date`, `time` («8:30–9:00»), `ring_name` |
-| N-07 Entrenament anul·lat | `TrainingCancelled` llevat de `cancelReason = MEMBER_LEFT` | MEMBER → APP | idem |
+| N-06 Entrenament reservat | `TrainingBooked` llevat de les reserves del club (`origin = BACKOFFICE`), que reben N-47 (un sol avís, decisió E150) | MEMBER → APP | `dog_name`, `date`, `time` («8:30–9:00»), `ring_name` |
+| N-07 Entrenament anul·lat | `TrainingCancelled` llevat `MEMBER_LEFT` i les anul·lacions del club (`origin = BACKOFFICE` o `by = ADMIN`), que reben N-47 | MEMBER → APP | idem |
 | N-13 Recordatori | `ReminderDue` (S15 llegeix `training_bookings` `ACTIVE` i `Member.notificationPreferences.reminderMinutesBefore`) | MEMBER → APP+PUSH | idem |
 | N-31 Recorregut nou | S16 (`RingSetupChanged`, destinataris = abonats amb algun gos elegible: R-09-01 exposat com a `TrainingEligibilityService.membersWithRight()`) | — | — |
 | N-47 (proposta §13) | `TrainingBooked/Cancelled{origin: BACKOFFICE}` o `by ≠ MEMBER` | MEMBER → APP+EMAIL+SMS | `dog_name`, `date`, `time`, `ring_name`, `admin_text` |
@@ -359,3 +359,4 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. Tres fils: back-B, back-C, front-D+E.
 - 17-10-2026 · E11-T02 (INC-44, decisió E67): §3, la cel·la ocupada per una classe porta `classStartsAtLocal`, perquè 08, 24 i D12 escriguin «18:50 classe».
 - 18-10-2026 · E11-T10 (INC-44 ítems 1–2, decisions E132 i E109): R-09-02, §6 i §9, la graella del personal (INSTRUCTOR, ADMIN) també llista les pistes actives sense entrenament lliure (`capacity = 0`, classes i bloquejos, mai reservables) i, amb `FREE_TRAINING` desactivat, totes les pistes actives així, sense reserves; el MEMBER manté el `404 MODULE_DISABLED`.
 - 18-10-2026 · E11-T10 (INC-40, decisió E109): R-09-13, l'anul·lació pel club escriu `TRAINING_CANCELLED_BY_CLUB` (S14 R-14-09) a la mateixa transacció i guarda l'`adminText` del bloqueig d'activitat (S07) a `cancelNote`, l'`admin_text` de N-47.
+- 21-10-2026 · E11-T17 (INC-40.10, decisió E150): §8, una reserva feta pel club (`origin = BACKOFFICE`) envia només N-47, ja no N-06 també; la fila de N-07 diu el que fa el codi (llevat `MEMBER_LEFT` i les anul·lacions del club). R-09-13 i R-09-16: l'entrada d'auditoria del club enllaça el seu propi esdeveniment (`TrainingBooked`/`TrainingCancelled`, publicat abans), mai el d'una altra reserva del mateix lot (S14 R-14-10).

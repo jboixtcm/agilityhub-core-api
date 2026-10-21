@@ -21,4 +21,10 @@ public @interface Audited {
      * e.g. the announcement's `{batchId, recipientCount, filters}`; null or empty writes none.
      */
     String details() default "";
+    /**
+     * Optional SpEL evaluated after the invocation: the ids of the outbox events the entry links (`eventIds[]`, R-14-10), for a
+     * flow that writes several entries in one transaction and links each one to its own event (S09 R-09-13's batch, E11-T17).
+     * Empty links every event published so far in the transaction.
+     */
+    String events() default "";
 }

@@ -132,7 +132,12 @@ class MemberDataExportIT extends PrivacyItFixtures {
             assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(pdf)).contains("GOSSOS", "Les meves dades", "Pàgina 1 de");
         }
         // N-50 for the member, MEMBER_DATA_EXPORTED on the member, DataExported{kind: MEMBER_DATA}.
-        assertThat(mongo.find(Query.query(Criteria.where("code").is("N-50").and("recipient.memberId").is("laura")), org.bson.Document.class, "notifications")).isNotEmpty();
+        assertThat(mongo.find(Query.query(Criteria.where("code").is("N-50").and("recipient.memberId").is("laura")), org.bson.Document.class, "notifications")).isNotEmpty()
+                // E11-T17 (S14 §8): its OPEN_EXPORT names the job, so the app reopens this package (`/perfil?jobId=`).
+                .allSatisfy(notice -> {
+                    assertThat(notice.get("action", org.bson.Document.class)).containsEntry("type", "OPEN_EXPORT");
+                    assertThat(notice.get("action", org.bson.Document.class).get("params", org.bson.Document.class)).containsEntry("jobId", id);
+                });
         assertThat(documents("audit_entries", "action", "MEMBER_DATA_EXPORTED")).singleElement()
                 .satisfies(entry -> assertThat(entry).containsEntry("memberId", "laura").containsEntry("entityId", id));
         assertThat(mongo.findOne(Query.query(Criteria.where("type").is("DataExported").and("aggregateId").is(id)), org.bson.Document.class, "domain_events")

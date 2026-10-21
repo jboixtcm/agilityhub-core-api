@@ -155,6 +155,28 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         }
     }
 
+    /**
+     * R-15-19, S08 §3 (E11-T17, N2 of E11-T10's review): a lock written before `lockedAt` existed gets it at start-up, in every
+     * club, so the TTL covers it too; a lock that has one keeps it, and a second start-up changes nothing.
+     */
+    @Test void R_15_19_INC_40_aLegacySeatLockWithoutLockedAtGetsItAtStartUp() {
+        mongo.insert(new Document("_id", "e5p-legacy-a").append("clubId", CLUB).append("version", 4L), "seat_locks");
+        mongo.insert(new Document("_id", "e5p-legacy-b").append("clubId", OTHER).append("version", 1L), "seat_locks");
+        Instant stamped = Instant.parse("2026-09-01T08:00:00Z"), start = clock.instant();
+        mongo.insert(new Document("_id", "e5p-stamped").append("clubId", CLUB).append("version", 2L).append("lockedAt", java.util.Date.from(stamped)), "seat_locks");
+        seatLocks.ensureIndexes();
+        for (String id : List.of("e5p-legacy-a", "e5p-legacy-b")) {
+            var lock = mongo.findById(id, Document.class, "seat_locks");
+            assertThat(lock.getDate("lockedAt")).as(id).isNotNull();
+            assertThat(lock.getDate("lockedAt").toInstant()).as(id).isEqualTo(start);
+        }
+        assertThat(((Number) mongo.findById("e5p-legacy-a", Document.class, "seat_locks").get("version")).longValue()).isEqualTo(4);
+        assertThat(mongo.findById("e5p-stamped", Document.class, "seat_locks").getDate("lockedAt").toInstant()).isEqualTo(stamped);
+        clock.setInstant(start.plusSeconds(3600));
+        seatLocks.ensureIndexes();
+        assertThat(mongo.findById("e5p-legacy-a", Document.class, "seat_locks").getDate("lockedAt").toInstant()).as("idempotent").isEqualTo(start);
+    }
+
     @Test void T_15_11_T_15_12b_weekAndClassSessionCarryTheS15Marks() {
         Instant now = clock.instant();
         mongo.insert(new Week("e5p-week-a", CLUB, 2026, 42, LocalDate.of(2026, 10, 12), LocalDate.of(2026, 10, 18), WeekState.VALIDATED, null, null,

@@ -38,6 +38,8 @@ class NotificationLinksTest {
                 Arguments.of(MEMBER, OPEN_ACTIVITY, Map.of(), null, null),
                 Arguments.of(MEMBER, OPEN_SETUP, ALL, null, null),
                 Arguments.of(MEMBER, OPEN_EXPORT, ALL, "clubs", "/perfil"),
+                // E11-T17 (S14 §8): N-50 names the job it opens, as the web's `/perfil?jobId=` reads it.
+                Arguments.of(MEMBER, OPEN_EXPORT, Map.of("jobId", "job-a"), "clubs", "/perfil?jobId=job-a"),
                 Arguments.of(MEMBER, OPEN_CHALLENGE, ALL, null, null),
                 Arguments.of(MEMBER, OPEN_MEMBER, ALL, null, null),
                 Arguments.of(APPLICANT, OPEN_SIGNUP, ALL, null, null),

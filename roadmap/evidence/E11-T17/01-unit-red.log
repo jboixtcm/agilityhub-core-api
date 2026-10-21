@@ -1,0 +1,113 @@
+# E11-T17 steps 1, 2, 6: the new unit assertions on the unchanged main code (red expected)
+$ ./mvnw -q test -Dtest=UpfrontPaymentsSurvivorsTest,TrainingApplicationTest,NotificationLinksTest -Dsurefire.failIfNoSpecifiedTests=false
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.020 s <<< FAILURE! -- in com.agilityhub.core.payments.application.UpfrontPaymentsSurvivorsTest
+[ERROR] com.agilityhub.core.payments.application.UpfrontPaymentsSurvivorsTest.T_04_22_INC_39_everyStatusChangeOfTheWritersIsAnEdgeOfS04sDiagramOrADocumentedException -- Time elapsed: 0.015 s <<< FAILURE!
+java.lang.AssertionError: 
+[only S04 §5's edges and the documented exceptions] 
+Expecting :
+  ["[*] → DUE",
+    "DUE → PAID",
+    "DUE → PARTIAL",
+    "PARTIAL → PAID",
+    "DUE → CHECKOUT_PENDING",
+    "PARTIAL → CHECKOUT_PENDING",
+    "CHECKOUT_PENDING → PAID",
+    "CHECKOUT_PENDING → DUE",
+    "CHECKOUT_PENDING → PARTIAL",
+    "CHECKOUT_PENDING → CANCELLED",
+    "DUE → CANCELLED",
+    "PARTIAL → CANCELLED",
+    "[*] → PAID"]
+to be subset of
+  ["[*] → DUE",
+    "PAID → REFUNDED",
+    "PARTIAL → CANCELLED",
+    "CHECKOUT_PENDING → PAID",
+    "PARTIAL → PAID",
+    "DUE → PARTIAL",
+    "CHECKOUT_PENDING → CANCELLED",
+    "CHECKOUT_PENDING → DUE",
+    "DUE → PAID",
+    "DUE → CHECKOUT_PENDING",
+    "[*] → PAID",
+    "DUE → CANCELLED"]
+but found these extra elements:
+  ["PARTIAL → CHECKOUT_PENDING", "CHECKOUT_PENDING → PARTIAL"]
+	at com.agilityhub.core.payments.application.UpfrontPaymentsSurvivorsTest.T_04_22_INC_39_everyStatusChangeOfTheWritersIsAnEdgeOfS04sDiagramOrADocumentedException(UpfrontPaymentsSurvivorsTest.java:235)
+
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.388 s <<< FAILURE! -- in com.agilityhub.core.clubs.training.application.TrainingApplicationTest
+[ERROR] com.agilityhub.core.clubs.training.application.TrainingApplicationTest.T_09_16_T_09_21_eachEventMapsToTheRightCatalogNotification -- Time elapsed: 0.006 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[N-47 replaces N-06] 
+Expecting value to be false but was true
+	at com.agilityhub.core.clubs.training.application.TrainingApplicationTest.T_09_16_T_09_21_eachEventMapsToTheRightCatalogNotification(TrainingApplicationTest.java:75)
+
+[ERROR] Tests run: 41, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.038 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.domain.NotificationLinksTest
+[ERROR] com.agilityhub.core.clubs.messaging.domain.NotificationLinksTest.R_11_11_everyNativeActionOpensItsRouteWithItsParameters(NotificationAudience, NotificationActionType, Map, String, String)[16] -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  Optional[Link[app=clubs, path=/perfil]]
+to contain:
+  Link[app=clubs, path=/perfil?jobId=job-a]
+but did not.
+	at com.agilityhub.core.clubs.messaging.domain.NotificationLinksTest.R_11_11_everyNativeActionOpensItsRouteWithItsParameters(NotificationLinksTest.java:75)
+
+[ERROR] Failures: 
+[ERROR]   NotificationLinksTest.R_11_11_everyNativeActionOpensItsRouteWithItsParameters:75 
+Expecting actual:
+  Optional[Link[app=clubs, path=/perfil]]
+to contain:
+  Link[app=clubs, path=/perfil?jobId=job-a]
+but did not.
+[ERROR]   TrainingApplicationTest.T_09_16_T_09_21_eachEventMapsToTheRightCatalogNotification:75 [N-47 replaces N-06] 
+Expecting value to be false but was true
+[ERROR]   UpfrontPaymentsSurvivorsTest.T_04_22_INC_39_everyStatusChangeOfTheWritersIsAnEdgeOfS04sDiagramOrADocumentedException:235 [only S04 §5's edges and the documented exceptions] 
+Expecting :
+  ["[*] → DUE",
+    "DUE → PAID",
+    "DUE → PARTIAL",
+    "PARTIAL → PAID",
+    "DUE → CHECKOUT_PENDING",
+    "PARTIAL → CHECKOUT_PENDING",
+    "CHECKOUT_PENDING → PAID",
+    "CHECKOUT_PENDING → DUE",
+    "CHECKOUT_PENDING → PARTIAL",
+    "CHECKOUT_PENDING → CANCELLED",
+    "DUE → CANCELLED",
+    "PARTIAL → CANCELLED",
+    "[*] → PAID"]
+to be subset of
+  ["[*] → DUE",
+    "PAID → REFUNDED",
+    "PARTIAL → CANCELLED",
+    "CHECKOUT_PENDING → PAID",
+    "PARTIAL → PAID",
+    "DUE → PARTIAL",
+    "CHECKOUT_PENDING → CANCELLED",
+    "CHECKOUT_PENDING → DUE",
+    "DUE → PAID",
+    "DUE → CHECKOUT_PENDING",
+    "[*] → PAID",
+    "DUE → CANCELLED"]
+but found these extra elements:
+  ["PARTIAL → CHECKOUT_PENDING", "CHECKOUT_PENDING → PARTIAL"]
+[ERROR] Tests run: 58, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1

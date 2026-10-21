@@ -428,36 +428,45 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         assertThat(charged(checkout(id))).containsExactlyInAnyOrderElementsOf(ofA);
     }
     /**
-     * E5-T30 step 3 (review #3 of E5-T28 round 2, S04 R-04-16, §3 and §5): a row paid in part by hand at T1 enters a checkout at
-     * T2 together with another dog's rows. While it waits it keeps its `MANUAL` provider and T1's `paidAt` (the session is on
-     * `checkoutSessionId`), and rejecting the other dog gives it back exactly as it was before the checkout: `PARTIAL`.
+     * E5-T30 step 3 (review #3 of E5-T28 round 2, S04 R-04-16, §3 and §5), adapted by E11-T17 (INC-39.2, ruling E149): a row paid
+     * in part by hand at T1 meets a checkout at T2 together with another dog's rows. The checkout closes it with its history
+     * (`CANCELLED`, with its `MANUAL` provider, T1's `paidAt` and its amounts untouched), its `PAID` correction keeps the cash
+     * (`MANUAL`, T1, 1 €), and a new row for the rest waits for the session. Rejecting the other dog expires the session: the
+     * rest row is `DUE` again, and the closed row and its correction keep their history.
      */
     @Test void T_04_22_T_04_19_aPartialRowReleasedByACheckoutKeepsItsPaymentHistory() throws Exception {
         stripe();String id=activeMember();
         String a=addDog(id,"941000012000001",null,"ca");String b=addDog(id,"941000012000002",null,"ca");
         validate(id,List.of(a),100L);
         Instant t1=clock.instant();
-        var before=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))).map(SignupMinorFixesIT::history).toList();
         var partial=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))&&"PARTIAL".equals(p.getString("status"))).findFirst().orElseThrow();
         assertThat(partial.getString("provider")).isEqualTo("MANUAL");assertThat(partial.getDate("paidAt").toInstant()).isEqualTo(t1);
         assertThat(minor(mapper.valueToTree(partial.get("amountPaid")))).isEqualTo(100);
         var ofB=due(id,b);assertThat(ofB).isNotEmpty();
         clock.setInstant(clock.instant().plus(Duration.ofHours(3)));
         String session=checkout(id);
-        assertThat(charged(session)).contains(partial.getString("_id")).containsAll(ofB);
-        var waiting=payment(partial.getString("_id"));
-        assertThat(waiting.getString("status")).isEqualTo("CHECKOUT_PENDING");assertThat(waiting.getString("checkoutSessionId")).isEqualTo(session);
-        assertThat(waiting.getString("provider")).isEqualTo("MANUAL");assertThat(waiting.getDate("paidAt").toInstant()).isEqualTo(t1);
+        var closed=payment(partial.getString("_id"));
+        var expected=new LinkedHashMap<>(history(partial));expected.put("status","CANCELLED");
+        assertThat(history(closed)).as("closed with its payment history").isEqualTo(expected);
+        var correction=rows(id).stream().filter(p -> partial.getString("_id").equals(p.getString("correctionOf"))).findFirst().orElseThrow();
+        assertThat(money(correction)).isEqualTo("PAID 100/100 MANUAL");assertThat(correction.getDate("paidAt").toInstant()).isEqualTo(t1);
+        var rest=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))&&partial.getString("concept").equals(p.getString("concept"))&&"CHECKOUT_PENDING".equals(p.getString("status")))
+                .findFirst().orElseThrow();
+        assertThat(charged(session)).doesNotContain(partial.getString("_id")).contains(rest.getString("_id")).containsAll(ofB);
+        assertThat(rest.getString("checkoutSessionId")).isEqualTo(session);assertThat(rest.getString("provider")).isEqualTo("STRIPE");assertThat(rest.get("paidAt")).isNull();
+        assertThat(minor(mapper.valueToTree(rest.get("amountDue")))).isEqualTo(minor(mapper.valueToTree(partial.get("amountDue")))-100);
+        var cash=List.of(history(closed),history(correction));
         reject(id,"Fictional dog not accepted");
         assertThat(session(session).getString("status")).isEqualTo("EXPIRED");
-        var after=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))).map(SignupMinorFixesIT::history).toList();
-        assertThat(after).containsExactlyInAnyOrderElementsOf(before);
-        assertThat(payment(partial.getString("_id")).getString("status")).isEqualTo("PARTIAL");
+        var released=payment(rest.getString("_id"));
+        assertThat(released.getString("status")).isEqualTo("DUE");assertThat(released.get("provider")).isNull();assertThat(released.get("checkoutSessionId")).isNull();
+        assertThat(List.of(history(payment(partial.getString("_id"))),history(payment(correction.getString("_id"))))).as("the cash is untouched by the release").isEqualTo(cash);
     }
     /**
-     * E5-T30 step 4: the provider completes a checkout that charged the rest of a row paid in part by hand. The row is `PAID`,
-     * and its `UpfrontPaymentSucceeded` reports what the provider charged for it (the line it was sent), not the row's whole
-     * amount: with the `UpfrontPaymentRecorded` of the cash part, the row's events add up to its amount once (N-30, S12).
+     * E5-T30 step 4, adapted by E11-T17 (INC-39.2, ruling E149): the provider completes a checkout that charged the rest of a row
+     * paid in part by hand. The rest is its own row, `PAID` with what the provider charged, and its `UpfrontPaymentSucceeded`
+     * reports that amount; the cash part's `UpfrontPaymentRecorded` names the closed row: together they add up to the row's
+     * amount once (N-30, S12).
      */
     @Test void T_04_22_aCompletedCheckoutOfAPartialRowReportsOnlyWhatTheProviderCharged() throws Exception {
         stripe();String id=activeMember();
@@ -465,14 +474,82 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         var partial=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))&&"PARTIAL".equals(p.getString("status"))).findFirst().orElseThrow();
         String row=partial.getString("_id");long amount=minor(mapper.valueToTree(partial.get("amountDue")));
         String session=checkout(id);
-        var line=fake.request(session).lines().stream().filter(l -> row.equals(l.paymentId())).findFirst().orElseThrow();
+        assertThat(charged(session)).doesNotContain(row);
+        String rest=rows(id).stream().filter(p -> session.equals(p.getString("checkoutSessionId"))&&partial.getString("concept").equals(p.getString("concept"))).findFirst().orElseThrow().getString("_id");
+        var line=fake.request(session).lines().stream().filter(l -> rest.equals(l.paymentId())).findFirst().orElseThrow();
         assertThat(line.amount().amountMinor()).isEqualTo(amount-100);
         fake.complete(session);
-        assertThat(payment(row).getString("status")).isEqualTo("PAID");assertThat(minor(mapper.valueToTree(payment(row).get("amountPaid")))).isEqualTo(amount);
-        java.util.function.Function<String,List<Long>> reported=type -> events(type).stream().map(e -> e.get("payload",Document.class))
-                .filter(p -> row.equals(p.getString("paymentId"))).map(p -> minor(mapper.valueToTree(p.get("amountPaid")))).toList();
-        assertThat(reported.apply("UpfrontPaymentRecorded")).containsExactly(100L);
-        assertThat(reported.apply("UpfrontPaymentSucceeded")).containsExactly(amount-100);
+        assertThat(money(payment(rest))).isEqualTo("PAID "+(amount-100)+"/"+(amount-100)+" STRIPE");
+        assertThat(money(payment(row))).isEqualTo("CANCELLED "+amount+"/100 MANUAL");
+        assertThat(reported("UpfrontPaymentRecorded",row)).containsExactly(100L);
+        assertThat(reported("UpfrontPaymentSucceeded",rest)).containsExactly(amount-100);
+        assertThat(reported("UpfrontPaymentSucceeded",row)).isEmpty();
+    }
+    /** A row's money as `STATUS due/paid PROVIDER` (E11-T17). */
+    String money(Document row) {
+        return row.getString("status")+" "+minor(mapper.valueToTree(row.get("amountDue")))+"/"+minor(mapper.valueToTree(row.get("amountPaid")))+" "+row.getString("provider");
+    }
+    /** The `amountPaid` each {@code type} event reported for the row {@code paymentId}. */
+    List<Long> reported(String type,String paymentId) {
+        return events(type).stream().map(e -> e.get("payload",Document.class)).filter(p -> paymentId.equals(p.getString("paymentId")))
+                .map(p -> minor(mapper.valueToTree(p.get("amountPaid")))).toList();
+    }
+    List<Document> entryFee(String memberId) { return rows(memberId).stream().filter(p -> "ENTRY_FEE".equals(p.getString("concept"))).toList(); }
+    /**
+     * INC-39.2 (ruling E149, E11-T17), S04 §5, R-04-26: 100 € due, 40 € paid in cash (`PARTIAL`). The checkout closes the row as
+     * E39b does — `CANCELLED` with its amounts, and a `PAID` correction that keeps the cash (`MANUAL`, the cash `paidAt`, 40 €) — and
+     * a new `DUE` row for the 60 € left is the one it charges; the provider pays it (`STRIPE`, the provider's `paidAt`). One
+     * provider per row; `UpfrontPaymentSucceeded.amountPaid` = 60 €.
+     */
+    @Test void T_04_22_INC_39_aPartialRowsRestIsCheckedOutAsANewRowAndTheCashKeepsItsProvenance() throws Exception {
+        stripe();String id=submit(request()).path("memberId").asText();
+        validate(id,List.of(),4000L);
+        Instant cashAt=clock.instant();
+        var partial=entryFee(id).getFirst();
+        assertThat(money(partial)).isEqualTo("PARTIAL 10000/4000 MANUAL");assertThat(partial.getDate("paidAt").toInstant()).isEqualTo(cashAt);
+        clock.setInstant(cashAt.plus(Duration.ofHours(3)));
+        String session=checkout(id);
+        var rest=entryFee(id).stream().filter(p -> "CHECKOUT_PENDING".equals(p.getString("status"))).findFirst().orElseThrow();
+        assertThat(charged(session)).contains(rest.getString("_id")).doesNotContain(partial.getString("_id"));
+        assertThat(fake.request(session).lines().stream().filter(l -> rest.getString("_id").equals(l.paymentId())).findFirst().orElseThrow().amount()).isEqualTo(new Money(6000,"EUR"));
+        assertThat(rest.getString("provider")).isEqualTo("STRIPE");assertThat(rest.getString("checkoutSessionId")).isEqualTo(session);
+        Instant paidAt=clock.instant().plus(Duration.ofMinutes(10));clock.setInstant(paidAt.plus(Duration.ofMinutes(5)));
+        fake.complete(session,paidAt);
+        var rows=entryFee(id);
+        System.out.println("E11-T17 step 1 rows after the completion: "+rows.stream().map(p -> money(p)+" paidAt="+p.getDate("paidAt").toInstant()+" correctionOf="+p.get("correctionOf")).toList());
+        assertThat(rows.stream().map(this::money)).containsExactlyInAnyOrder("CANCELLED 10000/4000 MANUAL","PAID 4000/4000 MANUAL","PAID 6000/6000 STRIPE");
+        var closed=payment(partial.getString("_id"));
+        assertThat(money(closed)).isEqualTo("CANCELLED 10000/4000 MANUAL");assertThat(closed.getDate("paidAt").toInstant()).isEqualTo(cashAt);assertThat(closed.get("checkoutSessionId")).isNull();
+        var correction=rows.stream().filter(p -> partial.getString("_id").equals(p.getString("correctionOf"))).findFirst().orElseThrow();
+        assertThat(money(correction)).isEqualTo("PAID 4000/4000 MANUAL");assertThat(correction.getDate("paidAt").toInstant()).isEqualTo(cashAt);
+        var paid=payment(rest.getString("_id"));
+        assertThat(money(paid)).isEqualTo("PAID 6000/6000 STRIPE");assertThat(paid.getDate("paidAt").toInstant()).isEqualTo(paidAt);assertThat(paid.get("correctionOf")).isNull();
+        // The entry fee is paid once: 40 € in cash + 60 € by card.
+        assertThat(rows.stream().filter(p -> !"CANCELLED".equals(p.getString("status"))).mapToLong(p -> minor(mapper.valueToTree(p.get("amountPaid")))).sum()).isEqualTo(10000);
+        assertThat(reported("UpfrontPaymentRecorded",partial.getString("_id"))).containsExactly(4000L);
+        assertThat(reported("UpfrontPaymentSucceeded",rest.getString("_id"))).containsExactly(6000L);
+        assertThat(reported("UpfrontPaymentSucceeded",partial.getString("_id"))).isEmpty();
+    }
+    /** INC-39.2 (E149), the expiry: the checkout of the rest expires; the new row is `DUE` again, and the cash stays in its correction. */
+    @Test void T_04_22_INC_39_anExpiredCheckoutGivesTheRestRowBackDueAndLeavesTheCashInItsCorrection() throws Exception {
+        stripe();String id=submit(request()).path("memberId").asText();
+        validate(id,List.of(),4000L);
+        var partial=entryFee(id).getFirst();
+        String session=checkout(id);
+        var rest=entryFee(id).stream().filter(p -> "CHECKOUT_PENDING".equals(p.getString("status"))).findFirst().orElseThrow();
+        assertThat(rest.getString("_id")).isNotEqualTo(partial.getString("_id"));
+        var cash=entryFee(id).stream().filter(p -> !rest.getString("_id").equals(p.getString("_id"))).map(SignupMinorFixesIT::history).toList();
+        fake.expire(session);
+        assertThat(session(session).getString("status")).isEqualTo("EXPIRED");
+        var released=payment(rest.getString("_id"));
+        System.out.println("E11-T17 step 1 rows after the expiry: "+entryFee(id).stream().map(this::money).toList());
+        assertThat(money(released)).isEqualTo("DUE 6000/0 null");assertThat(released.get("checkoutSessionId")).isNull();assertThat(released.get("paidAt")).isNull();
+        assertThat(cash.stream().map(h -> h.get("status"))).containsExactlyInAnyOrder("CANCELLED","PAID");
+        assertThat(entryFee(id).stream().filter(p -> !rest.getString("_id").equals(p.getString("_id"))).map(SignupMinorFixesIT::history)).containsExactlyInAnyOrderElementsOf(cash);
+        assertThat(events("UpfrontPaymentFailed").stream().map(e -> e.get("payload",Document.class).getString("paymentId"))).contains(rest.getString("_id"));
+        // The next checkout charges the same rest row: nothing is closed twice.
+        assertThat(charged(checkout(id))).contains(rest.getString("_id")).doesNotContain(partial.getString("_id"));
+        assertThat(entryFee(id)).hasSize(3);
     }
     /** Round 2, point 1 (step 15.1, S03 R-03-14): the payable rows follow their debtor (`UpfrontPayment.memberId`), not the dog's owner. */
     @Test void R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor() throws Exception {

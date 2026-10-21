@@ -226,17 +226,28 @@ class CardPaymentsIT extends BillingItSupport {
         var result = ok(admin(keyed(post("/api/v1/checkout-sessions"), Map.of("memberId", "card-member", "upfrontPaymentIds", List.of(payment),
                 "successUrl", "https://" + HOST + "/ok", "cancelUrl", "https://" + HOST + "/ko"))), 201);
         String session = result.path("checkoutSessionId").asText();
+        // E11-T17 (INC-39.2, ruling E149): the named PARTIAL row is closed (CANCELLED, and a PAID correction of the 2 € in cash);
+        // the session charges a new row for the 8 € left.
+        String rest = mongo.findById(session, Document.class, "checkout_sessions").getList("upfrontPaymentIds", String.class).getFirst();
+        assertThat(rest).isNotEqualTo(payment);
+        assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("CANCELLED");
+        var correction = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("correctionOf").is(payment)), Document.class, "upfront_payments");
+        assertThat(correction.getString("status")).isEqualTo("PAID"); assertThat(correction.getString("provider")).isEqualTo("MANUAL");
+        assertThat(correction.get("amountPaid", Document.class).get("amountMinor", Number.class).longValue()).isEqualTo(200);
         webhook("evt_expired", "checkout.session.expired", Map.of("id", "cs_example", "metadata", Map.of("operationId", session)));
-        assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("PARTIAL");
+        assertThat(mongo.findById(rest, Document.class, "upfront_payments").getString("status")).isEqualTo("DUE");
+        assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("CANCELLED");
         fake.card("pi_signup", new BillingCensusAccess.Card("cus_card-member", "pm_recovered", "1234", "visa", false));
         webhook("evt_paid_late", "checkout.session.completed", Map.of("id", "cs_example", "payment_intent", "pi_signup", "amount_total", 800, "payment_status", "paid",
                 "metadata", Map.of("operationId", session)));
-        assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("PAID");
+        var paid = mongo.findById(rest, Document.class, "upfront_payments");
+        assertThat(paid.getString("status")).isEqualTo("PAID"); assertThat(paid.getString("provider")).isEqualTo("STRIPE");
+        assertThat(paid.get("amountPaid", Document.class).get("amountMinor", Number.class).longValue()).isEqualTo(800);
         assertThat(ok(as(get("/api/v1/checkout-sessions/" + session), CLUB, "MEMBER", "card-member"), 200).path("status").asText()).isEqualTo("PAID");
         assertThat(events("UpfrontPaymentSucceeded")).hasSize(1);
         assertThat(events("UpfrontPaymentFailed")).hasSize(1);
         assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class).getString("stripePaymentMethodId")).isEqualTo("pm_recovered");
-        error(admin(keyed(post("/api/v1/upfront-payments/" + payment + "/refund"), Map.of("amount", Map.of("amountMinor", 1000, "currency", "EUR"), "reason", "Includes manual deposit"))), 422, "REFUND_EXCEEDS_PAID");
+        error(admin(keyed(post("/api/v1/upfront-payments/" + rest + "/refund"), Map.of("amount", Map.of("amountMinor", 1000, "currency", "EUR"), "reason", "Includes manual deposit"))), 422, "REFUND_EXCEEDS_PAID");
         assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).isEmpty();
     }
     @Test void T_12_16_expiredBookingRefundsExactlyOnceAndPrivacyDeletionIsRecoverable() throws Exception {
@@ -782,6 +793,12 @@ class CardPaymentsIT extends BillingItSupport {
             assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
         }
     }
+    /**
+     * T-12-17 point 3, adapted by E11-T17 (INC-39.2, ruling E149): 9 € of the entry fee were paid in cash before the checkout, so the
+     * checkout closes that row (its PAID correction keeps the 9 €, MANUAL) and charges its 1 € rest as a row of its own, with the 10 €
+     * month. Stripe's refund of the whole capture (11 €) is allocated by each charged row's capture and reversed exactly; the cash
+     * is no part of it. Before, the 1 € was charged on the cash row itself (PAID 10/10, one capture of 1 €, refunded 1 €, still PAID).
+     */
     @Test void T_12_17_point3_dashboardAllocationUsesStripeCaptureAndReversesExactly() throws Exception {
         var rows = signupRows(2);
         // Put the manual deposit on the first row in the provider ledger's deterministic allocation order.
@@ -792,17 +809,23 @@ class CardPaymentsIT extends BillingItSupport {
         try (var tenant = TenantContext.open(CLUB)) { tx.run(() -> { upfront.allocate("card-member", List.of(new UpfrontPayments.Submission(null, "round-two")), new Money(900, "EUR")); return null; }); }
         rows = rows.stream().sorted(java.util.Comparator.comparing(id -> paymentRow(id).getString("concept"))).toList();
         String session = signupCheckout(rows);
+        var charged = mongo.findById(session, Document.class, "checkout_sessions").getList("upfrontPaymentIds", String.class);
+        String cash = rows.getFirst(), month = rows.get(1);
+        String rest = charged.stream().filter(id -> !id.equals(month)).findFirst().orElseThrow();
+        assertThat(charged).containsExactlyInAnyOrder(rest, month).doesNotContain(cash);
+        String correction = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("correctionOf").is(cash)), Document.class, "upfront_payments").getString("_id");
         webhook("evt_point3_paid", "checkout.session.completed", completion(session, "pi_point3", 1100, "paid"));
         webhook("evt_point3_refund", "refund.created", refundEvent("pi_point3", "re_point3", 1100, "succeeded", null));
-        for (int i = 0; i < 2; i++) {
-            assertThat(paymentRow(rows.get(i)).getList("refunds", Document.class)).singleElement()
-                    .satisfies(r -> assertThat(((Number) r.get("amount", Document.class).get("amountMinor")).longValue()).isIn(100L, 1000L));
+        for (var expected : Map.of(rest, 100L, month, 1000L).entrySet()) {
+            assertThat(paymentRow(expected.getKey()).getList("refunds", Document.class)).singleElement()
+                    .satisfies(r -> assertThat(((Number) r.get("amount", Document.class).get("amountMinor")).longValue()).isEqualTo(expected.getValue()));
+            assertThat(paymentRow(expected.getKey()).getString("status")).isEqualTo("REFUNDED");
         }
-        assertThat(((Number) paymentRow(rows.getFirst()).getList("refunds", Document.class).getFirst().get("amount", Document.class).get("amountMinor")).longValue()).isEqualTo(100);
-        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
-        assertThat(paymentRow(rows.get(1)).getString("status")).isEqualTo("REFUNDED");
+        for (String id : List.of(cash, correction)) { assertThat((List<?>) paymentRow(id).get("refunds")).as(id).isNullOrEmpty(); }
+        assertThat(paymentRow(cash).getString("status")).isEqualTo("CANCELLED");
+        assertThat(paymentRow(correction).getString("status")).isEqualTo("PAID"); assertThat(paymentRow(correction).getString("provider")).isEqualTo("MANUAL");
         webhook("evt_point3_reverse", "refund.failed", refundEvent("pi_point3", "re_point3", 1100, "failed", null));
-        for (String id : rows) { assertThat(paymentRow(id).getList("refunds", Document.class)).isEmpty(); assertThat(paymentRow(id).getString("status")).isEqualTo("PAID"); }
+        for (String id : List.of(rest, month)) { assertThat(paymentRow(id).getList("refunds", Document.class)).isEmpty(); assertThat(paymentRow(id).getString("status")).isEqualTo("PAID"); }
     }
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})

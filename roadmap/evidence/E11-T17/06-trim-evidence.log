@@ -1,0 +1,8 @@
+# E11-T17 step 8: trim roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log (sizes before and after)
+-rw-r--r--@ 1 jordib  staff  15939579 18 oct.  19:40 roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log
+  390851 roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log
+$ python3 -I roadmap/evidence/E11-T17/trim_evidence.py roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log
+roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log: 15939579 bytes, 390851 lines -> 15793 bytes, 339 lines
+exit=0
+-rw-r--r--@ 1 jordib  staff  15793 21 oct.  22:37 roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log
+     339 roadmap/evidence/E11-T10/66-inc40-jobs-all-its.log

@@ -1,0 +1,8 @@
+# E11-T17: the signup smoke (the checkout path), through the host lock
+$ /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/e3-signup-smoke
+heavy.sh: 23:10 waiting for the host lock, held by: 23:09 agilityhub-core-api-c: ./mvnw -q clean verify
+heavy.sh: 23:37 got the host lock after 27 min 2 s
+usage: e3-signup-smoke [-h] --evidence-dir EVIDENCE_DIR
+                       [--mongo-container MONGO_CONTAINER]
+e3-signup-smoke: error: the following arguments are required: --evidence-dir
+exit=2

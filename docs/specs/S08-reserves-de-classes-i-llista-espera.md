@@ -62,7 +62,7 @@ Col·leccions pròpies: `bookings`, `seat_holds`, `waitlist_entries`, `seat_lock
 | classStartsAt, bookingWeekKey | | sí | desnormalitzats com a `Booking` |
 
 ### Tècniques
-- `SeatLock` · `seat_locks`: `_id = classSessionId`, `clubId`, `version` (int), `lockedAt` (cada bloqueig l'escriu amb el rellotge injectat). Document de serialització per classe (R-08-07); l'índex TTL `seat_lock_ttl` l'esborra 7 dies després del darrer bloqueig i el bloqueig següent el recrea (INC-40, E11-T10).
+- `SeatLock` · `seat_locks`: `_id = classSessionId`, `clubId`, `version` (int), `lockedAt` (cada bloqueig l'escriu amb el rellotge injectat). Document de serialització per classe (R-08-07); l'índex TTL `seat_lock_ttl` l'esborra 7 dies després del darrer bloqueig i el bloqueig següent el recrea (INC-40, E11-T10). Un bloqueig escrit abans que existís `lockedAt` el rep en arrencar l'API (`lockedAt = ara`, a tots els clubs, idempotent): el TTL també l'esborra i P9 el compta (E11-T17).
 - `IdempotencyRecord` · `idempotency_records` (TTL 24 h): `{clubId, accountId, key, method, path, requestHash, status, body, createdAt}`; clau única `{clubId, accountId, key}` (CONVENCIONS_API §7).
 
 ### Camps d'altres agregats que aquest vertical modifica o llegeix
@@ -456,3 +456,4 @@ Ordre: A → (B ∥ C ∥ E/F) → D → G. Tres fils de back en paral·lel: B, 
 - 18-10-2026 · E11-T10 (INC-40, decisió E109): R-08-07, un altre compte no pot prendre el hold viu del mateix gos (`409 CLASS_FULL{heldOnly: true}`, `SEAT_TAKEN` en un claim); R-08-14 (i R-08-07 pas 3, R-08-12), una oferta FIFO oberta guarda la plaça per al gos avisat fins a `confirmBy` (hold, confirmació, entrada a la llista i places lliures de 04); R-08-08, l'`.ics` servit porta `STATUS` i `SEQUENCE` (RFC 5545) i `DTSTAMP` = ara.
 - 18-10-2026 · E11-T10 (INC-40, decisió E109): §3, `seat_locks` porta `lockedAt` i un TTL de 7 dies (`seat_lock_ttl`): un bloqueig que cap escriptura ha tocat en 7 dies s'esborra i el següent el recrea; abans la col·lecció creixia sense límit. P9 n'informa com a `ttlPendingSeatLocks` (S15 R-15-19).
 - 18-10-2026 · E11-T10 (INC-40, revisió, decisió E109): R-08-14, la cua guanya: el claim d'una oferta FIFO oberta no compta els holds d'altres gossos presos fins al seu `notifiedAt` ni les ofertes posteriors (`notifiedAt`, `position`); abans un hold pres just abans de l'oferta i l'oferta es bloquejaven mútuament fins que el hold caducava. R-08-15, el claim sense plaça respon `SEAT_TAKEN` també a la confirmació.
+- 21-10-2026 · E11-T17 (verificació d'E11-T10, decisió E151): §3, els `seat_locks` escrits abans de `lockedAt` el reben en arrencar l'API (a tots els clubs, idempotent), perquè el TTL els esborri i P9 els compti (S15 R-15-19).
