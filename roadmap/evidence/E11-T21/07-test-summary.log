@@ -1,0 +1,7 @@
+./mvnw -q clean verify (06-clean-verify.log) -> exit 0; totals read from target/*-reports/TEST-*.xml
+surefire-reports: suites=456 tests=4862 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffAdapterTest: tests=10 failures=0 errors=0 skipped=0
+failsafe-reports: suites=169 tests=2261 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffMigrationIT: tests=47 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffMigrationIT#R_18_11b_E162_aQuoteLeftOpenNeverSwallowsTheNextQuotedRow time=0.92 passed
+  com.agilityhub.core.migration.PlayoffAdapterTest#R_18_11b_E162_aQuoteLeftOpenBreaksOnlyItsLineAndTheNextQuotedRowIsKept time=0.016 passed

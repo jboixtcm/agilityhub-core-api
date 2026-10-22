@@ -725,6 +725,31 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(report.rows()).filteredOn(r -> r.outcome().equals("WARNING") && r.code().equals("INPUT_SCHEMA_MISMATCH"))
                 .extracting(MigrationReport.Entry::file, MigrationReport.Entry::row).containsExactlyInAnyOrder(tuple("receipts", 3), tuple("forecast", 2));
     }
+    /**
+     * E11-T21 (E11-T15 round 2's review, finding 1; ruling E162; S18 R-18-11b (h), R-18-13): a quote left open in a `pagat_fins.csv`
+     * or `rebuts.csv` row breaks that line only. The quoted valid row after it loads — its «paid until» override moves the member's
+     * first invoice, its receipt is applied — and every warning names its own line.
+     */
+    @Test void R_18_11b_E162_aQuoteLeftOpenNeverSwallowsTheNextQuotedRow() throws Exception {
+        LocalDate cutover = LocalDate.of(2026, 11, 1);
+        Files.writeString(fixture.resolve("pagat_fins.csv"), "Member ID;Paid until\n"
+                + "\"broken;2026-12\n"
+                + "\"" + source(1) + "\";2027-01\n"
+                + "P0000000000000000;2027-02\n");
+        Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                + "\"broken;" + source(1) + ";1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n"
+                + "\"valid\";\"" + source(1) + "\";2;2026-08-01;\"Fictional fee\";10,00;Pagado;MANUAL\n"
+                + "last;" + source(1) + ";3;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
+        var report = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        // Paid until January → February (R-18-13's default would be 2026-12-01).
+        assertThat(nextInvoiceDate(source(1))).isEqualTo("2027-02-01");
+        assertThat(rows("invoices")).extracting(i -> i.getString("displayNumber")).containsExactlyInAnyOrder("2", "3");
+        assertThat(report.rows()).filteredOn(r -> r.file().equals("paidUntil") && r.outcome().equals("WARNING"))
+                .extracting(MigrationReport.Entry::row, MigrationReport.Entry::code).containsExactly(tuple(2, "INPUT_SCHEMA_MISMATCH"), tuple(4, "MAPPING_INVALID"));
+        assertThat(report.rows()).filteredOn(r -> r.file().equals("receipts") && r.outcome().equals("WARNING"))
+                .extracting(MigrationReport.Entry::row, MigrationReport.Entry::code).containsExactly(tuple(2, "INPUT_SCHEMA_MISMATCH"));
+    }
     String nextInvoiceDate(String source) {
         var member = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source)), Document.class, "members");
         return member.getString("nextInvoiceDate");

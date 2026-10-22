@@ -38,6 +38,8 @@ public final class PlayoffTable {
      * E11-T15 round 2 (S18 R-18-11b): the same rows, but a row a stray quote breaks (a quote inside an unquoted value, text after
      * a closing quote, a quote never closed) comes back as {@code null} and the reading goes on at the next line, so one bad row
      * of an auxiliary file never takes the file with it. The caller reports the null rows.
+     * <p>E11-T21 (ruling E162): here a quoted field never spans lines, so one record is one line. A quote still open at the end of
+     * its line breaks that line only; the next line starts clean, and its opening quote never closes the broken one.
      */
     public static List<List<String>> csvRows(String text) { return parse(text, true); }
     /** {@link #read}, with {@link #csvRows}'s per-row recovery for a CSV file. */
@@ -48,22 +50,26 @@ public final class PlayoffTable {
     }
     private static List<List<String>> parse(String text, boolean lenient) {
         var rows = new ArrayList<List<String>>(); var fields = new ArrayList<String>(); var value = new StringBuilder();
-        boolean quoted = false, closed = false; int opened = -1;
+        boolean quoted = false, closed = false;
         char delimiter = text.lines().findFirst().orElse("").contains(";") ? ';' : ',';
         int i = text.startsWith("\uFEFF") ? 1 : 0;
         while (true) {
             if (i >= text.length()) {
                 if (!quoted) { break; }
                 if (!lenient) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
-                // A quote never closed: its row is broken; the lines it swallowed are read again from the next line on.
-                rows.add(null); fields.clear(); value.setLength(0); quoted = false; closed = false; i = nextLine(text, opened);
-                continue;
+                // A quote never closed on the last line: that line is broken.
+                rows.add(null); fields.clear(); value.setLength(0); closed = false;
+                break;
             }
             char ch = text.charAt(i);
             if (quoted) {
                 if (ch == '"') {
                     if (i + 1 < text.length() && text.charAt(i + 1) == '"') { value.append('"'); i++; }
                     else { quoted = false; closed = true; }
+                } else if (lenient && (ch == '\n' || ch == '\r')) {
+                    // A quote still open at the end of its line: that line is broken and the next one is read with a clean state.
+                    rows.add(null); fields.clear(); value.setLength(0); quoted = false; closed = false; i = nextLine(text, i);
+                    continue;
                 } else { value.append(ch); }
             } else if (ch == delimiter || ch == '\n' || ch == '\r') {
                 fields.add(value.toString()); value.setLength(0); closed = false;
@@ -71,7 +77,7 @@ public final class PlayoffTable {
                     rows.add(List.copyOf(fields)); fields.clear();
                     if (ch == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') { i++; }
                 }
-            } else if (ch == '"' && value.isEmpty() && !closed) { quoted = true; opened = i; }
+            } else if (ch == '"' && value.isEmpty() && !closed) { quoted = true; }
             else if (closed || ch == '"') {
                 if (!lenient) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
                 rows.add(null); fields.clear(); value.setLength(0); closed = false; i = nextLine(text, i);

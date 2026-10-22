@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T21 (ruling E162): S18 R-18-11b (h), the Playoff load's tolerant reader of `rebuts.csv`, `packs.csv`, `previsio.csv`, `mandats.csv` and `pagat_fins.csv` reads one record per line. A quote left open at the end of its line breaks that line only (a warning on it). The next line starts clean, so a quoted valid row after it is no longer swallowed (a lost «paid until» override or receipt). The census files keep quoted line breaks. No contract change. `docs/DEPLOY.md`: the runbook line.
+
 - E11-T19 round 2 (ruling E161): every grant on the console's product host, the brand's values, and E11-T13 round 2's leftovers. Contract: `/oauth2/token` descriptions, `SignupProposals.planId`/`priceId` nullable (`docs/openapi/CHANGELOG.md`).
   - S01 R-01-02: the product host renews or redeems no club-bound refresh token or authorization code (`invalid_grant`; the OIDC refresh restored its club there), and every grant of another client there is `404 UNKNOWN_HOST` (`TenantFilter`, before the optional-host grants).
   - The product `/branding` and the template club's theme are the web's light «AgilityHub» preset: `primary #1d1d1f`, white background, Montserrat, 8 px, `mode: light`.

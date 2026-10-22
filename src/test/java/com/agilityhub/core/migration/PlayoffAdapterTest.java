@@ -297,4 +297,30 @@ class PlayoffAdapterTest {
         assertThat(PlayoffTable.csvRows("a;b\n1;\"x\"y\n\"open;2\n3;4\n")).containsExactly(List.of("a","b"),null,null,List.of("3","4"));
         assertThat(PlayoffTable.csvRows("a;b\n1;2\n\"open")).containsExactly(List.of("a","b"),List.of("1","2"),null);
     }
+    /**
+     * E11-T21 (E11-T15 round 2's review, finding 1; ruling E162; S18 R-18-11b (h), R-18-13): in the row-tolerant files a quoted
+     * field never spans lines. A quote still open at the end of its line breaks that line only: the next line's opening quote never
+     * closes it, and the reading resumes there with a clean state — no valid row lost, every warning on its own line.
+     */
+    @Test void R_18_11b_E162_aQuoteLeftOpenBreaksOnlyItsLineAndTheNextQuotedRowIsKept() throws Exception {
+        String file="Member ID;Paid until\n\"broken;2026-12\n\"valid\";2027-01\nlast;2027-02\n";
+        assertThat(PlayoffTable.csvRows(file)).containsExactly(List.of("Member ID","Paid until"),null,List.of("valid","2027-01"),List.of("last","2027-02"));
+        assertThat(PlayoffTable.csvRows(file.replace("\n","\r\n"))).containsExactly(List.of("Member ID","Paid until"),null,List.of("valid","2027-01"),List.of("last","2027-02"));
+        // The damaged row last (with and without a final line break).
+        assertThat(PlayoffTable.csvRows("Member ID;Paid until\n\"valid\";2027-01\n\"broken;2026-12\n")).containsExactly(List.of("Member ID","Paid until"),List.of("valid","2027-01"),null);
+        assertThat(PlayoffTable.csvRows("Member ID;Paid until\n\"valid\";2027-01\n\"broken;2026-12")).containsExactly(List.of("Member ID","Paid until"),List.of("valid","2027-01"),null);
+        // A stray quote inside an unquoted value breaks its row (the current rule); the next quoted row is kept.
+        assertThat(PlayoffTable.csvRows("a;b;c\na;b\"c;d\n\"next\";1;2\n")).containsExactly(List.of("a","b","c"),null,List.of("next","1","2"));
+        // The strict reader keeps a quoted line break (the census files): only the tolerant one reads one record per line.
+        assertThat(PlayoffTable.csv("a;b\n\"x\ny\";2\n")).containsExactly(List.of("a","b"),List.of("x\ny","2"));
+        assertThat(PlayoffTable.csvRows("a;b\n\"x\ny\";2\n")).containsExactly(List.of("a","b"),null,null);
+        // The load: the warning names line 2, the valid row is line 3 and the last one line 4.
+        var dir=Files.createDirectory(temp.resolve("e162"));
+        Files.writeString(dir.resolve("pagat_fins.csv"),file);
+        var input=PlayoffInput.read(dir,mapping);
+        assertThat(input.files().get("paidUntil")).extracting(PlayoffInput.Row::row,row -> row.get("memberId"),row -> row.get("paidUntil"))
+                .containsExactly(tuple(3,"valid","2027-01"),tuple(4,"last","2027-02"));
+        assertThat(input.incidents()).filteredOn(e -> e.file().equals("paidUntil"))
+                .extracting(MigrationReport.Entry::row,MigrationReport.Entry::outcome,MigrationReport.Entry::code).containsExactly(tuple(2,"WARNING","INPUT_SCHEMA_MISMATCH"));
+    }
 }

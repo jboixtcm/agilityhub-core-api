@@ -1046,6 +1046,10 @@ runbook (E12-T02). They are rules of the specs, not defects:
   One unreadable row of it, or one short, long or broken row of `rebuts.csv`,
   `packs.csv`, `mandats.csv` or `pagat_fins.csv`, is a warning on its line and is
   skipped (E156). A broken `socis.csv` row is still an error.
+- **In those five files one record is one line** (E11-T21, E162): a quoted
+  field never spans lines. A quote left open at the end of its line breaks that
+  line only; the next line is read whole, with its own line number. Keep line
+  breaks out of their values (the census files still accept a quoted one).
 - **`pagat_fins.csv` may name any record of a person** (one record per dog, a
   `persones.csv` join): the member takes the latest month over all of them.
 - **Members without a bank account accumulate months.** A `NO_BANK_ACCOUNT`
