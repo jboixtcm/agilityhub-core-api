@@ -106,4 +106,39 @@ class TtlIndexUpgradeIT {
         assertThat(on(template, SecurityEvent.class, "at")).singleElement()
                 .satisfies(index -> assertThat(index.getExpireAfter()).contains(Duration.ofDays(90)));
     }
+
+    /** The TTL indexes of {@code type}, whatever their key: the retention must expire on `field` and nothing else. */
+    static List<IndexInfo> ttl(MongoTemplate template, Class<?> type) {
+        return template.indexOps(type).getIndexInfo().stream().filter(index -> index.getExpireAfter().isPresent()).toList();
+    }
+
+    /**
+     * E11-T16 round 2 (the kit's #2): a `security_event_retention` at the right retention but on another key is not the retention
+     * index — the guard checks the key, drops it and creates the `at` one.
+     */
+    @Test void INC_82_aSecurityEventRetentionIndexOnAnotherKeyIsReplacedByTheAtOne() {
+        var template = asCoreApp();
+        template.indexOps(SecurityEvent.class).createIndex(new Index().on("accountId", Sort.Direction.ASC).expire(Duration.ofDays(90)).named("security_event_retention"));
+        new SecurityEventRepository(template).ensureIndexes(90);
+        System.out.println("E11-T16 round 2 security_events TTL indexes: " + ttl(template, SecurityEvent.class));
+        assertThat(ttl(template, SecurityEvent.class)).singleElement().satisfies(index -> {
+            assertThat(index.getIndexFields()).singleElement().satisfies(field -> assertThat(field.getKey()).isEqualTo("at"));
+            assertThat(index.getExpireAfter()).contains(Duration.ofDays(90));
+        });
+    }
+
+    /**
+     * E11-T16 round 2 (the kit's #2): an `impersonation_grant_retention` on another key holds the name the repository creates
+     * its index with — it goes first, so the startup does not fail on a name conflict.
+     */
+    @Test void INC_82_anImpersonationRetentionNameOnAnotherKeyIsReplacedByTheExpiresAtOne() {
+        var template = asCoreApp();
+        template.indexOps(ImpersonationGrant.class).createIndex(new Index().on("createdAt", Sort.Direction.ASC).expire(Duration.ofDays(1)).named("impersonation_grant_retention"));
+        assertThatCode(() -> new ImpersonationGrantRepository(template).ensureIndexes()).doesNotThrowAnyException();
+        System.out.println("E11-T16 round 2 impersonation_grants TTL indexes: " + ttl(template, ImpersonationGrant.class));
+        assertThat(ttl(template, ImpersonationGrant.class)).singleElement().satisfies(index -> {
+            assertThat(index.getIndexFields()).singleElement().satisfies(field -> assertThat(field.getKey()).isEqualTo("expiresAt"));
+            assertThat(index.getExpireAfter()).contains(Duration.ofDays(1));
+        });
+    }
 }

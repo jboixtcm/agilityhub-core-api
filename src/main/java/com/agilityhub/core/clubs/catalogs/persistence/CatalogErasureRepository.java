@@ -2,6 +2,8 @@ package com.agilityhub.core.clubs.catalogs.persistence;
 
 import com.agilityhub.core.shared.application.TenantContext;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -22,4 +24,13 @@ public class CatalogErasureRepository {
                         .and("shortName").ne(label)),
                 new Update().set("shortName", label).set("updatedAt", at).inc("version", 1), FindAndModifyOptions.options().returnNew(true), Instructor.class));
     }
+    /** The instructor profiles of these members in the current club (E11-T16 round 2, the monthly sweep of their traces). */
+    public List<Instructor> instructorsOf(Collection<String> memberIds) {
+        if (memberIds.isEmpty()) { return List.of(); }
+        return mongo.find(Query.query(club().and("memberId").in(memberIds)), Instructor.class);
+    }
+    public Optional<Instructor> instructor(String id) {
+        return Optional.ofNullable(mongo.findOne(Query.query(club().and("_id").is(id)), Instructor.class));
+    }
+    private static Criteria club() { return Criteria.where("clubId").is(TenantContext.require()); }
 }

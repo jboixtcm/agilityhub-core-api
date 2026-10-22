@@ -858,4 +858,103 @@ class ErasureIT extends PrivacyItFixtures {
         var again = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
         assertThat(again.items()).extracting(item -> item.action()).doesNotContain("WOULD_PURGE_ERASED_TRACES");
     }
+
+    @Autowired com.agilityhub.core.platform.persistence.privacy.PrivacyTraceRepository traceRepository;
+    static final Instant SWEEP = Instant.parse("2026-10-01T04:00:00Z");
+    void setStatus(String eventId, String status) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(eventId)), new org.springframework.data.mongodb.core.query.Update().set("status", status), "domain_events");
+    }
+
+    /**
+     * E11-T16 round 2, F2 (S15 R-15-19): a processed record with an explicit `null` id — `RemindersJob`, `TrainingEvents` and
+     * `AttendanceSheetService` write nullable `memberId`/`dogId` — neither throws in `traced()` nor takes the club's monthly sweep
+     * down: the record names the erased member's dog, so the owner is traced and the sweep plans and purges it.
+     */
+    @Test void R_15_19_R_14_15_aProcessedRecordWithANullIdNeitherThrowsNorStopsTheMonthlySweep() throws Exception {
+        dog(CLUB, "kiwi", "montse", "941000000100001", null);
+        executeMontsesErasure();
+        raw("domain_events", "_id", "event-null-member", "clubId", CLUB, "type", "ReminderDue", "aggregateId", "booking-x", "status", "PUBLISHED",
+                "publishedAt", DUE.plusSeconds(60), "payload", map("memberId", null, "dogId", "kiwi"));
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(traceRepository.traced(List.of("montse"), Map.of("kiwi", "montse"))).containsExactly("montse");
+        }
+        clock.setInstant(SWEEP);
+        var planned = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
+        assertThat(planned.status()).isEqualTo(com.agilityhub.core.platform.application.jobs.JobStatus.SUCCEEDED);
+        assertThat(planned.items()).extracting(item -> item.entityType() + ":" + item.entityId() + ":" + item.action()).contains("Member:montse:WOULD_PURGE_ERASED_TRACES");
+        var sweep = runner.manual(CLUB, JobName.RETENTION_SWEEP, false, "admin-account");
+        assertThat(sweep.errors()).isEmpty();
+        assertThat(document("domain_events", "event-null-member")).isNull();
+    }
+
+    /**
+     * E11-T16 round 2, the kit's #1 (S14 R-14-15 / S15 R-15-19): an `InstructorChanged` of the erased member's instructor
+     * profile still `PENDING` at the erasure (keyed by the instructor, its diff carries the old `shortName`, no `memberId`) is
+     * left to its consumers, then ends `FAILED` or `PUBLISHED`: the monthly sweep plans the instructor and deletes both. An
+     * active instructor's record stays, and a second sweep has nothing to do.
+     */
+    @Test void R_15_19_R_14_15_theSweepPurgesTheLateInstructorChangedRecordsOfAnErasedInstructor() throws Exception {
+        Instant created = Instant.parse("2025-01-01T00:00:00Z");
+        try (var tenant = TenantContext.open(CLUB)) {
+            mongo.insert(new Instructor("instructor-montse", CLUB, "montse", "Fictional Name", "#ff7a00", true, 1L, created, created, "admin-account", "admin-account"));
+            mongo.insert(new Instructor("instructor-neus", CLUB, "active", "Fictional Neus", "#0057b8", true, 1L, created, created, "admin-account", "admin-account"));
+        }
+        for (String id : List.of("instructor-late-failed", "instructor-late-published")) {
+            raw("domain_events", "_id", id, "clubId", CLUB, "type", "InstructorChanged", "aggregateId", "instructor-montse", "status", "PENDING", "attempts", 0,
+                    "payload", map("id", "instructor-montse", "action", "UPDATED", "diff", map("shortName", map("before", "Fictional Name", "after", "Fictional N"))));
+        }
+        raw("domain_events", "_id", "instructor-active", "clubId", CLUB, "type", "InstructorChanged", "aggregateId", "instructor-neus", "status", "PUBLISHED",
+                "payload", map("id", "instructor-neus", "action", "UPDATED", "diff", map("shortName", map("before", "Fictional Neus", "after", "Neus"))));
+        executeMontsesErasure();
+        assertThat(document("domain_events", "instructor-late-failed")).as("an unprocessed record is not the erasure's").containsEntry("status", "PENDING");
+        setStatus("instructor-late-failed", "FAILED");
+        setStatus("instructor-late-published", "PUBLISHED");
+        trace("round 2 before domain_events:instructor-late-failed", document("domain_events", "instructor-late-failed"));
+        clock.setInstant(SWEEP);
+        var planned = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
+        assertThat(planned.items()).extracting(item -> item.entityType() + ":" + item.entityId() + ":" + item.action())
+                .contains("Instructor:instructor-montse:WOULD_PURGE_ERASED_TRACES").noneMatch(item -> item.contains("instructor-neus"));
+        var sweep = runner.manual(CLUB, JobName.RETENTION_SWEEP, false, "admin-account");
+        assertThat(sweep.errors()).isEmpty();
+        assertThat(sweep.counters()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("erasedInstructorTracesPurged", 1L));
+        trace("round 2 after domain_events:instructor-late-failed", document("domain_events", "instructor-late-failed"));
+        assertThat(document("domain_events", "instructor-late-failed")).isNull();
+        assertThat(document("domain_events", "instructor-late-published")).isNull();
+        assertThat(document("domain_events", "instructor-active")).isNotNull();
+        var again = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
+        assertThat(again.items()).extracting(item -> item.entityType()).doesNotContain("Instructor");
+    }
+
+    /**
+     * E11-T16 round 2, F1 (S14 R-14-15, the S1 shape): the erased account's name as the actor of another member's follow-up task
+     * (`createdBy`/`doneBy`, S10) and as the author of another dog's observations (`remarksMeta.updatedByName`, R-10-12) goes;
+     * the task's text, the dog's remarks, the ids and the other actors' names stay.
+     */
+    @Test void T_14_08_R_14_15_theErasedActorsNameLeavesTheOtherMembersTasksAndDogObservations() throws Exception {
+        dog(CLUB, "kiwi", "montse", "941000000100001", null);
+        dog(CLUB, "other-dog", "active", "941000000100003", null);
+        dog(CLUB, "third-dog", "active", "941000000100004", null);
+        raw("tasks", "_id", "task-by-montse", "clubId", CLUB, "memberId", "active", "dogId", "other-dog", "text", "practise the contacts", "state", "DONE",
+                "createdBy", map("accountId", "montse-account", "displayName", "Fictional Name"), "doneBy", map("accountId", "montse-account", "displayName", "Fictional Name"),
+                "updatedBy", map("accountId", "admin-account", "displayName", "Fictional Admin"));
+        var remarks = new org.springframework.data.mongodb.core.query.Update();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("other-dog")), remarks.set("remarksMeta", map("updatedByAccountId", "montse-account",
+                "updatedByName", "Fictional Name", "version", 1L)), "dogs");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("third-dog")), new org.springframework.data.mongodb.core.query.Update().set("remarksMeta",
+                map("updatedByAccountId", "admin-account", "updatedByName", "Fictional Admin", "version", 1L)), "dogs");
+        trace("round 2 before tasks:task-by-montse", document("tasks", "task-by-montse"));
+        trace("round 2 before dogs:other-dog.remarksMeta", new Document("remarksMeta", document("dogs", "other-dog").get("remarksMeta")));
+        executeMontsesErasure();
+        trace("round 2 after tasks:task-by-montse", document("tasks", "task-by-montse"));
+        trace("round 2 after dogs:other-dog.remarksMeta", new Document("remarksMeta", document("dogs", "other-dog").get("remarksMeta")));
+        var task = document("tasks", "task-by-montse");
+        assertThat(task.get("createdBy", Document.class)).containsOnlyKeys("accountId").containsEntry("accountId", "montse-account");
+        assertThat(task.get("doneBy", Document.class)).containsOnlyKeys("accountId");
+        assertThat(task.get("updatedBy", Document.class)).containsEntry("displayName", "Fictional Admin");
+        assertThat(task).containsEntry("text", "practise the contacts").containsEntry("memberId", "active").containsEntry("state", "DONE");
+        var dog = document("dogs", "other-dog");
+        assertThat(dog.get("remarksMeta", Document.class)).doesNotContainKey("updatedByName").containsEntry("updatedByAccountId", "montse-account").containsEntry("version", 1L);
+        assertThat(dog).containsEntry("remarks", "Dog remarks of other-dog").containsEntry("name", "Fictional other-dog");
+        assertThat(document("dogs", "third-dog").get("remarksMeta", Document.class)).containsEntry("updatedByName", "Fictional Admin");
+    }
 }

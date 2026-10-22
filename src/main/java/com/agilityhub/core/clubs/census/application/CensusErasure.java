@@ -74,7 +74,8 @@ public class CensusErasure implements ErasureDirectory, ErasureStep, MemberDataS
         erasure.dogPhotos(ids).forEach(key -> effect.file(ATTACHMENTS, key));
         var dogIds = pending.stream().flatMap(member -> member.dogIds().stream()).toList();
         erasure.eraseDocuments(dogIds, subject.at()).forEach(key -> effect.file(ATTACHMENTS, key));
-        effect.count("dogs", erasure.eraseDogs(ids, subject.placeholders().dog(), subject.at()));
+        // E11-T16 round 2: the erased accounts' name as the author of another dog's observations goes too.
+        effect.count("dogs", erasure.eraseDogs(ids, subject.placeholders().dog(), subject.at()) + erasure.forgetRemarksAuthors(subject.accountIds()));
         effect.count("inactivity_periods+leave_requests", erasure.eraseLifecycleText(ids));
         long erased = 0;
         for (var member : pending) {

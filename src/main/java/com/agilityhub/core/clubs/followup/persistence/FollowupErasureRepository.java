@@ -32,8 +32,10 @@ public class FollowupErasureRepository {
     }
     public long eraseTasks(Collection<String> taskIds, Collection<String> accountIds, String text, Instant at) {
         long changed = mongo.updateMulti(Query.query(club().and("_id").in(taskIds).and("text").ne(text)), new Update().set("text", text), "tasks").getModifiedCount();
+        // E11-T16 round 2 (R-14-15, the S1 shape): the account's name as an actor goes from every task of the club, another
+        // member's included; only the text is limited to the member's own tasks.
         for (String actor : List.of("createdBy", "updatedBy", "doneBy", "deletedBy")) {
-            changed += mongo.updateMulti(Query.query(club().and("_id").in(taskIds).and(actor + ".accountId").in(accountIds)),
+            changed += mongo.updateMulti(Query.query(club().and(actor + ".accountId").in(accountIds).and(actor + ".displayName").exists(true)),
                     new Update().unset(actor + ".displayName"), "tasks").getModifiedCount();
         }
         return changed;

@@ -28,6 +28,8 @@ public class PrivacyTraces implements ErasureStep, AccountErasureStep, Retention
      * `InstructorChanged` carry its old `shortName` in their diff): its processed outbox records of that type go too.
      */
     public long forgetProcessedEvents(String type, String aggregateId) { return traces.deleteProcessedEvents(type, java.util.List.of(aggregateId)); }
+    /** E11-T16 round 2: which of these aggregates still have processed records of that type (the catalogs' monthly sweep). */
+    public Set<String> withProcessedEvents(String type, java.util.Collection<String> aggregateIds) { return traces.withProcessedEvents(type, aggregateIds); }
     @Override public ErasureEffect eraseAccount(String accountId, String pseudonym, ErasurePlaceholders placeholders, Instant at) {
         return ErasureEffect.builder().count("idempotency_records", traces.deleteReplays(accountId))
                 .count("security_events", traces.deleteSecurityEvents(accountId)).build();

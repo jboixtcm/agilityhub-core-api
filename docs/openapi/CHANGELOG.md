@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-22 · E11-T16 round 2 · The support token's restricted routes, named (S17 R-17-10, E109)
+
+**0 operations, schemas, properties or error codes added or removed; 1 description changed.**
+
+- `POST /platform/clubs/{id}/support-access` (`startSupportAccess`, description only): the list of what a support token never reaches now names scheduling or cancelling a member's erasure (`POST`/`DELETE /members/{id}/erasure`; the `GET` stays readable) and ending a support access (`DELETE /support-accesses/{id}`), both `403 SUPPORT_RESTRICTED` since E11-T16's first round. Like the export handlers of E10-T04, the two erasure operations do not list `SUPPORT_RESTRICTED` in their own errors.
+
 ## 2026-10-22 · E11-T13 round 2 · No member-facing quote from a price twin (ruling E138)
 
 **0 operations, schemas or properties added or removed; 1 error code added to 1 operation; 5 descriptions changed.**

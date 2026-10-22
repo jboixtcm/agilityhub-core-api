@@ -88,6 +88,17 @@ public class CensusErasureRepository {
         return mongo.updateMulti(Query.query(club()).addCriteria(Criteria.where("memberId").in(memberIds).and("erasedAt").is(null)), update, "dogs")
                 .getModifiedCount();
     }
+    /**
+     * R-14-15 (E11-T16 round 2, the S1 shape): the erased accounts' name as the author of any dog's observations of the club
+     * (`remarksMeta.updatedByName`, S10 R-10-12), another member's dog included; the account id, the remarks and the
+     * observations' version stay (the name is not part of what a form sends back).
+     */
+    public long forgetRemarksAuthors(Collection<String> accountIds) {
+        if (accountIds.isEmpty()) { return 0; }
+        writes.written(TenantContext.require());
+        return mongo.updateMulti(Query.query(club()).addCriteria(Criteria.where("remarksMeta.updatedByAccountId").in(accountIds).and("remarksMeta.updatedByName").exists(true)),
+                new Update().unset("remarksMeta.updatedByName"), "dogs").getModifiedCount();
+    }
     /** The photo keys of the members' dogs not erased yet (read before {@link #eraseDogs}). */
     public List<String> dogPhotos(Collection<String> memberIds) {
         var query = Query.query(club()).addCriteria(Criteria.where("memberId").in(memberIds).and("erasedAt").is(null).and("photoFileKey").ne(null));

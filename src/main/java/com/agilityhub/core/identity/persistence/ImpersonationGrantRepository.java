@@ -59,10 +59,13 @@ public class ImpersonationGrantRepository extends TenantRepository<Impersonation
      */
     public void ensureIndexes() {
         var indexes = mongo.indexOps(ImpersonationGrant.class);
-        var existing = indexes.getIndexInfo().stream().filter(index -> index.getIndexFields().size() == 1
-                && index.getIndexFields().getFirst().getKey().equals("expiresAt")).findFirst();
-        if (existing.isPresent() && existing.get().getExpireAfter().equals(java.util.Optional.of(RETENTION))) { return; }
-        existing.ifPresent(index -> indexes.dropIndex(index.getName()));
+        // Round 2: an index that holds the name the retention index is created with goes too, whatever its key.
+        var existing = indexes.getIndexInfo().stream().filter(index -> index.getName().equals(RETENTION_INDEX) || onExpiresAt(index)).toList();
+        if (existing.size() == 1 && onExpiresAt(existing.getFirst()) && existing.getFirst().getExpireAfter().equals(java.util.Optional.of(RETENTION))) { return; }
+        existing.forEach(index -> indexes.dropIndex(index.getName()));
         indexes.createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(RETENTION).named(RETENTION_INDEX));
+    }
+    private static boolean onExpiresAt(org.springframework.data.mongodb.core.index.IndexInfo index) {
+        return index.getIndexFields().size() == 1 && index.getIndexFields().getFirst().getKey().equals("expiresAt");
     }
 }

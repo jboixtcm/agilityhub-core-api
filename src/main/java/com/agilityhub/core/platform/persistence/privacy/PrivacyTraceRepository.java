@@ -40,8 +40,15 @@ public class PrivacyTraceRepository {
     }
     /** The processed records of one event type about these aggregates of the club (an erased instructor's `InstructorChanged`). */
     public long deleteProcessedEvents(String type, Collection<String> aggregateIds) {
-        return mongo.remove(Query.query(club().and("status").in(PROCESSED).and("type").is(type)
-                .and("aggregateId").in(aggregateIds)), "domain_events").getDeletedCount();
+        return mongo.remove(processed(type, aggregateIds), "domain_events").getDeletedCount();
+    }
+    /** E11-T16 round 2: which of these aggregates of the club still have a processed record of this type. */
+    public Set<String> withProcessedEvents(String type, Collection<String> aggregateIds) {
+        if (aggregateIds.isEmpty()) { return Set.of(); }
+        return new TreeSet<>(mongo.findDistinct(processed(type, aggregateIds), "aggregateId", "domain_events", String.class));
+    }
+    private static Query processed(String type, Collection<String> aggregateIds) {
+        return Query.query(club().and("status").in(PROCESSED).and("type").is(type).and("aggregateId").in(aggregateIds));
     }
 
     /** The club's run traces that list one of these members with a dog name. */
@@ -69,6 +76,8 @@ public class PrivacyTraceRepository {
         var events = Query.query(club().and("status").in(PROCESSED)).addCriteria(about(memberIds, ownerOfDog.keySet()));
         for (String field : List.of("aggregateId", "payload.memberId", "payload.dogId")) {
             for (String id : mongo.findDistinct(events, field, "domain_events", String.class)) {
+                // Round 2: a record may carry an explicit null id (a reminder without a member, a training event without a dog).
+                if (id == null) { continue; }
                 if (members.contains(id)) { traced.add(id); }
                 else if (ownerOfDog.containsKey(id)) { traced.add(ownerOfDog.get(id)); }
             }

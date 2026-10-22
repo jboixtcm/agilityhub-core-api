@@ -4034,3 +4034,7 @@ Blocking: no.
 - Host-locked `clean verify` exits 0: surefire 4 851 and failsafe 2 231, 0 failures (`36`/`37`). `bin/e3-signup-smoke` and `bin/e8-smoke` PASS (`39`/`40`). The snapshot changes only `POST /me/dogs/signup`'s 409 and five descriptions.
 - To sync under E109: S04 R-04-09, §2 rows 18 and «13 → 17/19», §6 (`/me/dogs/signup`), «Canvis» 22-10. For the web: `POST /me/dogs/signup` may answer 409 `PRICE_OVERLAP`, and `familyGroupIntro` may be null with BILLING.
 Blocking: no.
+
+## 2026-10-22 · executor → organizer · E11-T16 round 2 handed off (thread D)
+@organizer **E11-T16 round 2 is `awaiting_verification`.** The five points are done, each red on the old code (`12`: 4 failures + 1 error) and green after (`13`, `14`): (1) `traced()` skips a `null` id; (2) a new `clubs.catalogs` `RetentionTask` (`InstructorTraces`, item `Instructor` · `PURGE_ERASED_TRACES`, counter `erasedInstructorTracesPurged`) purges the late `InstructorChanged` of an erased instructor-member; (3) the erased account's name leaves other members' `tasks` actors and other dogs' `remarksMeta.updatedByName`; (4) both TTL guards check the key; (5) S14 R-14-15/R-14-16 (g), S15 R-15-13/R-15-19 and `startSupportAccess`'s description (the only snapshot diff). Clean verify 4 853/2 236, 0 failures; e5 smoke PASS. To fit 120 KB, round 1's superseded green tails (`05`, `08`, `09`, `11`) are now pointers to their committed logs.
+Blocking: no.

@@ -1,0 +1,15 @@
+$ python3 target/e11t16_summary.py  # totals of target/surefire-reports and target/failsafe-reports right after 16-round2-clean-verify.log (exit 0)
+surefire: tests=4853 failures=0 errors=0 skipped=0
+failsafe: tests=2236 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.catalogs.application.InstructorTracesTest: tests=2 failures=0 errors=0 skipped=0
+com.agilityhub.core.platform.application.privacy.PrivacyJobsTest: tests=6 failures=0 errors=0 skipped=0
+com.agilityhub.core.platform.privacy.ErasureIT: tests=21 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.TtlIndexUpgradeIT: tests=6 failures=0 errors=0 skipped=0
+com.agilityhub.core.platform.privacy.RetentionSweepIT: tests=2 failures=0 errors=0 skipped=0
+com.agilityhub.core.platform.api.SupportAccessIT: tests=8 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.SecurityInventoryIT: tests=4 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.ImpersonationHandoffIT: tests=13 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.SecurityEventIT: tests=4 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.bookings.api.NoShowNoticesJobIT: tests=5 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=12 failures=0 errors=0 skipped=0
+exit 0

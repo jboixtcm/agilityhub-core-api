@@ -341,7 +341,8 @@ public class PlatformClubsController {
             + "A SUPPORT grant of platform.supportAccessMinutes (60) and its token: a clubs-admin access token (no refresh token) with the club's clubId, roles [ADMIN], "
             + "actorAccountId and sub = the calling platform account, support = true and no platformRoles. Every request with it re-checks the grant: once it expires, "
             + "is ended with POST /oauth2/revoke, or its account is no longer an active AGILITYHUB_ADMIN, the token is 401 UNAUTHENTICATED. It never reaches the "
-            + "personal-data exports and their files, the SEPA files (full IBANs), a member impersonation or the account's own credentials and sessions: "
+            + "personal-data exports and their files, the SEPA files (full IBANs), a member impersonation, the account's own credentials and sessions, "
+            + "scheduling or cancelling a member's erasure (POST and DELETE /members/{id}/erasure; GET stays readable) or ending a support access: "
             + "403 SUPPORT_RESTRICTED; IBANs stay masked elsewhere. GET /me answers it with an ADMIN membership and support {actorName, expiresAt}. "
             + "Audited SUPPORT_ACCESS_STARTED {reason, details.expiresAt} in the club's own audit, and every action taken with it is audited with "
             + "origin = PLATFORM_SUPPORT; publishes SupportAccessStarted. A replay of the same key answers the same token.",

@@ -20,11 +20,14 @@ public class SecurityEventRepository extends GlobalRepository<SecurityEvent> {
     public void ensureIndexes(int retentionDays) {
         var indexes = mongo.indexOps(SecurityEvent.class);
         var retention = Duration.ofDays(retentionDays);
-        var existing = indexes.getIndexInfo().stream().filter(index -> index.getName().equals(RETENTION_INDEX)
-                || index.getIndexFields().size() == 1 && index.getIndexFields().getFirst().getKey().equals("at")).toList();
-        if (existing.size() == 1 && existing.getFirst().getName().equals(RETENTION_INDEX) && existing.getFirst().getIndexFields().size() == 1
+        var existing = indexes.getIndexInfo().stream().filter(index -> index.getName().equals(RETENTION_INDEX) || onAt(index)).toList();
+        // Round 2: the name alone is not enough; a `security_event_retention` on another key is not the retention index.
+        if (existing.size() == 1 && existing.getFirst().getName().equals(RETENTION_INDEX) && onAt(existing.getFirst())
                 && existing.getFirst().getExpireAfter().equals(java.util.Optional.of(retention))) { return; }
         existing.forEach(index -> indexes.dropIndex(index.getName()));
         indexes.createIndex(new Index().on("at", Direction.ASC).expire(retention).named(RETENTION_INDEX));
+    }
+    private static boolean onAt(org.springframework.data.mongodb.core.index.IndexInfo index) {
+        return index.getIndexFields().size() == 1 && index.getIndexFields().getFirst().getKey().equals("at");
     }
 }
