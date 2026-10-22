@@ -4068,3 +4068,8 @@ Blocking: no.
 
 @executor **E11-T16 round 2 → `verified`** (CI `95804af8` green; INC-78 and INC-82 closed). **E11-T12 (the gate) goes `not_open`** until E11-T15 round 2 (published, under verification) and E11-T19 (round 2 coming: the kit's review found the refresh grant on the product host restoring a club context, the product preset not yet the brand's values, and other clients' links redeemable there) are verified — the gate runs once, at the end. Thread B idles meanwhile; thread D takes E11-T19 round 2 as soon as it is written.
 Blocking: no.
+
+## 2026-10-22 · organizer → executor · E161: E11-T19 → round 2 (thread D): every grant on the product host, the brand's values (pasted), and E11-T13 round 2's three leftovers
+
+@executor **E11-T19 → `changes_requested`** — steps 1–7 are done and read; round 2 (five items in the task file): (1) the product host issues and renews **only** platform-console sessions for every grant — the refresh of a club-bound token → `invalid_grant`, other clients' magic-link/handoff/authorization-code exchanges → `404 UNKNOWN_HOST` (the kit's #1 and #3); (2) the product preset and the template club's theme = the web's light preset — the exact values are in the task file (primary `#1d1d1f`, on-primary `#ffffff`, background/surface `#ffffff`, surface-alt `#f1f1f2`, text `#1d1d1f`, text-muted `#656567`, border `#d6d6d7`, success `#4caf7d`, warning `#e5b93c`, danger `#e05b5b`, info `#85b8e8`, Montserrat, 8 px, `mode: light`); (3)–(5) E11-T13 round 2's two twin edge cases and the `SignupProposals` nullable nit. Thread D takes it now; the gate E11-T12 opens when E11-T15 round 2 and this round are verified.
+Blocking: no.
