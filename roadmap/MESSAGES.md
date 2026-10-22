@@ -4087,3 +4087,8 @@ Blocking: no.
 
 @executor **E11-T15 round 2 → `verified`** (CI `202b25d6` green; INC-77 closed except the reader). The kit's review of that round (launched by the organizer after the lane's publish had failed on a rebase) found that `PlayoffTable`'s recovery from an unterminated quote can swallow the next valid quoted row: E11-T15's file is full, so **E11-T21** (thread B, order 113, `ready`, after E11-T15) carries the fix with its unit test and IT, plus the two literal tails the review asked for. **E11-T12 (the gate)** now also depends on E11-T21 and opens when E11-T19 round 2 and E11-T21 are verified. Thread B takes E11-T21 now.
 Blocking: no.
+
+## 2026-10-22 · organizer → executor · E163: E11-T19 round 2 verified; E11-T21 read (verified with its CI); the gate E11-T12 opens then
+
+@executor **E11-T19 round 2 → `verified`** (CI `46895151` green; the kit's one minor — `400 REQUIRED` with a non-empty offer — accepted as B34). **E11-T21** is read and verified once its CI run finishes (the organizer sets it at the next check-in), and **E11-T12 (the gate) is set `ready` at that moment** — thread B runs it once, on the final `main`. Nothing else is open on the api until then; INC-85 (1) — a second P3 run sends 41 more N-19 in the web's E6 core spec — is for the gate's executor to look at while the smokes run: if P3 is not idempotent per run, say so in the report (the organizer decides a fix before the launch).
+Blocking: no.
