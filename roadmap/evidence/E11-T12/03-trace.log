@@ -1,0 +1,32 @@
+surefire: suites=456 tests=4862 failures=0 errors=0 skipped=0
+failsafe: suites=169 tests=2261 failures=0 errors=0 skipped=0
+
+JaCoCo domain+application: 61 packages, line >= 0.85, branch >= 0.80; lowest line 0.871 (com.agilityhub.core.clubs.scheduling.application.ports), lowest branch 0.828 (com.agilityhub.core.clubs.census.application); below threshold: none
+JaCoCo api: 15 packages, line >= 0.70; lowest line 0.946 (com.agilityhub.core.clubs.census.api); below threshold: none
+
+Architecture rules (com.agilityhub.core.arch.*): 45 methods in 5 classes, 45 pass
+Related classes (T_14_ or INC_): 141
+
+| Spec | Ids declared | With tests | All pass | Missing |
+|---|---|---|---|---|
+| S01 | 26 | 21 | yes | T-01-18, T-01-19, T-01-20, T-01-21, T-01-24 |
+| S02 | 17 | 14 | yes | T-02-05, T-02-13, T-02-14 |
+| S03 | 42 | 38 | yes | T-03-38, T-03-39, T-03-40, T-03-41 |
+| S04 | 34 | 29 | yes | T-04-29, T-04-30, T-04-31, T-04-32, T-04-33 |
+| S05 | 30 | 22 | yes | T-05-22, T-05-23, T-05-24, T-05-25, T-05-26, T-05-27, T-05-29, T-05-30 |
+| S06 | 36 | 32 | yes | T-06-26, T-06-27, T-06-29, T-06-30 |
+| S07 | 32 | 30 | yes | T-07-30, T-07-31 |
+| S08 | 47 | 43 | yes | T-08-36, T-08-37, T-08-38, T-08-39 |
+| S09 | 41 | 35 | yes | T-09-36, T-09-37, T-09-38, T-09-39, T-09-40, T-09-41 |
+| S10 | 33 | 27 | yes | T-10-27, T-10-28, T-10-29, T-10-30, T-10-31, T-10-32 |
+| S11 | 40 | 34 | yes | T-11-34, T-11-35, T-11-36, T-11-37, T-11-38, T-11-39 |
+| S12 | 32 | 29 | yes | T-12-25, T-12-26, T-12-27 |
+| S13 | 32 | 28 | yes | T-13-29, T-13-30, T-13-31, T-13-32 |
+| S14 | 30 | 26 | yes | T-14-25, T-14-26, T-14-27, T-14-28 |
+| S15 | 35 | 30 | yes | T-15-30, T-15-32, T-15-33, T-15-34, T-15-35 |
+| S16 | 22 | 18 | yes | T-16-01, T-16-02, T-16-04, T-16-15 |
+| S17 | 14 | 13 | yes | T-17-12 |
+| S18 | 16 | 12 | yes | T-18-09, T-18-11, T-18-12, T-18-14 |
+
+Totals: 559 ids declared · 481 with tests · 0 with a non-passing method.
+Rows in trace-tests.csv: 2942 · non-passing rows: 0

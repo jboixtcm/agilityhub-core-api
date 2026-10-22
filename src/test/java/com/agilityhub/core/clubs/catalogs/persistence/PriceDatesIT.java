@@ -12,8 +12,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import org.bson.BsonType;
 import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,10 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.type;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -41,6 +46,14 @@ class PriceDatesIT extends AbstractIntegrationTest {
     @Autowired private PriceRepository prices;
     @Autowired private PriceResolver resolver;
     @Autowired private MongoTemplate mongo;
+
+    /**
+     * INC-87 (E11-T12): the startup scan covers every club, and its log lines are asserted whole below; a BSON-date start
+     * another class left in the shared container (another club's twin) must not join them.
+     */
+    @BeforeEach void dropOtherClubsLegacyStarts() {
+        mongo.getCollection("prices").deleteMany(and(ne("clubId", CLUB), type("validFrom", BsonType.DATE_TIME)));
+    }
 
     @AfterEach void dropPrices() {
         mongo.getCollection("prices").deleteMany(eq("clubId", CLUB));

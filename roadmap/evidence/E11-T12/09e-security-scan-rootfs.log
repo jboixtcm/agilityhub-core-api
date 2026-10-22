@@ -1,0 +1,27 @@
+Trivy 0.74.0: rootfs vulnerability audit
+2026-10-22T11:03:38+02:00	INFO	[vuln] Vulnerability scanning is enabled
+2026-10-22T11:03:39+02:00	INFO	Number of language-specific files	num=1
+2026-10-22T11:03:39+02:00	INFO	[jar] Detecting vulnerabilities...
+
+📣 [34mNotices:[0m
+  - Version 0.76.1 of Trivy is now available, current version is 0.74.0
+
+To suppress version checks, run Trivy scans with the --skip-version-check flag
+
+{
+  "vulnerabilities": 1,
+  "fixableCritical": [],
+  "suppressedCritical": [],
+  "secretRules": [],
+  "otherFindings": [
+    [
+      "CVE-2026-113730",
+      "ognl:ognl",
+      "MEDIUM",
+      "3.3.4",
+      "3.4.13"
+    ]
+  ],
+  "expiredSuppressions": [],
+  "javaPackages": 204
+}

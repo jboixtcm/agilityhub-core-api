@@ -1,0 +1,398 @@
+$ docker compose (project e11-t12-seeds-3e566373) up -d --wait mongo -> exit 0
+
+=== run 1: $ bin/core club:apply seeds/club-canic.yaml -> exit 0
++ club added
+  null -> {"slug":"canic","name":"Club Agility Cànic","legalName":"Club Agility Cànic","taxId":"G63189617","address":{"street":"Carrer Sant Pere, 10","postalCode":"08392","city":"Sant Andreu de Llavaneres","region":"Barcelona","country":"ES"},"displayCity":"Cabrera de Mar","contactEmail":"canic@example.test","locales":["ca","es"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":"ES","status":"ONBOARDING","template":false}
++ domains added
+  null -> [{"host":"app.agilitycanic.cat","app":"clubs","primary":true},{"host":"admin.agilitycanic.cat","app":"clubs-admin","primary":false}]
++ theme added
+  null -> {"colors":{"primary":"#E26A2A","onPrimary":"#0B0B0B","background":"#0B0B0B","surface":"#161616","surfaceAlt":"#1E1E1E","text":"#FFFFFF","textMuted":"#B5B5B5","border":"#2B2B2B","success":"#4CAF7D","warning":"#E5B93C","danger":"#E05B5B","info":"#85B8E8"},"fontFamily":"Montserrat","radius":"4px","ringPalette":["#F2B58C","#8FCE8F","#C9CDD3","#F5D67A","#85B8E8"],"mode":"dark"}
++ modules added
+  null -> ["ACTIVITIES","BILLING","COURSES","FAMILY_GROUP","FAQ","FREE_TRAINING","INACTIVITY","LEARN_LINK","PACKS","PUSH","SMS","TASKS","WAITLIST"]
++ paymentProviders added
+  null -> {"SEPA_XML":{"enabled":true},"MANUAL":{"enabled":true,"instructions":{"ca":"El pagament de l'entrada i el mes en curs (o el proper) és necessari per a la validació de l'alta. Pot fer-se per transferència al compte ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o per Bizum al 607 475 945.","es":"El pago de la entrada y del mes en curso (o del siguiente) es necesario para la validación del alta. Puede hacerse por transferencia a la cuenta ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o por Bizum al 607 475 945."}}}
++ legal added
+  null -> {"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","imageConsentText":{"ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club","en":"I authorize publication of photos of me and my dog within club activities","es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club"},"legalTextsVersion":"1"}
++ pwa added
+  null -> {"name":"Club Agility Cànic","shortName":"Club Agility Cànic","icons":[]}
++ parameters.signup.enabled added
+  null -> true
++ parameters.signup.pendingExpiryDays added
+  null -> 30
++ parameters.signup.requireDogDocumentAtSignup added
+  null -> false
++ parameters.signup.firstMonthSplitDay added
+  null -> 16
++ parameters.signup.allowFamilyGroupPending added
+  null -> true
++ admins: 0 to provision
++ accounts: 15 to provision
++ catalogs.levels.CAD
++ catalogs.levels.A
++ catalogs.levels.B
++ catalogs.levels.C
++ catalogs.levels.D
++ catalogs.levels.E
++ catalogs.levels.F
++ catalogs.levels.G
++ catalogs.levels.TER
++ catalogs.levels.PENDENT
++ catalogs.rings.MUN
++ catalogs.rings.CEN
++ catalogs.rings.CAR
++ catalogs.rings.CAD
++ catalogs.rings.PET
++ catalogs.plans.ABONAT
++ catalogs.plans.ABONAT_FAMILIAR
++ catalogs.plans.PACK6
++ catalogs.plans.PACK10
++ catalogs.plans.TERAPIA
++ catalogs.plans.COMPETICIO_1
++ catalogs.prices.ABONAT:MONTHLY_FEE:2026-01-01
++ catalogs.prices.ABONAT_FAMILIAR:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK6:PACK:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.TERAPIA:MAINTENANCE_FEE:2026-01-01
++ catalogs.prices.COMPETICIO_1:MONTHLY_FEE:2026-01-01
++ catalogs.faq.FAQ_1
++ catalogs.faq.FAQ_2
++ catalogs.faq.FAQ_3
++ catalogs.faq.FAQ_4
++ catalogs.faq.FAQ_5
++ catalogs.faq.FAQ_6
++ catalogs.faq.FAQ_7
++ catalogs: 34 catalog changes
++ messageTemplates.N-01
++ messageTemplates.N-02
++ messageTemplates.N-03
++ messageTemplates.N-04
++ messageTemplates.N-05
++ messageTemplates.N-06
++ messageTemplates.N-07
++ messageTemplates.N-08a
++ messageTemplates.N-08b
++ messageTemplates.N-09
++ messageTemplates.N-10
++ messageTemplates.N-11a
++ messageTemplates.N-11b
++ messageTemplates.N-13
++ messageTemplates.N-14
++ messageTemplates.N-15
++ messageTemplates.N-16
++ messageTemplates.N-17
++ messageTemplates.N-18a
++ messageTemplates.N-18b
++ messageTemplates.N-18c
++ messageTemplates.N-19
++ messageTemplates.N-20
++ messageTemplates.N-21
++ messageTemplates.N-22
++ messageTemplates.N-23
++ messageTemplates.N-24
++ messageTemplates.N-28
++ messageTemplates.N-29
++ messageTemplates.N-30
++ messageTemplates.N-31
++ messageTemplates.N-32a
++ messageTemplates.N-32b
++ messageTemplates.N-32c
++ messageTemplates.N-33
++ messageTemplates.N-34
++ messageTemplates.N-35
++ messageTemplates.N-36
++ messageTemplates.N-37
++ messageTemplates.N-38
++ messageTemplates.N-18d
++ messageTemplates.N-32d
++ messageTemplates.N-40
++ messageTemplates.N-41
++ messageTemplates.N-42
++ messageTemplates.N-46
++ messageTemplates.N-47
++ messageTemplates.N-49
++ messageTemplates.N-50
++ messageTemplates.N-51
++ messageTemplates.N-54
++ messageTemplates: 51 templates to seed
++ pages: 3 page changes
+16 changes (applied)
+
+=== run 2: $ bin/core club:apply seeds/club-canic.yaml -> exit 0
+= club unchanged
+= domains unchanged
+= theme unchanged
+= modules unchanged
+= paymentProviders unchanged
+= legal unchanged
+= pwa unchanged
+= parameters.signup.enabled unchanged
+= parameters.signup.pendingExpiryDays unchanged
+= parameters.signup.requireDogDocumentAtSignup unchanged
+= parameters.signup.firstMonthSplitDay unchanged
+= parameters.signup.allowFamilyGroupPending unchanged
+= admins: 0 to provision
+= accounts: 0 to provision
+= catalogs: 0 catalog changes
+= messageTemplates: 0 templates to seed
+= pages: 0 page changes
+0 changes (applied)
+
+=== run 3: $ bin/core club:apply seeds/club-template-default.yaml -> exit 0
++ club added
+  null -> {"slug":"club-template-default","name":"AgilityHub template","contactEmail":"template@example.test","locales":["ca","es","en"],"defaultLocale":"en","timeZone":"UTC","currency":"EUR","countryProfile":"GENERIC","status":"ONBOARDING","template":true}
++ domains added
+  null -> []
++ theme added
+  null -> {"colors":{"primary":"#1d1d1f","onPrimary":"#ffffff","background":"#ffffff","surface":"#ffffff","surfaceAlt":"#f1f1f2","text":"#1d1d1f","textMuted":"#656567","border":"#d6d6d7","success":"#4caf7d","warning":"#e5b93c","danger":"#e05b5b","info":"#85b8e8"},"fontFamily":"Montserrat","radius":"8px","ringPalette":[],"mode":"light"}
++ modules added
+  null -> ["BILLING","FAQ","FREE_TRAINING","PACKS","PUSH","SINGLE_CLASS","WAITLIST"]
++ paymentProviders added
+  null -> {}
++ legal added
+  null -> {"privacyPolicyUrl":"","imageConsentText":{},"legalTextsVersion":""}
++ pwa added
+  null -> {"name":"AgilityHub template","shortName":"AgilityHub template","icons":[]}
++ parameters: no declared overrides
++ admins: 0 to provision
+= accounts: 0 to provision
++ catalogs.levels.CAD
++ catalogs.levels.INI
++ catalogs.levels.INT
++ catalogs.levels.AVA
++ catalogs.levels.TER
++ catalogs.levels.PENDENT
++ catalogs.rings.P1
++ catalogs.rings.P2
++ catalogs.plans.MONTHLY
++ catalogs.plans.MONTHLY_FAMILY
++ catalogs.plans.PACK10
++ catalogs.plans.SINGLE_CLASS
++ catalogs.plans.THERAPY
++ catalogs.prices.MONTHLY:MONTHLY_FEE:2026-01-01
++ catalogs.prices.MONTHLY_FAMILY:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.SINGLE_CLASS:SINGLE_CLASS:2026-01-01
++ catalogs.prices.THERAPY:MAINTENANCE_FEE:2026-01-01
++ catalogs.faq.FAQ_CLUB_LIFE
++ catalogs.faq.FAQ_BOOKINGS
++ catalogs.faq.FAQ_COMPETITIONS
++ catalogs: 21 catalog changes
++ messageTemplates.N-01
++ messageTemplates.N-02
++ messageTemplates.N-03
++ messageTemplates.N-04
++ messageTemplates.N-05
++ messageTemplates.N-06
++ messageTemplates.N-07
++ messageTemplates.N-08a
++ messageTemplates.N-08b
++ messageTemplates.N-09
++ messageTemplates.N-10
++ messageTemplates.N-11a
++ messageTemplates.N-11b
++ messageTemplates.N-13
++ messageTemplates.N-14
++ messageTemplates.N-15
++ messageTemplates.N-16
++ messageTemplates.N-17
++ messageTemplates.N-18a
++ messageTemplates.N-18b
++ messageTemplates.N-18c
++ messageTemplates.N-19
++ messageTemplates.N-20
++ messageTemplates.N-21
++ messageTemplates.N-22
++ messageTemplates.N-23
++ messageTemplates.N-24
++ messageTemplates.N-28
++ messageTemplates.N-29
++ messageTemplates.N-30
++ messageTemplates.N-31
++ messageTemplates.N-32a
++ messageTemplates.N-32b
++ messageTemplates.N-32c
++ messageTemplates.N-33
++ messageTemplates.N-34
++ messageTemplates.N-35
++ messageTemplates.N-36
++ messageTemplates.N-37
++ messageTemplates.N-38
++ messageTemplates.N-18d
++ messageTemplates.N-32d
++ messageTemplates.N-40
++ messageTemplates.N-41
++ messageTemplates.N-42
++ messageTemplates.N-46
++ messageTemplates.N-47
++ messageTemplates.N-49
++ messageTemplates.N-50
++ messageTemplates.N-51
++ messageTemplates.N-54
++ messageTemplates.N-55
++ messageTemplates: 52 templates to seed
+= pages: 0 page changes
+9 changes (applied)
+
+=== run 4: $ bin/core club:apply seeds/club-template-default.yaml -> exit 0
+= club unchanged
+= domains unchanged
+= theme unchanged
+= modules unchanged
+= paymentProviders unchanged
+= legal unchanged
+= pwa unchanged
+= parameters: no declared overrides
+= admins: 0 to provision
+= accounts: 0 to provision
+= catalogs: 0 catalog changes
+= messageTemplates: 0 templates to seed
+= pages: 0 page changes
+0 changes (applied)
+
+=== run 5: $ bin/core seed:demo --club=canic --seed=42 -> exit 0
+2026-10-22T10:47:33.707+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.737+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.753+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.762+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.775+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.782+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.794+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.800+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.812+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.818+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.831+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.844+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.861+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.872+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.887+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.894+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.914+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.926+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.949+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.963+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.986+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:33.996+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.014+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.023+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.040+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.049+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.065+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.072+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.085+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.092+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.107+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.114+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.127+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.134+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.148+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.155+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.168+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.174+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.186+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.192+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.203+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.209+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.223+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.230+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.244+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.251+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.264+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.271+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.283+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.288+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.299+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.305+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.322+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.328+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.340+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.346+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.356+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.361+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.371+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.376+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.387+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.394+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.404+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.410+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.420+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.425+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.436+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.441+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.452+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.457+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.467+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.472+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.482+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.487+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.497+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.502+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.514+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.520+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.534+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.539+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.549+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.554+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.564+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.570+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.581+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.587+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.600+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.605+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.614+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.620+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.632+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.640+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.651+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.657+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.668+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.673+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.684+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.689+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.702+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.706+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.715+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.720+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.729+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.734+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.745+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.751+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.763+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.771+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.784+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.789+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.800+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.805+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.818+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.823+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.834+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.842+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.853+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.858+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.869+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.874+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.884+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.889+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.899+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.905+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.907+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.909+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.922+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.932+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.944+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:34.949+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:35.570+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+2026-10-22T10:47:35.593+02:00 WARN  [main] c.a.c.p.application.BankAccountVault traceId= clubId= accountId= : BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=78a9f8d4-f4e0-42b7-b341-18b34edd4f71
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+452 changes (demo seed)
+{platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+402 changes (demo planning, week start 2026-10-26)
+
+=== run 6: $ bin/core seed:demo --club=canic --seed=42 -> exit 0
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+0 changes (demo seed)
+{platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+0 changes (demo planning, week start 2026-10-26)
+
+$ docker compose (project e11-t12-seeds-3e566373) down --volumes -> exit 0
+second runs without «0 changes»: none
+seeds_twice exit code 0

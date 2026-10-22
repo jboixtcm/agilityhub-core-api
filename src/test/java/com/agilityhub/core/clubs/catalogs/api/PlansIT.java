@@ -68,6 +68,13 @@ class PlansIT extends AbstractIntegrationTest {
         }
         hosts.invalidate();
     }
+    /**
+     * INC-87 (E11-T12): the price twins inserted here (`price-twin`, `price-line-twin`) are BSON-date starts that the startup
+     * scan reports for every club; they never outlive the test, so a later class in the shared container never sees them.
+     */
+    @AfterEach void dropPrices() {
+        mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "prices");
+    }
     ResultActions call(MockHttpServletRequestBuilder request, String club, String role) throws Exception {
         return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject("offer-admin")
                 .claim("name", "Example Offer Admin").claim("clubId", club)).authorities(() -> "ROLE_" + role)));

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T12 (the E11 gate run, api; ruling E165): no product change. INC-87, test only: `PlansIT` removes its clubs' prices (the BSON-date twins `price-twin`/`price-line-twin`) after each test, and `PriceDatesIT` starts each test without another club's BSON-date price start, so the global startup twin scan it asserts on sees only its own club (red with `PlansIT` first, green after). The gate's evidence is in `roadmap/evidence/E11-T12/`: clean verify, every spec id traced, every smoke, seeds twice, snapshot drift, PITest on the three packages (delta method), the security inventory, the image, its scan and the Compose proof.
+
 - E11-T21 (ruling E162): S18 R-18-11b (h), the Playoff load's tolerant reader of `rebuts.csv`, `packs.csv`, `previsio.csv`, `mandats.csv` and `pagat_fins.csv` reads one record per line. A quote left open at the end of its line breaks that line only (a warning on it). The next line starts clean, so a quoted valid row after it is no longer swallowed (a lost «paid until» override or receipt). The census files keep quoted line breaks. No contract change. `docs/DEPLOY.md`: the runbook line.
 
 - E11-T19 round 2 (ruling E161): every grant on the console's product host, the brand's values, and E11-T13 round 2's leftovers. Contract: `/oauth2/token` descriptions, `SignupProposals.planId`/`priceId` nullable (`docs/openapi/CHANGELOG.md`).

@@ -1,0 +1,9 @@
+$ shasum -a 256 docs/openapi/openapi.json            # before bin/openapi-snapshot
+92daab5abddd3c5a5ade388d899041597a9db6793f8cfa8fa5fb1d5e2d621e66  docs/openapi/openapi.json
+$ heavy.sh bin/openapi-snapshot > 06-openapi-snapshot.log 2>&1   -> exit 0 ("Updated docs/openapi/openapi.json")
+$ shasum -a 256 docs/openapi/openapi.json            # after
+92daab5abddd3c5a5ade388d899041597a9db6793f8cfa8fa5fb1d5e2d621e66  docs/openapi/openapi.json
+$ git show HEAD:docs/openapi/openapi.json > target/openapi-head.json; cmp target/openapi-head.json docs/openapi/openapi.json
+cmp exit 0
+$ git status --porcelain docs
+(no output: the regenerated snapshot is byte-identical to the commit; nothing to put back)
