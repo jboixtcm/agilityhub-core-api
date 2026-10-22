@@ -1,0 +1,14 @@
+surefire-reports: platform.application.definition.TemplateClubSeedTest tests=5 failures=1 errors=0 skipped=0
+    FAILED R_17_06_E157_theTemplateThemeIsTheProductBrandingThemeAndTheBrand
+TOTAL target/surefire-reports: tests=5 failures=1 errors=0 skipped=0
+failsafe-reports: clubs.census.api.SignupPlansFollowUpIT tests=12 failures=2 errors=0 skipped=0
+    FAILED R_04_09_E138_aTwinnedOwnPlanWithAnEmptyOfferRefusesTheAddDogWithoutAPlan
+    FAILED R_04_13_E138_d2RefusesAPlanTwinnedOnTheSubmissionDateThoughNotToday
+failsafe-reports: configuration.E3ContractIT tests=17 failures=1 errors=0 skipped=0
+    FAILED T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors
+failsafe-reports: identity.api.ConsoleProductHostIT tests=7 failures=2 errors=0 skipped=0
+    FAILED T_01_04_R_01_02_productHostNeverRenewsAClubBoundRefreshTokenNorRedeemsAClubBoundCode
+    FAILED T_01_02_R_01_02_productHostAnswersEveryGrantOfAnotherClientAsAnUnknownHost
+failsafe-reports: platform.api.PlatformConsoleIT tests=43 failures=1 errors=0 skipped=0
+    FAILED T_17_02_R_17_02_productHostAnswersTheProductBranding
+TOTAL target/failsafe-reports: tests=79 failures=6 errors=0 skipped=0

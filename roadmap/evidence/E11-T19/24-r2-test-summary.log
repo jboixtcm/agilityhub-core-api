@@ -1,0 +1,9 @@
+surefire-reports: platform.application.definition.TemplateClubSeedTest tests=5 failures=0 errors=0 skipped=0
+TOTAL target/surefire-reports: tests=4861 failures=0 errors=0 skipped=0
+failsafe-reports: clubs.census.api.SignupPlansFollowUpIT tests=12 failures=0 errors=0 skipped=0
+failsafe-reports: configuration.E3ContractIT tests=17 failures=0 errors=0 skipped=0
+failsafe-reports: configuration.OpenApiSnapshotTest tests=12 failures=0 errors=0 skipped=0
+failsafe-reports: identity.api.ConsoleProductHostIT tests=11 failures=0 errors=0 skipped=0
+failsafe-reports: platform.api.PlatformConsoleIT tests=43 failures=0 errors=0 skipped=0
+TOTAL target/failsafe-reports: tests=2260 failures=0 errors=0 skipped=0
+verify exit 0

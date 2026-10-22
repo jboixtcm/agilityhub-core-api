@@ -87,9 +87,11 @@ public class TenantFilter extends OncePerRequestFilter {
                     // S17 §2 «Entrada» (E118 #2): a product host has no tenant; its branding is the product's, and only the branding.
                     boolean productBranding = path.equals("/api/v1/branding") && hostClub.isEmpty() && productHosts.test(bare(host));
                     // S01 R-01-02, S17 §2 «Entrada» (E157): the console signs in on its product host, without a club.
-                    boolean consoleSignIn = hostClub.isEmpty() && productHosts.test(bare(host)) && !bare(host).equals(bare(identityHost))
-                            && (path.equals("/api/v1/auth/magic-link")
+                    boolean consoleHost = hostClub.isEmpty() && productHosts.test(bare(host)) && !bare(host).equals(bare(identityHost));
+                    boolean consoleSignIn = consoleHost && (path.equals("/api/v1/auth/magic-link")
                                 || path.equals("/oauth2/token") && "clubs-admin".equals(request.getParameter("client_id")));
+                    // S01 R-01-02 (E161): there every grant of any other client is an unknown host's, before the optional-host grants.
+                    if (consoleHost && path.equals("/oauth2/token") && !consoleSignIn) { throw new ApiException(ErrorCode.UNKNOWN_HOST); }
                     String clubId;
                     if (authenticatedJwt) {
                         clubId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("clubId");

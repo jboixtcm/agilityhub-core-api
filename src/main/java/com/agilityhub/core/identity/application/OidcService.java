@@ -147,9 +147,14 @@ public class OidcService {
         return callback(request, "code", code);
     }
     public TokenService.Tokens exchange(String value, String clientId, String redirectUri, String verifier, String userAgent) {
+        return exchange(value, clientId, redirectUri, verifier, userAgent, false);
+    }
+    /** @param consoleHost S01 R-01-02 (E161): on the console's product host a code bound to a club never opens its club there */
+    public TokenService.Tokens exchange(String value, String clientId, String redirectUri, String verifier, String userAgent, boolean consoleHost) {
         return transactions.run(() -> {
             var code = state.code(TokenService.digest(value), clientId, clock.instant());
             if (code == null || !code.request().redirectUri().equals(redirectUri)) { throw invalid("invalid_grant"); }
+            if (consoleHost && code.request().clubId() != null) { throw invalid("invalid_grant"); }
             if (code.request().challenge() != null && (verifier == null || !verifier.matches("[A-Za-z0-9._~-]{43,128}")
                     || !java.security.MessageDigest.isEqual(code.request().challenge().getBytes(java.nio.charset.StandardCharsets.US_ASCII),
                     TokenService.digest(verifier).getBytes(java.nio.charset.StandardCharsets.US_ASCII)))) { throw invalid("invalid_grant"); }
@@ -165,7 +170,18 @@ public class OidcService {
             }
         });
     }
-    public TokenService.Tokens refresh(String value, String clientId, Set<String> scopes) {
+    public TokenService.Tokens refresh(String value, String clientId, Set<String> scopes) { return refresh(value, clientId, scopes, false); }
+    /**
+     * @param consoleHost S01 R-01-02 (E161): the console's product host renews only a session without a club; a refresh token bound
+     *     to a club (an OIDC one or a club host's) is `invalid_grant` there, and its club context is never restored on that host.
+     */
+    public TokenService.Tokens refresh(String value, String clientId, Set<String> scopes, boolean consoleHost) {
+        if (consoleHost) {
+            if (accountSessions.refresh(TokenService.digest(value), clientId).filter(bound -> bound.clubId() != null).isPresent()) {
+                throw invalid("invalid_grant");
+            }
+            return tokens.refresh(value, clientId, scopes);
+        }
         if (TenantContext.current() == null) {
             var bound = accountSessions.oidcRefresh(TokenService.digest(value), clientId).orElse(null);
             if (bound != null && bound.clubId() != null) {

@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-22 · E11-T19 round 2 · Every grant on the console's product host (ruling E161); `SignupProposals` nullable
+
+**0 operations or error codes added or removed; 2 properties made nullable in 1 schema; 3 descriptions changed.**
+
+- `POST /oauth2/token` (`token`, S01 R-01-02, descriptions of the operation, `400` and `404`): the console's product host issues and renews only `clubs-admin` sessions without a club. A refresh token or an authorization code bound to a club is `400 VALIDATION_ERROR {details.oauth2Error: invalid_grant}` there (it used to be renewed or redeemed with its club); every grant of any other client there (password, magic link, handoff, authorization code, refresh) is `404 UNKNOWN_HOST` and leaves its link or code unused (magic link, handoff and authorization code used to be redeemed there).
+- `SignupProposals.planId` and `priceId` (`GET /members/{id}/signup`, R-04-19, E11-W06's question 2): typed `["string", "null"]`; still optional, and the api omits them when D2 has no plan to propose.
+- Behaviour only (S04 R-04-09, §6, E161): `POST /me/dogs/signup` without `planIdRequested`, with an empty public offer and the member's own plan twinned → `409 PRICE_OVERLAP` (it wrote the dog with a zero quote); D2's dry run and validation check the twin at today and at each dog's submission date.
+
 ## 2026-10-22 · E11-T19 · The console signs in on its product host (ruling E157); the domains' re-check state
 
 **0 operations or error codes added or removed; 2 properties added to 1 schema; 4 descriptions changed.**

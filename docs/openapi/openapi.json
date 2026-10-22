@@ -22352,11 +22352,11 @@
           },
           "planId" : {
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "priceId" : {
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "required" : [ "levels" ],
@@ -93920,7 +93920,7 @@
     },
     "/oauth2/token" : {
       "post" : {
-        "description" : "ANON with client authentication. Club context comes from the host, never request data. On the console's product host (a platform host other than the ID's, which resolves no club) clubs-admin's password, magic-link, handoff and refresh grants issue a session without club context (platformRoles, no clubId/roles, aud clubs-admin, ah_refresh on that host) to an account holding AGILITYHUB_ADMIN, and 403 PLATFORM_ONLY to any other account; other clients there keep 404 UNKNOWN_HOST. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
+        "description" : "ANON with client authentication. Club context comes from the host, never request data. On the console's product host (a platform host other than the ID's, which resolves no club) clubs-admin's password, magic-link, handoff and refresh grants issue a session without club context (platformRoles, no clubId/roles, aud clubs-admin, ah_refresh on that host) to an account holding AGILITYHUB_ADMIN, and 403 PLATFORM_ONLY to any other account. It issues and renews only those sessions: a refresh token or an authorization code bound to a club is 400 VALIDATION_ERROR (oauth2Error invalid_grant) there, never renewed with its club; every grant of any other client there is 404 UNKNOWN_HOST and leaves its link or code unused. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
         "operationId" : "token",
         "requestBody" : {
           "content" : {
@@ -93960,7 +93960,7 @@
                 }
               }
             },
-            "description" : "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR"
+            "description" : "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR; VALIDATION_ERROR with details.oauth2Error invalid_grant for an invalid authorization code or, on the console's product host, a club-bound refresh token or code"
           },
           "401" : {
             "content" : {
@@ -93990,7 +93990,7 @@
                 }
               }
             },
-            "description" : "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin"
+            "description" : "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin; there, any other client's grant"
           },
           "409" : {
             "content" : {

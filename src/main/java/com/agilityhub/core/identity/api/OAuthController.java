@@ -33,7 +33,9 @@ public class OAuthController {
             description = "ANON with client authentication. Club context comes from the host, never request data. "
                     + "On the console's product host (a platform host other than the ID's, which resolves no club) clubs-admin's password, magic-link, "
                     + "handoff and refresh grants issue a session without club context (platformRoles, no clubId/roles, aud clubs-admin, ah_refresh on that host) "
-                    + "to an account holding AGILITYHUB_ADMIN, and 403 PLATFORM_ONLY to any other account; other clients there keep 404 UNKNOWN_HOST. "
+                    + "to an account holding AGILITYHUB_ADMIN, and 403 PLATFORM_ONLY to any other account. It issues and renews only those sessions: "
+                    + "a refresh token or an authorization code bound to a club is 400 VALIDATION_ERROR (oauth2Error invalid_grant) there, never renewed "
+                    + "with its club; every grant of any other client there is 404 UNKNOWN_HOST and leaves its link or code unused. "
                     + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
                     + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. "
                     + "COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. "
@@ -50,10 +52,11 @@ public class OAuthController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "TokenResponse; refresh_token only for BODY clients; id_token depends on grant and scope",
                             headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Set-Cookie", description = "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=auth.sessionDays in seconds. Secure relaxed only for local HTTP.", schema = @Schema(type = "string"))),
-                    @ApiResponse(responseCode = "400", description = "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR"),
+                    @ApiResponse(responseCode = "400", description = "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR; "
+                            + "VALIDATION_ERROR with details.oauth2Error invalid_grant for an invalid authorization code or, on the console's product host, a club-bound refresh token or code"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS"),
                     @ApiResponse(responseCode = "403", description = "NO_MEMBERSHIP, MEMBERSHIP_SUSPENDED, ACCOUNT_BLOCKED; PLATFORM_ONLY (clubs-admin on the console's product host without AGILITYHUB_ADMIN)"),
-                    @ApiResponse(responseCode = "404", description = "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin"),
+                    @ApiResponse(responseCode = "404", description = "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin; there, any other client's grant"),
                     @ApiResponse(responseCode = "429", description = "LOGIN_LOCKED or RATE_LIMITED; Retry-After in seconds")})
     public TokenResponse token(@Parameter(hidden = true) @ModelAttribute TokenRequest request) {
         throw new UnsupportedOperationException();

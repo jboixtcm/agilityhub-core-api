@@ -79,18 +79,25 @@ public class SignupPolicy {
      * Ruling E138 (E11-T13, INC-68's twins): with BILLING, D2 never validates {@code plan} while one of its concepts has two
      * current prices: `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`, the details billing answers for it.
      */
-    public void requireOnePricePerConcept(Plan plan) {
-        if (plan != null) { requireNoTwin(plan.id()); }
+    public void requireOnePricePerConcept(Plan plan) { requireOnePricePerConcept(plan, today()); }
+    /**
+     * The same at {@code date}, the day a quote prices the plan (E161, E11-T13 round-2 review #2): D2's dry run and validation price
+     * each dog at its submission date ({@link #quote}), so a plan twinned on that day is refused even when it is not today.
+     */
+    public void requireOnePricePerConcept(Plan plan, LocalDate date) {
+        if (plan != null) { requireNoTwin(plan.id(), date); }
     }
     /** Ruling E138: with BILLING, whether {@code planId} has two current prices of one concept today. */
-    public boolean twinned(String planId) { return overlap(planId) != null; }
-    private com.agilityhub.core.clubs.catalogs.application.SignupPlanData.PriceOverlap overlap(String planId) {
+    public boolean twinned(String planId) { return overlap(planId, today()) != null; }
+    private com.agilityhub.core.clubs.catalogs.application.SignupPlanData.PriceOverlap overlap(String planId, LocalDate date) {
         if (planId == null || !config().modules().contains(com.agilityhub.core.platform.application.Module.BILLING)) { return null; }
-        return catalogs.at(today()).stream().filter(p -> p.id().equals(planId) && p.clubId().equals(TenantContext.require()))
+        return catalogs.at(date).stream().filter(p -> p.id().equals(planId) && p.clubId().equals(TenantContext.require()))
                 .map(com.agilityhub.core.clubs.catalogs.application.SignupPlanData::overlap).filter(java.util.Objects::nonNull).findFirst().orElse(null);
     }
-    private void requireNoTwin(String planId) {
-        var overlap = overlap(planId);
+    /** Ruling E138: `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` when {@code planId} is twinned today. */
+    public void requireNoTwin(String planId) { requireNoTwin(planId, today()); }
+    private void requireNoTwin(String planId, LocalDate date) {
+        var overlap = overlap(planId, date);
         if (overlap != null) {
             throw new ApiException(ErrorCode.PRICE_OVERLAP, Map.of("planId", planId, "concept", overlap.concept().name(),
                     "priceId", overlap.priceId(), "conflictingPriceId", overlap.conflictingPriceId()));

@@ -1,0 +1,128 @@
+06:06:13.843 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.ConsoleProductHostIT]: ConsoleProductHostIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+06:06:13.941 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ConsoleProductHostIT
+06:06:13.965 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.ConsoleProductHostIT]: ConsoleProductHostIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+06:06:13.966 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+06:06:13.966 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+06:06:13.968 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ConsoleProductHostIT
+06:06:13.991 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+06:06:13.991 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+06:06:13.995 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+06:06:14.070 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+06:06:14.217 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+06:06:14.218 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+06:06:14.227 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+06:06:14.545 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+06:06:14.567 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+06:06:15.154 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 0d6a22bc37f08fc5785c4d3e5d42c4b34c2e6d975cbb138570616fecb7c51ac9
+06:06:15.310 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.765349S
+06:06:15.313 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+06:06:15.313 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+06:06:15.313 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+06:06:15.314 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+06:06:15.348 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 94ff3a4ad867b3d21c9e8aae1289c82aee6ad56e9ec42312092e6ea11f1e4db4
+06:06:15.831 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.517312S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-22T06:06:16.442+02:00 INFO  [main] c.a.c.identity.api.ConsoleProductHostIT traceId= clubId= accountId= : Starting ConsoleProductHostIT using Java [redacted] with PID 89487 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-22T06:06:16.444+02:00 INFO  [main] c.a.c.identity.api.ConsoleProductHostIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-22T06:06:17.153+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-22T06:06:17.196+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 40 ms. Found 0 MongoDB repository interfaces.
+2026-10-22T06:06:17.542+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1e8c9083], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@64547a83, com.mongodb.Jep395RecordCodecProvider@2b3e2039, com.mongodb.KotlinCodecProvider@487f025, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58923], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7ef570be], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-22T06:06:17.549+02:00 INFO  [cluster-6ad98bb97d476f5bca6488b9-localhost:58923] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58923, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8282917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=94ff3a4ad867:27017, hosts=[94ff3a4ad867:27017], passives=[], arbiters=[], primary='94ff3a4ad867:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad98bb7a7b7b8206ea34c95, counter=6}, lastWriteDate=Thu Oct 22 06:06:16 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-22T06:06:18.479+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:18.496+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:18.516+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:19.064+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:19.076+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:19.088+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:19.138+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-22T06:06:21.707+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-22T06:06:21.707+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-22T06:06:21.711+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-22T06:06:21.765+02:00 INFO  [main] c.a.c.identity.api.ConsoleProductHostIT traceId= clubId= accountId= : Started ConsoleProductHostIT in 5.465 seconds (process running for 8.225)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 11, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 14.79 s <<< FAILURE! -- in com.agilityhub.core.identity.api.ConsoleProductHostIT
+[ERROR] com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_04_R_01_02_productHostRefusesAClubHostsRefreshTokenAsInvalidGrant -- Time elapsed: 0.403 s <<< FAILURE!
+java.lang.AssertionError: JSON path "$.code" expected:<VALIDATION_ERROR> but was:<REFRESH_EXPIRED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:172)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.lambda$invalidGrant$3(ConsoleProductHostIT.java:219)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_04_R_01_02_productHostRefusesAClubHostsRefreshTokenAsInvalidGrant(ConsoleProductHostIT.java:235)
+
+[ERROR] com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_13_R_01_02_productHostNeverRedeemsAClubBoundAuthorizationCode -- Time elapsed: 0.432 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<400> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.lambda$invalidGrant$3(ConsoleProductHostIT.java:218)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_13_R_01_02_productHostNeverRedeemsAClubBoundAuthorizationCode(ConsoleProductHostIT.java:250)
+
+[ERROR] com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_08_R_01_02_productHostAnswersAnIdMagicLinkAsAnUnknownHost -- Time elapsed: 0.250 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<404> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_08_R_01_02_productHostAnswersAnIdMagicLinkAsAnUnknownHost(ConsoleProductHostIT.java:275)
+
+[ERROR] com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_13_R_01_02_productHostAnswersAnIdAuthorizationCodeAsAnUnknownHost -- Time elapsed: 0.394 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<404> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_13_R_01_02_productHostAnswersAnIdAuthorizationCodeAsAnUnknownHost(ConsoleProductHostIT.java:293)
+
+[ERROR] com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_13_R_01_02_productHostNeverRenewsAClubBoundOidcRefreshToken -- Time elapsed: 0.412 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<400> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.lambda$invalidGrant$3(ConsoleProductHostIT.java:218)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_13_R_01_02_productHostNeverRenewsAClubBoundOidcRefreshToken(ConsoleProductHostIT.java:261)
+
+[ERROR] com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost -- Time elapsed: 0.404 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<404> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost(ConsoleProductHostIT.java:284)
+
+[ERROR] Failures: 
+[ERROR]   ConsoleProductHostIT.T_01_04_R_01_02_productHostRefusesAClubHostsRefreshTokenAsInvalidGrant:235->lambda$invalidGrant$3:219 JSON path "$.code" expected:<VALIDATION_ERROR> but was:<REFRESH_EXPIRED>
+[ERROR]   ConsoleProductHostIT.T_01_08_R_01_02_productHostAnswersAnIdMagicLinkAsAnUnknownHost:275 Status expected:<404> but was:<200>
+[ERROR]   ConsoleProductHostIT.T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost:284 Status expected:<404> but was:<200>
+[ERROR]   ConsoleProductHostIT.T_01_13_R_01_02_productHostAnswersAnIdAuthorizationCodeAsAnUnknownHost:293 Status expected:<404> but was:<200>
+[ERROR]   ConsoleProductHostIT.T_01_13_R_01_02_productHostNeverRedeemsAClubBoundAuthorizationCode:250->lambda$invalidGrant$3:218 Status expected:<400> but was:<200>
+[ERROR]   ConsoleProductHostIT.T_01_13_R_01_02_productHostNeverRenewsAClubBoundOidcRefreshToken:261->lambda$invalidGrant$3:218 Status expected:<400> but was:<200>
+[ERROR] Tests run: 11, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.

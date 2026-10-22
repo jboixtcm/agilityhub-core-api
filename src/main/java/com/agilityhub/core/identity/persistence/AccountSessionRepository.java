@@ -18,6 +18,10 @@ public class AccountSessionRepository extends GlobalRepository<RefreshToken> {
         return mongo.find(Query.query(RefreshTokenRepository.active(accountId, now).and("tokenFamilyVersion").is(version))
                 .with(Sort.by(Sort.Direction.ASC, "createdAt", "_id")), RefreshToken.class);
     }
+    /** S01 R-01-02 (E161): a client's refresh token in any club or none, to refuse a club-bound one on the console's product host. */
+    public java.util.Optional<RefreshToken> refresh(String tokenHash, String clientId) {
+        return java.util.Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("tokenHash").is(tokenHash).and("clientId").is(clientId)), RefreshToken.class));
+    }
     public java.util.Optional<RefreshToken> oidcRefresh(String tokenHash, String clientId) {
         return java.util.Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("tokenHash").is(tokenHash)
                 .and("clientId").is(clientId).and("oidc").is(true)), RefreshToken.class));

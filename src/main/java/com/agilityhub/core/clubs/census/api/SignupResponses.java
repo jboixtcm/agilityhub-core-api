@@ -154,8 +154,9 @@ public final class SignupResponses {
             LocalDate startDate, Money amountDue) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupProposals(@Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
-            @Schema(requiredMode = NOT_REQUIRED,format = "uuid") String planId,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String priceId,
+            // E161 (E11-W06's question 2): null when D2 has no plan to propose (R-04-19); the api omits the field then.
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid", types = {"string", "null"}) String planId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid", types = {"string", "null"}) String priceId,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String familyGroupId, List<LevelSummary> levels) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record MemberSignupView(Member member, List<SignupDogView> dogs, SignupSubmission signup,

@@ -661,11 +661,14 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
             assertThat(branding.path("locales")).containsExactly(mapper.valueToTree("ca"),mapper.valueToTree("es"),mapper.valueToTree("en"));
             assertThat(branding.path("modules")).isEmpty();
             assertThat(branding.path("signup").path("enabled").asBoolean()).isFalse();
-            // Ruling E157 (E11-T19 step 2): the product preset is the AgilityHub brand, the template club's theme.
-            assertThat(branding.path("theme").path("colors").path("background").asText()).isEqualTo("#1D1D1F");
+            // Rulings E157/E161 (E11-T19 step 2, round 2): the product preset is the web's light «AgilityHub» preset, the template's theme.
+            assertThat(mapper.convertValue(branding.path("theme").path("colors"), Map.class)).isEqualTo(Map.ofEntries(
+                    Map.entry("primary", "#1d1d1f"), Map.entry("onPrimary", "#ffffff"), Map.entry("background", "#ffffff"), Map.entry("surface", "#ffffff"),
+                    Map.entry("surfaceAlt", "#f1f1f2"), Map.entry("text", "#1d1d1f"), Map.entry("textMuted", "#656567"), Map.entry("border", "#d6d6d7"),
+                    Map.entry("success", "#4caf7d"), Map.entry("warning", "#e5b93c"), Map.entry("danger", "#e05b5b"), Map.entry("info", "#85b8e8")));
             assertThat(branding.path("theme").path("fontFamily").asText()).isEqualTo("Montserrat");
-            assertThat(branding.path("theme").path("mode").asText()).isEqualTo("dark");
-            assertThat(branding.path("theme").path("colors").path("primary").asText()).isEqualTo("#2563EB");
+            assertThat(branding.path("theme").path("radius").asText()).isEqualTo("8px");
+            assertThat(branding.path("theme").path("mode").asText()).isEqualTo("light");
             assertThat(branding.path("legal").path("privacyPolicyUrl").asText()).isEqualTo("https://id.agilitydoghub.com/privacy");
         }
         var unknown=mvc.perform(get("/api/v1/branding").header("Host","unknown.example.test")).andReturn().getResponse();

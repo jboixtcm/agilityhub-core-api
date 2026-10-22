@@ -1,0 +1,45 @@
+diff --git a/docs/openapi/openapi.json b/docs/openapi/openapi.json
+index ec2d6864..93c1b739 100644
+--- a/docs/openapi/openapi.json
++++ b/docs/openapi/openapi.json
+@@ -22352,11 +22352,11 @@
+           },
+           "planId" : {
+             "format" : "uuid",
+-            "type" : "string"
++            "type" : [ "string", "null" ]
+           },
+           "priceId" : {
+             "format" : "uuid",
+-            "type" : "string"
++            "type" : [ "string", "null" ]
+           }
+         },
+         "required" : [ "levels" ],
+@@ -93920,7 +93920,7 @@
+     },
+     "/oauth2/token" : {
+       "post" : {
+-        "description" : "ANON with client authentication. Club context comes from the host, never request data. On the console's product host (a platform host other than the ID's, which resolves no club) clubs-admin's password, magic-link, handoff and refresh
++        "description" : "ANON with client authentication. Club context comes from the host, never request data. On the console's product host (a platform host other than the ID's, which resolves no club) clubs-admin's password, magic-link, handoff and refresh
+         "operationId" : "token",
+         "requestBody" : {
+           "content" : {
+@@ -93960,7 +93960,7 @@
+                 }
+               }
+             },
+-            "description" : "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR"
++            "description" : "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR; VALIDATION_ERROR with details.oauth2Error invalid_grant for an invalid authorization code or, on the console's 
+           },
+           "401" : {
+             "content" : {
+@@ -93990,7 +93990,7 @@
+                 }
+               }
+             },
+-            "description" : "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin"
++            "description" : "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin; there, any other client's grant"
+           },
+           "409" : {
+             "content" : {

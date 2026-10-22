@@ -10,22 +10,22 @@
     "logoDarkUrl": null,
     "markUrl": null,
     "colors": {
-      "primary": "#2563EB",
-      "onPrimary": "#FFFFFF",
-      "background": "#1D1D1F",
-      "surface": "#2A2A2C",
-      "surfaceAlt": "#343436",
-      "text": "#F5F5F7",
-      "textMuted": "#A1A1A6",
-      "border": "#3F3F42",
-      "success": "#4ADE80",
-      "warning": "#FBBF24",
-      "danger": "#F87171",
-      "info": "#38BDF8"
+      "primary": "#1d1d1f",
+      "onPrimary": "#ffffff",
+      "background": "#ffffff",
+      "surface": "#ffffff",
+      "surfaceAlt": "#f1f1f2",
+      "text": "#1d1d1f",
+      "textMuted": "#656567",
+      "border": "#d6d6d7",
+      "success": "#4caf7d",
+      "warning": "#e5b93c",
+      "danger": "#e05b5b",
+      "info": "#85b8e8"
     },
     "fontFamily": "Montserrat",
     "radius": "8px",
     "ringPalette": [],
-    "mode": "dark"
+    "mode": "light"
   }
 }

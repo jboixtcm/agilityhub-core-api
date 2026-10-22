@@ -1,0 +1,12 @@
+identity.api.ConsoleProductHostIT tests=11 failures=6 errors=0 skipped=0
+    passed T_01_07_R_01_17_consoleSessionReadsMeAndThePlatformButNoClubRoute
+    passed T_01_12_R_01_13_productHostHandoffOpensAPlatformSessionOnlyForPlatformAdmins
+    FAILED T_01_04_R_01_02_productHostRefusesAClubHostsRefreshTokenAsInvalidGrant: JSON path "$.code" expected:<VALIDATION_ERROR> but was:<REFRESH_EXPIRED>
+    passed T_01_07_R_01_02_productHostIssuesConsoleSessionsWithoutClubOnlyToPlatformAdmins
+    FAILED T_01_13_R_01_02_productHostNeverRedeemsAClubBoundAuthorizationCode: Status expected:<400> but was:<200>
+    FAILED T_01_08_R_01_02_productHostAnswersAnIdMagicLinkAsAnUnknownHost: Status expected:<404> but was:<200>
+    FAILED T_01_13_R_01_02_productHostAnswersAnIdAuthorizationCodeAsAnUnknownHost: Status expected:<404> but was:<200>
+    passed T_01_08_R_01_04_productHostMagicLinkReachesOnlyPlatformAdminsAndOpensThere
+    FAILED T_01_13_R_01_02_productHostNeverRenewsAClubBoundOidcRefreshToken: Status expected:<400> but was:<200>
+    FAILED T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost: Status expected:<404> but was:<200>
+    passed T_01_04_R_01_06_productHostRefreshRotatesKeepsTheGraceAndRevokesAReusedFamily

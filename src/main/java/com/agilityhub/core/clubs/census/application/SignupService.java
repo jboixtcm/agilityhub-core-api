@@ -634,6 +634,9 @@ public class SignupService implements SignupPaymentAccess {
         // R-04-09 (E5-T22, E5-T24): a member without a plan (B34), or whose plan is gone, chooses one of the offered plans; only
         // an empty offer leaves it null.
         if(planId==null&&!policy.plans().isEmpty()) throw invalid("planIdRequested","REQUIRED");
+        // Ruling E138 (E161, E11-T13 round-2 review #1): with nothing to choose from, a member whose own plan the club can still
+        // assign but has a price twin is not given a dog on no plan and a zero quote: 409 PRICE_OVERLAP, before anything is written.
+        if(planId==null&&member.planId!=null&&policy.assignablePlans().stream().anyMatch(plan -> plan.id().equals(member.planId))) policy.requireNoTwin(member.planId);
         // M8: the member's own plan is assignable even when it is hidden from the public offer (the family fare); another plan must be offered.
         if(Objects.equals(planId,member.planId)) policy.requireAssignable(planId);else policy.require(planId);
         // Ruling E138 (E11-T13 round 2): no added dog is quoted from one of two twin prices (its plan, or the family fare it moves
@@ -777,13 +780,17 @@ public class SignupService implements SignupPaymentAccess {
         String id=string(request.getOrDefault("planId",submission(member,dogs).getOrDefault("planIdRequested",member.planId)));
         // M8: the admin assigns any active plan of an enabled module, hidden from the public offer or not.
         var plan=policy.requireAssignable(id);
-        if(refuseTwins) policy.requireOnePricePerConcept(plan);
+        // E161 (E11-T13 round-2 review #2): today, and each dog's submission date, the day validationQuote prices it at.
+        var dates=new LinkedHashSet<LocalDate>(List.of(policy.today()));for(var dog:dogs) dates.add(submittedOn(member,dog));
+        if(refuseTwins) for(var date:dates) policy.requireOnePricePerConcept(plan,date);
         if(request.get("planId")==null&&access.enabled(Module.FAMILY_GROUP)) {
             int count=familyDogs(member,request,dogs);
             if(count>=2&&plan!=null&&"MONTHLY_FEE".equals(plan.billingMode())) plan=policy.proposedFamilyFare(count).orElse(plan);
         }
         if(refuseTwins&&plan!=null) {
-            if("ACTIVE".equals(member.status)) policy.requireAddDogQuotable(member.planId,plan.id());else policy.requireOnePricePerConcept(plan);
+            // The add-dog fee (the family fare's delta) is priced today; the plan's own lines at each submission date.
+            if("ACTIVE".equals(member.status)) policy.requireAddDogQuotable(member.planId,plan.id());
+            for(var date:dates) policy.requireOnePricePerConcept(plan,date);
         }
         // The accepted price is the one the plan bills (its billing mode): Teràpia's maintenance price, the standard one otherwise.
         if(request.get("priceId")!=null&&(plan==null||plan.billedPrice()==null||!request.get("priceId").equals(plan.billedPrice().id()))) throw new ApiException(ErrorCode.PLAN_NOT_AVAILABLE);
@@ -825,11 +832,16 @@ public class SignupService implements SignupPaymentAccess {
         var lines=new ArrayList<SignupPolicy.Line>();Money total=new Money(0,currency());SignupPolicy.Period first=null,additional=null;
         for(var dog:dogs) {
             var submittedSignup=dog.signup==null?signup:dog.signup;
-            LocalDate submitted=instant(submittedSignup.getOrDefault("submittedAt",clock.instant())).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate();
+            LocalDate submitted=submittedOn(member,dog);
             var quote=policy.quote(plan==null?null:plan.id(),dog.id,add,member.planId,string(submittedSignup.getOrDefault(add?"additionalDogOption":"firstMonthOption","TODAY")),submitted);
             lines.addAll(quote.lines());total=total.plus(quote.totalDue());first=quote.firstMonth();additional=quote.additionalDog();
         }
         return new SignupPolicy.Quote(lines,total,first,additional);
+    }
+    /** The club-local day {@code dog}'s submission was made (its add-dog block, else the member's signup), the day D2 prices it at. */
+    private LocalDate submittedOn(Member member,Dog dog) {
+        var submittedSignup=dog.signup==null?map(member.signup):dog.signup;
+        return instant(submittedSignup.getOrDefault("submittedAt",clock.instant())).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate();
     }
     private Map<String,Object> reviewUpfront(Member member,List<Dog> dogs) {
         var scope=scope(member,dogs);var lines=payments.lines(member.id,scope);

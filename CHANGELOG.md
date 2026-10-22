@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T19 round 2 (ruling E161): every grant on the console's product host, the brand's values, and E11-T13 round 2's leftovers. Contract: `/oauth2/token` descriptions, `SignupProposals.planId`/`priceId` nullable (`docs/openapi/CHANGELOG.md`).
+  - S01 R-01-02: the product host renews or redeems no club-bound refresh token or authorization code (`invalid_grant`; the OIDC refresh restored its club there), and every grant of another client there is `404 UNKNOWN_HOST` (`TenantFilter`, before the optional-host grants).
+  - The product `/branding` and the template club's theme are the web's light «AgilityHub» preset: `primary #1d1d1f`, white background, Montserrat, 8 px, `mode: light`.
+  - S04: an add-dog without a plan, an empty offer and a twinned own plan → `409 PRICE_OVERLAP`; D2 checks twins at today and at each dog's submission date.
+
 - E11-T19: the console signs in on its product host (ruling E157), the product branding preset is the AgilityHub brand, and the api minors of the 21-10 verifications. Contract: descriptions of `/oauth2/token` and `/auth/magic-link`, and `PlatformDomain.checkedAt`/`failedChecks` (`docs/openapi/CHANGELOG.md`).
   - S01 R-01-02 (E157): on a product host other than the ID's, `clubs-admin`'s password, magic-link, handoff and refresh grants issue a token without club context to an `AGILITYHUB_ADMIN` (refresh cookie on that host, rotation and grace as on a club host) and `403 PLATFORM_ONLY` to anyone else; the magic link points to `https://{product host}/activacio`. `id-web` and `clubs-app` keep `404 UNKNOWN_HOST` there; club hosts are unchanged. `PLATFORM_ONLY` joins the S01 row of `CATALEG_ERRORS.md`; S01 and S17 §2 (api copies) cite the exception.
   - The product `/branding` and the template club's theme are one theme: dark `#1D1D1F` base, Montserrat, `mode: dark` (`TemplateClubSeedTest` keeps them equal). The accent and radius stay `#2563EB`/`8px` until the web's `--ah-product-*` values are confirmed (report, question 1).

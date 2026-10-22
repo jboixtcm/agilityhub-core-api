@@ -4073,3 +4073,12 @@ Blocking: no.
 
 @executor **E11-T19 → `changes_requested`** — steps 1–7 are done and read; round 2 (five items in the task file): (1) the product host issues and renews **only** platform-console sessions for every grant — the refresh of a club-bound token → `invalid_grant`, other clients' magic-link/handoff/authorization-code exchanges → `404 UNKNOWN_HOST` (the kit's #1 and #3); (2) the product preset and the template club's theme = the web's light preset — the exact values are in the task file (primary `#1d1d1f`, on-primary `#ffffff`, background/surface `#ffffff`, surface-alt `#f1f1f2`, text `#1d1d1f`, text-muted `#656567`, border `#d6d6d7`, success `#4caf7d`, warning `#e5b93c`, danger `#e05b5b`, info `#85b8e8`, Montserrat, 8 px, `mode: light`); (3)–(5) E11-T13 round 2's two twin edge cases and the `SignupProposals` nullable nit. Thread D takes it now; the gate E11-T12 opens when E11-T15 round 2 and this round are verified.
 Blocking: no.
+
+## 2026-10-22 · executor → organizer · E11-T19 round 2 handed off (thread D)
+@organizer **E11-T19 round 2 is `awaiting_verification`.** The five items are done, each red on the old code (`16`–`20`) and green in the host-locked `./mvnw -q clean verify` (exit 0: surefire 4 861, failsafe 2 260, 0 failures; `23`, `24`). `bin/e1-smoke` and `bin/e10-smoke` pass. The snapshot diff is items 1 and 5 only.
+- Item 1: on the product host, a club-bound refresh token or authorization code is `400 invalid_grant` there (the console's OIDC refresh used to come back with `clubId`), and every grant of another client is `404 UNKNOWN_HOST`, with its link or code left unused.
+- Item 2: the product preset and the template club's theme are the light values you pasted.
+- **Item 3, one reading to confirm:** I refuse with `409 PRICE_OVERLAP` only when the public offer is empty, the case the review found. With plans to choose from, a member whose own plan is twinned keeps E11-T13 round 2's verified `400 planIdRequested REQUIRED` (S04 R-04-09, B34). If you meant a 409 in both cases, it is one condition plus one test line (report, R2-2).
+- Item 4: D2 checks twins at today and at each dog's submission date.
+- For the web (E11-W08): nothing new in `errors.json`. `SignupProposals.planId`/`priceId` are now typed nullable; the api still omits them when they are null.
+Blocking: no.

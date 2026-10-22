@@ -169,11 +169,128 @@ class ConsoleProductHostIT extends IdentityIntegrationSupport {
         assertThat(mongo.find(Query.query(Criteria.where("codeHash").is(com.agilityhub.core.identity.application.TokenService.digest(other))), HandoffCode.class))
                 .singleElement().satisfies(stored -> assertThat(stored.usedAt()).isNull());
     }
-    String handoff() throws Exception {
+    String handoff() throws Exception { return handoff("clubs-admin"); }
+    String handoff(String target) throws Exception {
         var session = login();
         var created = mapper.readTree(mvc.perform(post("/api/v1/auth/handoff").header("Host", HOST).header("Authorization", bearer(session))
-                .contentType("application/json").content(mapper.writeValueAsString(Map.of("targetClientId", "clubs-admin"))))
+                .contentType("application/json").content(mapper.writeValueAsString(Map.of("targetClientId", target))))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
         return created.path("code").asText();
+    }
+
+    // Round 2 (E161): the product host issues and renews only console sessions without a club, for every grant.
+    static final String VERIFIER = "a".repeat(64);
+    static final String CONSOLE_CALLBACK = "https://admin.example.test/oidc/callback";
+    @org.springframework.test.context.DynamicPropertySource static void consoleCallback(org.springframework.test.context.DynamicPropertyRegistry registry) {
+        // The console's OIDC callback on the club's own console domain, so an authorization code carries the club (OidcService).
+        registry.add("OIDC_CLUBS_ADMIN_REDIRECT_URI", () -> CONSOLE_CALLBACK);
+    }
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository registered;
+    ResultActions grantAs(String client, String grant, String value, String host) throws Exception {
+        return mvc.perform(post("/oauth2/token").header("Host", host).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("grant_type", grant).param("client_id", client).param("token", value));
+    }
+    /** A real authorization code of `client` (S01 R-01-13's OIDC flow on the ID host, as `OidcIT` runs it). */
+    String authorizationCode(String client) throws Exception {
+        String redirect = registered.findByClientId(client).getRedirectUris().iterator().next();
+        var started = mvc.perform(get("/oauth2/authorize").header("Host", ID_HOST).secure(true).param("response_type", "code")
+                .param("client_id", client).param("redirect_uri", redirect).param("scope", "openid offline_access").param("state", "s")
+                .param("code_challenge", com.agilityhub.core.identity.application.TokenService.digest(VERIFIER)).param("code_challenge_method", "S256"))
+                .andExpect(status().isFound()).andReturn().getResponse();
+        String flow = org.springframework.web.util.UriComponentsBuilder.fromUriString(started.getRedirectedUrl()).build().getQueryParams().getFirst("flow");
+        String access = mapper.readTree(consoleLogin(ID_HOST, "id-web", "admin@example.test").andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).path("access_token").asText();
+        var completed = mvc.perform(post("/oauth2/session").header("Host", ID_HOST).header("Origin", "https://" + ID_HOST)
+                .header("Authorization", "Bearer " + access).cookie(started.getCookie(com.agilityhub.core.identity.application.OidcService.COOKIE))
+                .contentType("application/json").content(mapper.writeValueAsString(Map.of("flow", flow))))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        String url = mapper.readTree(completed.getContentAsString()).path("redirectUrl").asText();
+        return org.springframework.web.util.UriComponentsBuilder.fromUriString(url).build().getQueryParams().getFirst("code");
+    }
+    ResultActions exchange(String client, String code, String host) throws Exception {
+        return mvc.perform(post("/oauth2/token").header("Host", host).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("grant_type", "authorization_code").param("client_id", client).param("code", code)
+                .param("redirect_uri", registered.findByClientId(client).getRedirectUris().iterator().next()).param("code_verifier", VERIFIER));
+    }
+    static org.springframework.test.web.servlet.ResultMatcher invalidGrant() {
+        return result -> {
+            status().isBadRequest().match(result);
+            jsonPath("$.code").value("VALIDATION_ERROR").match(result);
+            jsonPath("$.details.oauth2Error").value("invalid_grant").match(result);
+        };
+    }
+
+    /** A club administrator who holds the platform role or not: on the product host neither gets a club context (the kit's #1). */
+    void platformRole(boolean held) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("account-a")),
+                new Update().set("platformRoles", held ? java.util.List.of("AGILITYHUB_ADMIN") : java.util.List.of()), Account.class);
+    }
+
+    @Test void T_01_04_R_01_02_productHostRefusesAClubHostsRefreshTokenAsInvalidGrant() throws Exception {
+        for (boolean held : new boolean[]{true, false}) {
+            platformRole(held);
+            // The club host's own console session (R-01-06's cookie, bound to club-a): invalid_grant there, unrotated.
+            var clubSession = readTokens(consoleLogin(HOST, "clubs-admin", "admin@example.test").andExpect(status().isOk()).andReturn().getResponse());
+            refresh(refreshValue(clubSession), PRODUCT, "clubs-admin").andExpect(invalidGrant()).andExpect(cookie().doesNotExist(RefreshCookies.NAME));
+            assertThat(claims(readTokens(refresh(refreshValue(clubSession), HOST, "clubs-admin").andExpect(status().isOk()).andReturn().getResponse()))
+                    .getStringClaim("clubId")).isEqualTo("club-a");
+        }
+        // The platform admin's own console session still renews there, without a club.
+        var console = platformSession();
+        assertThat(claims(readTokens(refresh(refreshValue(console), PRODUCT, "clubs-admin").andExpect(status().isOk()).andReturn().getResponse()))
+                .getClaims()).doesNotContainKey("clubId");
+    }
+
+    @Test void T_01_13_R_01_02_productHostNeverRedeemsAClubBoundAuthorizationCode() throws Exception {
+        for (boolean held : new boolean[]{true, false}) {
+            platformRole(held);
+            // A console OIDC code, bound to club-a by its callback: invalid_grant there, and the code left unused.
+            String code = authorizationCode("clubs-admin");
+            exchange("clubs-admin", code, PRODUCT).andExpect(invalidGrant()).andExpect(cookie().doesNotExist(RefreshCookies.NAME));
+            var session = readTokens(exchange("clubs-admin", code, ID_HOST).andExpect(status().isOk()).andReturn().getResponse());
+            assertThat(claims(session).getStringClaim("clubId")).isEqualTo("club-a");
+        }
+    }
+
+    @Test void T_01_13_R_01_02_productHostNeverRenewsAClubBoundOidcRefreshToken() throws Exception {
+        for (boolean held : new boolean[]{true, false}) {
+            platformRole(held);
+            // The console's OIDC refresh token, bound to club-a: the old code restored its club on the product host (200, clubId).
+            var session = readTokens(exchange("clubs-admin", authorizationCode("clubs-admin"), ID_HOST).andExpect(status().isOk()).andReturn().getResponse());
+            refresh(refreshValue(session), PRODUCT, "clubs-admin").andExpect(invalidGrant()).andExpect(cookie().doesNotExist(RefreshCookies.NAME));
+            // Left unrotated: it still renews where it was issued, with its club.
+            assertThat(claims(readTokens(refresh(refreshValue(session), ID_HOST, "clubs-admin").andExpect(status().isOk()).andReturn().getResponse()))
+                    .getStringClaim("clubId")).isEqualTo("club-a");
+        }
+    }
+
+    @Test void T_01_08_R_01_02_productHostAnswersAnIdMagicLinkAsAnUnknownHost() throws Exception {
+        var mailbox = (FakeEmailSender) emailSender;
+        // An ID magic link, issued on the ID host: 404 on the product host, the link left unused; it still opens on the ID host.
+        requestMagic("admin@example.test", ID_HOST, "id-web");
+        var matcher = Pattern.compile("[?&]t=([A-Za-z0-9_-]{43})").matcher(mailbox.lastTo("admin@example.test").text());
+        assertThat(matcher.find()).isTrue();
+        String link = matcher.group(1);
+        grantAs("id-web", MagicLinkService.GRANT, link, PRODUCT).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
+        assertThat(mongo.find(Query.query(Criteria.where("tokenHash").is(com.agilityhub.core.identity.application.TokenService.digest(link))), MagicLinkToken.class))
+                .singleElement().satisfies(stored -> assertThat(stored.usedAt()).isNull());
+        grantAs("id-web", MagicLinkService.GRANT, link, ID_HOST).andExpect(status().isOk());
+    }
+
+    @Test void T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost() throws Exception {
+        // The club app's handoff code: 404 on the product host (the old code issued a club token there), unused; it opens on the club host.
+        String code = handoff("clubs-app");
+        grantAs("clubs-app", HandoffService.GRANT, code, PRODUCT).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
+        assertThat(mongo.find(Query.query(Criteria.where("codeHash").is(com.agilityhub.core.identity.application.TokenService.digest(code))), HandoffCode.class))
+                .singleElement().satisfies(stored -> assertThat(stored.usedAt()).isNull());
+        grantAs("clubs-app", HandoffService.GRANT, code, HOST).andExpect(status().isOk());
+    }
+
+    @Test void T_01_13_R_01_02_productHostAnswersAnIdAuthorizationCodeAsAnUnknownHost() throws Exception {
+        // The ID's authorization code: 404 on the product host; it still exchanges on the ID host.
+        String authorization = authorizationCode("id-web");
+        exchange("id-web", authorization, PRODUCT).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
+        exchange("id-web", authorization, ID_HOST).andExpect(status().isOk());
     }
 }

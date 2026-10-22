@@ -1,0 +1,34 @@
+== R_04_09_E138_aTwinnedOwnPlanWithAnEmptyOfferRefusesTheAddDogWithoutAPlan
+[HTTP code= details=] 
+expected: 409
+ but was: 201
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.result(SignupPlansFollowUpIT.java:68)
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_09_E138_aTwinnedOwnPlanWithAnEmptyOfferRefusesTheAddDogWithoutAPlan(SignupPlansFollowUpIT.java:438)
+== R_04_13_E138_d2RefusesAPlanTwinnedOnTheSubmissionDateThoughNotToday
+[HTTP code= details=] 
+expected: 409
+ but was: 200
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.result(SignupPlansFollowUpIT.java:68)
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_13_E138_d2RefusesAPlanTwinnedOnTheSubmissionDateThoughNotToday(SignupPlansFollowUpIT.java:463)
+== T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors
+[planId] 
+expected: "["string","null"]"
+ but was: ""string""
+	at com.agilityhub.core.configuration.E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors(E3ContractIT.java:186)
+== T_01_04_R_01_02_productHostNeverRenewsAClubBoundRefreshTokenNorRedeemsAClubBoundCode
+JSON path "$.code" expected:<VALIDATION_ERROR> but was:<REFRESH_EXPIRED>
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.lambda$invalidGrant$3(ConsoleProductHostIT.java:219)
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_04_R_01_02_productHostNeverRenewsAClubBoundRefreshTokenNorRedeemsAClubBoundCode(ConsoleProductHostIT.java:231)
+== T_01_02_R_01_02_productHostAnswersEveryGrantOfAnotherClientAsAnUnknownHost
+Status expected:<404> but was:<200>
+	at com.agilityhub.core.identity.api.ConsoleProductHostIT.T_01_02_R_01_02_productHostAnswersEveryGrantOfAnotherClientAsAnUnknownHost(ConsoleProductHostIT.java:255)
+== T_17_02_R_17_02_productHostAnswersTheProductBranding
+
+expected: {"background"="#ffffff", "border"="#d6d6d7", "danger"="#e05b5b", "info"="#85b8e8", "onPrimary"="#ffffff", "primary"="#1d1d1f", "success"="#4caf7d", "surface"="#ffffff", "surfaceAlt"="#f1f1f2", "text"="#1d1d1f", "textMuted"="#656567", "warning"="#e5b93c"}
+ but was: {"background"="#1D1D1F", "border"="#3F3F42", "danger"="#F87171", "info"="#38BDF8", "onPrimary"="#FFFFFF", "primary"="#2563EB
+	at com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_02_R_17_02_productHostAnswersTheProductBranding(PlatformConsoleIT.java:665)
+== R_17_06_E157_theTemplateThemeIsTheProductBrandingThemeAndTheBrand
+
+expected: {"background"="#ffffff", "border"="#d6d6d7", "danger"="#e05b5b", "info"="#85b8e8", "onPrimary"="#ffffff", "primary"="#1d1d1f", "success"="#4caf7d", "surface"="#ffffff", "surfaceAlt"="#f1f1f2", "text"="#1d1d1f", "textMuted"="#656567", "warning"="#e5b93c"}
+ but was: {"background"="#1D1D1F", "border"="#3F3F42", "danger"="#F87171", "info"="#38BDF8", "onPrimary"="#FFFFFF", "primary"="#2563EB
+	at com.agilityhub.core.platform.application.definition.TemplateClubSeedTest.R_17_06_E157_theTemplateThemeIsTheProductBrandingThemeAndTheBrand(TemplateClubSeedTest.java:64)

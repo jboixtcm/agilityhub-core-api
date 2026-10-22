@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -49,15 +50,21 @@ class TemplateClubSeedTest {
     }
 
     /**
-     * R-17-06 and ruling E157 (E11-T19 step 2): the template club's theme is the AgilityHub brand — dark `#1D1D1F` base, Montserrat —
-     * and the very theme of the product `/branding`, so the console's preset, the template and R-17-06's comparison never drift apart.
+     * R-17-06 and rulings E157/E161 (E11-T19 step 2, round 2): the template club's theme is the AgilityHub brand — the web's light
+     * «AgilityHub» preset (`packages/ui/src/tokens.css`, pasted by the organizer), Montserrat, 8 px — and the very theme of the product
+     * `/branding`, so the console's preset, the template and R-17-06's comparison never drift apart.
      */
+    static final Map<String, String> BRAND_COLORS = Map.ofEntries(Map.entry("primary", "#1d1d1f"), Map.entry("onPrimary", "#ffffff"),
+            Map.entry("background", "#ffffff"), Map.entry("surface", "#ffffff"), Map.entry("surfaceAlt", "#f1f1f2"), Map.entry("text", "#1d1d1f"),
+            Map.entry("textMuted", "#656567"), Map.entry("border", "#d6d6d7"), Map.entry("success", "#4caf7d"), Map.entry("warning", "#e5b93c"),
+            Map.entry("danger", "#e05b5b"), Map.entry("info", "#85b8e8"));
     @Test void R_17_06_E157_theTemplateThemeIsTheProductBrandingThemeAndTheBrand() throws Exception {
         var mapper = new ObjectMapper();
         var theme = seed().path("theme");
-        assertThat(theme.path("colors").path("background").asText()).isEqualTo("#1D1D1F");
+        assertThat(mapper.convertValue(theme.path("colors"), Map.class)).isEqualTo(BRAND_COLORS);
         assertThat(theme.path("fontFamily").asText()).isEqualTo("Montserrat");
-        assertThat(theme.path("mode").asText()).isEqualTo("dark");
+        assertThat(theme.path("radius").asText()).isEqualTo("8px");
+        assertThat(theme.path("mode").asText()).isEqualTo("light");
         com.agilityhub.core.platform.domain.ConsoleThemeRules.validate(mapper.treeToValue(theme, com.agilityhub.core.platform.domain.Theme.class));
         var product = mapper.readTree(Path.of("src/main/resources/platform/product-branding.json").toFile()).path("theme");
         for (String field : List.of("colors", "fontFamily", "radius", "ringPalette", "mode")) {

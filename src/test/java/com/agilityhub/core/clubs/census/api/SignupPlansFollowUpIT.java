@@ -425,6 +425,46 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
     }
 
     /**
+     * R-04-09, ruling E138 (E161, E11-T13 round-2 review #1): a member whose own plan is twinned, in a club whose public offer is
+     * empty (ABONAT, its only active plan, leaves the offer with its twin): an add-dog without a plan has nothing to choose from,
+     * and is not written with a zero quote on no plan: 409 PRICE_OVERLAP with billing's details, no dog, no upfront row, no event.
+     */
+    @Test void R_04_09_E138_aTwinnedOwnPlanWithAnEmptyOfferRefusesTheAddDogWithoutAPlan() throws Exception {
+        String id=activeMember(planId("ABONAT"));
+        mongo.getCollection("plans").updateMany(new Document("clubId",club).append("code",new Document("$ne","ABONAT")),new Document("$set",new Document("active",false)));
+        String price=priceOf("ABONAT"),twin=twin("ABONAT");
+        assertThat(asMember(id).path("plans").isEmpty()).as("nothing to choose from").isTrue();
+        var nothing=written(id);
+        priceOverlap(result(asMember(postJson("/me/dogs/signup",addDog("941000005960001")).header("Idempotency-Key",UUID.randomUUID()),id),409),"ABONAT",price,twin);
+        assertThat(written(id)).as("no dog, no upfront payment, no SignupSubmitted").isEqualTo(nothing);
+        // Once the twin is resolved, the same add-dog goes on the member's own plan.
+        mongo.getCollection("prices").deleteOne(new Document("_id",twin).append("clubId",club));
+        result(asMember(postJson("/me/dogs/signup",addDog("941000005960001")).header("Idempotency-Key",UUID.randomUUID()),id),201);
+    }
+
+    /**
+     * R-04-13, ruling E138 (E161, E11-T13 round-2 review #2): D2's dry run and validation price each dog at its submission date
+     * (`validationQuote`), so the twin check runs at that date too: two MONTHLY_FEE prices of ABONAT current on the submission day,
+     * one ended before today, answer 409 PRICE_OVERLAP although ABONAT has a single price today (it is back in the public offer).
+     */
+    @Test void R_04_13_E138_d2RefusesAPlanTwinnedOnTheSubmissionDateThoughNotToday() throws Exception {
+        String id=submitted(request(planId("ABONAT")));
+        var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);
+        var body=validation(review);body.put("nextInvoiceDate",review.at("/proposals/nextInvoiceDate").asText());
+        String price=priceOf("ABONAT");
+        // A second MONTHLY_FEE price from 2026-08-01 to 2026-08-19 (validTo is inclusive): both are current on the submission day
+        // (2026-08-10), only ABONAT's own one today (2026-08-20). Its own start, so the price_start index takes it.
+        var ended=new Document(mongo.getCollection("prices").find(new Document("_id",price).append("clubId",club)).first());
+        ended.put("_id","e161-ended-twin");ended.put("validFrom","2026-08-01");ended.put("validTo","2026-08-19");
+        ended.put("amount",new Document("amountMinor",ended.get("amount",Document.class).get("amountMinor",Number.class).longValue()+500).append("currency","EUR"));
+        mongo.getCollection("prices").insertOne(ended);
+        clock.setInstant(Instant.parse("2026-08-20T08:00:00Z"));
+        assertThat(ids(anonymous("ca").path("plans"))).as("a single price today").contains(planId("ABONAT"));
+        for(String dryRun:List.of("true","false")) priceOverlap(result(admin(postJson("/members/"+id+"/validation",body).param("dryRun",dryRun)),409),"ABONAT",price,"e161-ended-twin");
+        assertThat(member(id).getString("status")).isEqualTo("PENDING");assertThat(member(id).getString("priceId")).isNull();
+    }
+
+    /**
      * R-04-13, T-04-16, INC-39 (E11-T10): the family-fare proposal counts the dogs of the group the validation leaves the member in,
      * every member's. An applicant without a claim whom D2 puts in a group (`familyGroupId`) with two dogs gets the largest
      * family fare (no plan includes three); a claim on the holder of that group counts three and, once a fare includes three,

@@ -181,6 +181,11 @@ class E3ContractIT extends AbstractIntegrationTest {
         // E3-T12 round 2 (R-04-15): always present; null only for an older snapshot whose frozen amount cannot tell it.
         assertThat(schema.at("/SignupFirstMonth/properties/portion/enum").toString()).isEqualTo("[\"FULL\",\"HALF\",null]");
         assertThat(schema.at("/SignupFirstMonth/properties/portion/type").toString()).isEqualTo("[\"string\",\"null\"]");
+        // E161 (E11-T19 round 2, E11-W06's question 2): D2 proposes no plan (R-04-19): planId and priceId are optional and nullable.
+        for (String field : List.of("planId", "priceId")) {
+            assertThat(schema.at("/SignupProposals/properties/" + field + "/type").toString()).as(field).isEqualTo("[\"string\",\"null\"]");
+            assertThat(strings(schema.at("/SignupProposals/required"))).as(field).doesNotContain(field);
+        }
         properties(schema, "ValidationResult", "memberId,number,accountId,dogIds,warnings,paidExceedsQuote");
         // E3-T08: the per-plan quote (M5), the D2 plan selector and age warning (M8, M11), the dog version (M12) and the signup flags.
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("planQuotes")).isTrue();
