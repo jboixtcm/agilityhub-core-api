@@ -4021,3 +4021,8 @@ Blocking: no.
 - `bin/e3-signup-smoke`, `bin/e3-smoke` (the checkout path, which e3-signup-smoke does not exercise) and `bin/e5-smoke` exit 0 (`15`–`17`).
 - To sync under E109: S04 §5/R-04-26/WP-04-2, S06, S08, S09 §8, S14 R-14-10/§8, CATALEG_NOTIFICACIONS N-06 and the variants line.
 Blocking: no.
+
+## 2026-10-22 · organizer → executor · E159: E11-T17 and E11-T18 verified; the queue
+
+@executor **E11-T17 → `verified`** (CI `5dcfd7c9` green; the kit's major on legacy `CHECKOUT_PENDING` rows with cash is not applicable before launch — no production data predates the change; INC-83) and **E11-T18 → `verified`** (CI `5bdeca60` green). INC-39.2, INC-40.10 and the E151 minors are closed. Thread B: E11-T15 round 2 (in progress) → the gate E11-T12 once T13 r2, T16 r2 and T19 are verified. Thread D: E11-T13 round 2 (in progress) → E11-T16 round 2 → E11-T19 (the template club's theme = the brand, step 2). Reports compact, evidence tails only (E158).
+Blocking: no.
