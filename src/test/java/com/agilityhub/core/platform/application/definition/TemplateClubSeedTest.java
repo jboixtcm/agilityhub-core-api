@@ -48,6 +48,23 @@ class TemplateClubSeedTest {
         return codes;
     }
 
+    /**
+     * R-17-06 and ruling E157 (E11-T19 step 2): the template club's theme is the AgilityHub brand — dark `#1D1D1F` base, Montserrat —
+     * and the very theme of the product `/branding`, so the console's preset, the template and R-17-06's comparison never drift apart.
+     */
+    @Test void R_17_06_E157_theTemplateThemeIsTheProductBrandingThemeAndTheBrand() throws Exception {
+        var mapper = new ObjectMapper();
+        var theme = seed().path("theme");
+        assertThat(theme.path("colors").path("background").asText()).isEqualTo("#1D1D1F");
+        assertThat(theme.path("fontFamily").asText()).isEqualTo("Montserrat");
+        assertThat(theme.path("mode").asText()).isEqualTo("dark");
+        com.agilityhub.core.platform.domain.ConsoleThemeRules.validate(mapper.treeToValue(theme, com.agilityhub.core.platform.domain.Theme.class));
+        var product = mapper.readTree(Path.of("src/main/resources/platform/product-branding.json").toFile()).path("theme");
+        for (String field : List.of("colors", "fontFamily", "radius", "ringPalette", "mode")) {
+            assertThat(product.path(field)).as(field).isEqualTo(theme.path(field));
+        }
+    }
+
     @Test void T_17_14_E11_T18_theTemplateSeedValidatesAndCarriesEveryPartOfTheStarterSet() {
         var definition = seed(); codec.validate(definition);
         var catalogs = definition.path("catalogs");

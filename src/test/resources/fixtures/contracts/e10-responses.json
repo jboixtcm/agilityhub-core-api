@@ -9,7 +9,9 @@
       "recordName": "_agilityhub-verify.club.example.test",
       "recordValue": "agh-verify-fictional",
       "cnameTarget": "clubs.agilitydoghub.com"
-    }
+    },
+    "checkedAt": null,
+    "failedChecks": 0
   },
   "OnboardingChecklist": {
     "dns": false,
@@ -67,7 +69,9 @@
         "status": "BROKEN",
         "verifiedAt": null,
         "primary": true,
-        "verification": null
+        "verification": null,
+        "checkedAt": "2026-10-15T03:00:00Z",
+        "failedChecks": 3
       }
     ],
     "theme": {
@@ -262,7 +266,9 @@
           "status": "BROKEN",
           "verifiedAt": null,
           "primary": true,
-          "verification": null
+          "verification": null,
+          "checkedAt": "2026-10-15T03:00:00Z",
+          "failedChecks": 3
         }
       ],
       "theme": {

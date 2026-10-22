@@ -15,6 +15,7 @@ public final class PasswordGrantAuthenticationToken extends OAuth2AuthorizationG
     private String scope;
     private String redirectUri;
     private String verifier;
+    private boolean consoleHost;
     public String clientSecret() { return clientSecret; }
     public String scope() { return scope; }
     public String redirectUri() { return redirectUri; }
@@ -30,6 +31,9 @@ public final class PasswordGrantAuthenticationToken extends OAuth2AuthorizationG
     public String clientId() { return clientId; }
     public void userAgent(String value) { userAgent = value; }
     public String userAgent() { return userAgent; }
+    /** S01 R-01-02 (E157): the request reached the console's product host, which resolves no club. */
+    public void consoleHost(boolean value) { consoleHost = value; }
+    public boolean consoleHost() { return consoleHost; }
     public String username() { return username; }
     @Override public Object getCredentials() { return secret; }
     @Override public void eraseCredentials() { super.eraseCredentials(); secret = null; clientSecret = null; verifier = null; }

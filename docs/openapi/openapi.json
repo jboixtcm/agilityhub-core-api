@@ -18263,6 +18263,16 @@
             "enum" : [ "clubs", "clubs-admin" ],
             "type" : "string"
           },
+          "checkedAt" : {
+            "description" : "E10-T03 round 2 (E125 #3, S15 P9): the last periodic DNS re-check that answered (or the last verification); null before the first. A skipped lookup does not set it.",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "failedChecks" : {
+            "description" : "E10-T03 round 2 (E125 #3, S15 P9): the failed re-checks in a row since the last good one or the last verification (0 before the first); the third makes a VERIFIED domain BROKEN (R-17-03).",
+            "format" : "int32",
+            "type" : "integer"
+          },
           "host" : {
             "type" : "string"
           },
@@ -18286,7 +18296,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "app", "host", "primary", "status" ],
+        "required" : [ "app", "failedChecks", "host", "primary", "status" ],
         "type" : "object"
       },
       "PlatformDomainRequest" : {
@@ -31867,7 +31877,7 @@
     },
     "/api/v1/auth/magic-link" : {
       "post" : {
-        "description" : "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. The mailed N-25 link is https://{client host}/activacio?t=… (club clients) or https://{ID host}/magic-link?t=… (the ID); with purpose RESET it ends with &purpose=reset (screen 02: «Ja hi ets»), a LOGIN link carries no purpose. Shares the configured authentication IP quota with /oauth2/token.",
+        "description" : "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. The mailed N-25 link is https://{client host}/activacio?t=… (club clients) or https://{ID host}/magic-link?t=… (the ID); clubs-admin on the console's product host mails https://{product host}/activacio?t=… only to an account holding AGILITYHUB_ADMIN (a link without club context); with purpose RESET it ends with &purpose=reset (screen 02: «Ja hi ets»), a LOGIN link carries no purpose. Shares the configured authentication IP quota with /oauth2/token.",
         "operationId" : "magicLink",
         "requestBody" : {
           "content" : {
@@ -93910,7 +93920,7 @@
     },
     "/oauth2/token" : {
       "post" : {
-        "description" : "ANON with client authentication. Club context comes from the host, never request data. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
+        "description" : "ANON with client authentication. Club context comes from the host, never request data. On the console's product host (a platform host other than the ID's, which resolves no club) clubs-admin's password, magic-link, handoff and refresh grants issue a session without club context (platformRoles, no clubId/roles, aud clubs-admin, ah_refresh on that host) to an account holding AGILITYHUB_ADMIN, and 403 PLATFORM_ONLY to any other account; other clients there keep 404 UNKNOWN_HOST. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
         "operationId" : "token",
         "requestBody" : {
           "content" : {
@@ -93970,7 +93980,7 @@
                 }
               }
             },
-            "description" : "NO_MEMBERSHIP, MEMBERSHIP_SUSPENDED, ACCOUNT_BLOCKED"
+            "description" : "NO_MEMBERSHIP, MEMBERSHIP_SUSPENDED, ACCOUNT_BLOCKED; PLATFORM_ONLY (clubs-admin on the console's product host without AGILITYHUB_ADMIN)"
           },
           "404" : {
             "content" : {
@@ -93980,7 +93990,7 @@
                 }
               }
             },
-            "description" : "Not Found"
+            "description" : "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin"
           },
           "409" : {
             "content" : {

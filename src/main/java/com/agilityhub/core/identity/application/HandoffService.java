@@ -42,11 +42,14 @@ public class HandoffService {
             return new Created(code, url + "?handoff=" + code);
         });
     }
-    public TokenService.Tokens exchange(String value, String clientId, String userAgent) {
+    public TokenService.Tokens exchange(String value, String clientId, String userAgent) { return exchange(value, clientId, userAgent, false); }
+    /** @param consoleHost S01 R-01-02 (E157): redeemed on the console's product host, the code opens a platform session */
+    public TokenService.Tokens exchange(String value, String clientId, String userAgent, boolean consoleHost) {
         var code = codes.resolve(TokenService.digest(value), clientId).orElse(null);
         if (code == null || (TenantContext.current() != null && !TenantContext.current().equals(code.clubId()))) {
             return invalid(null, TenantContext.current());
         }
+        if (consoleHost) { return console(code, clientId, userAgent); }
         try (var scope = TenantContext.open(code.clubId())) {
             var result = transactions.run(() -> {
                 if (code.usedAt() != null || !code.expiresAt().isAfter(clock.instant())) { return null; }
@@ -64,6 +67,28 @@ public class HandoffService {
             });
             return result == null ? invalid(code.accountId(), code.clubId()) : result;
         }
+    }
+    /**
+     * S01 R-01-02, S17 §2 «Entrada» (ruling E157): on the console's product host a `clubs-admin` code is checked in its own club (alive,
+     * unused, its source session live) and opens a session without a club, which only an `AGILITYHUB_ADMIN` gets (`403 PLATFORM_ONLY`,
+     * the code left unused). An impersonation launch code never opens there: it belongs to the club's app.
+     */
+    private TokenService.Tokens console(HandoffCode code, String clientId, String userAgent) {
+        if (!TokenService.CONSOLE_CLIENT.equals(clientId) || ImpersonationService.HANDOFF_SOURCE.equals(code.sourceClientId())) {
+            return invalid(code.accountId(), code.clubId());
+        }
+        var result = transactions.run(() -> {
+            var session = identities.current(code.accountId());
+            try (var scope = TenantContext.open(code.clubId())) {
+                if (code.usedAt() != null || !code.expiresAt().isAfter(clock.instant())
+                        || session.account().familyVersion() != code.tokenFamilyVersion()) { return null; }
+                try { tokens.requireFamily(code.accountId(), code.sourceClientId(), code.sourceFamilyId(), code.tokenFamilyVersion()); }
+                catch (ApiException revoked) { return null; }
+                if (!codes.consume(code.id(), clock.instant())) { return null; }
+            }
+            return tokens.handoff(session, clientId, userAgent);
+        });
+        return result == null ? invalid(code.accountId(), code.clubId()) : result;
     }
     private IdentityService.Session eligible(String accountId, String target) {
         var session = identities.current(accountId);

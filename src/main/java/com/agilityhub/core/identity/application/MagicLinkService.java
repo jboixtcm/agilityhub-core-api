@@ -40,13 +40,25 @@ public class MagicLinkService {
     private final URI issuer;
     /** INC-37: the server key of the request's `ipHash` (a keyed HMAC, as the signup consent's), never a bare digest of the address. */
     private final com.agilityhub.core.shared.application.SignupCapabilities capabilities;
+    /** S01 R-01-02 (E157): whether a host is the console's product host (a product host other than the ID's). */
+    private final java.util.function.Predicate<String> consoleHosts;
+    public MagicLinkService(AccountRepository accounts, MembershipRepository memberships, MagicLinkTokenRepository tokens,
+            IdentityTransactions transactions, AuthSettings settings, EventPublisher events, SystemNotificationService notifications,
+            RegisteredClientRepository clients, TenantHostResolver hosts, Executor executor,
+            Clock clock, String issuer, com.agilityhub.core.shared.application.SignupCapabilities capabilities) {
+        this(accounts, memberships, tokens, transactions, settings, events, notifications, clients, hosts, executor, clock, issuer, capabilities,
+                (com.agilityhub.core.platform.application.ProductBranding) null);
+    }
+    @org.springframework.beans.factory.annotation.Autowired
     public MagicLinkService(AccountRepository accounts, MembershipRepository memberships, MagicLinkTokenRepository tokens,
             IdentityTransactions transactions, AuthSettings settings, EventPublisher events, SystemNotificationService notifications,
             RegisteredClientRepository clients, TenantHostResolver hosts, @Qualifier("magicLinkExecutor") Executor executor,
-            Clock clock, @Value("${identity.issuer}") String issuer, com.agilityhub.core.shared.application.SignupCapabilities capabilities) {
+            Clock clock, @Value("${identity.issuer}") String issuer, com.agilityhub.core.shared.application.SignupCapabilities capabilities,
+            com.agilityhub.core.platform.application.ProductBranding product) {
         this.accounts = accounts; this.memberships = memberships; this.tokens = tokens; this.transactions = transactions;
         this.settings = settings; this.events = events; this.notifications = notifications; this.clients = clients;
         this.hosts = hosts; this.executor = executor; this.clock = clock; this.issuer = URI.create(issuer); this.capabilities = capabilities;
+        this.consoleHosts = product == null ? host -> false : product::consoleHost;
     }
     /** S17: invitations use AgilityHub ID before a new club has a verified domain. Only the token hash is persisted. */
     public void sendAdminInvitation(String deliveryId,String accountId,String clubName,String inviterName) {
@@ -98,7 +110,11 @@ public class MagicLinkService {
         if (client == null || !client.getAuthorizationGrantTypes().contains(new AuthorizationGrantType(GRANT))) { return; }
         String clubId = TenantContext.current();
         String base;
-        if (clientId.startsWith("clubs-")) {
+        // S01 R-01-02, S17 §2 «Entrada» (E157): the console's link on its product host has no club and reaches only a platform admin.
+        boolean console = clubId == null && TokenService.CONSOLE_CLIENT.equals(clientId) && consoleHosts.test(host);
+        if (console) {
+            base = "https://" + URI.create("https://" + host).getHost() + "/activacio";
+        } else if (clientId.startsWith("clubs-")) {
             if (clubId == null || !hosts.resolve(host).filter(clubId::equals).isPresent()) { return; }
             base = "https://" + URI.create("https://" + host).getHost() + "/activacio";
         } else {
@@ -112,6 +128,7 @@ public class MagicLinkService {
             var account = accounts.findByEmail(email).orElse(null);
             if (account == null || account.status() != Account.Status.ACTIVE) { return null; }
             if (clubId != null && memberships.findByAccountId(account.id()).filter(m -> m.status() == Membership.Status.ACTIVE).isEmpty()) { return null; }
+            if (console && !account.platformRoles().contains(Account.PlatformRole.AGILITYHUB_ADMIN)) { return null; }
             accounts.touchSessions(account.id());
             var duration = purpose == MagicLinkToken.Purpose.WELCOME || purpose == MagicLinkToken.Purpose.ACCESS_RESEND
                     ? Duration.ofDays(settings.integer("auth.welcomeLinkDays")) : Duration.ofMinutes(settings.integer("auth.magicLinkMinutes"));

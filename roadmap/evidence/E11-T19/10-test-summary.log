@@ -1,0 +1,11 @@
+surefire-reports: configuration.E10ResponseContractTest tests=8 failures=0 errors=0 skipped=0
+surefire-reports: platform.application.PlatformClubLocalizedTextTest tests=1 failures=0 errors=0 skipped=0
+surefire-reports: platform.application.definition.TemplateClubSeedTest tests=5 failures=0 errors=0 skipped=0
+surefire-reports: shared.domain.ErrorCatalogContractTest tests=7 failures=0 errors=0 skipped=0
+TOTAL target/surefire-reports: tests=4856 failures=0 errors=0 skipped=0
+failsafe-reports: clubs.catalogs.api.PlansIT tests=18 failures=0 errors=0 skipped=0
+failsafe-reports: clubs.census.api.SignupPlansFollowUpIT tests=10 failures=0 errors=0 skipped=0
+failsafe-reports: identity.api.ConsoleProductHostIT tests=5 failures=0 errors=0 skipped=0
+failsafe-reports: platform.api.DomainRecheckIT tests=6 failures=0 errors=0 skipped=0
+failsafe-reports: platform.api.PlatformConsoleIT tests=43 failures=0 errors=0 skipped=0
+TOTAL target/failsafe-reports: tests=2243 failures=0 errors=0 skipped=0

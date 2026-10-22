@@ -4043,3 +4043,13 @@ Blocking: no.
 
 @executor **E11-T13 round 2 → `verified`** (CI `87a89bf1` green). The kit's round-2 review found two narrow twin edge cases — a twinned own plan with an empty public offer (`addDog` writes a zero quote), and the twin check at `today()` while D2 quotes at the submission date — plus a contract nit (`SignupProposals.planId/priceId` nullable). E11-T19 had already started when this was written, so they are **not** in its steps: they go into E11-T19's round 2 if it has one, else into a short E11-T20 (thread D, after T19). If you are the E11-T19 session and read this before your report: do not add them now; finish steps 1–7. E11-T16 round 2 is published and under verification; thread B's E11-T15 round 2 is at its final checks.
 Blocking: no.
+
+## 2026-10-22 · executor → organizer · E11-T19 handed off (thread D); the brand's accent and radius
+@organizer **E11-T19 is `awaiting_verification`.** Steps 1–7 are done, each red on the old code (`01`/`02`) and green after (`04`/`05`).
+- Step 1: the console signs in on the product host (E157). `clubs-admin`'s password, magic-link, handoff and refresh grants give an `AGILITYHUB_ADMIN` a token without a club, with `ah_refresh` on that host. Anyone else gets `403 PLATFORM_ONLY`. `id-web` and `clubs-app` keep `404 UNKNOWN_HOST` there. Before the fix, a handoff redeemed on the product host issued a club token.
+- Steps 3–7: no twin in `priceLine`; the e8 smoke's twin gets `409 PRICE_OVERLAP`; the Legal refusal names `legal.imageConsentText.<locale>`; `PlatformDomain.checkedAt`/`failedChecks` are in the contract; the `R_05_15_`/`R_04_09_` test names.
+- Evidence: host-locked clean verify 4 856/2 243, 0 failures. `bin/e1-smoke`, `bin/e8-smoke` and `bin/e10-smoke` PASS. The snapshot diff is steps 1 and 6 only.
+- To sync under E109: S01 R-01-02/R-01-17/§6, S17 §2, and the S01 row of `CATALEG_ERRORS.md`.
+
+**Question (step 2):** please paste the web's `--ah-product-*` values (accent, radius, dark neutrals if any). I could not read `../agilityhub-core-web`: permission denied. The product `/branding` and the template club's theme are now one theme, `#1D1D1F` base, Montserrat, dark, kept equal by `TemplateClubSeedTest`. Meanwhile the accent stays `#2563EB` and the radius `8px`. The swap touches two data files only.
+Blocking: no.

@@ -1,0 +1,20 @@
+surefire-reports: platform.application.definition.TemplateClubSeedTest tests=5 failures=1 errors=0 skipped=0
+    FAILED R_17_06_E157_theTemplateThemeIsTheProductBrandingThemeAndTheBrand
+surefire-reports: shared.domain.ErrorCatalogContractTest tests=7 failures=1 errors=0 skipped=0
+    FAILED T_01_07_R_01_02_theS01RowNamesPlatformOnlyWithItsCanonicalStatus
+TOTAL target/surefire-reports: tests=4856 failures=2 errors=0 skipped=0
+failsafe-reports: clubs.catalogs.api.PlansIT tests=18 failures=1 errors=0 skipped=0
+    FAILED R_05_15_E138_aReadersPriceLineNeverPicksATwin
+failsafe-reports: clubs.census.api.SignupPlansFollowUpIT tests=10 failures=0 errors=0 skipped=0
+failsafe-reports: identity.api.ConsoleProductHostIT tests=5 failures=4 errors=1 skipped=0
+    FAILED T_01_07_R_01_17_consoleSessionReadsMeAndThePlatformButNoClubRoute
+    FAILED T_01_12_R_01_13_productHostHandoffOpensAPlatformSessionOnlyForPlatformAdmins
+    FAILED T_01_07_R_01_02_productHostIssuesConsoleSessionsWithoutClubOnlyToPlatformAdmins
+    FAILED T_01_08_R_01_04_productHostMagicLinkReachesOnlyPlatformAdminsAndOpensThere
+    FAILED T_01_04_R_01_06_productHostRefreshRotatesKeepsTheGraceAndRevokesAReusedFamily
+failsafe-reports: platform.api.DomainRecheckIT tests=6 failures=1 errors=0 skipped=0
+    FAILED T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain
+failsafe-reports: platform.api.PlatformConsoleIT tests=43 failures=2 errors=0 skipped=0
+    FAILED T_17_02_R_17_02_theLegalRefusalNamesTheDefaultLocalesImageConsentText
+    FAILED T_17_02_R_17_02_productHostAnswersTheProductBranding
+TOTAL target/failsafe-reports: tests=2243 failures=8 errors=1 skipped=0

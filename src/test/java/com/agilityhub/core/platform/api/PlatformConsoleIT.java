@@ -426,6 +426,31 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(mvc.perform(get("/api/v1/branding").header("Host","console.example.test")).andReturn().getResponse().getStatus()).isEqualTo(200);
     }
 
+    /**
+     * S17 §6 (E10-W02 Q4, E11-T19 step 5): an empty image-consent text in the club's default locale is refused naming its nested path
+     * in `fieldErrors[]` (it answered `{field: "locales"}`), and nothing is written.
+     */
+    @Test void T_17_02_R_17_02_theLegalRefusalNamesTheDefaultLocalesImageConsentText() throws Exception {
+        var club=clubs.findById("console-target").orElseThrow();
+        String locale=club.defaultLocale();
+        var legal=new LinkedHashMap<String,Object>();
+        legal.put("privacyPolicyUrl","https://console.example.test/privacy");legal.put("legalTextsVersion","2026-10");
+        legal.put("imageConsentText",Map.of(locale," "));
+        var error=call(patch(BASE+"/console-target"),Map.of("version",version(),"legal",legal),400);
+        assertThat(error.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(error.path("details").path("fieldErrors")).hasSize(1);
+        assertThat(error.path("details").path("fieldErrors").get(0).path("field").asText()).isEqualTo("legal.imageConsentText."+locale);
+        assertThat(error.path("details").path("fieldErrors").get(0).path("code").asText()).isEqualTo("REQUIRED");
+        assertThat(clubs.findById("console-target").orElseThrow().legal()).isEqualTo(club.legal());
+        // A locale the club does not have names that locale's path.
+        legal.put("imageConsentText",Map.of(locale,"Example consent","xx","Example"));
+        var unknown=call(patch(BASE+"/console-target"),Map.of("version",version(),"legal",legal),400);
+        assertThat(unknown.path("details").path("fieldErrors").get(0).path("field").asText()).isEqualTo("legal.imageConsentText.xx");
+        assertThat(unknown.path("details").path("fieldErrors").get(0).path("code").asText()).isEqualTo("INVALID_VALUE");
+        legal.put("imageConsentText",Map.of(locale,"Example consent"));
+        call(patch(BASE+"/console-target"),Map.of("version",version(),"legal",legal),200);
+    }
+
     /** E115 #1 (E10-T04): the public signup of a club stored without `legal` answers, without texts, instead of failing. */
     @Test void T_17_02_R_17_02_publicSignupOfAClubWithoutLegalAnswers() throws Exception {
         call(put(BASE+"/console-target/parameters/signup.enabled"),Map.of("version",0,"value",true),200);
@@ -636,6 +661,10 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
             assertThat(branding.path("locales")).containsExactly(mapper.valueToTree("ca"),mapper.valueToTree("es"),mapper.valueToTree("en"));
             assertThat(branding.path("modules")).isEmpty();
             assertThat(branding.path("signup").path("enabled").asBoolean()).isFalse();
+            // Ruling E157 (E11-T19 step 2): the product preset is the AgilityHub brand, the template club's theme.
+            assertThat(branding.path("theme").path("colors").path("background").asText()).isEqualTo("#1D1D1F");
+            assertThat(branding.path("theme").path("fontFamily").asText()).isEqualTo("Montserrat");
+            assertThat(branding.path("theme").path("mode").asText()).isEqualTo("dark");
             assertThat(branding.path("theme").path("colors").path("primary").asText()).isEqualTo("#2563EB");
             assertThat(branding.path("legal").path("privacyPolicyUrl").asText()).isEqualTo("https://id.agilitydoghub.com/privacy");
         }

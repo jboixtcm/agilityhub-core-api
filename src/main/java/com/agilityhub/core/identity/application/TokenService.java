@@ -29,6 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenService {
     public static final Duration ACCESS_TTL = Duration.ofMinutes(15);
+    /** S17 §2 «Entrada»: the console's client; without a club context its session is a platform one (S01 R-01-02, E157). */
+    public static final String CONSOLE_CLIENT = "clubs-admin";
     /** S01 R-01-05 (ruling E49): how long a RESET magic link's session may set a new password without `current`, once. */
     public static final Duration PASSWORD_RESET_WINDOW = Duration.ofMinutes(15);
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -69,10 +71,13 @@ public class TokenService {
             return login(session, clientId, userAgent, scopes, false, null, clock.instant());
         });
     }
-    public Tokens magicLink(String value, String clientId, String userAgent) {
+    public Tokens magicLink(String value, String clientId, String userAgent) { return magicLink(value, clientId, userAgent, false); }
+    /** @param consoleHost S01 R-01-02 (E157): a console link without a club is redeemed only on the console's product host */
+    public Tokens magicLink(String value, String clientId, String userAgent, boolean consoleHost) {
         var outcome = transactions.run(() -> {
             var token = magicLinks.find(digest(value), clientId).orElse(null);
-            if (token == null || token.usedAt() != null || !token.expiresAt().isAfter(clock.instant())) {
+            boolean misplaced = token != null && token.clubId() == null && CONSOLE_CLIENT.equals(clientId) && !consoleHost;
+            if (token == null || misplaced || token.usedAt() != null || !token.expiresAt().isAfter(clock.instant())) {
                 return new Outcome(null, ErrorCode.MAGIC_LINK_INVALID, token == null ? null : token.accountId());
             }
             var session = identities.current(token.accountId());
@@ -103,6 +108,7 @@ public class TokenService {
     }
     private Tokens login(IdentityService.Session session, String clientId, String userAgent, java.util.Set<String> scopes, boolean oidc, String nonce,
                          Instant authTime, Instant passwordResetUntil) {
+        requirePlatformConsole(session, clientId);
         accounts.touchSessions(session.account().id());
         Instant now = clock.instant();
         var live = families(accountSessions.active(session.account().id(), session.account().familyVersion(), now));
@@ -242,6 +248,7 @@ public class TokenService {
     private Tokens issue(IdentityService.Session session, String clientId, String familyId, String refresh, Role requested,
                          String device, Instant createdAt, Instant now, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime,
                          Instant passwordResetUntil) {
+        requirePlatformConsole(session, clientId);
         Role profile = session.membership() == null ? null : session.membership().activeProfile(requested);
         Jwt jwt = access(session, clientId, familyId, profile, now, scopes, authTime);
         Instant expiry = now.plus(Duration.ofDays(settings.integer("auth.sessionDays")));
@@ -250,6 +257,17 @@ public class TokenService {
                 clientId, familyId, session.account().familyVersion(), createdAt, expiry, now, null, null, profile, device, RefreshToken.Status.ACTIVE, scopes, oidc, nonce, authTime,
                 passwordResetUntil));
         return new Tokens(jwt, new OAuth2RefreshToken(refresh, now, expiry), scopes, oidc, nonce, authTime);
+    }
+    /**
+     * S01 R-01-02, S17 §2 «Entrada» (ruling E157): a console session without a club (the product host's) is issued and renewed only
+     * for an account that holds `AGILITYHUB_ADMIN`; any other account gets `403 PLATFORM_ONLY`, and a role removed later stops the
+     * next refresh. A console session with a club (a club host) keeps R-01-02's membership rule.
+     */
+    private static void requirePlatformConsole(IdentityService.Session session, String clientId) {
+        if (session.membership() == null && CONSOLE_CLIENT.equals(clientId)
+                && !session.account().platformRoles().contains(Account.PlatformRole.AGILITYHUB_ADMIN)) {
+            throw new ApiException(ErrorCode.PLATFORM_ONLY);
+        }
     }
     private Jwt access(IdentityService.Session session, String clientId, String familyId, Role profile, Instant now, java.util.Set<String> scopes, Instant authTime) {
         var account = session.account();

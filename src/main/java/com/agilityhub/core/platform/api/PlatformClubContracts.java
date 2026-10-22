@@ -29,7 +29,9 @@ public final class PlatformClubContracts {
             @Schema(description="The product host of the domain's app the CNAME points to: clubs.agilitydoghub.com for clubs, clubsadmin.agilitydoghub.com for clubs-admin (deployment hosts).") String cnameTarget) { }
     public record PlatformDomain(String host, DomainApp app, DomainStatus status,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant verifiedAt, boolean primary,
-            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="The DNS instructions while the domain is not verified; null once it is VERIFIED and for a legacy domain without a challenge.") DomainVerificationChallenge verification) { }
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="The DNS instructions while the domain is not verified; null once it is VERIFIED and for a legacy domain without a challenge.") DomainVerificationChallenge verification,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="E10-T03 round 2 (E125 #3, S15 P9): the last periodic DNS re-check that answered (or the last verification); null before the first. A skipped lookup does not set it.") Instant checkedAt,
+            @Schema(requiredMode=Schema.RequiredMode.REQUIRED, description="E10-T03 round 2 (E125 #3, S15 P9): the failed re-checks in a row since the last good one or the last verification (0 before the first); the third makes a VERIFIED domain BROKEN (R-17-03).") int failedChecks) { }
     public record OnboardingChecklist(boolean dns,
             @Schema(description="At least one configured payment provider when BILLING is enabled; legacy model key.") boolean sepa,
             boolean branding, boolean templates, boolean faq, boolean legal, boolean firstAdmin) { }

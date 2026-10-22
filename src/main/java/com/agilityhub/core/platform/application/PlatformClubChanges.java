@@ -73,7 +73,7 @@ public class PlatformClubChanges {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field","taxId"));
             node.put("taxId",tax);
         }
-        if(changes.containsKey("legal")&&next.legal()!=null) localized(next.legal().imageConsentText(),next.locales(),next.defaultLocale());
+        if(changes.containsKey("legal")&&next.legal()!=null) localized(next.legal().imageConsentText(),next.locales(),next.defaultLocale(),"legal.imageConsentText");
         if(next.template()&&!next.domains().isEmpty()) throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field","template"));
         var fields=new LinkedHashMap<String,Object>();
         changes.keySet().stream().filter(k->!k.equals("version")).forEach(k->fields.put(k,mapper.convertValue(node.get(k),Object.class)));
@@ -134,6 +134,19 @@ public class PlatformClubChanges {
     public static void localized(Map<String,String> text,List<String> locales,String defaultLocale) {
         if(text==null||!locales.containsAll(text.keySet())||text.get(defaultLocale)==null||text.get(defaultLocale).isBlank())
             throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field","locales"));
+    }
+    /**
+     * S17 §6 (E10-W02 Q4, E11-T19 step 5): the refusal of a localized text names its nested path in `fieldErrors[]`, as the create
+     * endpoint does: the default locale's empty text is `{field}.{defaultLocale}` · `REQUIRED`, a locale the club lacks `{field}.{locale}`
+     * · `INVALID_VALUE`.
+     */
+    public static void localized(Map<String,String> text,List<String> locales,String defaultLocale,String field) {
+        if(text==null) throw fieldError(field,"REQUIRED");
+        if(text.get(defaultLocale)==null||text.get(defaultLocale).isBlank()) throw fieldError(field+"."+defaultLocale,"REQUIRED");
+        for(String locale:new java.util.TreeSet<>(text.keySet())) if(!locales.contains(locale)) throw fieldError(field+"."+locale,"INVALID_VALUE");
+    }
+    private static ApiException fieldError(String field,String code) {
+        return new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field",field,"fieldErrors",List.of(Map.of("field",field,"code",code))));
     }
     private Map<String,Object> safeDiff(Club old,Map<String,Object> values) {
         var result=new LinkedHashMap<String,Object>();values.keySet().forEach(k->result.put(k,"changed"));return result;

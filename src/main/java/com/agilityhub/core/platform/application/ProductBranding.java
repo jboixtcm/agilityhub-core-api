@@ -1,5 +1,6 @@
 package com.agilityhub.core.platform.application;
 
+import com.agilityhub.core.platform.domain.HostNames;
 import com.agilityhub.core.platform.domain.Theme;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -20,16 +21,27 @@ public class ProductBranding {
     private final List<String> hosts;
     private final Values values;
     private final String privacyPolicyUrl;
+    private final String identityHost;
     public ProductBranding(@Value("${core.security.cors.platform-hosts}") List<String> hosts,
-            @Value("${agilityhub.legal.privacyPolicyUrl}") String privacyPolicyUrl, ObjectMapper mapper) {
+            @Value("${agilityhub.legal.privacyPolicyUrl}") String privacyPolicyUrl, ObjectMapper mapper,
+            @Value("${identity.issuer}") String issuer) {
         this.hosts = hosts.stream().map(host -> host.strip().toLowerCase(Locale.ROOT)).filter(host -> !host.isEmpty()).toList();
         this.privacyPolicyUrl = privacyPolicyUrl;
+        this.identityHost = HostNames.normalize(java.net.URI.create(issuer).getHost());
         try (var input = ProductBranding.class.getResourceAsStream("/platform/product-branding.json")) {
             this.values = mapper.readValue(input, Values.class);
         } catch (IOException unreadable) { throw new UncheckedIOException(unreadable); }
     }
     /** Whether `host` (already normalized) is one of the product hosts. */
     public boolean productHost(String host) { return host != null && hosts.contains(host); }
+    /**
+     * S01 R-01-02, S17 §2 «Entrada» (ruling E157): a product host other than the ID's (`clubsadmin.…`), where the console signs in
+     * with `clubs-admin` sessions without a club. `host` is a raw `Host` header (port, case and a final dot do not count).
+     */
+    public boolean consoleHost(String host) {
+        String normalized = HostNames.normalize(host);
+        return !normalized.isEmpty() && productHost(normalized) && !normalized.equals(identityHost);
+    }
     public Values values() { return values; }
     public String privacyPolicyUrl() { return privacyPolicyUrl; }
 }

@@ -232,7 +232,7 @@ class PlansIT extends AbstractIntegrationTest {
      * Ruling E138 (E11-T13, INC-74): a plan whose concept has two current prices (a legacy start twin INC-68's conversion
      * reported) is not offered publicly; the admin's list keeps showing it, with both prices.
      */
-    @Test void E138_aPlanWithAPriceTwinLeavesThePublicOfferAndTheAdminsListKeepsIt() throws Exception {
+    @Test void R_05_15_E138_aPlanWithAPriceTwinLeavesThePublicOfferAndTheAdminsListKeepsIt() throws Exception {
         String twinned = plan("TWINNED", "MONTHLY"), other = plan("OTHER", "MONTHLY");
         String kept = price(twinned, 6000, "2026-01-01", null).at("/price/id").asText();
         price(other, 5000, "2026-01-01", null);
@@ -251,6 +251,25 @@ class PlansIT extends AbstractIntegrationTest {
         assertThat(row).as("the admin's list keeps the twinned plan").isNotNull();
         assertThat(row.path("currentPrices").findValuesAsText("id")).containsExactlyInAnyOrder(kept, "price-twin");
         assertThat(json(admin(get("/api/v1/plans/" + twinned)), 200).path("currentPrices")).hasSize(2);
+    }
+    /**
+     * S05 R-05-15, ruling E138 (E11-T19 step 3, E11-T13 verification A): a reader's `priceLine` never picks one of two twins —
+     * it is absent for the twinned plan (no single amount), while the untwinned plan keeps its line.
+     */
+    @Test void R_05_15_E138_aReadersPriceLineNeverPicksATwin() throws Exception {
+        String twinned = plan("TWINLINE", "MONTHLY"), other = plan("SINGLELINE", "MONTHLY");
+        price(twinned, 6000, "2026-01-01", null);
+        price(other, 5000, "2026-01-01", null);
+        mongo.insert(new Document("_id", "price-line-twin").append("clubId", CLUB).append("planId", twinned).append("concept", "MONTHLY_FEE")
+                .append("amount", new Document("amountMinor", 6500L).append("currency", "EUR")).append("taxPercent", "0")
+                .append("validFrom", Date.from(Instant.parse("2026-01-01T00:00:00Z"))).append("validTo", null).append("version", 0L)
+                .append("createdAt", Date.from(clock.instant())).append("updatedAt", Date.from(clock.instant())).append("_class", Price.class.getName()), "prices");
+        for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
+            var lines = new java.util.HashMap<String, JsonNode>();
+            for (var item : json(call(get("/api/v1/plans"), CLUB, role), 200).path("items")) { lines.put(item.path("id").asText(), item.path("priceLine")); }
+            assertThat(lines.get(twinned).isMissingNode() || lines.get(twinned).isNull()).as(role + ": the twinned plan's line").isTrue();
+            assertThat(lines.get(other).asText()).as(role + ": the other plan's line").contains("50");
+        }
     }
     @Test void T_05_20_concurrentPriceCreationAndPlanEditsHaveOneWinner() throws Exception {
         String plan = plan("CONCURRENT", "MONTHLY"); price(plan, 6000, "2026-01-01", null);

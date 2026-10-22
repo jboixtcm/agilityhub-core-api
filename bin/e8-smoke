@@ -185,6 +185,7 @@ class E8:
         self.record("PUT /jobs/{expirations,billing-reminder}/switch {enabled:false}", "200", "the scheduler leaves P5 and P10 to this script")
         self.demo_states()
         self.pack_consumed_and_returned()
+        self.twin_refused()
         self.monthly_cycle()
         self.card_leg()
         self.processes()
@@ -234,6 +235,32 @@ class E8:
         self.require(len(refund) == 1 and after["remaining"] == before["remaining"] + 1, "The in-time cancellation did not return the session")
         self.record("Pack consumed (seeded booking) and returned (POST /bookings/{id}/cancellation in time)", "200",
                     f"movement CONSUME → REFUND; remaining {before['remaining']} → {after['remaining']}")
+
+    def twin_refused(self):
+        """S05 R-05-15, S12 §6 (ruling E138; E11-T13 step 12, E11-T19 step 4): a legacy price twin — a second current price of the
+        same plan and concept, the start stored as the other BSON type, as INC-68's conversion left them — makes the month's
+        simulation refuse with 409 PRICE_OVERLAP and write nothing; once the twin is removed the cycle goes on."""
+        s = self.s
+        preview = self.call("POST", "/api/v1/billing/simulations", 201, access=self.admin, body=dict(period=self.period), quiet=True)
+        billed = next(p for p in preview["invoicesPreview"] if p["paymentMethodType"] == "SEPA_DD")
+        plan = self.member_plan(billed["memberId"])
+        self.require(plan, "The billed member has no plan")
+        twin = self.mongo('(()=>{const p=db.prices.find({clubId:' + json.dumps(s.canic) + ',planId:' + json.dumps(plan) + ',concept:"MONTHLY_FEE",'
+                          'validTo:null}).sort({validFrom:-1}).limit(1).toArray()[0]; if(!p) return null;'
+                          'const start=typeof p.validFrom==="string"?new Date(p.validFrom+"T00:00:00Z"):p.validFrom.toISOString().slice(0,10);'
+                          'db.prices.insertOne(Object.assign({},p,{_id:"e8-smoke-price-twin",validFrom:start}));return {price:p._id};})()')
+        self.require(twin, "The billed member's plan has no open monthly price to twin")
+        refused = self.call("POST", "/api/v1/billing/simulations", 409, access=self.admin, body=dict(period=self.period), error="PRICE_OVERLAP")
+        details = refused.get("details", {})
+        self.require(details.get("planId") == plan and {details.get("priceId"), details.get("conflictingPriceId")} == {twin["price"], "e8-smoke-price-twin"},
+                     f"PRICE_OVERLAP names another plan or price: {sorted(details)}")
+        removed = self.mongo('db.prices.deleteOne({_id:"e8-smoke-price-twin"}).deletedCount')
+        self.require(removed == 1, "The twin was not removed")
+        self.record(f"price twin on the plan of a billed member, POST /billing/simulations {{period {self.period}}}", "409 PRICE_OVERLAP",
+                    "details {planId, concept: MONTHLY_FEE, priceId, conflictingPriceId} name the plan and both prices; the twin removed, the cycle goes on")
+
+    def member_plan(self, member):
+        return self.mongo('db.members.findOne({_id:' + json.dumps(member) + '},{planId:1})').get("planId")
 
     def monthly_cycle(self):
         s = self.s

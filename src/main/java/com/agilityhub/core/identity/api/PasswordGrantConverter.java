@@ -35,6 +35,7 @@ public final class PasswordGrantConverter implements AuthenticationConverter {
                 "refresh_token".equals(grant) && request.getParameter("refresh_token") == null ? cookies.read(request) : required(request, switch (grant) { case "password" -> "password"; case "refresh_token" -> "refresh_token"; case "authorization_code" -> "code"; default -> "token"; }));
         authentication.oidc(secret, request.getParameter("scope"), "authorization_code".equals(grant) ? required(request, "redirect_uri") : null, request.getParameter("code_verifier"));
         authentication.userAgent(request.getHeader("User-Agent"));
+        authentication.consoleHost(Boolean.TRUE.equals(request.getAttribute(com.agilityhub.core.shared.api.TenantFilter.CONSOLE_HOST)));
         return authentication;
     }
     private String required(HttpServletRequest request, String name) {

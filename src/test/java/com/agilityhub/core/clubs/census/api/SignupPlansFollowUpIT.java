@@ -285,7 +285,7 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
      * dry run included, with billing's `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`; nothing is written. The
      * admin's list keeps the plan with both prices, and once the twin is resolved the same submission validates.
      */
-    @Test void E138_aPlanWithAPriceTwinLeavesTheSignupOfferAndD2RefusesItsValidation() throws Exception {
+    @Test void R_04_09_E138_aPlanWithAPriceTwinLeavesTheSignupOfferAndD2RefusesItsValidation() throws Exception {
         assertThat(ids(anonymous("ca").path("plans"))).contains(planId("ABONAT"));
         String id=submitted(request(planId("ABONAT")));
         var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);

@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-22 · E11-T19 · The console signs in on its product host (ruling E157); the domains' re-check state
+
+**0 operations or error codes added or removed; 2 properties added to 1 schema; 4 descriptions changed.**
+
+- `POST /oauth2/token` (`token`, S01 R-01-02, descriptions only): on the console's product host (a `core.security.cors.platform-hosts` host other than the ID's, which resolves no club) `clubs-admin`'s password, magic-link, handoff and refresh grants issue a session without club context (`platformRoles`, no `clubId`/`roles`, `aud = clubs-admin`, `ah_refresh` on that host) to an account holding `AGILITYHUB_ADMIN`; any other account → `403 PLATFORM_ONLY` (named in the `403` description); other clients there keep `404 UNKNOWN_HOST` (now described on the `404`). A club host is unchanged.
+- `POST /api/v1/auth/magic-link` (`magicLink`, description only): `clubs-admin` on the console's product host mails `https://{product host}/activacio?t=…` only to an account holding `AGILITYHUB_ADMIN`; still a neutral `202`.
+- `PlatformDomain` (`PlatformClub.domains[]` and `POST /platform/clubs/{id}/domains`, E10-T03 round 2, E125 #3): new `checkedAt` (nullable date-time, the last S15 P9 re-check or verification that got a DNS answer) and `failedChecks` (required integer, the failed re-checks in a row; the third makes a `VERIFIED` domain `BROKEN`). They were stored since E10-T03 but never in the view.
+- Behaviour only: `PATCH /platform/clubs/{id}` refuses an empty `legal.imageConsentText.{defaultLocale}` with `400 VALIDATION_ERROR {field, fieldErrors: [{field: "legal.imageConsentText.<locale>", code: REQUIRED}]}` (it answered `{field: "locales"}`), and a locale the club lacks with that locale's path and `INVALID_VALUE`. `GET /plans` (and `/plans/{id}`) leaves `priceLine` out for a plan whose line concept has two current prices (ruling E138); `currentPrices` keeps both.
+
 ## 2026-10-22 · E11-T16 round 2 · The support token's restricted routes, named (S17 R-17-10, E109)
 
 **0 operations, schemas, properties or error codes added or removed; 1 description changed.**

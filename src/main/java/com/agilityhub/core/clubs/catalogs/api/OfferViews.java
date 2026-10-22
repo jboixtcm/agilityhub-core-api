@@ -54,7 +54,11 @@ public class OfferViews {
             case PACK -> OfferTerms.PriceConcept.PACK;
             case SINGLE_CLASS -> OfferTerms.PriceConcept.SINGLE_CLASS;
         };
-        Money amount = current.stream().filter(price -> price.concept() == concept).map(Price::amount).findFirst().orElse(null);
+        var amounts = current.stream().filter(price -> price.concept() == concept).map(Price::amount).toList();
+        // S05 R-05-15, ruling E138 (E11-T19 step 3): a twinned concept has no single amount, so its line is null rather than one
+        // of the twins picked at random; the admin's `currentPrices` keeps both, and billing refuses the plan (`PRICE_OVERLAP`).
+        if (amounts.size() > 1) { return null; }
+        Money amount = amounts.isEmpty() ? null : amounts.getFirst();
         return formatter.line(plan.type(), amount, plan.pack() == null ? null : plan.pack().validityMonths(), text(plan.texts().priceLabel(), locale), locale);
     }
     CatalogResponses.Price price(String id) { return price(prices.get(id), true); }

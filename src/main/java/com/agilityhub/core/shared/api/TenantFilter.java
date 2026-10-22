@@ -17,6 +17,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Runs after authentication and before idempotency/MVC; every exit removes ThreadLocal state. */
 public class TenantFilter extends OncePerRequestFilter {
+    /**
+     * S01 R-01-02 (ruling E157): set on a `clubs-admin` token request and on a magic-link request that reach a product host other
+     * than the ID's (the console's), which resolve no club: the grant issues a platform session there, never a club one.
+     */
+    public static final String CONSOLE_HOST = "agilityhub.consoleHost";
     private final TenantHostResolver hosts;
     private final boolean local;
     private final ApiExceptionHandler errors;
@@ -81,6 +86,10 @@ public class TenantFilter extends OncePerRequestFilter {
                     request.setAttribute("signup.resolvedHost",host);
                     // S17 §2 «Entrada» (E118 #2): a product host has no tenant; its branding is the product's, and only the branding.
                     boolean productBranding = path.equals("/api/v1/branding") && hostClub.isEmpty() && productHosts.test(bare(host));
+                    // S01 R-01-02, S17 §2 «Entrada» (E157): the console signs in on its product host, without a club.
+                    boolean consoleSignIn = hostClub.isEmpty() && productHosts.test(bare(host)) && !bare(host).equals(bare(identityHost))
+                            && (path.equals("/api/v1/auth/magic-link")
+                                || path.equals("/oauth2/token") && "clubs-admin".equals(request.getParameter("client_id")));
                     String clubId;
                     if (authenticatedJwt) {
                         clubId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("clubId");
@@ -99,7 +108,8 @@ public class TenantFilter extends OncePerRequestFilter {
                             throw new ApiException(ErrorCode.TENANT_MISMATCH);
                         }
                     } else {
-                        if ((optionalHost || accountRoute || productBranding) && hostClub.isEmpty()) {
+                        if ((optionalHost || accountRoute || productBranding || consoleSignIn) && hostClub.isEmpty()) {
+                            if (consoleSignIn) { request.setAttribute(CONSOLE_HOST, Boolean.TRUE); }
                             chain.doFilter(request, response);
                             return;
                         }

@@ -97,6 +97,24 @@ class E10:
         """AgilityHub ID's global token (client id-web on the ID host): platform roles, no club (S01 R-01-17)."""
         self.platform = self.s.login(PLATFORM, "id-web", host=ID_HOST)
 
+    def console_sign_in(self):
+        """S01 R-01-02, S17 §2 «Entrada» (ruling E157, E11-T19): the console signs in on its product host with `clubs-admin`: a
+        platform admin gets a token without a club, a club administrator 403 PLATFORM_ONLY, the ID's client 404 UNKNOWN_HOST."""
+        form = lambda email, client: dict(grant_type="password", client_id=client, username=email, password=self.s.env["SEED_PASSWORD"])
+        issued = self.s.call("POST", "/oauth2/token", host=CONSOLE_HOST, quiet=True, form=form(PLATFORM, "clubs-admin"))
+        payload = issued["access_token"].split(".")[1]
+        claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+        self.require("clubId" not in claims and "roles" not in claims and "AGILITYHUB_ADMIN" in claims["platformRoles"]
+                     and claims["aud"] in ("clubs-admin", ["clubs-admin"]), "The product host's console token is not a platform one")
+        me = self.s.call("GET", "/api/v1/me", access=issued["access_token"], host=CONSOLE_HOST, quiet=True)
+        self.require("membership" not in me or me["membership"] is None, "GET /me on the product host has a membership")
+        admin = self.s.call("POST", "/oauth2/token", 403, host=CONSOLE_HOST, quiet=True, form=form("admin@example.test", "clubs-admin"))
+        id_web = self.s.call("POST", "/oauth2/token", 404, host=CONSOLE_HOST, quiet=True, form=form(PLATFORM, "id-web"))
+        print(f"curl POST /oauth2/token (password, clubs-admin, {CONSOLE_HOST}) -> 200 / 403 {admin['code']} / id-web 404 {id_web['code']}", flush=True)
+        self.record(f"The console signs in on {CONSOLE_HOST} (E157)", f"200 · 403 {admin['code']} · 404 {id_web['code']}",
+                    "platform admin: clubs-admin token without clubId/roles, GET /me without membership; a club administrator → "
+                    f"{admin['code']}; id-web → {id_web['code']}")
+
     def version(self):
         return self.console("GET", f"/clubs/{self.club}", quiet=True)["version"]
 
@@ -129,6 +147,7 @@ class E10:
             grant_type="password", client_id="clubs-admin", username=PLATFORM, password=self.s.env["SEED_PASSWORD"]))
         self.record("seed:demo platform account (E118)", "AGILITYHUB_ADMIN, no club",
                     f"{PLATFORM}: ID token with platform roles and no club; on the Cànic's host → 403 {refused['code']} (T-17-10)")
+        self.console_sign_in()
         started = time.monotonic()
         self.create()
         self.second_club_setup()

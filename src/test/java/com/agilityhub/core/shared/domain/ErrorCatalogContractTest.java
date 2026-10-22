@@ -37,6 +37,13 @@ class ErrorCatalogContractTest {
             assertThat(code.httpStatus()).isBetween(400, 501);
         }
     }
+    /** S01 R-01-02 (ruling E157, E11-T19 step 1): the console's product host answers `403 PLATFORM_ONLY`, so S01's row names it. */
+    @Test void T_01_07_R_01_02_theS01RowNamesPlatformOnlyWithItsCanonicalStatus() throws Exception {
+        String row = Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md")).stream()
+                .filter(line -> line.startsWith("| S01 |")).findFirst().orElseThrow();
+        assertThat(row).contains("`PLATFORM_ONLY`");
+        assertThat(ErrorCode.PLATFORM_ONLY.httpStatus()).isEqualTo(403);
+    }
     @Test void T_08_47_T_09_24_T_15_29_bookingTrainingAndJobErrorsFollowTheCatalogStatuses() throws Exception {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
         var expected = new java.util.LinkedHashMap<String, Integer>();

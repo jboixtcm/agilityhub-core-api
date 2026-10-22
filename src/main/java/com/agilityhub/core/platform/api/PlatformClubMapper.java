@@ -39,7 +39,7 @@ public class PlatformClubMapper {
         var challenge=d.verificationToken()==null?null:new DomainVerificationChallenge(
                 com.agilityhub.core.platform.domain.DomainChallenge.recordName(d.host()),com.agilityhub.core.platform.domain.DomainChallenge.recordValue(d.verificationToken()),domains.cnameTarget(d.app()));
         return new PlatformDomain(d.host(),d.app().equals("clubs-admin")?DomainApp.CLUBS_ADMIN:DomainApp.CLUBS,
-                DomainStatus.valueOf(d.status().name()),d.verifiedAt(),d.primary(),challenge);
+                DomainStatus.valueOf(d.status().name()),d.verifiedAt(),d.primary(),challenge,d.checkedAt(),d.failures());
     }
     public Map<String,Object> row(Club c,List<String> fields) {
         var value=new LinkedHashMap<String,Object>();value.put("id",c.id());value.put("name",c.name());value.put("slug",c.slug());value.put("status",c.status());

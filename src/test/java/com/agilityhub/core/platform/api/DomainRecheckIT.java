@@ -110,6 +110,14 @@ class DomainRecheckIT extends AbstractIntegrationTest {
     int allowed(String host) throws Exception { return mvc.perform(get("/internal/domains/allowed").param("host", host)).andReturn().getResponse().getStatus(); }
     int branding(String host) throws Exception { return mvc.perform(get("/api/v1/branding").header("Host", host)).andReturn().getResponse().getStatus(); }
     void lose(String host) { dns.publish(FakeDomainDns.Type.CNAME, host, List.of()); dns.publish(FakeDomainDns.Type.A, host, List.of()); }
+    /** E11-T19 step 6 (E125 #3): the console's `domains[]` row of `host`, as `GET /platform/clubs/{id}` answers it. */
+    com.fasterxml.jackson.databind.JsonNode consoleDomain(String club, String host) throws Exception {
+        var response = mvc.perform(get("/api/v1/platform/clubs/" + club).header("Host", "unknown.example.test")
+                .with(jwt().jwt(j -> j.subject("rc-actor")).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))).andReturn().getResponse();
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
+        for (var row : mapper.readTree(response.getContentAsString()).path("domains")) { if (row.path("host").asText().equals(host)) { return row; } }
+        throw new AssertionError("no domain " + host);
+    }
 
     @Test @AuditCovers(AuditAction.CLUB_DOMAIN_CHANGED)
     void T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain() throws Exception {
@@ -130,6 +138,9 @@ class DomainRecheckIT extends AbstractIntegrationTest {
         });
         assertThat(counters(dry)).containsEntry("WOULD_RECHECK_DOMAIN", 1L).doesNotContainKey("domainsRechecked");
         assertThat(stored(TARGET, HOST).checkedAt()).isNull();
+        // E11-T19 step 6 (E125 #3): the console reads the re-check state; before the first one, no check and no failure.
+        assertThat(consoleDomain(TARGET, HOST).path("checkedAt").isNull()).isTrue();
+        assertThat(consoleDomain(TARGET, HOST).path("failedChecks").asInt(-1)).isZero();
 
         // The real run confirms it: the check is recorded on the domain without bumping the club's version, and nothing is audited.
         Instant first = VERIFIED.plus(Duration.ofDays(7));
@@ -152,6 +163,8 @@ class DomainRecheckIT extends AbstractIntegrationTest {
             assertThat(domainItems(failed)).singleElement().satisfies(item -> assertThat(detail(item)).containsEntry("outcome", "FAILED").containsEntry("passed", false));
             assertThat(stored(TARGET, HOST).status()).isEqualTo(Club.DomainStatus.VERIFIED);
             assertThat(stored(TARGET, HOST).failures()).isEqualTo(week);
+            assertThat(consoleDomain(TARGET, HOST).path("failedChecks").asInt(-1)).isEqualTo(week);
+            assertThat(Instant.parse(consoleDomain(TARGET, HOST).path("checkedAt").asText())).isEqualTo(first.plus(Duration.ofDays(7L * week)));
         }
         assertThat(allowed(HOST)).isEqualTo(200);
         assertThat(branding(HOST)).isEqualTo(200);

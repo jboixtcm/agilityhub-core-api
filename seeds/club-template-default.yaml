@@ -18,23 +18,25 @@ club:
   contactEmail: "template@example.test"
 domains: []
 theme:
+  # The AgilityHub brand (ruling E157): the same theme as the product `/branding` (src/main/resources/platform/
+  # product-branding.json) and the web's «AgilityHub» preset; R-17-06 compares a club's colours with these.
   colors:
     primary: "#2563EB"
     onPrimary: "#FFFFFF"
-    background: "#F8FAFC"
-    surface: "#FFFFFF"
-    surfaceAlt: "#F1F5F9"
-    text: "#0F172A"
-    textMuted: "#475569"
-    border: "#CBD5E1"
-    success: "#15803D"
-    warning: "#A16207"
-    danger: "#B91C1C"
-    info: "#0369A1"
-  fontFamily: "system-ui"
+    background: "#1D1D1F"
+    surface: "#2A2A2C"
+    surfaceAlt: "#343436"
+    text: "#F5F5F7"
+    textMuted: "#A1A1A6"
+    border: "#3F3F42"
+    success: "#4ADE80"
+    warning: "#FBBF24"
+    danger: "#F87171"
+    info: "#38BDF8"
+  fontFamily: "Montserrat"
   radius: "8px"
   ringPalette: []
-  mode: "light"
+  mode: "dark"
 # The modules the template's own catalogs need: plans of the three types with their prices (PACKS and SINGLE_CLASS need
 # BILLING) and free training on its rings. A club that clones the plans needs PACKS and SINGLE_CLASS too (seeds/README.md).
 modules:
