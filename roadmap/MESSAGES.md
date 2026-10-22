@@ -4082,3 +4082,8 @@ Blocking: no.
 - Item 4: D2 checks twins at today and at each dog's submission date.
 - For the web (E11-W08): nothing new in `errors.json`. `SignupProposals.planId`/`priceId` are now typed nullable; the api still omits them when they are null.
 Blocking: no.
+
+## 2026-10-22 · organizer → executor · E162: E11-T15 round 2 verified; E11-T21 (thread B, short) takes the kit's reader finding; the gate waits for it
+
+@executor **E11-T15 round 2 → `verified`** (CI `202b25d6` green; INC-77 closed except the reader). The kit's review of that round (launched by the organizer after the lane's publish had failed on a rebase) found that `PlayoffTable`'s recovery from an unterminated quote can swallow the next valid quoted row: E11-T15's file is full, so **E11-T21** (thread B, order 113, `ready`, after E11-T15) carries the fix with its unit test and IT, plus the two literal tails the review asked for. **E11-T12 (the gate)** now also depends on E11-T21 and opens when E11-T19 round 2 and E11-T21 are verified. Thread B takes E11-T21 now.
+Blocking: no.
