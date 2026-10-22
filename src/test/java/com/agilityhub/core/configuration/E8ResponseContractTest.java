@@ -301,7 +301,7 @@ class E8ResponseContractTest {
         expected.put(PaymentMethodType.class, "SEPA_DD,CARD,MANUAL"); expected.put(CollectionProvider.class, "SEPA_XML,STRIPE,MANUAL");
         expected.put(CollectionStatus.class, "CREATED,SUBMITTED,SUCCEEDED,FAILED,REFUNDED"); expected.put(RemittanceStatus.class, "GENERATED,SUBMITTED,ROLLED_BACK");
         expected.put(BillingRunStatus.class, "GENERATED,CHARGING,COMPLETED,ROLLED_BACK");
-        expected.put(BillingIncidentCode.class, "NO_BANK_ACCOUNT,NO_PLAN,NO_PRICE,CARD_INVALID,CURRENCY_MISMATCH,PROVIDER_DISABLED,MEMBER_NOT_ACTIVE,PAYMENT_METHOD_CHANGED,NO_NEXT_INVOICE_DATE");
+        expected.put(BillingIncidentCode.class, "NO_BANK_ACCOUNT,NO_PLAN,NO_PRICE,CARD_INVALID,CURRENCY_MISMATCH,PROVIDER_DISABLED,MEMBER_NOT_ACTIVE,PAYMENT_METHOD_CHANGED,NO_NEXT_INVOICE_DATE,NO_PAYMENT_METHOD,MANDATE_PENDING");
         expected.put(RollbackBlocker.class, "REMITTANCE_SUBMITTED,COLLECTION_SUBMITTED,INVOICE_PAID,MANUAL_INVOICE_AFTER,COLLECTION_DATE_PASSED");
         expected.put(UpfrontConcept.class, "ENTRY_FEE,FIRST_MONTH,PACK,SINGLE_CLASS,ACTIVITY,OTHER"); expected.put(UpfrontStatus.class, "DUE,CHECKOUT_PENDING,PARTIAL,PAID,CANCELLED,REFUNDED");
         expected.put(UpfrontProvider.class, "STRIPE,MANUAL"); expected.put(ManualChannel.class, "CASH,TRANSFER,BIZUM");

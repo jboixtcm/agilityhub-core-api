@@ -131,6 +131,11 @@ public class LeaveRequestService {
         census.members.lock(); var member = census.mutableMember(id);
         if (!"LEFT".equals(member.status)) { throw new ApiException(ErrorCode.MEMBER_NOT_LEFT); }
         if (census.enabled(Module.BILLING) && (planId == null || priceId == null || nextInvoiceDate == null)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        // R-13-16, E11-T15 round 2 (N1, ruling E156): never a date before the club's current month — S12's catch-up would bill every
+        // month the member was LEFT (D10's drawer used to pre-fill the old one). The plan change's bound (MemberPlanChangeService).
+        if (census.enabled(Module.BILLING) && nextInvoiceDate.isBefore(today().withDayOfMonth(1))) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("fieldErrors", List.of(Map.of("field", "nextInvoiceDate", "code", "INVALID_VALUE"))));
+        }
         if (planId != null && priceId != null && !planId.equals(census.references.price(priceId).get("planId"))) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         // Complete the previous leave before reactivation can make its delayed consumer obsolete.
         for (var dog : census.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("memberId").is(id).and("status").ne("INACTIVE"))) {

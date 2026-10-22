@@ -32,11 +32,33 @@ public final class PlayoffTable {
             return csv(Files.readString(file));
         } catch (IOException | IllegalArgumentException failure) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
     }
-    public static List<List<String>> csv(String text) {
+    /** The file's rows; a stray quote anywhere refuses the whole file (`INPUT_SCHEMA_MISMATCH`). */
+    public static List<List<String>> csv(String text) { return parse(text, false); }
+    /**
+     * E11-T15 round 2 (S18 R-18-11b): the same rows, but a row a stray quote breaks (a quote inside an unquoted value, text after
+     * a closing quote, a quote never closed) comes back as {@code null} and the reading goes on at the next line, so one bad row
+     * of an auxiliary file never takes the file with it. The caller reports the null rows.
+     */
+    public static List<List<String>> csvRows(String text) { return parse(text, true); }
+    /** {@link #read}, with {@link #csvRows}'s per-row recovery for a CSV file. */
+    public static List<List<String>> readRows(Path file) {
+        if (file.toString().endsWith(".xlsx")) { return read(file); }
+        try { return csvRows(Files.readString(file)); }
+        catch (IOException | IllegalArgumentException failure) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
+    }
+    private static List<List<String>> parse(String text, boolean lenient) {
         var rows = new ArrayList<List<String>>(); var fields = new ArrayList<String>(); var value = new StringBuilder();
-        boolean quoted = false, closed = false;
+        boolean quoted = false, closed = false; int opened = -1;
         char delimiter = text.lines().findFirst().orElse("").contains(";") ? ';' : ',';
-        for (int i = text.startsWith("\uFEFF") ? 1 : 0; i < text.length(); i++) {
+        int i = text.startsWith("\uFEFF") ? 1 : 0;
+        while (true) {
+            if (i >= text.length()) {
+                if (!quoted) { break; }
+                if (!lenient) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
+                // A quote never closed: its row is broken; the lines it swallowed are read again from the next line on.
+                rows.add(null); fields.clear(); value.setLength(0); quoted = false; closed = false; i = nextLine(text, opened);
+                continue;
+            }
             char ch = text.charAt(i);
             if (quoted) {
                 if (ch == '"') {
@@ -49,15 +71,24 @@ public final class PlayoffTable {
                     rows.add(List.copyOf(fields)); fields.clear();
                     if (ch == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') { i++; }
                 }
-            } else if (ch == '"' && value.isEmpty() && !closed) { quoted = true; }
-            else {
-                if (closed || ch == '"') { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
-                value.append(ch);
+            } else if (ch == '"' && value.isEmpty() && !closed) { quoted = true; opened = i; }
+            else if (closed || ch == '"') {
+                if (!lenient) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
+                rows.add(null); fields.clear(); value.setLength(0); closed = false; i = nextLine(text, i);
+                continue;
             }
+            else { value.append(ch); }
+            i++;
         }
-        if (quoted) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
         if (!fields.isEmpty() || !value.isEmpty() || closed) { fields.add(value.toString()); rows.add(List.copyOf(fields)); }
         return rows;
+    }
+    /** The index just after the line break that ends the line holding {@code at} (the text's length on the last line). */
+    private static int nextLine(String text, int at) {
+        int i = at;
+        while (i < text.length() && text.charAt(i) != '\n' && text.charAt(i) != '\r') { i++; }
+        if (i < text.length() && text.charAt(i) == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') { i++; }
+        return Math.min(text.length(), i + 1);
     }
     public static void write(Path file, List<List<String>> rows) throws IOException {
         if (file.toString().endsWith(".xlsx")) {

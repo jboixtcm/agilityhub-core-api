@@ -23,7 +23,8 @@ public final class BillingRequests {
     public record BillingRunRequest(@NotBlank @Schema(pattern = BillingContracts.MONTH) String period, @NotBlank @Schema(format = "uuid") String simulationId,
             @Schema(requiredMode = NOT_REQUIRED, description = "Default: billing.sepa.collectionDayOfMonth of the billed month (R-12-12)") LocalDate collectionDate) { }
     public record RollbackRequest(@NotBlank @Size(max = 500) String reason,
-            @NotBlank @Schema(description = "The word D6's confirmation dialog asks to type (R-12-14)") String confirmation) { }
+            @NotBlank @Schema(description = "The word D6's confirmation dialog asks to type (R-12-14): RETROCEDIR, or FITXER_NO_ENVIAT when the "
+                    + "file was never sent to the bank — it lifts only COLLECTION_DATE_PASSED (E156)") String confirmation) { }
     public record SubmissionRequest(@NotNull @Schema(description = "The club-local day the XML was uploaded to the bank (R-12-15)") LocalDate submittedAt) { }
     public record ManualInvoiceLine(@NotBlank @Size(max = 140) String description, @NotNull @Valid Money base,
             @NotNull @DecimalMin("0") @DecimalMax("100") BigDecimal taxPercent) { }

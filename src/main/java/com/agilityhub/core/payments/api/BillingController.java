@@ -139,12 +139,14 @@ public class BillingController {
     @PostMapping("/api/v1/billing/runs/{id}/rollback")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, RUN_NOT_ROLLBACKABLE, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
     @Operation(summary = "rollbackBillingRun", description = ROLES + "R-12-14 [Retrocedeix la remesa] with the typed confirmation (exactly "
-            + "RETROCEDIR, otherwise 400 VALIDATION_ERROR): one transaction under the billing lock — every invoice of the run rolled back (the "
+            + "RETROCEDIR, or FITXER_NO_ENVIAT for a file that never reached the bank — E156: it lifts only COLLECTION_DATE_PASSED; anything "
+            + "else → 400 VALIDATION_ERROR; the audit entry records the word): one transaction under the billing lock — every invoice of the run rolled back (the "
             + "live ones CANCELLED{ROLLBACK}; one the admin cancelled meanwhile keeps its reason), a new FAILED{ROLLBACK} "
             + "collection each, remittance ROLLED_BACK (file kept), the numbering given back, each member's nextInvoiceDate restored, "
             + "PendingCharge.invoiceId cleared; RemittanceRolledBack, InvoiceCancelled each, one REMITTANCE_ROLLED_BACK audit entry. The month can "
             + "then be simulated and generated again with the same numbers. Not allowed → 409 RUN_NOT_ROLLBACKABLE {reasons[]: REMITTANCE_SUBMITTED · "
-            + "COLLECTION_SUBMITTED · INVOICE_PAID · MANUAL_INVOICE_AFTER (an invoice numbered after the run)}; a run already rolled back → 409 "
+            + "COLLECTION_SUBMITTED · INVOICE_PAID · MANUAL_INVOICE_AFTER (an invoice numbered after the run) · COLLECTION_DATE_PASSED (a GENERATED "
+            + "remittance on or after its collection date, club-local; with FITXER_NO_ENVIAT it is not listed)}; a run already rolled back → 409 "
             + "RUN_NOT_ROLLBACKABLE {reasons: []}." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "RollbackResult", useReturnTypeSchema = true))
     public RollbackResult rollbackBillingRun(@PathVariable String id, @Valid @RequestBody RollbackRequest request,

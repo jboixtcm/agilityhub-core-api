@@ -89,4 +89,19 @@ class DemoBillingSeedIT extends AbstractIntegrationTest {
         var saved = snapshot(); seed("canic"); seed("fifo");
         assertThat(snapshot()).isEqualTo(saved);
     }
+
+    /**
+     * E11-T15 round 2 (N8, ruling E156): `bin/e8-smoke` bills the month after the day it runs. A demo seeded after its reference
+     * month must not leave every monthly member a month behind (the step-4 catch-up then bills two months: Oct + Nov, 287 lines):
+     * the first date is the 1st of the month after the club's today, never earlier than the reference month's.
+     */
+    @Test void E156_aDemoSeededAfterItsReferenceMonthBillsOnlyTheNextMonth() {
+        clock.setInstant(Instant.parse("2026-10-22T10:00:00Z"));
+        command.run(new DefaultApplicationArguments("--club=canic", "--seed=42", "--week-start=2026-10-26"));
+        var monthly = new HashSet<String>();
+        mongo.find(Query.query(Criteria.where("clubId").is(club).and("type").is("MONTHLY")), Document.class, "plans").forEach(p -> monthly.add(p.getString("_id")));
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(club).and("status").is("ACTIVE")), Document.class, "members"))
+                .filteredOn(m -> monthly.contains(m.getString("planId"))).isNotEmpty()
+                .allSatisfy(m -> assertThat(m.get("nextInvoiceDate").toString()).isEqualTo("2026-11-01"));
+    }
 }

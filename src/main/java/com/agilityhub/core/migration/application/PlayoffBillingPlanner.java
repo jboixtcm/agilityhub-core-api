@@ -119,7 +119,8 @@ public class PlayoffBillingPlanner {
                 String memberId = bySource.get(required(row, "memberId")); if (memberId == null) { throw invalid(); }
                 if (!YearMonth.parse(required(row, "period")).equals(YearMonth.from(cutover).plusMonths(1))) { throw invalid(); }
                 forecast.merge(memberId, amount(required(row, "total")), Math::addExact);
-            } catch (RuntimeException invalid) { add(rows, row, "reconciliation", "ERROR", "INPUT_SCHEMA_MISMATCH"); }
+            // R-18-11b (E11-T15 round 2, N6): `previsio.csv` only feeds the reconciliation; an unreadable row is skipped with a warning.
+            } catch (RuntimeException invalid) { add(rows, row, "reconciliation", "WARNING", "INPUT_SCHEMA_MISMATCH"); add(rows, row, "reconciliation", "SKIPPED", ""); }
         }
         return new Plan(List.copyOf(receipts), List.copyOf(packs), Map.copyOf(forecast), List.copyOf(rows), Map.copyOf(counters));
     }

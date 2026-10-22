@@ -188,8 +188,8 @@ public class PlayoffPlanner {
         }
         /**
          * E146 (E11-T15 step 3, R-18-13): the optional `pagat_fins.csv` — a record's last month Playoff charged (`YYYY-MM`, or a day of
-         * it, ISO or `d/M/uuuu`). A joined record's row counts for its principal; the latest month wins. An unknown record or an
-         * unreadable value is a `MAPPING_INVALID` warning and the default date stays.
+         * it, ISO or `d/M/uuuu`), by source record; the latest month wins. An unknown record or an unreadable value is a
+         * `MAPPING_INVALID` warning and the default date stays. {@link #paidUntilOf} reads it per member.
          */
         void paidUntil(Set<String> sourceIds) {
             for (var row:input.files().getOrDefault("paidUntil",List.of())) {
@@ -197,8 +197,16 @@ public class PlayoffPlanner {
                 try { month=row.get("paidUntil").matches("[0-9]{4}-[0-9]{2}") ? YearMonth.parse(row.get("paidUntil")) : YearMonth.from(Objects.requireNonNull(date(row.get("paidUntil")))); }
                 catch (RuntimeException unreadable) { month=null; }
                 if (month==null || !sourceIds.contains(source)) { incident(row,"members","WARNING","MAPPING_INVALID"); continue; }
-                paidUntil.merge(joins.getOrDefault(source,source),month,(a,b) -> a.isAfter(b) ? a : b);
+                paidUntil.merge(source,month,(a,b) -> a.isAfter(b) ? a : b);
             }
+        }
+        /**
+         * E11-T15 round 2 (the kit's review 1, E156): the member's «paid until» is the latest month over every record that lands on it
+         * — a `persones.csv` join, a same-NIF record (one per dog), an alias of an earlier load — not only the record that creates it.
+         */
+        YearMonth paidUntilOf(String source,String memberId) {
+            return paidUntil.entrySet().stream().filter(e -> e.getKey().equals(source) || memberId!=null && memberId.equals(destinations.get(e.getKey())))
+                    .map(Map.Entry::getValue).max(Comparator.naturalOrder()).orElse(null);
         }
         /** R-18-12: a record left without account proposes a family group with the account holder, unless they already share one. */
         void proposals() {
@@ -294,7 +302,9 @@ public class PlayoffPlanner {
                     String kept=string(previousPayment.get("mandateRef"));
                     String reference=census.usableMandateRef(kept) ? kept : number==null ? null : census.mandateRef(config.club().slug(),number);
                     payment.put("mandateRef",reference);
-                    payment.put("mandateSignedAt",reference==null ? null : previousPayment.getOrDefault("mandateSignedAt",instant(today)));
+                    // Round 2 (the kit's review 3): a stored null signature (a NUMBER_CONFLICT load) is no signature — the new reference is
+                    // signed on the cut-over, never left unsigned for the SEPA writer to refuse.
+                    payment.put("mandateSignedAt",reference==null ? null : Objects.requireNonNullElse(previousPayment.get("mandateSignedAt"),instant(today)));
                     // Other clubs can supply their original mandate; the Cànic's export carries none (R-18-08).
                     var mandate = input.files().getOrDefault("mandates", List.of()).stream().filter(m -> m.get("memberId").equals(row.get("id"))).findFirst();
                     if (mandate.isPresent() && !mandate.get().get("mandateRef").isEmpty()) {
@@ -310,7 +320,7 @@ public class PlayoffPlanner {
                     payment.put("holderTaxId",document.isEmpty() ? null : document);
                 }
                 fields.put("paymentMethod",payment);
-                Set<String> roles=new HashSet<>(Set.of("MEMBER")); linkPlan(row,fields,roles);
+                Set<String> roles=new HashSet<>(Set.of("MEMBER")); linkPlan(row,memberId,fields,roles);
                 for (var team:input.files().get("team")) {
                     if (team.get("number").equals(row.get("number"))) {
                         if (!Set.of("MEMBER","INSTRUCTOR","ADMIN").contains(team.get("role"))) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
@@ -401,7 +411,7 @@ public class PlayoffPlanner {
             } }
             return values;
         }
-        void linkPlan(PlayoffInput.Row row,Map<String,Object> fields,Set<String> roles) {
+        void linkPlan(PlayoffInput.Row row,String memberId,Map<String,Object> fields,Set<String> roles) {
             var matches=input.files().get("plans").stream().filter(r -> r.get("id").equals(row.get("id"))).toList();
             fields.put("planId",null); fields.put("priceId",null); fields.put("nextInvoiceDate",null);
             if (matches.size()!=1) { warn(row,"PLAN_UNMAPPED"); return; }
@@ -418,7 +428,7 @@ public class PlayoffPlanner {
             if (monthly && "ACTIVE".equals(fields.get("status"))) {
                 // R-18-13: the 1st of the month after the cut-over; E146 (E11-T15 step 3): later when Playoff already charged the member
                 // further (`pagat_fins.csv`: paid until M → the 1st of M + 1), never earlier.
-                var first=today.withDayOfMonth(1).plusMonths(1); var paid=paidUntil.get(row.get("id"));
+                var first=today.withDayOfMonth(1).plusMonths(1); var paid=paidUntilOf(row.get("id"),memberId);
                 if (paid!=null && paid.plusMonths(1).atDay(1).isAfter(first)) { first=paid.plusMonths(1).atDay(1); }
                 fields.put("nextInvoiceDate",first.toString());
             }

@@ -134,7 +134,14 @@ public class InvoicingService {
             try { type = PaymentMethodType.valueOf(method.type()); } catch (IllegalArgumentException unknown) { type = null; }
         }
         return new InvoicingRules.Member(member.id(), member.status(), member.nextInvoiceDate(), type, method != null && method.bankAccount(),
-                method != null && method.cardInvalid(), member.planId());
+                method != null && method.cardInvalid(), member.planId(), method != null && usableMandate(method));
+    }
+    /**
+     * E11-T15 round 2 (N4, ruling E156; R-12-12): a reference the pain.008 can carry (`Max35Text`, the SEPA set) and a signature —
+     * what {@code SepaRemittanceWriter} requires of the current mandate. Without it the member is `MANDATE_PENDING`.
+     */
+    static boolean usableMandate(BillingCensusAccess.PaymentMethod method) {
+        return com.agilityhub.core.payments.application.sepa.Pain008Document.valid(method.mandateRef()) && method.mandateSignedAt() != null;
     }
     private Map<String, List<PendingCharge>> unbilled(Collection<String> memberIds) {
         return charges.unbilled(memberIds).stream().collect(Collectors.groupingBy(PendingCharge::memberId, LinkedHashMap::new, Collectors.toList()));

@@ -173,8 +173,11 @@ class PlayoffAdapterTest {
         when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(new MigrationReport(true,List.of()));
         command.run(new DefaultApplicationArguments("input","--dry-run"));
         verify(importer).importDirectory(Path.of("input"),mapping,"club",true,false,false);
-        env.setActiveProfiles("prod");command.run(new DefaultApplicationArguments("input","--confirm-production","--club=sample","--env=staging"));
-        verify(importer).importDirectory(Path.of("input"),mapping,"club",false,true,true);
+        // E11-T15 round 2 (N5): a production load names its cut-over (see the test below).
+        when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean(),any())).thenReturn(new MigrationReport(true,List.of()));
+        env.setActiveProfiles("prod");command.run(new DefaultApplicationArguments("input","--confirm-production","--club=sample","--env=staging","--cut-over=2026-11-01"));
+        verify(importer).importDirectory(Path.of("input"),mapping,"club",false,true,true,java.time.LocalDate.of(2026,11,1));
+        env.setActiveProfiles("test");
         for(String[] args:List.of(new String[]{},new String[]{"input","--bad"},new String[]{"input","--dry-run=true"},new String[]{"input","--club"},
                 new String[]{"input","--club="},new String[]{"input","--env=unknown"},new String[]{"input","--club=a","--club=b"})) {
             assertThatThrownBy(() -> command.run(new DefaultApplicationArguments(args))).isInstanceOf(IllegalArgumentException.class);
@@ -226,5 +229,72 @@ class PlayoffAdapterTest {
         verify(importer).importDirectory(Path.of("input"),mapping,"club",true,false,false,java.time.LocalDate.of(2026,9,1));
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--in=input","--club=canic","--cut-over=01/09/2026"))).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--in=input","--club=canic","--apply","--dry-run"))).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    /**
+     * E11-T15 round 2 (N5, ruling E156; S18 R-18-13, R-18-17): the cut-over fixes every migrated member's first `nextInvoiceDate`.
+     * A production load that falls back to the club's today (a 31-10 load would bill November to every monthly member) is refused,
+     * naming the flag, before anything is read; the production dry run and the staging load keep the default.
+     */
+    @Test void R_18_13_E156_aProductionLoadNeedsAnExplicitCutOver() throws Exception {
+        var importer=mock(PlayoffImportService.class);var clubs=mock(MigrationClubAccess.class);var env=new MockEnvironment();var reset=mock(MigrationResetService.class);
+        var command=new PlayoffCommand(importer,clubs,env,reset); when(clubs.resolve(anyString())).thenReturn("club");
+        when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(new MigrationReport(true,List.of()));
+        when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean(),any())).thenReturn(new MigrationReport(false,List.of()));
+        for (String[] args:List.of(new String[]{"input","--apply","--env=production","--confirm-production"},new String[]{"input","--env=production","--confirm-production"})) {
+            assertThatThrownBy(() -> command.run(new DefaultApplicationArguments(args))).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("--cut-over");
+        }
+        env.setActiveProfiles("prod");
+        assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("input","--confirm-production"))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("--cut-over");
+        verifyNoInteractions(importer);
+        command.run(new DefaultApplicationArguments("input","--dry-run"));
+        verify(importer).importDirectory(Path.of("input"),mapping,"club",true,true,false);
+        command.run(new DefaultApplicationArguments("input","--confirm-production","--cut-over=2026-11-01"));
+        verify(importer).importDirectory(Path.of("input"),mapping,"club",false,true,true,java.time.LocalDate.of(2026,11,1));
+        env.setActiveProfiles("test");
+        command.run(new DefaultApplicationArguments("input","--apply"));
+        verify(importer).importDirectory(Path.of("input"),mapping,"club",false,false,false);
+    }
+
+    /**
+     * E11-T15 round 2 (the kit's review 2, N6; ruling E156; S18 R-18-11b): in `rebuts.csv`, `packs.csv`, `previsio.csv`, `mandats.csv`
+     * and `pagat_fins.csv` one short or long row, or one a stray quote breaks, is `WARNING INPUT_SCHEMA_MISMATCH` on its line and is
+     * skipped: the rest of the file is read and the load is not refused. The header still decides the file (a missing column is
+     * an error), and the census keeps its rule — one `socis.csv` row is one person, so a broken row there is an error.
+     */
+    @Test void R_18_11b_E156_oneBadRowOfAnAuxiliaryFileIsAWarningAndTheRestOfTheFileIsRead() throws Exception {
+        var dir=copy();
+        Files.writeString(dir.resolve("rebuts.csv"),"Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                +"good;1;1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n"
+                +"short;1;2;2026-08-01;Fictional fee;10,00;Pagado\n"
+                +"long;1;3;2026-08-01;Fictional fee;10,00;Pagado;MANUAL;extra\n"
+                +"quote;1;4;2026-08-01;Fictional \"fee\";10,00;Pagado;MANUAL\n"
+                +"after;1;5;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
+        Files.writeString(dir.resolve("previsio.csv"),"Member ID;Period;Total\n1;2026-10;60,00\n\"2;2026-10;60,00\n");
+        Files.writeString(dir.resolve("pagat_fins.csv"),"Member ID;Paid until\n1\n2;2026-12\n");
+        var input=PlayoffInput.read(dir,mapping);
+        assertThat(input.files().get("receipts")).extracting(row -> row.get("id")).containsExactly("good","after");
+        assertThat(input.files().get("forecast")).extracting(row -> row.get("memberId")).containsExactly("1");
+        assertThat(input.files().get("paidUntil")).extracting(row -> row.get("memberId")).containsExactly("2");
+        assertThat(input.incidents()).extracting(MigrationReport.Entry::file,MigrationReport.Entry::row,MigrationReport.Entry::outcome,MigrationReport.Entry::code)
+                .containsExactlyInAnyOrder(tuple("forecast",3,"WARNING","INPUT_SCHEMA_MISMATCH"),tuple("paidUntil",2,"WARNING","INPUT_SCHEMA_MISMATCH"),
+                        tuple("receipts",3,"WARNING","INPUT_SCHEMA_MISMATCH"),tuple("receipts",4,"WARNING","INPUT_SCHEMA_MISMATCH"),tuple("receipts",5,"WARNING","INPUT_SCHEMA_MISMATCH"));
+        assertThat(new MigrationReport(true,input.incidents()).hasErrors()).isFalse();
+        // The header decides the file: a missing column is still an error.
+        Files.writeString(dir.resolve("rebuts.csv"),"Receipt ID;Member ID\ngood;1\n");
+        assertThat(PlayoffInput.read(dir,mapping).incidents()).anySatisfy(e -> {
+            assertThat(e.file()).isEqualTo("receipts"); assertThat(e.outcome()).isEqualTo("ERROR");
+        });
+        // The census keeps one row = one person: a broken socis.csv row refuses the load.
+        Files.delete(dir.resolve("rebuts.csv"));
+        var socis=PlayoffTable.read(dir.resolve("socis.csv")); socis.set(1,new ArrayList<>(socis.get(1))); socis.get(1).removeLast();
+        PlayoffTable.write(dir.resolve("socis.csv"),socis);
+        assertThat(PlayoffInput.read(dir,mapping).incidents()).anySatisfy(e -> {
+            assertThat(e.file()).isEqualTo("members"); assertThat(e.row()).isEqualTo(2); assertThat(e.outcome()).isEqualTo("ERROR");
+        });
+        // The strict reader is unchanged for every other caller; the lenient one gives a broken row back as null.
+        assertThat(PlayoffTable.csvRows("a;b\n1;\"x\"y\n\"open;2\n3;4\n")).containsExactly(List.of("a","b"),null,null,List.of("3","4"));
+        assertThat(PlayoffTable.csvRows("a;b\n1;2\n\"open")).containsExactly(List.of("a","b"),List.of("1","2"),null);
     }
 }

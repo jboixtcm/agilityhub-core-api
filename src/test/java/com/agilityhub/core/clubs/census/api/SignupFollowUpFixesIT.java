@@ -397,6 +397,38 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         firstMonth(changed.path("firstMonth"),"TODAY","FULL","2026-01-05",8000);
     }
 
+    /**
+     * E11-T15 round 2 (N3, ruling E156; S04 §3, R-04-15, S12 R-12-01/02): when the validation charges a first month (its FIRST_MONTH
+     * row), the next receipt starts the month after it — else the catch-up of S12 would bill that month again (16-11 → [11, 12]).
+     * The dry run and the validation refuse an earlier date with `400 VALIDATION_ERROR {fieldErrors: [nextInvoiceDate]}`, writing
+     * nothing; D2's own proposal passes. Without a FIRST_MONTH row the bound stays the first month's start.
+     */
+    @Test void R_04_15_E156_aFirstMonthPaidAtTheValidationIsNeverBilledAgain() throws Exception {
+        clock.setInstant(Instant.parse("2026-11-16T09:00:00Z"));
+        String id=submit(request()).path("memberId").asText();
+        var dry=dryRun(id,null);
+        assertThat(dry.path("upfront").path("lines").findValuesAsText("concept")).contains("FIRST_MONTH");
+        assertThat(dry.path("nextInvoiceDate").asText()).isEqualTo("2026-12-01");
+        for(String early:List.of("2026-11-16","2026-11-30")) {
+            var body=validation(id,null);body.put("nextInvoiceDate",early);
+            body.put("upfrontAmountPaid",mapper.convertValue(dry.at("/upfront/totalDue"),Map.class));
+            for(var refused:List.of(result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),400),result(admin(postJson("/members/"+id+"/validation",body)),400))) {
+                assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+                assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("nextInvoiceDate");
+                assertThat(refused.at("/details/fieldErrors/0/code").asText()).isEqualTo("INVALID_VALUE");
+            }
+            assertThat(member(id).getString("status")).isEqualTo("PENDING");
+        }
+        validate(id);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");
+        assertThat(String.valueOf(member(id).get("nextInvoiceDate"))).isEqualTo("2026-12-01");
+        // Submitted while BILLING was off: no FIRST_MONTH row, so the first month's own start is accepted, as before.
+        billing(false);String unpaid=submit(request()).path("memberId").asText();billing(true);
+        var body=validation(unpaid,null);body.put("nextInvoiceDate","2026-11-16");
+        result(admin(postJson("/members/"+unpaid+"/validation",body)),200);
+        assertThat(String.valueOf(member(unpaid).get("nextInvoiceDate"))).isEqualTo("2026-11-16");
+    }
+
     // ---- E3-T15 (review of E3-T12 round 2, R-04-20): a failure-safe recipient-cap admission ----
     /**
      * Runs {@code body} while the first {@code failures} admission writes of this club fail, as a lost Mongo primary would

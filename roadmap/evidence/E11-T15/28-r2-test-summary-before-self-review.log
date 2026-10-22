@@ -1,0 +1,15 @@
+surefire: 454 classes, tests 4856, failures 0, errors 0, skipped 0
+  ArchitectureTest: tests 22, failures 0, errors 0, skipped 0
+  E8ResponseContractTest: tests 11, failures 0, errors 0, skipped 0
+  PlayoffAdapterTest: tests 9, failures 0, errors 0, skipped 0
+  InvoicingRulesTest: tests 19, failures 0, errors 0, skipped 0
+  SepaCreditorIdentifierTest: tests 1, failures 0, errors 0, skipped 0
+failsafe: 168 classes, tests 2237, failures 0, errors 0, skipped 0
+  LifecycleIT: tests 46, failures 0, errors 0, skipped 0
+  SignupFollowUpFixesIT: tests 15, failures 0, errors 0, skipped 0
+  SignupGateFixesIT: tests 25, failures 0, errors 0, skipped 0
+  SignupMinorFixesIT: tests 23, failures 0, errors 0, skipped 0
+  DemoBillingSeedIT: tests 2, failures 0, errors 0, skipped 0
+  OpenApiSnapshotTest: tests 12, failures 0, errors 0, skipped 0
+  PlayoffMigrationIT: tests 46, failures 0, errors 0, skipped 0
+  RemittancesIT: tests 16, failures 0, errors 0, skipped 0

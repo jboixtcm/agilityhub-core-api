@@ -1033,6 +1033,32 @@ runbook (E12-T02). They are rules of the specs, not defects:
   `packs.csv`.** Their headings in `playoff-v2.yaml` have never been checked
   against a real export. Since E11-T15 a row the importer cannot read is a
   warning and is skipped, but a missing column still refuses the file.
+- **`--cut-over` is mandatory in production** (round 2, E156):
+  `migration:playoff --apply --env production` without it is refused before
+  anything is read. The production `--dry-run` keeps the club's today.
+- **Resolve every `NUMBER_CONFLICT` on an ACTIVE SEPA record in Playoff before
+  the real cut-over.** Such a record is loaded without a mandate
+  (`MANDATE_PENDING`). The rehearsal's simulation lists each one as a
+  `MANDATE_PENDING` incident and the run skips it (E156). Fix the number in
+  Playoff and load again: the member gets `{slug}-{number}-1`, signed on the
+  cut-over.
+- **`previsio.csv` is optional.** It only feeds the reconciliation (R-18-13).
+  One unreadable row of it, or one short, long or broken row of `rebuts.csv`,
+  `packs.csv`, `mandats.csv` or `pagat_fins.csv`, is a warning on its line and is
+  skipped (E156). A broken `socis.csv` row is still an error.
+- **`pagat_fins.csv` may name any record of a person** (one record per dog, a
+  `persones.csv` join): the member takes the latest month over all of them.
+- **Members without a bank account accumulate months.** A `NO_BANK_ACCOUNT`
+  member (26 in the export of 07-09) is skipped every month until its IBAN
+  arrives; the next run then bills every month since its `nextInvoiceDate`
+  (E11-T15 step 4). To forgive months, move the date with
+  `PUT /api/v1/members/{id}/next-invoice-date` (audited, with its reason).
+- **A family holder without a payment method holds its whole group**
+  (`NO_PAYMENT_METHOD`, E156): nobody in the group is billed until the holder
+  has a method, then the holder's receipt carries every pending month.
+- **A file that never reached the bank** can still be rolled back after its
+  collection date: type `FITXER_NO_ENVIAT` instead of `RETROCEDIR` (E156). It
+  lifts only `COLLECTION_DATE_PASSED`; the audit entry records the word.
 
 `staging`/`prod` require both sets of bucket, region and credentials; missing
 values fail startup with a missing-configuration error, even when `local` is also

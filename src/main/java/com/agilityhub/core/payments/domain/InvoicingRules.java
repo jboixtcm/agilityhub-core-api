@@ -23,16 +23,17 @@ import java.util.*;
  * is skipped (`NO_PRICE`), never invented. `PACK` → no periodic line. Every unbilled `PendingCharge` → one `SINGLE_CLASS` line
  * (they only exist for single classes). Total 0 or no line → no invoice, the date still advances.</li>
  * <li>R-12-04: with `FAMILY_GROUP` the holder pays: a non-holder gets no invoice; its inactivity fee and single classes are
- * separate lines on the holder's invoice, and its date advances with the holder's. A holder without a payment method or past
- * its last billed month pays for nobody: the members are billed on their own (E11-T15).</li>
+ * separate lines on the holder's invoice, and its date advances with the holder's. A holder past its last billed month pays for
+ * nobody: the members are billed on their own (E11-T15). A holder without a payment method keeps its group and is the incident
+ * `NO_PAYMENT_METHOD`; nobody's date moves, so its catch-up bills those months once the method returns (round 2, E156).</li>
  * <li>R-12-05: a `MANUAL` member of a `MONTHLY` plan with `billing.cashInvoicing = SEMESTER` gets one invoice with a line per
  * month from `month(nextInvoiceDate)` (never before the start of `M`'s natural period) to the end of `M`'s natural period of
  * `billing.cashPeriodMonths` (January–June, July–December), capped at the last month a leaving member is billed; its date
  * goes to the first month of the next period. `MONTHLY` cash is one line a month, like any other method.</li>
  * <li>R-12-06: the date advances to `billing.nextInvoiceDayOfMonth` of `M + 1` (clamped to the month's length).</li>
  * <li>R-12-07, R-12-28: a member whose provider is not enabled (`PROVIDER_DISABLED`), a `SEPA_DD` without an account
- * (`NO_BANK_ACCOUNT`), an invalid card (`CARD_INVALID`), a price in another currency (`CURRENCY_MISMATCH`) is skipped with
- * that incident — only when there is something to bill.</li>
+ * (`NO_BANK_ACCOUNT`), a `SEPA_DD` without a usable mandate (`MANDATE_PENDING`, E156), an invalid card (`CARD_INVALID`), a
+ * price in another currency (`CURRENCY_MISMATCH`) is skipped with that incident — only when there is something to bill.</li>
  * </ul>
  */
 public final class InvoicingRules {
@@ -48,9 +49,17 @@ public final class InvoicingRules {
             boolean familyGroups, boolean inactivity, boolean singleClass, Set<PaymentMethodType> enabledMethods) {
         public Settings { enabledMethods = Set.copyOf(enabledMethods); }
     }
-    /** `method` null = no payment method; `bankAccount` = an IBAN (clear or encrypted); `cardInvalid` = R-12-22. */
+    /**
+     * `method` null = no payment method; `bankAccount` = an IBAN (clear or encrypted); `cardInvalid` = R-12-22; `mandate` = a
+     * `SEPA_DD` mandate the file can carry, with its signature (R-12-12; E156).
+     */
     public record Member(String id, String status, LocalDate nextInvoiceDate, PaymentMethodType method, boolean bankAccount, boolean cardInvalid,
-            String planId) { }
+            String planId, boolean mandate) {
+        /** A member whose mandate (if any) is usable. */
+        public Member(String id, String status, LocalDate nextInvoiceDate, PaymentMethodType method, boolean bankAccount, boolean cardInvalid, String planId) {
+            this(id, status, nextInvoiceDate, method, bankAccount, cardInvalid, planId, true);
+        }
+    }
     public record Plan(String id, PlanType type, boolean maintenance, String name) { }
     public record Price(String id, Money amount, BigDecimal taxPercent) { }
     /** An unbilled, unvoided `PendingCharge`: its frozen description (R-12-25) and the tax of its price. */
@@ -126,11 +135,14 @@ public final class InvoicingRules {
                 var holder = byId.get(group.holderMemberId());
                 // R-03-20 (INC-38, E11-T10): a holder who is not ACTIVE pays for nobody; the others are billed on their own.
                 if (holder == null || !"ACTIVE".equals(holder.status())) { continue; }
-                // R-12-04, S13 R-13-11 (E11-T15, the audit of 21-10): neither does a holder without a payment method or past its last
-                // billed month (a leaving holder is still ACTIVE when the month after its leave is billed). A holder that is only not
-                // due keeps its group: the holder's date governs the group's (R-12-06).
+                // R-12-04, S13 R-13-11 (E11-T15, the audit of 21-10): neither does a holder past its last billed month (a leaving
+                // holder is still ACTIVE when the month after its leave is billed). A holder that is only not due keeps its group: the
+                // holder's date governs the group's (R-12-06). Round 2 (E156): so does a holder without a payment method — it is an
+                // incident, its members wait with it, and its catch-up bills the family's months once the method returns.
                 var holderGate = gate(holder, period, due(holder, period) || hasCharges(holder, settings, sources), sources);
-                if (holderGate == Exclusion.NO_PAYMENT_METHOD || holderGate == Exclusion.AFTER_LEAVE) { continue; }
+                // The leave wins over the missing method (gate checks the method first): a leaver's group is never held.
+                boolean pastLeave = sources.lastInvoicedMonth(holder.id()).map(period::isAfter).orElse(false);
+                if (holderGate == Exclusion.AFTER_LEAVE || holderGate == Exclusion.NO_PAYMENT_METHOD && pastLeave) { continue; }
                 for (String memberId : group.memberIds()) {
                     if (memberId.equals(group.holderMemberId()) || !byId.containsKey(memberId) || payerOf.containsKey(memberId)) { continue; }
                     payerOf.put(memberId, group.holderMemberId());
@@ -146,6 +158,10 @@ public final class InvoicingRules {
             // R-12-25: a family member's unbilled charges are due on the holder's invoice, whatever the holder's date.
             boolean familyCharges = family.stream().anyMatch(other -> "ACTIVE".equals(other.status()) && hasCharges(other, settings, sources));
             var own = own(member, period, issueDate, settings, sources, describer, familyCharges);
+            // E156: a holder without a payment method is D6's incident, not silently out of the month with its family.
+            if (own instanceof Excluded out && out.reason() == Exclusion.NO_PAYMENT_METHOD && !family.isEmpty()) {
+                skipped.add(new Incident(member.id(), BillingIncidentCode.NO_PAYMENT_METHOD)); continue;
+            }
             if (own instanceof Excluded out) { excluded.put(member.id(), out.reason()); continue; }
             if (own instanceof Skipped skip) { skipped.add(new Incident(member.id(), skip.code())); continue; }
             var billed = (Billed) own;
@@ -320,6 +336,8 @@ public final class InvoicingRules {
     private static BillingIncidentCode methodIncident(Member member, List<Line> lines, Settings settings) {
         if (lines.isEmpty()) { return null; }
         if (member.method() == PaymentMethodType.SEPA_DD && !member.bankAccount()) { return BillingIncidentCode.NO_BANK_ACCOUNT; }
+        // E156 (N4): a debit the file cannot carry is skipped here, never left to refuse the whole remittance (422 {memberIds}).
+        if (member.method() == PaymentMethodType.SEPA_DD && !member.mandate()) { return BillingIncidentCode.MANDATE_PENDING; }
         if (member.method() == PaymentMethodType.CARD && member.cardInvalid()) { return BillingIncidentCode.CARD_INVALID; }
         if (!settings.enabledMethods().contains(member.method())) { return BillingIncidentCode.PROVIDER_DISABLED; }
         return null;
@@ -330,6 +348,7 @@ public final class InvoicingRules {
         if (member == null || !"ACTIVE".equals(member.status())) { return BillingIncidentCode.MEMBER_NOT_ACTIVE; }
         if (member.method() != PaymentMethodType.SEPA_DD) { return BillingIncidentCode.PAYMENT_METHOD_CHANGED; }
         if (!member.bankAccount()) { return BillingIncidentCode.NO_BANK_ACCOUNT; }
+        if (!member.mandate()) { return BillingIncidentCode.MANDATE_PENDING; }
         if (!settings.enabledMethods().contains(PaymentMethodType.SEPA_DD)) { return BillingIncidentCode.PROVIDER_DISABLED; }
         return null;
     }

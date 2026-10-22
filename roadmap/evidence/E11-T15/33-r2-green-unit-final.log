@@ -1,0 +1,93 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+03:47:38.665 [main] WARN com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter -- Unknown remittance commit: storageKey=remittances/club-a/2026-09/canic-2026-09-1-unknown-attempt.xml traceId=trace-e8-t08
+03:47:38.674 [main] WARN com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter -- Unknown remittance commit: storageKey=remittances/club-a/2026-09/canic-2026-09-1-unknown-attempt.xml traceId=trace-e8-t08
+03:47:38.791 [main] WARN com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter -- Remittance file was not deleted: storageKey=remittances/club-a/2026-09/canic-2026-09-1-remittance-11.xml traceId=null
+03:47:38.808 [main] WARN com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter -- Remittance canic-2026-09-1 of run run-1: pain.008 invalid at line 40, column 46
+03:47:38.812 [main] WARN com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter -- Unknown remittance commit: storageKey=remittances/club-a/2026-09/canic-2026-09-1-unknown-unavailable.xml traceId=null
+03:47:38.813 [main] WARN com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter -- Remittance commit could not be checked: storageKey=remittances/club-a/2026-09/canic-2026-09-1-unknown-unavailable.xml traceId=null
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+Validation failed; no changes applied. Counts below describe the proposed changes.
+members: created=0 updated=0 skipped=0 errors=1
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {MAPPING_INVALID=1}
+members:2 members ERROR MAPPING_INVALID
+Playoff APPLY
+Validation failed; no changes applied. Counts below describe the proposed changes.
+REEXECUTION_UNSUPPORTED: 1 records cannot be reconciled with an earlier load (R-18-14). On staging, the way out is --reset and a new load.
+members: created=0 updated=0 skipped=0 errors=1
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {REEXECUTION_UNSUPPORTED=1}
+members:3 members ERROR REEXECUTION_UNSUPPORTED field=status
+Anonymized Playoff files written; no input values or key logged.
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff APPLY
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Reset club data. Enter the club slug:
+Enter the club slug again:
+Club reset completed: canic
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}

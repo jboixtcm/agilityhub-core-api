@@ -239,6 +239,63 @@ class RemittancesIT extends BillingItSupport {
     }
 
     /**
+     * E11-T15 round 2 (Q1, ruling E156; R-12-14): a remittance never sent to the bank and past its collection date could be neither
+     * rolled back nor generated again. The second confirmation word `FITXER_NO_ENVIAT` («the file was never sent») lifts only
+     * `COLLECTION_DATE_PASSED`; the rollback's audit entry records which word was used. `RETROCEDIR` still answers 409.
+     */
+    @Test void R_12_14_E156_aFileNeverSentCanBeRolledBackPastItsCollectionDateWithTheSecondWord() throws Exception {
+        var result = generate();
+        String runId = result.at("/run/id").asText(), remittanceId = result.at("/remittance/id").asText();
+        clock.setInstant(Instant.parse("2026-09-02T07:00:00Z"));
+        var refused = call(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Fitxer mai pujat al banc", "confirmation", "RETROCEDIR"))));
+        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(409);
+        assertThat(json(refused).at("/details/reasons").toString()).isEqualTo("[\"COLLECTION_DATE_PASSED\"]");
+        error(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Fitxer mai pujat al banc", "confirmation", "NO_ENVIAT"))), 400, "VALIDATION_ERROR");
+        var rolledBack = ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Fitxer mai pujat al banc", "confirmation", "FITXER_NO_ENVIAT"))), 200);
+        assertThat(rolledBack.path("cancelledInvoices").asInt()).isEqualTo(invoices().size()).isPositive();
+        assertThat(mongo.findById(remittanceId, Document.class, "remittances").getString("status")).isEqualTo("ROLLED_BACK");
+        assertThat(invoices()).allSatisfy(invoice -> assertThat(invoice.getString("status")).isEqualTo("CANCELLED"));
+        assertThat(member("puig", "nextInvoiceDate")).isEqualTo("2026-09-01");
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("REMITTANCE_ROLLED_BACK")), Document.class, "audit_entries");
+        assertThat(audit.get("details", Document.class)).containsEntry("confirmation", "FITXER_NO_ENVIAT");
+    }
+
+    /** E11-T15 round 2 (Q1, E156): a remittance marked sent is never rolled back, whichever word is typed. */
+    @Test void R_12_14_E156_theSecondWordNeverLiftsASubmittedRemittance() throws Exception {
+        var result = generate();
+        String runId = result.at("/run/id").asText(), remittanceId = result.at("/remittance/id").asText();
+        ok(admin(keyed(post("/api/v1/remittances/" + remittanceId + "/submission"), Map.of("submittedAt", "2026-08-25"))), 200);
+        clock.setInstant(Instant.parse("2026-09-02T07:00:00Z"));
+        for (String word : List.of("RETROCEDIR", "FITXER_NO_ENVIAT")) {
+            var refused = call(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Fitxer mai pujat al banc", "confirmation", word))));
+            assertThat(refused.getStatus()).as(word + " " + refused.getContentAsString()).isEqualTo(409);
+            assertThat(json(refused).at("/details/reasons").toString()).as(word).isEqualTo("[\"REMITTANCE_SUBMITTED\"]");
+        }
+        assertThat(mongo.findById(remittanceId, Document.class, "remittances").getString("status")).isEqualTo("SUBMITTED");
+    }
+
+    /**
+     * E11-T15 round 2 (N4, ruling E156; R-12-07, R-12-12): a SEPA member whose mandate has no reference or no signature (a migrated
+     * `NUMBER_CONFLICT` record) is the simulation's `MANDATE_PENDING` incident, absent from the preview, and the run skips it: the
+     * remittance carries the other debits instead of `422 SEPA_NOT_CONFIGURED {memberIds}` for the whole run.
+     */
+    @Test void R_12_07_E156_aSepaMemberWithoutAUsableMandateIsAnIncidentAndTheRunRemitsTheOthers() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("torres")), new org.springframework.data.mongodb.core.query.Update().unset("paymentMethod.mandateRef"), "members");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("mas")), new org.springframework.data.mongodb.core.query.Update().unset("paymentMethod.mandateSignedAt"), "members");
+        var simulation = simulate("2026-09");
+        var pending = new ArrayList<String>();
+        simulation.path("incidents").forEach(incident -> { if (incident.path("code").asText().equals("MANDATE_PENDING")) { pending.add(incident.path("memberId").asText()); } });
+        assertThat(pending).containsExactlyInAnyOrder("torres", "mas");
+        assertThat(simulation.path("invoicesPreview").findValuesAsText("memberId")).doesNotContain("torres", "mas").contains("puig", "serra-laura");
+        var result = run("2026-09", simulation.path("id").asText());
+        assertThat(result.at("/remittance/count").asInt()).isEqualTo(2);
+        assertThat(invoices()).extracting(invoice -> invoice.getString("memberId")).doesNotContain("torres", "mas");
+        assertThat(member("torres", "nextInvoiceDate")).isEqualTo("2026-09-01");
+        String xml = download(result.at("/remittance/id").asText()).getContentAsString(StandardCharsets.UTF_8);
+        assertThat(xml).contains("<NbOfTxs>2</NbOfTxs>");
+    }
+
+    /**
      * R-12-19 and R-12-07 (the E8-T02 review's finding 1): a pain.008 amount is at least 0.01, so a zero or negative adjustment
      * with `includeInNextRun` never rides a remittance — it waits as `PENDING` for R-12-16 — and never blocks the run.
      */

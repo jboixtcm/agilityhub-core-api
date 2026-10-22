@@ -1,0 +1,26 @@
+E11-T15 round 2, item 13 (the kit's review 5): the rollback on the collection date had no red log. The code before E11-T15
+(8d73ad2a, the audit's commit) had no COLLECTION_DATE_PASSED branch at all, so a rollback past the collection date was
+always allowed. Read-only git, output copied verbatim:
+
+$ git show 8d73ad2a:src/main/java/com/agilityhub/core/payments/application/BillingRunService.java > target/old-BillingRunService.java
+exit 0
+$ git show 8d73ad2a:src/main/java/com/agilityhub/core/payments/domain/RollbackBlocker.java > target/old-RollbackBlocker.java
+exit 0
+$ grep -n "COLLECTION_DATE\|requestedCollectionDate\|RollbackBlocker\.\|public List<RollbackBlocker> blockers" target/old-BillingRunService.java
+79:    public RunOutcome generate(YearMonth period, String simulationId, LocalDate requestedCollectionDate) {
+93:            collectionDate = requestedCollectionDate != null ? requestedCollectionDate : BillingSimulationService.collectionDate(plan);
+95:                throw new ApiException(ErrorCode.COLLECTION_DATE_TOO_SOON, Map.of("requested", collectionDate.toString(),
+222:            throw new ApiException(ErrorCode.RUN_NOT_ROLLBACKABLE, Map.of("reasons", List.of(RollbackBlocker.MANUAL_INVOICE_AFTER.name())));
+248:    public List<RollbackBlocker> blockers(BillingRun run) {
+252:        if (remittance != null && remittance.status() == RemittanceStatus.SUBMITTED) { reasons.add(RollbackBlocker.REMITTANCE_SUBMITTED); }
+260:            reasons.add(RollbackBlocker.COLLECTION_SUBMITTED);
+262:        if (touched.stream().anyMatch(invoice -> invoice.status() == InvoiceStatus.PAID)) { reasons.add(RollbackBlocker.INVOICE_PAID); }
+266:            reasons.add(RollbackBlocker.MANUAL_INVOICE_AFTER);
+$ grep -n "enum" target/old-RollbackBlocker.java
+6:@Schema(enumAsRef = true)
+7:public enum RollbackBlocker { REMITTANCE_SUBMITTED, COLLECTION_SUBMITTED, INVOICE_PAID, MANUAL_INVOICE_AFTER }
+
+blockers() (lines 248-269) adds REMITTANCE_SUBMITTED, COLLECTION_SUBMITTED, INVOICE_PAID and MANUAL_INVOICE_AFTER only; the enum
+has no COLLECTION_DATE_PASSED. Round 1's red IT log (02-red-it.log) shows RemittancesIT.R_12_14_E147 failing earlier, at line 200
+(`requestedCollectionDate` absent from the period view), so it never reached the rollback call. Round 2's red log for the
+rollback word (18-r2-red-it.log) shows the old single-word check: FITXER_NO_ENVIAT → 400 VALIDATION_ERROR {field: confirmation}.

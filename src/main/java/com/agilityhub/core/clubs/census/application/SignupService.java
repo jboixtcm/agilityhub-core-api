@@ -990,12 +990,26 @@ public class SignupService implements SignupPaymentAccess {
     }
     /** Step 5 / round 2: an answer names a first month only when its own payment lines charge one. */
     private static boolean chargesFirstMonth(List<UpfrontPayments.Line> lines) { return lines.stream().anyMatch(l -> "FIRST_MONTH".equals(l.concept())); }
-    /** §3 `Member.nextInvoiceDate` ≥ the first-month start in force (M21); only with BILLING and a first month. */
-    private void nextInvoiceDate(Map<String,Object> request,SignupPolicy.Period first) {
+    /**
+     * §3 `Member.nextInvoiceDate` ≥ the first-month start in force (M21); only with BILLING and a first month. R-04-15 (E11-T15
+     * round 2, N3, ruling E156): when the validation charges that month ({@code charged}: a FIRST_MONTH row), ≥ the 1st of the
+     * month after it, so S12's catch-up never bills the month paid upfront again.
+     */
+    private void nextInvoiceDate(Map<String,Object> request,SignupPolicy.Period first,boolean charged) {
         if(!billing()||request.get("nextInvoiceDate")==null||first==null) return;
         LocalDate date;
         try { date=date(request.get("nextInvoiceDate")); } catch(RuntimeException invalidDate) { throw invalid("nextInvoiceDate","INVALID_VALUE"); }
-        if(date.isBefore(first.startDate())) throw invalid("nextInvoiceDate","INVALID_VALUE");
+        LocalDate bound=charged?first.startDate().withDayOfMonth(1).plusMonths(1):first.startDate();
+        if(date.isBefore(bound)) throw invalid("nextInvoiceDate","INVALID_VALUE");
+    }
+    /**
+     * N3 (E156): the rows this validation leaves charge a first month — the replacement's after a plan change (the new quote's
+     * lines), the stored rows otherwise (none when BILLING was off at the submission), as the dry run shows them.
+     */
+    private boolean firstMonthCharged(Member member,SignupPolicy.Plan plan,List<Dog> dogs,SignupPolicy.Quote quote,boolean gone) {
+        if(!billing()) return false;
+        if(!gone&&planChanged(member,plan,dogs)) return quote.lines().stream().anyMatch(l -> "FIRST_MONTH".equals(l.concept()));
+        return payments.lines(member.id,scope(member,dogs)).stream().anyMatch(l -> "FIRST_MONTH".equals(l.concept())&&!Set.of("CANCELLED","REFUNDED").contains(l.status()));
     }
     public Map<String,Object> dryRun(String id,Map<String,Object> request) {
         var member=access.mutableMember(id);var dogs=selection(member,request);
@@ -1003,7 +1017,7 @@ public class SignupService implements SignupPaymentAccess {
         // Ruling E138 (E11-T13): never a preview priced from one of two current prices; billing refuses that plan too.
         boolean gone=planGone(member,request,dogs);var plan=gone?null:proposedPlan(member,request,dogs,true);
         var quote=gone?noQuote():validationQuote(member,plan,dogs);
-        var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);nextInvoiceDate(request,first);
+        var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);nextInvoiceDate(request,first,firstMonthCharged(member,plan,dogs,quote,gone));
         var warnings=new ArrayList<>(warnings(member,dogs));Map<String,Object> upfront=null;
         if(billing()) {
             // The preview is what the validation will write: the rows as they are, or (plan change, S04 §5 / E39) the kept rows plus the new ones.
@@ -1051,7 +1065,7 @@ public class SignupService implements SignupPaymentAccess {
         if(addDog!= "ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.INVALID_STATE);
         // Ruling E138 (E11-T13): a plan with a price twin is not validated: 409 PRICE_OVERLAP with billing's details, nothing written.
         var plan=proposedPlan(member,request,dogs,true);
-        var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,firstMonth(member,plan,dogs,quote));
+        var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,firstMonth(member,plan,dogs,quote),firstMonthCharged(member,plan,dogs,quote,false));
         var levels=new LinkedHashMap<String,String>();
         if(access.levels()) for(var raw:rows(request.get("dogs"))) {
             if(raw.get("levelId")==null) throw new ApiException(ErrorCode.LEVEL_REQUIRED);

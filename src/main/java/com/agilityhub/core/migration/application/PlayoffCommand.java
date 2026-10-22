@@ -47,6 +47,11 @@ public class PlayoffCommand implements CoreCommand {
         if (directory==null || args.containsOption("in") && !args.getNonOptionArgs().isEmpty()) { throw usage(); }
         // R-18-08/13: the cut-over date (mandates' signature date, first nextInvoiceDate); the club's today when omitted.
         String cutover=option(args,"cut-over",null); boolean dryRun=args.containsOption("dry-run"), confirmed=args.containsOption("confirm-production");
+        // E11-T15 round 2 (N5, ruling E156; R-18-17): a production load names its cut-over — the club's today on a 31-10 load would
+        // bill November to every monthly member. The dry run keeps the default.
+        if (production && !dryRun && cutover==null) {
+            throw new IllegalArgumentException("--cut-over=YYYY-MM-DD is required to apply a load in production (a day of the launch month, R-18-13)");
+        }
         MigrationReport report;
         try {
             report=cutover==null ? importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed)

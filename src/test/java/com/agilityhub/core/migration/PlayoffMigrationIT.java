@@ -660,6 +660,71 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(report.rows()).filteredOn(r -> r.file().equals("paidUntil") && r.outcome().equals("WARNING"))
                 .extracting(MigrationReport.Entry::row, MigrationReport.Entry::code).containsExactlyInAnyOrder(tuple(5, "MAPPING_INVALID"), tuple(6, "MAPPING_INVALID"));
     }
+    /**
+     * E11-T15 round 2 (the kit's review 1; ruling E156; S18 R-18-13, R-18-04): a person with two dogs is two Playoff records with one
+     * NIF and lands on one member. `pagat_fins.csv` may name either record: the member's «paid until» is the latest month over every
+     * record that lands on it, not only a `persones.csv` join — else a multi-dog owner would be billed a half-year it already paid.
+     */
+    @Test void R_18_13_E156_aPaidUntilRowReachesTheMemberThroughEveryRecordOfThePerson() throws Exception {
+        LocalDate cutover = LocalDate.of(2026, 11, 1);
+        Files.writeString(fixture.resolve("pagat_fins.csv"), "Member ID;Paid until\n" + source(1) + ";2026-11\n" + source(184) + ";2026-12\n");
+        var report = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        // Records 1 and 184 share a NIF (no persones.csv): one member, two dogs.
+        assertThat(member(1).get("_id")).isEqualTo(member(184).get("_id"));
+        assertThat(member(1).getString("nextInvoiceDate")).isEqualTo("2027-01-01");
+        assertThat(report.rows()).filteredOn(r -> r.file().equals("paidUntil")).isEmpty();
+    }
+    /**
+     * E11-T15 round 2 (the kit's review 3; S18 R-18-08, E43): an ACTIVE SEPA record whose number lost to another (`NUMBER_CONFLICT`)
+     * is loaded without a mandate (`MANDATE_PENDING`); once the club fixes the number in Playoff and loads again, the member gets
+     * `{slug}-{number}-1` signed on the cut-over — not the stored `null` signature, which the SEPA writer refuses — and S12's next
+     * simulation bills it (no `MANDATE_PENDING` incident).
+     */
+    @Test void R_18_08_E156_aNumberConflictFixedInPlayoffGetsASignedMandateOnTheNextLoad() throws Exception {
+        billingCatalog(); var cutover = LocalDate.of(2026, 9, 1);
+        // Record 29 takes record 27's number; 27 joined first, so 29 loses it.
+        var table = PlayoffTable.read(fixture.resolve("socis.csv"));
+        var cells = new ArrayList<>(table.get(29)); cells.set(3, table.get(27).get(3)); table.set(29, cells); PlayoffTable.write(fixture.resolve("socis.csv"), table);
+        var first = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(first.hasErrors()).as(first.render()).isFalse();
+        assertThat(entries(first, 29)).contains("members WARNING NUMBER_CONFLICT", "members WARNING MANDATE_PENDING");
+        assertThat(member(29).get("paymentMethod", Document.class)).containsEntry("mandateRef", null).containsEntry("mandateSignedAt", null);
+        String memberId = member(29).getString("_id");
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(billing.reconcile(YearMonth.of(2026, 10)).incidents()).containsEntry(memberId, "MANDATE_PENDING");
+        }
+        cells = new ArrayList<>(table.get(29)); cells.set(3, "9029"); table.set(29, cells); PlayoffTable.write(fixture.resolve("socis.csv"), table);
+        clock.setInstant(clock.instant().plusSeconds(60));
+        var again = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(again.hasErrors()).as(again.render()).isFalse();
+        var payment = member(29).get("paymentMethod", Document.class);
+        assertThat(payment.getString("mandateRef")).isEqualTo(CLUB + "-9029-1");
+        assertThat(payment.get("mandateSignedAt")).isEqualTo(Date.from(cutover.atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant()));
+        assertThat(entries(again, 29)).doesNotContain("members WARNING MANDATE_PENDING", "members WARNING NUMBER_CONFLICT");
+        try (var tenant = TenantContext.open(CLUB)) {
+            var simulated = billing.reconcile(YearMonth.of(2026, 10));
+            assertThat(simulated.incidents()).doesNotContainKey(memberId);
+            assertThat(simulated.byMember()).containsEntry(memberId, 6000L);
+        }
+    }
+    /**
+     * E11-T15 round 2 (the kit's review 2, N6; ruling E156; S18 R-18-11b): a `rebuts.csv` row that lost its trailing field and an
+     * unreadable `previsio.csv` row are warnings on their own lines; the load applies (the census and the other receipts).
+     */
+    @Test void R_18_11b_E156_aShortReceiptRowOrABadForecastRowNeverRefusesTheLoad() throws Exception {
+        Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                + "good;" + source(1) + ";1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n"
+                + "short;" + source(1) + ";2;2026-08-01;Fictional fee;10,00;Pagado\n");
+        Files.writeString(fixture.resolve("previsio.csv"), "Member ID;Period;Total\n" + source(1) + ";2026-10;sixty\n");
+        var report = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, LocalDate.of(2026, 9, 1));
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        assertThat(report.count("members", "CREATED")).isEqualTo(187);
+        assertThat(rows("members")).hasSize(187);
+        assertThat(rows("invoices")).extracting(i -> i.getString("displayNumber")).containsExactly("1");
+        assertThat(report.rows()).filteredOn(r -> r.outcome().equals("WARNING") && r.code().equals("INPUT_SCHEMA_MISMATCH"))
+                .extracting(MigrationReport.Entry::file, MigrationReport.Entry::row).containsExactlyInAnyOrder(tuple("receipts", 3), tuple("forecast", 2));
+    }
     String nextInvoiceDate(String source) {
         var member = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source)), Document.class, "members");
         return member.getString("nextInvoiceDate");

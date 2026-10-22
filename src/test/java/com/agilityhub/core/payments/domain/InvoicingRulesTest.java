@@ -273,12 +273,13 @@ class InvoicingRulesTest {
         });
         assertThat(month.excluded()).containsExactly(Map.entry("laura", Exclusion.AFTER_LEAVE));
         assertThat(month.skipped()).isEmpty();
-        // A holder without a payment method captures nobody either: its members are billed (and flagged) on their own.
+        // Round 2 (ruling E156): a holder without a payment method keeps its group — see the next test.
         leaving.clear();
         var withoutMethod = InvoicingRules.month(List.of(new Member("laura", "ACTIVE", LocalDate.of(2026, 12, 1), null, false, false, "abonat2"),
                 sepa("joan-antoni", "abonat", LocalDate.of(2026, 12, 1))), List.of(group), december, runDay, CANIC, sources, TEXT);
-        assertThat(withoutMethod.invoices()).extracting(Draft::payerId).containsExactly("joan-antoni");
-        assertThat(withoutMethod.excluded()).containsExactly(Map.entry("laura", Exclusion.NO_PAYMENT_METHOD));
+        assertThat(withoutMethod.invoices()).isEmpty();
+        assertThat(withoutMethod.skipped()).containsExactly(new Incident("laura", BillingIncidentCode.NO_PAYMENT_METHOD));
+        assertThat(withoutMethod.excluded()).containsExactly(Map.entry("joan-antoni", Exclusion.BILLED_VIA_HOLDER));
         // The same leaving holder with its date in January (December already billed to it) and the member due: the member stays
         // BILLED_VIA_HOLDER — a member of a group whose holder is not due is not due either (R-12-04, R-12-06).
         leaving.put("laura", YearMonth.of(2026, 11));
@@ -287,6 +288,73 @@ class InvoicingRulesTest {
         assertThat(notDue.invoices()).isEmpty();
         assertThat(notDue.advances()).isEmpty();
         assertThat(notDue.excluded()).containsExactly(Map.entry("joan-antoni", Exclusion.BILLED_VIA_HOLDER), Map.entry("laura", Exclusion.NOT_DUE));
+    }
+
+    /**
+     * E11-T15 round 2 (N2, ruling E156; R-12-04, R-12-07): a family holder without a payment method keeps its group. It is D6's
+     * incident `NO_PAYMENT_METHOD`, its member waits with it (`BILLED_VIA_HOLDER`, nothing billed on its own), and nobody's date
+     * moves; when the method returns, the holder's catch-up (step 4) bills the family plan for those months — once. Before round 2
+     * the member was billed 60 € a month on its own and the holder then caught up the same months: collected twice.
+     */
+    @Test void T_12_02_E156_aHolderWithoutAPaymentMethodKeepsItsGroupAndCatchesUpOnceTheMethodReturns() {
+        var group = new Group("laura", List.of("laura", "joan-antoni"));
+        var start = LocalDate.of(2026, 12, 1);
+        var without = new Member("laura", "ACTIVE", start, null, false, false, "abonat2");
+        for (var month : List.of(YearMonth.of(2026, 12), YearMonth.of(2027, 1))) {
+            var outcome = InvoicingRules.month(List.of(sepa("joan-antoni", "abonat", start), without), List.of(group), month, month.minusMonths(1).atDay(26),
+                    CANIC, sources, TEXT);
+            assertThat(outcome.invoices()).as(month.toString()).isEmpty();
+            assertThat(outcome.advances()).as(month.toString()).isEmpty();
+            assertThat(outcome.skipped()).as(month.toString()).containsExactly(new Incident("laura", BillingIncidentCode.NO_PAYMENT_METHOD));
+            assertThat(outcome.excluded()).as(month.toString()).containsExactly(Map.entry("joan-antoni", Exclusion.BILLED_VIA_HOLDER));
+        }
+        var february = YearMonth.of(2027, 2);
+        var back = InvoicingRules.month(List.of(sepa("joan-antoni", "abonat", start), sepa("laura", "abonat2", start)), List.of(group), february,
+                LocalDate.of(2027, 1, 26), CANIC, sources, TEXT);
+        assertThat(back.invoices()).singleElement().satisfies(draft -> {
+            assertThat(draft.payerId()).isEqualTo("laura");
+            assertThat(draft.lines()).extracting(Line::origin, Line::month, Line::forMemberId).containsExactly(
+                    org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.MONTHLY_FEE, YearMonth.of(2026, 12), null),
+                    org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.MONTHLY_FEE, YearMonth.of(2027, 1), null),
+                    org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.MONTHLY_FEE, february, null));
+            assertThat(InvoiceAmounts.sum(draft.lines().stream().map(line -> line.amounts().total()).toList(), "EUR")).isEqualTo(eur(27000));
+            assertThat(draft.advances()).extracting(Advance::memberId, Advance::to).containsExactly(
+                    org.assertj.core.groups.Tuple.tuple("laura", LocalDate.of(2027, 3, 1)), org.assertj.core.groups.Tuple.tuple("joan-antoni", LocalDate.of(2027, 3, 1)));
+        });
+        assertThat(back.excluded()).containsExactly(Map.entry("joan-antoni", Exclusion.BILLED_VIA_HOLDER));
+        assertThat(back.skipped()).isEmpty();
+        // A member without a method who holds no group is out of the month as before (R-12-01).
+        assertThat(InvoicingRules.month(List.of(without), List.of(), february, LocalDate.of(2027, 1, 26), CANIC, sources, TEXT).excluded())
+                .containsExactly(Map.entry("laura", Exclusion.NO_PAYMENT_METHOD));
+        // The leave wins over the missing method: past its last billed month the holder holds nobody (step 2, R-13-11).
+        leaving.put("laura", YearMonth.of(2026, 11));
+        var leaver = InvoicingRules.month(List.of(sepa("joan-antoni", "abonat", start), without), List.of(group), YearMonth.of(2026, 12), LocalDate.of(2026, 11, 26),
+                CANIC, sources, TEXT);
+        assertThat(leaver.invoices()).extracting(Draft::payerId).containsExactly("joan-antoni");
+        assertThat(leaver.skipped()).isEmpty();
+        assertThat(leaver.excluded()).containsExactly(Map.entry("laura", Exclusion.NO_PAYMENT_METHOD));
+    }
+
+    /**
+     * E11-T15 round 2 (N4, ruling E156; R-12-07, R-12-12, S18 R-18-08): a `SEPA_DD` member without a usable mandate (a migrated
+     * `NUMBER_CONFLICT` record: `MANDATE_PENDING`) is D6's incident and the run skips it, so the remittance never meets it and is
+     * not refused whole. The member's own data comes first (`NO_BANK_ACCOUNT`); a member with nothing to bill has no incident; a
+     * waiting receipt of such a member waits too.
+     */
+    @Test void T_12_07_E156_aSepaMemberWithoutAUsableMandateIsAnIncidentAndTheRunSkipsIt() {
+        var pending = new Member("m", "ACTIVE", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "abonat", false);
+        assertThat(lines(pending, SEPTEMBER)).isEqualTo(new Skipped(BillingIncidentCode.MANDATE_PENDING));
+        assertThat(lines(new Member("m", "ACTIVE", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, false, false, "abonat", false), SEPTEMBER))
+                .isEqualTo(new Skipped(BillingIncidentCode.NO_BANK_ACCOUNT));
+        assertThat(billed(lines(new Member("p", "ACTIVE", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "pack10", false), SEPTEMBER)).lines()).isEmpty();
+        // A cash member's mandate means nothing.
+        assertThat(billed(lines(new Member("c", "ACTIVE", LocalDate.of(2026, 9, 1), PaymentMethodType.MANUAL, false, false, "abonat", false), YearMonth.of(2026, 12))).lines())
+                .isNotEmpty();
+        var month = InvoicingRules.month(List.of(sepa("joan", "abonat", LocalDate.of(2026, 9, 1)), pending), List.of(), SEPTEMBER, RUN_DAY, CANIC, sources, TEXT);
+        assertThat(month.invoices()).extracting(Draft::payerId).containsExactly("joan");
+        assertThat(month.skipped()).containsExactly(new Incident("m", BillingIncidentCode.MANDATE_PENDING));
+        assertThat(month.advances()).extracting(Advance::memberId).containsExactly("joan");
+        assertThat(InvoicingRules.waitingReceiptIncident(pending, CANIC)).isEqualTo(BillingIncidentCode.MANDATE_PENDING);
     }
 
     /**

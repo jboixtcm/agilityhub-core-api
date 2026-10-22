@@ -32,6 +32,7 @@ public class DemoSeedService {
     private final DemoSignupSeeder signupSeeder; private final com.agilityhub.core.platform.application.CountryContacts contacts;
     /** INC-31 (A37): the demo IBANs are sealed like any other (in clear only on a stack without BILLING_BANK_KEY). */
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BankAccounts bankAccounts;
+    @org.springframework.beans.factory.annotation.Autowired private ClubClock clubClock;
     public DemoSeedService(CensusAccess census, CensusRepository<DogDocument> documents, DemoSeedRepository runs,
             MigrationCatalogAccess catalogs, RoleAssignmentService team, DemoIdentityService identity, ClubConfigService configs,
             ObjectMapper mapper, Environment environment, AttachmentService attachments, DocumentService documentService,
@@ -68,6 +69,11 @@ public class DemoSeedService {
         var data = DemoDataset.generate(spec, seed, club);
         var created = new LinkedHashMap<String, Member>();
         Instant reference = spec.referenceDate().atStartOfDay(ZoneId.of(config.club().timeZone())).toInstant();
+        // E11-T15 round 2 (N8, ruling E156): the 1st of the month after the reference month, or after the club's today when the demo
+        // is seeded later — every month before it counts as billed, so S12's catch-up never bills the demo a month behind.
+        var firstInvoiceDate = java.time.YearMonth.from(spec.referenceDate()).plusMonths(1).atDay(1);
+        var nextMonth = java.time.YearMonth.from(clubClock.today(club)).plusMonths(1).atDay(1);
+        if (nextMonth.isAfter(firstInvoiceDate)) { firstInvoiceDate = nextMonth; }
         for (var row : data.members()) {
             var plan = require(plans, row.planCode());
             var member = new Member(); member.id = row.id(); member.clubId = club; member.memberNumber = row.number();
@@ -79,9 +85,7 @@ public class DemoSeedService {
                     : List.of(Map.of("prefix", contacts.signupProfile().get("phonePrefix"), "number", String.format(spec.phoneNumberFormat(), row.number())));
             member.joinedAt = reference.minusSeconds(86400L * (30 + row.number()));
             member.planId = plan.get("_id").toString();
-            if ("ACTIVE".equals(member.status) && "MONTHLY".equals(plan.get("type"))) {
-                member.nextInvoiceDate = java.time.YearMonth.from(spec.referenceDate()).plusMonths(1).atDay(1);
-            }
+            if ("ACTIVE".equals(member.status) && "MONTHLY".equals(plan.get("type"))) { member.nextInvoiceDate = firstInvoiceDate; }
             member.priceId = prices.stream().filter(p -> member.planId.equals(p.get("planId")) && p.get("validTo") == null)
                     .map(p -> p.get("_id").toString()).findFirst().orElse(null);
             // E43: a SEPA member carries the api's mandate (`{clubSlug}-{memberNumber}-1`, signed when it joined), so the E8

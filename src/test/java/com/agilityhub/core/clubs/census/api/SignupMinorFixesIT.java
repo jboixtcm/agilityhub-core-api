@@ -582,20 +582,22 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         assertThat(member(id).get("signup",Document.class).get("upfront",Document.class).get("firstMonth",Document.class).getString("startDate")).isEqualTo("2026-01-16");
         // The club moves the split day: today's parameters would start ALTERNATIVE on 20-01, the submission still starts on 16-01.
         parameter("signup.firstMonthSplitDay",20);
+        // E11-T15 round 2 (N3, E156): the validation charges that first month (FIRST_MONTH), so the bound is the 1st of the month after
+        // the frozen start — 18-01, accepted before E156 (≥ the frozen 16-01), would bill January twice; 15-01 was already refused.
         var request=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",pendingDog(id),"levelId",level)),"nextInvoiceDate","2026-01-18"));
-        var dry=result(admin(postJson("/members/"+id+"/validation",request).param("dryRun","true")),200);
-        assertThat(dry.path("nextInvoiceDate").asText()).isEqualTo("2026-01-18");
-        request.put("nextInvoiceDate","2026-01-15");
-        for(boolean dryRun:List.of(true,false)) {
-            var error=result(admin(postJson("/members/"+id+"/validation",request).param("dryRun",String.valueOf(dryRun))),400);
-            assertThat(error.at("/details/fieldErrors/0/field").asText()).isEqualTo("nextInvoiceDate");
+        for(String early:List.of("2026-01-15","2026-01-18","2026-01-31")) {
+            request.put("nextInvoiceDate",early);
+            for(boolean dryRun:List.of(true,false)) {
+                var error=result(admin(postJson("/members/"+id+"/validation",request).param("dryRun",String.valueOf(dryRun))),400);
+                assertThat(error.at("/details/fieldErrors/0/field").asText()).as(early).isEqualTo("nextInvoiceDate");
+            }
         }
         request.remove("nextInvoiceDate");
         assertThat(result(admin(postJson("/members/"+id+"/validation",request).param("dryRun","true")),200).path("nextInvoiceDate").asText()).isEqualTo("2026-02-01");
         assertThat(review(id).at("/proposals/nextInvoiceDate").asText()).isEqualTo("2026-02-01");
-        request.put("nextInvoiceDate","2026-01-18");request.put("upfrontAmountPaid",Map.of("amountMinor",13000,"currency","EUR"));
+        request.put("nextInvoiceDate","2026-02-01");request.put("upfrontAmountPaid",Map.of("amountMinor",13000,"currency","EUR"));
         result(admin(postJson("/members/"+id+"/validation",request)),200);
-        assertThat(result(admin(get("/api/v1/members/"+id)),200).findValuesAsText("nextInvoiceDate")).contains("2026-01-18");
+        assertThat(result(admin(get("/api/v1/members/"+id)),200).findValuesAsText("nextInvoiceDate")).contains("2026-02-01");
     }
     @Test void T_04_21_theAdminN01OfEachQueuedAddDogDescribesItsOwnSubmission() throws Exception {
         String admin=administrator("ca");String second=UUID.randomUUID().toString();

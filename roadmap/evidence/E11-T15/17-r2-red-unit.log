@@ -1,0 +1,147 @@
+[ERROR] Tests run: 19, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.080 s <<< FAILURE! -- in com.agilityhub.core.payments.domain.InvoicingRulesTest
+[ERROR] com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_02_E156_aHolderWithoutAPaymentMethodKeepsItsGroupAndCatchesUpOnceTheMethodReturns -- Time elapsed: 0.011 s <<< FAILURE!
+java.lang.AssertionError: 
+[2026-12] 
+Expecting empty but was: [Draft[payerId=joan-antoni, lines=[Line[origin=MONTHLY_FEE, month=2026-12, priceId=p-abonat, bookingId=null, chargeId=null, description=MONTHLY_FEE Abonat 2026-12, amounts=Amounts[base=Money[amountMinor=6000, currency=EUR], taxPercent=0, tax=Money[amountMinor=0, currency=EUR], total=Money[amountMinor=6000, currency=EUR]], forMemberId=null]], advances=[Advance[memberId=joan-antoni, from=2026-12-01, to=2027-01-01]]]]
+	at com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_02_E156_aHolderWithoutAPaymentMethodKeepsItsGroupAndCatchesUpOnceTheMethodReturns(InvoicingRulesTest.java:306)
+
+[ERROR] com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_07_E156_aSepaMemberWithoutAUsableMandateIsAnIncidentAndTheRunSkipsIt -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: Skipped[code=MANDATE_PENDING]
+ but was: Billed[lines=[Line[origin=MONTHLY_FEE, month=2026-09, priceId=p-abonat, bookingId=null, chargeId=null, description=MONTHLY_FEE Abonat 2026-09, amounts=Amounts[base=Money[amountMinor=6000, currency=EUR], taxPercent=0, tax=Money[amountMinor=0, currency=EUR], total=Money[amountMinor=6000, currency=EUR]], forMemberId=null]], nextInvoiceDate=2026-10-01]
+	at com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_07_E156_aSepaMemberWithoutAUsableMandateIsAnIncidentAndTheRunSkipsIt(InvoicingRulesTest.java:339)
+
+[ERROR] com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_02_R_13_11_aLeavingHolderBillsNobodyAndTheMembersAreBilledOnTheirOwn -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [Draft[payerId=joan-antoni, lines=[Line[origin=MONTHLY_FEE, month=2026-12, priceId=p-abonat, bookingId=null, chargeId=null, description=MONTHLY_FEE Abonat 2026-12, amounts=Amounts[base=Money[amountMinor=6000, currency=EUR], taxPercent=0, tax=Money[amountMinor=0, currency=EUR], total=Money[amountMinor=6000, currency=EUR]], forMemberId=null]], advances=[Advance[memberId=joan-antoni, from=2026-12-01, to=2027-01-01]]]]
+	at com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_02_R_13_11_aLeavingHolderBillsNobodyAndTheMembersAreBilledOnTheirOwn(InvoicingRulesTest.java:280)
+
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.002 s <<< FAILURE! -- in com.agilityhub.core.shared.domain.SepaCreditorIdentifierTest
+[ERROR] com.agilityhub.core.shared.domain.SepaCreditorIdentifierTest.R_12_12_R_17_05_onlyTheCanonicalCheckDigitsAreValid -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[ES00ZZZB12345678] 
+Expecting value to be false but was true
+	at com.agilityhub.core.shared.domain.SepaCreditorIdentifierTest.R_12_12_R_17_05_onlyTheCanonicalCheckDigitsAreValid(SepaCreditorIdentifierTest.java:15)
+
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+Validation failed; no changes applied. Counts below describe the proposed changes.
+members: created=0 updated=0 skipped=0 errors=1
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {MAPPING_INVALID=1}
+members:2 members ERROR MAPPING_INVALID
+Playoff APPLY
+Validation failed; no changes applied. Counts below describe the proposed changes.
+REEXECUTION_UNSUPPORTED: 1 records cannot be reconciled with an earlier load (R-18-14). On staging, the way out is --reset and a new load.
+members: created=0 updated=0 skipped=0 errors=1
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {REEXECUTION_UNSUPPORTED=1}
+members:3 members ERROR REEXECUTION_UNSUPPORTED field=status
+Anonymized Playoff files written; no input values or key logged.
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Reset club data. Enter the club slug:
+Enter the club slug again:
+Club reset completed: canic
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+leaves: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 1.177 s <<< FAILURE! -- in com.agilityhub.core.migration.PlayoffAdapterTest
+[ERROR] com.agilityhub.core.migration.PlayoffAdapterTest.R_18_11b_E156_oneBadRowOfAnAuxiliaryFileIsAWarningAndTheRestOfTheFileIsRead -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["good", "after"]
+but could not find the following elements:
+  ["good", "after"]
+
+	at com.agilityhub.core.migration.PlayoffAdapterTest.R_18_11b_E156_oneBadRowOfAnAuxiliaryFileIsAWarningAndTheRestOfTheFileIsRead(PlayoffAdapterTest.java:276)
+
+[ERROR] com.agilityhub.core.migration.PlayoffAdapterTest.R_18_13_E156_aProductionLoadNeedsAnExplicitCutOver -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.migration.PlayoffAdapterTest.R_18_13_E156_aProductionLoadNeedsAnExplicitCutOver(PlayoffAdapterTest.java:244)
+
+[ERROR] Failures: 
+[ERROR]   PlayoffAdapterTest.R_18_11b_E156_oneBadRowOfAnAuxiliaryFileIsAWarningAndTheRestOfTheFileIsRead:276 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["good", "after"]
+but could not find the following elements:
+  ["good", "after"]
+
+[ERROR]   PlayoffAdapterTest.R_18_13_E156_aProductionLoadNeedsAnExplicitCutOver:244 
+Expecting code to raise a throwable.
+[ERROR]   InvoicingRulesTest.T_12_02_E156_aHolderWithoutAPaymentMethodKeepsItsGroupAndCatchesUpOnceTheMethodReturns:306 [2026-12] 
+Expecting empty but was: [Draft[payerId=joan-antoni, lines=[Line[origin=MONTHLY_FEE, month=2026-12, priceId=p-abonat, bookingId=null, chargeId=null, description=MONTHLY_FEE Abonat 2026-12, amounts=Amounts[base=Money[amountMinor=6000, currency=EUR], taxPercent=0, tax=Money[amountMinor=0, currency=EUR], total=Money[amountMinor=6000, currency=EUR]], forMemberId=null]], advances=[Advance[memberId=joan-antoni, from=2026-12-01, to=2027-01-01]]]]
+[ERROR]   InvoicingRulesTest.T_12_02_R_13_11_aLeavingHolderBillsNobodyAndTheMembersAreBilledOnTheirOwn:280 
+Expecting empty but was: [Draft[payerId=joan-antoni, lines=[Line[origin=MONTHLY_FEE, month=2026-12, priceId=p-abonat, bookingId=null, chargeId=null, description=MONTHLY_FEE Abonat 2026-12, amounts=Amounts[base=Money[amountMinor=6000, currency=EUR], taxPercent=0, tax=Money[amountMinor=0, currency=EUR], total=Money[amountMinor=6000, currency=EUR]], forMemberId=null]], advances=[Advance[memberId=joan-antoni, from=2026-12-01, to=2027-01-01]]]]
+[ERROR]   InvoicingRulesTest.T_12_07_E156_aSepaMemberWithoutAUsableMandateIsAnIncidentAndTheRunSkipsIt:339 
+expected: Skipped[code=MANDATE_PENDING]
+ but was: Billed[lines=[Line[origin=MONTHLY_FEE, month=2026-09, priceId=p-abonat, bookingId=null, chargeId=null, description=MONTHLY_FEE Abonat 2026-09, amounts=Amounts[base=Money[amountMinor=6000, currency=EUR], taxPercent=0, tax=Money[amountMinor=0, currency=EUR], total=Money[amountMinor=6000, currency=EUR]], forMemberId=null]], nextInvoiceDate=2026-10-01]
+[ERROR]   SepaCreditorIdentifierTest.R_12_12_R_17_05_onlyTheCanonicalCheckDigitsAreValid:15 [ES00ZZZB12345678] 
+Expecting value to be false but was true
+[ERROR] Tests run: 29, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

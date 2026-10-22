@@ -531,7 +531,9 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
             var error=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun",String.valueOf(dry))),400);
             assertThat(error.path("code").asText()).isEqualTo("VALIDATION_ERROR");assertThat(error.at("/details/fieldErrors/0/field").asText()).isEqualTo("nextInvoiceDate");
         }
-        body.put("nextInvoiceDate","2026-01-01");result(admin(postJson("/members/"+id+"/validation",body)),200);
+        // E11-T15 round 2 (N3, E156): the validation charges the first month (FIRST_MONTH), so its own month is refused too.
+        body.put("nextInvoiceDate","2026-01-01");result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),400);
+        body.put("nextInvoiceDate","2026-02-01");result(admin(postJson("/members/"+id+"/validation",body)),200);
     }
     @Test void T_04_02_birthDateMustBeInThePastAndNotBefore1900() throws Exception {
         for(String date:List.of("1899-12-31","2026-01-01","2026-06-01")) {

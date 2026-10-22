@@ -351,6 +351,41 @@ class LifecycleIT extends BookingFixtures {
         assertThat(count("upfront_payments", Criteria.where("memberId").is("s08-m-laura"))).isZero();
         assertThat(mongo.findById("s08-m-laura", Document.class, "members").getList("leaveHistory", Document.class)).hasSize(1);
     }
+    /**
+     * E11-T15 round 2 (N1, ruling E156; S13 R-13-16, S12 R-12-01/02): D10's reactivation drawer used to pre-fill the LEFT member's old
+     * `nextInvoiceDate`, and the catch-up of step 4 then billed every month the member was LEFT (April → December: 9 lines, 540 €).
+     * A date before the first day of the club's current month is refused like the plan change's; the next month's date bills one.
+     */
+    @Test void T_13_21_R_13_16_E156_aReactivationNeverBillsTheMonthsTheMemberWasLeft() throws Exception {
+        var leave = requestLeave("2026-10-06"); call(POST, "/leave-requests/"+leave+"/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        clock.setInstant(local("2026-10-07T12:00")); leaveScheduler.executeDue(CLUB, LocalDate.parse("2026-10-07")); dispatch();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("nextInvoiceDate", "2026-04-01")
+                .set("paymentMethod", new Document("type", "MANUAL").append("channel", "cash")), "members");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders", Map.of("MANUAL", Map.of("enabled", true))), "clubs");
+        configs.invalidate(CLUB);
+        var updated = Instant.parse("2026-01-01T00:00:00Z");
+        mongo.save(new com.agilityhub.core.clubs.catalogs.persistence.Price("s13-price", CLUB, "s13-monthly", com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept.MONTHLY_FEE,
+                new com.agilityhub.core.shared.domain.Money(6000, "EUR"), java.math.BigDecimal.ZERO, LocalDate.of(2026, 1, 1), null, 0, updated, updated, "s08-admin", "s08-admin"));
+        clock.setInstant(local("2026-11-20T12:00"));
+        for (String stale : List.of("2026-04-01", "2026-10-31")) {
+            var refused = call(POST, "/members/s08-m-laura/reactivation", Map.of("planId", "s13-monthly", "priceId", "s13-price", "nextInvoiceDate", stale), as("admin"), 400);
+            assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+            assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("nextInvoiceDate");
+            assertThat(refused.at("/details/fieldErrors/0/code").asText()).isEqualTo("INVALID_VALUE");
+            var unchanged = mongo.findById("s08-m-laura", Document.class, "members");
+            assertThat(unchanged.getString("status")).isEqualTo("LEFT"); assertThat(unchanged.getString("nextInvoiceDate")).isEqualTo("2026-04-01");
+        }
+        call(POST, "/members/s08-m-laura/reactivation", Map.of("planId", "s13-monthly", "priceId", "s13-price", "nextInvoiceDate", "2026-12-01"), as("admin"), 200);
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("nextInvoiceDate")).isEqualTo("2026-12-01");
+        var december = call(POST, "/billing/simulations", Map.of("period", "2026-12"), as("admin"), 201);
+        var preview = new ArrayList<com.fasterxml.jackson.databind.JsonNode>();
+        december.path("invoicesPreview").forEach(row -> { if (row.path("memberId").asText().equals("s08-m-laura")) { preview.add(row); } });
+        assertThat(preview).singleElement().satisfies(row -> {
+            assertThat(row.path("lines")).hasSize(1);
+            assertThat(row.at("/lines/0/origin").asText()).isEqualTo("MONTHLY_FEE");
+            assertThat(row.at("/total/amountMinor").asLong()).isEqualTo(6000);
+        });
+    }
     @Test void T_13_22_plannedLeaveFiltersOverviewAndProtectedSystemView() throws Exception {
         call(POST, "/members/s08-m-laura/leave", Map.of("effectiveDate", "2026-10-31"), as("admin"), 201);
         var result = call(GET, "/members?filter=displayStatus:eq:LEAVE_SCHEDULED&sort=leaveDate,asc", null, as("admin"), 200);

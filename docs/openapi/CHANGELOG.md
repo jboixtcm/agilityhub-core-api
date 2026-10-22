@@ -25,6 +25,14 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - `GET /signup` (descriptions only): `texts.familyGroupIntro` is also `null` when the family fare has a price twin; `plans[].current` — a member whose own plan has a twin gets the offer with no current plan (B34); `upfront.additionalDogOptions` is absent and `upfront.planQuotes` has no entry when the add-dog quote would read a twin.
 - Behaviour only: `POST /members/{id}/validation` (and its dry run) refuses a twinned plan with `409 PRICE_OVERLAP` before it compares `priceId` (either twin's id answers the same 409, not `422 PLAN_NOT_AVAILABLE`), and refuses an add-dog whose family fare is twinned.
 
+## 2026-10-22 · E11-T15 round 2 · Money and the day-D load (ruling E156)
+
+**0 operations, schemas or properties added or removed; 2 enum values added; 2 descriptions changed.**
+
+- `BillingIncidentCode` (S12 R-12-04/07, E156): `NO_PAYMENT_METHOD` — a family holder without a payment method; it keeps its group (the members are `BILLED_VIA_HOLDER`, nothing billed on their own) and its months are caught up once the method returns. `MANDATE_PENDING` — a `SEPA_DD` member without a usable mandate (no reference, one pain.008 cannot carry, or no signature): skipped by the run instead of `422 SEPA_NOT_CONFIGURED {memberIds}` for the whole remittance; a waiting `includeInNextRun` receipt of such a member waits too. Both in `BillingSimulation.incidents[]`, `BillingRun.skipped[]` and `GET /billing/periods/{period}`.
+- `POST /billing/runs/{id}/rollback` (S12 R-12-14, E156): `confirmation` also accepts `FITXER_NO_ENVIAT` («the file was never sent to the bank»), which lifts only `COLLECTION_DATE_PASSED`; a submitted remittance, a submitted or succeeded collection, a paid receipt or a later number still answer `409 RUN_NOT_ROLLBACKABLE`. The `REMITTANCE_ROLLED_BACK` audit entry's details carry the word used. The 409 description now lists `COLLECTION_DATE_PASSED` (E147).
+- Behaviour only, no contract change: `POST /members/{id}/reactivation` refuses a `nextInvoiceDate` before the first day of the club's current month (`400 VALIDATION_ERROR {fieldErrors: [{field: nextInvoiceDate, code: INVALID_VALUE}]}`, S13 R-13-16); `POST /members/{id}/validation` (and its dry run) refuses a `nextInvoiceDate` before the 1st of the month after the first month it charges (a `FIRST_MONTH` row; S04 R-04-15), same 400; the SEPA creditor identifier's check digits must be canonical (02–98).
+
 ## 2026-10-22 · E11-T17 · The courses list publishes its date column (organizer note E154)
 
 **0 operations, schemas or properties added or removed; 1 column added to 2 list catalogues.**

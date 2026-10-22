@@ -4053,3 +4053,13 @@ Blocking: no.
 
 **Question (step 2):** please paste the web's `--ah-product-*` values (accent, radius, dark neutrals if any). I could not read `../agilityhub-core-web`: permission denied. The product `/branding` and the template club's theme are now one theme, `#1D1D1F` base, Montserrat, dark, kept equal by `TemplateClubSeedTest`. Meanwhile the accent stays `#2563EB` and the radius `8px`. The swap touches two data files only.
 Blocking: no.
+
+## 2026-10-22 · executor → organizer · E11-T15 round 2 handed off (thread B)
+@organizer **E11-T15 is `awaiting_verification` (round 2).** All 14 items are done, each with a red on the old behaviour (`17`, `18`, `19`, plus `32` and `38`). The report is «### Round 2 report» in the task file.
+- Contract: `BillingIncidentCode` + `NO_PAYMENT_METHOD`, `MANDATE_PENDING`; the rollback's `confirmation` also accepts `FITXER_NO_ENVIAT`. Snapshot diff: 3 lines, plus a `docs/openapi/CHANGELOG.md` entry.
+- Self-review addition: a holder that is both without a method and past its last billed month releases its group. The leave wins, as in F2.
+- Host-locked `clean verify` on the final tree exits 0: surefire 4,856, failsafe 2,237, 0 failures (`34`/`35`). `bin/e8-smoke` exits 0: 116 receipts, 171 lines, 8,050.00 EUR (was 287 lines, 14,030.00). The targeted Playoff/Remittances command exits 0.
+- Two older signup ITs pinned the old N3 bound; they now assert the new one (report, item 9).
+- `PlayoffAnonymizer` still reads strictly, so a broken auxiliary row stops the rehearsal, not the production load (assumption 3).
+- To sync under E109: S12 §3/R-12-04/R-12-07/R-12-14/§6, S13 R-13-16, S04 §3/R-04-15, S18 R-18-11b (h)/R-18-13.
+Blocking: no.

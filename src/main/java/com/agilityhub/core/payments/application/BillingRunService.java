@@ -38,7 +38,8 @@ import org.springframework.stereotype.Service;
  * entry with `details.invoiceIds`. Members with an incident are skipped (`skipped[]`) and never block; so is a waiting receipt
  * whose member can no longer be debited for it (E8-T07 step 3), which stays `PENDING` with its flag.
  *
- * <p>Rollback: allowed while the remittance is not submitted nor past its collection date (E147: `COLLECTION_DATE_PASSED`),
+ * <p>Rollback: allowed while the remittance is not submitted nor past its collection date (E147: `COLLECTION_DATE_PASSED`, which
+ * only the second confirmation word `FITXER_NO_ENVIAT` lifts — E156; the audit entry records the word used),
  * no non-manual collection of the run is submitted or succeeded, no receipt of the run (or of its remittance) is paid, the run
  * is not `COMPLETED` and nothing was numbered after the run's block — else `409 RUN_NOT_ROLLBACKABLE {reasons}`. Every invoice of the run is rolled back with a new
  * `FAILED{ROLLBACK}` collection and `InvoiceCancelled{ROLLBACK}`: the live ones are cancelled (`ROLLBACK`), one the admin
@@ -51,6 +52,11 @@ import org.springframework.stereotype.Service;
 public class BillingRunService {
     /** The word D6's confirmation asks to type (R-12-14). */
     public static final String CONFIRMATION = "RETROCEDIR";
+    /**
+     * E11-T15 round 2 (Q1, ruling E156; R-12-14): the second word, «the file was never sent to the bank» — it lifts only
+     * `COLLECTION_DATE_PASSED`, for a remittance still `GENERATED` past its collection date that no bank ever received.
+     */
+    public static final String FILE_NOT_SENT = "FITXER_NO_ENVIAT";
     public static final String ROLLBACK = BillingDocuments.ROLLBACK;
 
     /** A generated run with its remittance (null without `SEPA_XML` invoices) and what blocks its rollback now. */
@@ -182,9 +188,11 @@ public class BillingRunService {
 
     /** R-12-14 (call it inside {@link #locked} and a billing transaction). */
     public RollbackOutcome rollback(String runId, String reason, String confirmation) {
-        if (!CONFIRMATION.equals(confirmation)) { throw BillingContractAccess.invalid("confirmation"); }
+        if (!CONFIRMATION.equals(confirmation) && !FILE_NOT_SENT.equals(confirmation)) { throw BillingContractAccess.invalid("confirmation"); }
         var run = runs.findById(runId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        var blockers = blockers(run);
+        var blockers = new ArrayList<>(blockers(run));
+        // E156: the admin states the file never reached the bank; a submitted remittance, a collection or a payment still refuse.
+        if (FILE_NOT_SENT.equals(confirmation)) { blockers.remove(RollbackBlocker.COLLECTION_DATE_PASSED); }
         if (run.status() == BillingRunStatus.ROLLED_BACK || !blockers.isEmpty()) {
             throw new ApiException(ErrorCode.RUN_NOT_ROLLBACKABLE, Map.of("reasons", blockers.stream().map(Enum::name).toList()));
         }
@@ -236,7 +244,7 @@ public class BillingRunService {
             events.publish(BillingEvent.Kind.RemittanceRolledBack, remittance.id(), Map.of("remittanceId", remittance.id(), "runId", runId, "invoiceIds", touched));
         }
         audit.write(new AuditCommand(AuditAction.REMITTANCE_ROLLED_BACK, "BillingRun", runId, null, run, after, reason),
-                Map.of("period", run.period(), "invoiceIds", ids, "returnedManualInvoiceIds", returned, "restoredMembers", restored));
+                Map.of("period", run.period(), "invoiceIds", ids, "returnedManualInvoiceIds", returned, "restoredMembers", restored, "confirmation", confirmation));
         return new RollbackOutcome(ids.size(), restored);
     }
 
