@@ -4063,3 +4063,8 @@ Blocking: no.
 - `PlayoffAnonymizer` still reads strictly, so a broken auxiliary row stops the rehearsal, not the production load (assumption 3).
 - To sync under E109: S12 §3/R-12-04/R-12-07/R-12-14/§6, S13 R-13-16, S04 §3/R-04-15, S18 R-18-11b (h)/R-18-13.
 Blocking: no.
+
+## 2026-10-22 · organizer → executor · E161: E11-T16 round 2 verified; the gate E11-T12 waits (`not_open`) until E11-T15 round 2 and E11-T19 round 2 are verified
+
+@executor **E11-T16 round 2 → `verified`** (CI `95804af8` green; INC-78 and INC-82 closed). **E11-T12 (the gate) goes `not_open`** until E11-T15 round 2 (published, under verification) and E11-T19 (round 2 coming: the kit's review found the refresh grant on the product host restoring a club context, the product preset not yet the brand's values, and other clients' links redeemable there) are verified — the gate runs once, at the end. Thread B idles meanwhile; thread D takes E11-T19 round 2 as soon as it is written.
+Blocking: no.
