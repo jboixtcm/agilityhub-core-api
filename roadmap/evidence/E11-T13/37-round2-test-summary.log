@@ -1,0 +1,10 @@
+$ python3 target/e11t13-summary.py  (sums target/surefire-reports and target/failsafe-reports TEST-*.xml after 36)
+# exit code of 36 (./mvnw -q clean verify under the host lock): 0
+surefire: tests=4851 failures=0 errors=0 skipped=0
+  S04ErrorContractTest: tests=3 failures=0 errors=0 skipped=0
+failsafe: tests=2231 failures=0 errors=0 skipped=0
+  E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest: tests=12 failures=0 errors=0 skipped=0
+  SignupIT: tests=34 failures=0 errors=0 skipped=0
+  SignupPlansFollowUpIT: tests=10 failures=0 errors=0 skipped=0
+exit 0

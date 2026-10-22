@@ -619,10 +619,11 @@ public class SignupService implements SignupPaymentAccess {
     }
     /**
      * R-04-09 (E5-T24, review E5-T22 #3): the member's own plan while the club can still assign it. A member whose plan is no
-     * longer assignable (inactive, or its module off) counts as a member without a plan (B34): null, no plan `current`.
+     * longer assignable (inactive, or its module off) counts as a member without a plan (B34): null, no plan `current`. Ruling
+     * E138 (E11-T13 round 2): so does a plan with a price twin, which is never quoted.
      */
     private String ownPlan(Member member) {
-        return member.planId!=null&&policy.assignablePlans().stream().anyMatch(plan -> plan.id().equals(member.planId))?member.planId:null;
+        return member.planId!=null&&policy.assignablePlans().stream().anyMatch(plan -> plan.id().equals(member.planId))&&!policy.twinned(member.planId)?member.planId:null;
     }
     @Transactional
     @Audited(action=AuditAction.SIGNUP_EDITED,entityType="'Dog'",entity="#result['dogId']",member="#memberId")
@@ -635,6 +636,9 @@ public class SignupService implements SignupPaymentAccess {
         if(planId==null&&!policy.plans().isEmpty()) throw invalid("planIdRequested","REQUIRED");
         // M8: the member's own plan is assignable even when it is hidden from the public offer (the family fare); another plan must be offered.
         if(Objects.equals(planId,member.planId)) policy.requireAssignable(planId);else policy.require(planId);
+        // Ruling E138 (E11-T13 round 2): no added dog is quoted from one of two twin prices (its plan, or the family fare it moves
+        // the member to): 409 PRICE_OVERLAP, before anything is written.
+        policy.requireAddDogQuotable(member.planId,planId);
         appendConsents(member,consentRows(member,map(request.get("consents")),true,locale(),ip));
         String option=string(request.getOrDefault("additionalDogOption","TODAY"));String submission=UUID.randomUUID().toString();
         // S04 §3 (E3-T10): an add-dog submission never overwrites the member's public signup; its block lives on its dog only.
@@ -657,7 +661,8 @@ public class SignupService implements SignupPaymentAccess {
     private Map<String,Object> configurationFor(Member me) {
         var config=access.config();String language=locale();
         if(!"ACTIVE".equals(config.club().status()) || !Boolean.TRUE.equals(config.get("signup.enabled",Boolean.class))) return object("enabled",false,"closedText",textParameter("signup.text.closed"));
-        var plans=policy.plans();var shown=me==null?plans:memberPlans(plans,me.planId);
+        // E138 round 2: a member's own plan with a price twin is treated as one that can no longer be assigned (ownPlan).
+        var plans=policy.plans();String own=me==null?null:ownPlan(me);var shown=me==null?plans:memberPlans(plans,own);
         var legal=new LinkedHashMap<>(settings.signupLegal(language));legal.remove("legalName");
         var result=object("enabled",true,"steps",access.enabled(Module.FAMILY_GROUP)&&me==null?List.of("PERSON","DOG","FAMILY_GROUP","PAYMENT"):List.of("PERSON","DOG","PAYMENT"),
                 "plans",shown.stream().map(plan -> planView(plan,me==null?null:plan.id().equals(me.planId))).toList(),"texts",texts(language),"legal",legal,"countryProfile",countries.signupProfile(),
@@ -672,10 +677,11 @@ public class SignupService implements SignupPaymentAccess {
             var upfront=object("firstMonthSplitDay",config.get("signup.firstMonthSplitDay",Integer.class),"today",policy.today(),"firstMonthOptions",monthly==null?List.of():policy.firstOptions(monthly.price().amount()).stream().map(this::configChoice).toList());
             // R-04-14: the TODAY choice of an added dog always exists; ALTERNATIVE only up to billing.upfrontCutoffDay. E5-T24 (R-04-09):
             // none for a member whose plan is gone, as for one without a plan (quoting a gone plan answered 422 PLAN_NOT_AVAILABLE).
-            String own=me==null?null:ownPlan(me);
-            if(own!=null) upfront.put("additionalDogOptions",policy.additionalOptions(own,own).stream().map(this::configChoice).toList());
+            // E138 round 2: none either when the quote would read a twin price (the family fare the dog moves the member to).
+            if(own!=null&&policy.addDogQuotable(own,own)) upfront.put("additionalDogOptions",policy.additionalOptions(own,own).stream().map(this::configChoice).toList());
             // M5: one quote per listed plan, computed like the submission; the add-dog mode also quotes the member's own (maybe hidden) plan.
-            upfront.put("planQuotes",shown.stream().map(plan -> quoteView(policy.planQuote(plan,me!=null,own))).toList());
+            // E138 round 2: an add-dog quote that would read a twin price is left out (its submission answers 409 PRICE_OVERLAP).
+            upfront.put("planQuotes",shown.stream().filter(plan -> me==null||policy.addDogQuotable(own,plan.id())).map(plan -> quoteView(policy.planQuote(plan,me!=null,own))).toList());
             result.put("upfront",upfront);
         }
         if(me!=null) result.put("member",object("planId",me.planId,"paymentMethodMasked",billing()?queries.payment(me):null,"consentsUpToDate",policy.currentConsent(history(me),legalVersion())));
@@ -684,10 +690,11 @@ public class SignupService implements SignupPaymentAccess {
     /**
      * `GET /signup.texts` with the placeholders resolved on the server (M6): `{deadlineDay}` is the day S13 returns as
      * `deadlineDay` (`inactivity.requestDeadlineDay`) and `{twoDogsMonthlyFee}` the current monthly price of the R-04-13 family
-     * fare, formatted in the text's locale. Without a family fare the family intro is `null`.
+     * fare, formatted in the text's locale. Without a family fare the family intro is `null`; so it is when that fare has a price
+     * twin (ruling E138, E11-T13 round 2): no amount read from one of two current prices.
      */
     private Map<String,Object> texts(String language) {
-        var fare=policy.familyFare(2);
+        var fare=policy.familyFare(2).filter(plan -> !policy.twinned(plan.id()));
         String deadline=String.valueOf(access.config().get("inactivity.requestDeadlineDay",Integer.class));
         return object("freeTrainingConditions",textParameter("signup.text.freeTrainingConditions"),"therapyIntro",textParameter("signup.text.therapyIntro"),
                 "familyGroupIntro",fare.map(plan -> textParameter("signup.text.familyGroupIntro").replace("{twoDogsMonthlyFee}",plan.price().amount().format(Locale.forLanguageTag(language)))).orElse(null),
@@ -760,13 +767,23 @@ public class SignupService implements SignupPaymentAccess {
         if(Boolean.TRUE.equals(submission(member,dogs).get("readmission"))) warnings.add("READMISSION");
         return warnings;
     }
-    private SignupPolicy.Plan proposedPlan(Member member,Map<String,Object> request,List<Dog> dogs) {
+    /**
+     * D2's plan: the one named, else the requested one or its family fare (R-04-13). Ruling E138 (E11-T13): with {@code refuseTwins}
+     * (the dry run and the validation, never the review, which still loads), a twinned plan answers 409 PRICE_OVERLAP before any
+     * price is read: the named or requested one (round 2, before the priceId check), the proposed one, and for an add-dog the
+     * family fare its quote reads.
+     */
+    private SignupPolicy.Plan proposedPlan(Member member,Map<String,Object> request,List<Dog> dogs,boolean refuseTwins) {
         String id=string(request.getOrDefault("planId",submission(member,dogs).getOrDefault("planIdRequested",member.planId)));
         // M8: the admin assigns any active plan of an enabled module, hidden from the public offer or not.
         var plan=policy.requireAssignable(id);
+        if(refuseTwins) policy.requireOnePricePerConcept(plan);
         if(request.get("planId")==null&&access.enabled(Module.FAMILY_GROUP)) {
             int count=familyDogs(member,request,dogs);
             if(count>=2&&plan!=null&&"MONTHLY_FEE".equals(plan.billingMode())) plan=policy.proposedFamilyFare(count).orElse(plan);
+        }
+        if(refuseTwins&&plan!=null) {
+            if("ACTIVE".equals(member.status)) policy.requireAddDogQuotable(member.planId,plan.id());else policy.requireOnePricePerConcept(plan);
         }
         // The accepted price is the one the plan bills (its billing mode): Teràpia's maintenance price, the standard one otherwise.
         if(request.get("priceId")!=null&&(plan==null||plan.billedPrice()==null||!request.get("priceId").equals(plan.billedPrice().id()))) throw new ApiException(ErrorCode.PLAN_NOT_AVAILABLE);
@@ -829,7 +846,7 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> review(String id) {
         var member=access.mutableMember(id);var dogs=pending(id);if(dogs.isEmpty()) throw notPending();
         // R-04-19 (INC-39): a gone requested plan proposes nothing; the first month in force is the frozen one.
-        boolean gone=planGone(member,Map.of(),dogs);var plan=gone?null:proposedPlan(member,Map.of(),dogs);var quote=gone?noQuote():validationQuote(member,plan,dogs);
+        boolean gone=planGone(member,Map.of(),dogs);var plan=gone?null:proposedPlan(member,Map.of(),dogs,false);var quote=gone?noQuote():validationQuote(member,plan,dogs);
         var signup=submission(member,dogs);var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);
         var submission=new LinkedHashMap<>(signup);submission.put("pendingDays",Math.max(0,ChronoUnit.DAYS.between(instant(signup.get("submittedAt")).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate(),policy.today())));
         var claim=new LinkedHashMap<>(map(member.familyGroupClaim));String holderId=string(claim.remove("holderMemberId"));
@@ -983,9 +1000,8 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> dryRun(String id,Map<String,Object> request) {
         var member=access.mutableMember(id);var dogs=selection(member,request);
         // R-04-19 (INC-39): with a gone requested plan and none chosen, the preview is the rows as they are.
-        boolean gone=planGone(member,request,dogs);var plan=gone?null:proposedPlan(member,request,dogs);
         // Ruling E138 (E11-T13): never a preview priced from one of two current prices; billing refuses that plan too.
-        policy.requireOnePricePerConcept(plan);
+        boolean gone=planGone(member,request,dogs);var plan=gone?null:proposedPlan(member,request,dogs,true);
         var quote=gone?noQuote():validationQuote(member,plan,dogs);
         var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);nextInvoiceDate(request,first);
         var warnings=new ArrayList<>(warnings(member,dogs));Map<String,Object> upfront=null;
@@ -1033,9 +1049,8 @@ public class SignupService implements SignupPaymentAccess {
         // allocation reads them, whether or not the provider ever had it and with the provider switched off.
         checkouts.getObject().releaseLapsed(id);
         if(addDog!= "ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.INVALID_STATE);
-        var plan=proposedPlan(member,request,dogs);
         // Ruling E138 (E11-T13): a plan with a price twin is not validated: 409 PRICE_OVERLAP with billing's details, nothing written.
-        policy.requireOnePricePerConcept(plan);
+        var plan=proposedPlan(member,request,dogs,true);
         var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,firstMonth(member,plan,dogs,quote));
         var levels=new LinkedHashMap<String,String>();
         if(access.levels()) for(var raw:rows(request.get("dogs"))) {

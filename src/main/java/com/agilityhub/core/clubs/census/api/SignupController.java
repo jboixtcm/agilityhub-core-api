@@ -196,8 +196,11 @@ public class SignupController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, MEMBER_ERASED, MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, CHIP_ALREADY_EXISTS,
             DOG_DOCUMENT_REQUIRED, DOCUMENT_TYPE_UNKNOWN, CONSENT_VERSION_OUTDATED, FILE_NOT_FOUND, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE,
-            IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
-    @Operation(summary = "Submit an additional dog", description = "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status.",
+            IDEMPOTENCY_KEY_REUSED, STALE_VERSION, PRICE_OVERLAP})
+    @Operation(summary = "Submit an additional dog", description = "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status. "
+            + "With BILLING, a quote that would read a plan with two current prices of one concept (a legacy price twin, INC-68, ruling E138): the requested plan "
+            + "(the member's own, which GET /signup no longer lists as current) or the family fare the added dog moves the member to → 409 PRICE_OVERLAP "
+            + "{planId, concept, priceId, conflictingPriceId} on that plan, and nothing is written.",
             responses = @ApiResponse(responseCode = "201", description = "Dog submitted", useReturnTypeSchema = true))
     public AddDogSignupResult addDog(@io.swagger.v3.oas.annotations.Parameter(schema = @Schema(format = "uuid")) @RequestHeader("Idempotency-Key") String key,
             @Valid @RequestBody AddDogSignupRequest request) {

@@ -1,0 +1,8 @@
+$ /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/e3-signup-smoke
+# round 2: the signup gate (public signup, add-dog, D2) on the changed code
+heavy.sh: 02:10 waiting for the host lock, held by: 02:10 agilityhub-core-web: pnpm e2e:docker E11-W06
+heavy.sh: 02:41 got the host lock after 30 min 33 s
+usage: e3-signup-smoke [-h] --evidence-dir EVIDENCE_DIR
+                       [--mongo-container MONGO_CONTAINER]
+e3-signup-smoke: error: the following arguments are required: --evidence-dir
+exit 2

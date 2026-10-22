@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-22 · E11-T13 round 2 · No member-facing quote from a price twin (ruling E138)
+
+**0 operations, schemas or properties added or removed; 1 error code added to 1 operation; 5 descriptions changed.**
+
+- `POST /me/dogs/signup` (S04 R-04-09/13/14): new `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` when, with `BILLING`, the added dog's quote would read a plan with two current prices of one concept: the requested plan (the member's own included) or the family fare the dog moves the member to. Nothing is written (no dog, no upfront payment, no `SignupSubmitted`).
+- `GET /signup` (descriptions only): `texts.familyGroupIntro` is also `null` when the family fare has a price twin; `plans[].current` — a member whose own plan has a twin gets the offer with no current plan (B34); `upfront.additionalDogOptions` is absent and `upfront.planQuotes` has no entry when the add-dog quote would read a twin.
+- Behaviour only: `POST /members/{id}/validation` (and its dry run) refuses a twinned plan with `409 PRICE_OVERLAP` before it compares `priceId` (either twin's id answers the same 409, not `422 PLAN_NOT_AVAILABLE`), and refuses an add-dog whose family fare is twinned.
+
 ## 2026-10-22 · E11-T17 · The courses list publishes its date column (organizer note E154)
 
 **0 operations, schemas or properties added or removed; 1 column added to 2 list catalogues.**

@@ -42,7 +42,7 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) Money entryFee,
             @Schema(requiredMode = NOT_REQUIRED) SignupPack pack,
             @Schema(requiredMode = NOT_REQUIRED) Money maintenanceFee,
-            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan, or whose plan is no longer assignable, gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup") Boolean current) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan, or whose plan is no longer assignable or has a price twin (ruling E138), gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup") Boolean current) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupPrice(@Schema(format = "uuid") String id, Money amount,
             @Schema(allowableValues = {"MONTHLY", "ONE_OFF"}) String periodicity) { }
@@ -55,7 +55,7 @@ public final class SignupResponses {
     @Schema(description = "Club texts resolved in the response locale, placeholders already interpolated by the server ({deadlineDay}, {twoDogsMonthlyFee})")
     public record SignupTexts(String freeTrainingConditions, String therapyIntro,
             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true, description = "null when the club has no family fare (R-04-13)") String familyGroupIntro,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true, description = "null when the club has no family fare (R-04-13), or with BILLING when that fare has a price twin (ruling E138): never an amount read from one of two current prices") String familyGroupIntro,
             String monthlyPaymentIntro, String paymentDay, String cashConditions, String imageConsent) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupLegal(@Schema(format = "uri") String privacyPolicyUrl, String legalTextsVersion, String imageConsentText) { }
@@ -65,8 +65,8 @@ public final class SignupResponses {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupUpfrontConfig(int firstMonthSplitDay, LocalDate today,
             @Schema(description = "Deprecated by planQuotes: the options of the first monthly plan only") List<SignupConfigChoice> firstMonthOptions,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Add-dog mode: TODAY always, ALTERNATIVE only up to billing.upfrontCutoffDay") List<SignupConfigChoice> additionalDogOptions,
-            @Schema(description = "R-04-14/15: one quote per offered plan (add-dog mode: also the member's own plan), computed like the submission") List<SignupPlanQuote> planQuotes) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Add-dog mode: TODAY always, ALTERNATIVE only up to billing.upfrontCutoffDay. Absent without a current plan, or when the quote would read a price twin (ruling E138)") List<SignupConfigChoice> additionalDogOptions,
+            @Schema(description = "R-04-14/15: one quote per offered plan (add-dog mode: also the member's own plan), computed like the submission. Add-dog mode: no quote that would read a price twin (ruling E138); its submission answers 409 PRICE_OVERLAP") List<SignupPlanQuote> planQuotes) { }
     public enum QuotePortion { FULL, HALF }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupQuoteLine(UpfrontConcept concept, Money amount) { }

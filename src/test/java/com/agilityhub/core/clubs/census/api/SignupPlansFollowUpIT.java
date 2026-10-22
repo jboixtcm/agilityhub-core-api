@@ -321,6 +321,109 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         assertThat(ids(anonymous("ca").path("plans"))).contains(planId("ABONAT"));
     }
 
+    /** INC-68's twin of {@code code}'s current price, as in the test above: a copy starting the same day (a BSON date), 5 € dearer. */
+    String twin(String code) {
+        var twin=new Document(mongo.getCollection("prices").find(new Document("_id",priceOf(code)).append("clubId",club)).first());
+        String id="e138-twin-"+code.toLowerCase(Locale.ROOT)+"-"+UUID.randomUUID();twin.put("_id",id);
+        twin.put("validFrom",Date.from(java.time.LocalDate.parse(twin.getString("validFrom")).atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));
+        twin.put("amount",new Document("amountMinor",twin.get("amount",Document.class).get("amountMinor",Number.class).longValue()+500).append("currency","EUR"));
+        mongo.getCollection("prices").insertOne(twin);return id;
+    }
+    /** The 409 PRICE_OVERLAP of {@code code}'s twin: billing's four details, the two prices in either order. */
+    void priceOverlap(JsonNode refused,String code,String priceId,String twinId) {
+        assertThat(refused.path("code").asText()).isEqualTo("PRICE_OVERLAP");
+        assertThat(refused.at("/details/planId").asText()).isEqualTo(planId(code));
+        assertThat(refused.at("/details/concept").asText()).isEqualTo("MONTHLY_FEE");
+        assertThat(List.of(refused.at("/details/priceId").asText(),refused.at("/details/conflictingPriceId").asText())).containsExactlyInAnyOrder(priceId,twinId);
+    }
+    /** What an add-dog writes for {@code id}: its dogs, its upfront payment rows and its SignupSubmitted events. */
+    List<Long> written(String id) {
+        return List.of(mongo.getCollection("dogs").countDocuments(new Document("clubId",club).append("memberId",id)),
+                mongo.getCollection("upfront_payments").countDocuments(new Document("clubId",club).append("memberId",id)),
+                mongo.getCollection("domain_events").countDocuments(new Document("type","SignupSubmitted").append("payload.memberId",id)));
+    }
+
+    /**
+     * R-04-13/14, ruling E138 (E11-T13 round 2, item 1): a twin on the family fare (ABONAT_FAMILIAR, 2 dogs, +5 €) reaches no
+     * member-facing amount. The public texts carry no family intro (null, as without a family fare); a member on the 1-dog ABONAT,
+     * whose added dog's fee is the family fare's delta, gets no additionalDogOptions and no ABONAT quote, and its add-dog on ABONAT
+     * answers 409 PRICE_OVERLAP on the family fare with nothing written. A pack, whose quote reads no twin, is still quoted and taken.
+     */
+    @Test void R_04_13_E138_aTwinOnTheFamilyFareReachesNoFamilyAmountNorAddDogQuote() throws Exception {
+        String id=activeMember(planId("ABONAT"));
+        assertThat(anonymous("ca").at("/texts/familyGroupIntro").asText()).contains("90");
+        var before=asMember(id);
+        assertThat(before.at("/upfront/additionalDogOptions")).isNotEmpty();
+        assertThat(before.at("/upfront/planQuotes").findValuesAsText("planId")).contains(planId("ABONAT"));
+        String familyPrice=priceOf("ABONAT_FAMILIAR"),twin=twin("ABONAT_FAMILIAR");
+
+        var texts=anonymous("ca").path("texts");
+        assertThat(texts.has("familyGroupIntro")).isTrue();assertThat(texts.path("familyGroupIntro").isNull()).as("no amount from one of two twins").isTrue();
+        var config=asMember(id);
+        assertThat(config.path("upfront").has("additionalDogOptions")).isFalse();
+        assertThat(config.at("/upfront/planQuotes").findValuesAsText("planId")).containsExactlyInAnyOrderElementsOf(planIds(List.of("PACK6","PACK10","TERAPIA")));
+        assertThat(plan(config,planId("ABONAT")).path("current").asBoolean()).as("its own plan has no twin").isTrue();
+        assertThat(SnapshotSchemas.violations(config,"SignupConfig")).isEmpty();
+        var nothing=written(id);
+        priceOverlap(result(asMember(postJson("/me/dogs/signup",addDog("941000005940001")).header("Idempotency-Key",UUID.randomUUID()),id),409),"ABONAT_FAMILIAR",familyPrice,twin);
+        var named=new LinkedHashMap<String,Object>(addDog("941000005940002"));named.put("planIdRequested",planId("ABONAT"));
+        priceOverlap(result(asMember(postJson("/me/dogs/signup",named).header("Idempotency-Key",UUID.randomUUID()),id),409),"ABONAT_FAMILIAR",familyPrice,twin);
+        assertThat(written(id)).as("no dog, no upfront payment, no SignupSubmitted").isEqualTo(nothing);
+        named.put("planIdRequested",planId("PACK6"));
+        result(asMember(postJson("/me/dogs/signup",named).header("Idempotency-Key",UUID.randomUUID()),id),201);
+    }
+
+    /**
+     * R-04-09, ruling E138 (E11-T13 round 2, item 2): a member whose own plan has a price twin is a member whose plan can no longer
+     * be assigned (B34): GET /signup lists the offer with no current plan, no additionalDogOptions and no quote of it; the add-dog
+     * on it answers 409 PRICE_OVERLAP and without a plan 400 planIdRequested REQUIRED, nothing written. D2 still loads the dog it
+     * had added before the twin, and its dry run and validation answer 409 PRICE_OVERLAP. The admin's list keeps both prices.
+     */
+    @Test void R_04_09_E138_aMemberWhoseOwnPlanIsTwinnedChoosesFromTheOfferAndD2RefusesItsPendingDog() throws Exception {
+        String id=activeMember(planId("ABONAT"));
+        result(asMember(postJson("/me/dogs/signup",addDog("941000005950001")).header("Idempotency-Key",UUID.randomUUID()),id),201);
+        String price=priceOf("ABONAT"),twin=twin("ABONAT");
+
+        var config=asMember(id);
+        assertThat(ids(config.path("plans"))).containsExactlyElementsOf(planIds(List.of("PACK6","PACK10","TERAPIA")));
+        config.path("plans").forEach(plan -> assertThat(plan.path("current").isBoolean()&&!plan.path("current").asBoolean()).as(plan.path("id").asText()).isTrue());
+        assertThat(config.path("upfront").has("additionalDogOptions")).isFalse();
+        assertThat(config.at("/upfront/planQuotes").findValuesAsText("planId")).containsExactlyInAnyOrderElementsOf(ids(config.path("plans")));
+        assertThat(config.at("/member/planId").asText()).isEqualTo(planId("ABONAT"));
+        assertThat(SnapshotSchemas.violations(config,"SignupConfig")).isEmpty();
+        var nothing=written(id);
+        var named=new LinkedHashMap<String,Object>(addDog("941000005950002"));named.put("planIdRequested",planId("ABONAT"));
+        priceOverlap(result(asMember(postJson("/me/dogs/signup",named).header("Idempotency-Key",UUID.randomUUID()),id),409),"ABONAT",price,twin);
+        var required=result(asMember(postJson("/me/dogs/signup",addDog("941000005950003")).header("Idempotency-Key",UUID.randomUUID()),id),400);
+        assertThat(required.at("/details/fieldErrors/0/field").asText()).isEqualTo("planIdRequested");
+        assertThat(required.at("/details/fieldErrors/0/code").asText()).isEqualTo("REQUIRED");
+        assertThat(written(id)).as("no dog, no upfront payment, no SignupSubmitted").isEqualTo(nothing);
+
+        var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);
+        var body=validation(review);
+        for(String dryRun:List.of("true","false")) priceOverlap(result(admin(postJson("/members/"+id+"/validation",body).param("dryRun",dryRun)),409),"ABONAT",price,twin);
+        assertThat(mongo.getCollection("dogs").countDocuments(new Document("clubId",club).append("memberId",id).append("status","PENDING"))).isEqualTo(1);
+        JsonNode row=null;for(var item:result(admin(get("/api/v1/plans")),200).path("items")) if(item.path("id").asText().equals(planId("ABONAT"))) row=item;
+        assertThat(row).as("the admin's list keeps ABONAT").isNotNull();
+        assertThat(row.path("currentPrices").findValuesAsText("id")).containsExactlyInAnyOrder(price,twin);
+    }
+
+    /**
+     * R-04-13, ruling E138 (E11-T13 round 2, item 3): D2 naming either twin's priceId answers the same 409 PRICE_OVERLAP, dry run
+     * included, before the priceId is compared with the plan's billed price.
+     */
+    @Test void R_04_13_E138_d2RefusesEitherTwinsPriceIdWithTheSameDetails() throws Exception {
+        String id=submitted(request(planId("ABONAT")));
+        var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);
+        String price=priceOf("ABONAT"),twin=twin("ABONAT");
+        var body=validation(review);body.put("nextInvoiceDate",review.at("/proposals/nextInvoiceDate").asText());body.put("planId",planId("ABONAT"));
+        for(String chosen:List.of(price,twin)) for(String dryRun:List.of("true","false")) {
+            body.put("priceId",chosen);
+            priceOverlap(result(admin(postJson("/members/"+id+"/validation",body).param("dryRun",dryRun)),409),"ABONAT",price,twin);
+        }
+        assertThat(member(id).getString("status")).isEqualTo("PENDING");
+    }
+
     /**
      * R-04-13, T-04-16, INC-39 (E11-T10): the family-fare proposal counts the dogs of the group the validation leaves the member in,
      * every member's. An applicant without a claim whom D2 puts in a group (`familyGroupId`) with two dogs gets the largest

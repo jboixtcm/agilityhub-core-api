@@ -80,13 +80,51 @@ public class SignupPolicy {
      * current prices: `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`, the details billing answers for it.
      */
     public void requireOnePricePerConcept(Plan plan) {
-        if (plan == null || !config().modules().contains(com.agilityhub.core.platform.application.Module.BILLING)) { return; }
-        var overlap = catalogs.at(today()).stream().filter(p -> p.id().equals(plan.id()) && p.clubId().equals(TenantContext.require()))
+        if (plan != null) { requireNoTwin(plan.id()); }
+    }
+    /** Ruling E138: with BILLING, whether {@code planId} has two current prices of one concept today. */
+    public boolean twinned(String planId) { return overlap(planId) != null; }
+    private com.agilityhub.core.clubs.catalogs.application.SignupPlanData.PriceOverlap overlap(String planId) {
+        if (planId == null || !config().modules().contains(com.agilityhub.core.platform.application.Module.BILLING)) { return null; }
+        return catalogs.at(today()).stream().filter(p -> p.id().equals(planId) && p.clubId().equals(TenantContext.require()))
                 .map(com.agilityhub.core.clubs.catalogs.application.SignupPlanData::overlap).filter(java.util.Objects::nonNull).findFirst().orElse(null);
+    }
+    private void requireNoTwin(String planId) {
+        var overlap = overlap(planId);
         if (overlap != null) {
-            throw new ApiException(ErrorCode.PRICE_OVERLAP, Map.of("planId", plan.id(), "concept", overlap.concept().name(),
+            throw new ApiException(ErrorCode.PRICE_OVERLAP, Map.of("planId", planId, "concept", overlap.concept().name(),
                     "priceId", overlap.priceId(), "conflictingPriceId", overlap.conflictingPriceId()));
         }
+    }
+    /**
+     * Ruling E138 (E11-T13 round 2): an add-dog quote never prices from one of two twins. Whether the quote of adding a dog on
+     * {@code requestedPlanId}, for a member on {@code currentPlanId}, reads no twinned plan ({@link #addDogPricing}).
+     */
+    public boolean addDogQuotable(String currentPlanId, String requestedPlanId) {
+        return addDogPricing(currentPlanId, requestedPlanId).stream().noneMatch(this::twinned);
+    }
+    /** The same, refused: `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` on the first twinned plan the quote reads. */
+    public void requireAddDogQuotable(String currentPlanId, String requestedPlanId) {
+        addDogPricing(currentPlanId, requestedPlanId).forEach(this::requireNoTwin);
+    }
+    /**
+     * The plans whose prices an add-dog quote reads ({@link #additionalFee}): the requested plan and, when the fee is the family
+     * fare's delta (a `MONTHLY_FEE` request by a member with a current fare), the family fare the group moves to (R-04-13/14).
+     */
+    private List<String> addDogPricing(String currentPlanId, String requestedPlanId) {
+        if (requestedPlanId == null) { return List.of(); }
+        var standard = assignablePlans().stream().filter(p -> p.id().equals(requestedPlanId)).findFirst().orElse(null);
+        if (standard == null || standard.price() == null || !"MONTHLY_FEE".equals(standard.billingMode())) { return List.of(requestedPlanId); }
+        var current = currentFare(currentPlanId);
+        var resulting = current == null || current.price() == null ? null : familyFare(current.dogsIncluded() + 1).orElse(null);
+        return resulting == null ? List.of(requestedPlanId) : List.of(requestedPlanId, resulting.id());
+    }
+    /**
+     * The fare an added dog's fee is the delta from: the member's plan while the club can assign it. A twinned plan counts as one
+     * that can no longer be assigned (R-04-09, B34; E138 round 2): no delta from either twin, the fee is the discounted standard.
+     */
+    private Plan currentFare(String currentPlanId) {
+        return assignablePlans().stream().filter(p -> p.id().equals(currentPlanId) && !twinned(p.id())).findFirst().orElse(null);
     }
     private Plan plan(SignupPlanCatalog.Offer offer) {
         var price = offer.price();
@@ -102,7 +140,8 @@ public class SignupPolicy {
     /**
      * R-04-13: the family fare for a group of `dogs` dogs = the assignable `MONTHLY_FEE` plan with a current price and the
      * fewest `dogsIncluded` ≥ max(2, dogs). The same rule proposes the plan at D2, prices the add-dog fee and fills
-     * `{twoDogsMonthlyFee}` in `signup.text.familyGroupIntro`.
+     * `{twoDogsMonthlyFee}` in `signup.text.familyGroupIntro`. A twinned fare (E138) is returned as it is, never the next one:
+     * its callers refuse it ({@link #requireAddDogQuotable}, D2) or leave its amount out (the texts).
      */
     public Optional<Plan> familyFare(int dogs) {
         return assignablePlans().stream().filter(p -> "MONTHLY_FEE".equals(p.billingMode()) && p.price() != null && p.dogsIncluded() >= Math.max(2, dogs))
@@ -117,7 +156,7 @@ public class SignupPolicy {
                 .max(Comparator.comparingInt(Plan::dogsIncluded)));
     }
     public Money additionalFee(String currentPlanId, String requestedPlanId) {
-        var current = assignablePlans().stream().filter(p -> p.id().equals(currentPlanId)).findFirst().orElse(null);
+        var current = currentFare(currentPlanId);
         var standard = requireAssignable(requestedPlanId);
         Money zero = new Money(0, config().club().currency());
         if (standard == null || standard.price() == null || !"MONTHLY_FEE".equals(standard.billingMode())) { return zero; }

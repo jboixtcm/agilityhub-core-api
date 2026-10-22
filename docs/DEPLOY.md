@@ -621,7 +621,14 @@ converts the dates that remain (`CatalogPersistence`, idempotent; log `Price val
   the event `FAILED` (gauge `outbox.failed`). No amount is ever chosen between the twins. The plan is not offered
   publicly (ruling E138): it leaves `GET /signup` and `GET /public/{clubSlug}/plans`, a new signup that requests it
   answers `422 PLAN_NOT_AVAILABLE`, and D2's validation of a submission on it (dry run included) answers the same
-  `409 PRICE_OVERLAP`. The administrator's plan list keeps showing it with both prices.
+  `409 PRICE_OVERLAP`. The administrator's plan list keeps showing it with both prices. No member-facing amount is read
+  from either twin either (E138, E11-T13 round 2): when the family fare is twinned, `GET /signup.texts.familyGroupIntro`
+  is `null` (as for a club without a family fare); a member whose own plan is twinned is treated as one whose plan can
+  no longer be assigned (the offer, no `current` plan, no add-dog options, `planIdRequested` required); `GET /signup`
+  leaves out every add-dog option or quote that would read a twin (the plan itself, or the family fare the dog moves the
+  member to), and `POST /me/dogs/signup` on such a quote answers `409 PRICE_OVERLAP` with nothing written. D2 answers
+  the same 409 whichever twin's `priceId` it names, and for an added dog whose family fare is twinned; D2's review
+  (`GET /members/{id}/signup`) still loads, so the administrator can choose another plan.
 - **Resolving a reported twin by hand** (one per id; production was not live when INC-68 was fixed, so this concerns
   local and staging data):
   1. Compare the twin with the price it duplicates:

@@ -4026,3 +4026,11 @@ Blocking: no.
 
 @executor **E11-T17 → `verified`** (CI `5dcfd7c9` green; the kit's major on legacy `CHECKOUT_PENDING` rows with cash is not applicable before launch — no production data predates the change; INC-83) and **E11-T18 → `verified`** (CI `5bdeca60` green). INC-39.2, INC-40.10 and the E151 minors are closed. Thread B: E11-T15 round 2 (in progress) → the gate E11-T12 once T13 r2, T16 r2 and T19 are verified. Thread D: E11-T13 round 2 (in progress) → E11-T16 round 2 → E11-T19 (the template club's theme = the brand, step 2). Reports compact, evidence tails only (E158).
 Blocking: no.
+
+## 2026-10-22 · executor → organizer · E11-T13 round 2 handed off (thread D)
+@organizer **E11-T13 is `awaiting_verification` again.** The four round-2 items are done, each red on the old code (`29`) or by mutation (`32`, `33`), then green (`31`).
+- No member-facing amount comes from a twin. A twinned family fare gives `texts.familyGroupIntro: null`. `GET /signup` leaves out the add-dog options and quotes that would read a twin, and a twinned own plan counts as one that can no longer be assigned (B34). `POST /me/dogs/signup` answers `409 PRICE_OVERLAP` with the four details and writes nothing.
+- D2 answers that 409 before it compares `priceId`, whichever twin's id it names. The review (`GET /members/{id}/signup`) still loads.
+- Host-locked `clean verify` exits 0: surefire 4 851 and failsafe 2 231, 0 failures (`36`/`37`). `bin/e3-signup-smoke` and `bin/e8-smoke` PASS (`39`/`40`). The snapshot changes only `POST /me/dogs/signup`'s 409 and five descriptions.
+- To sync under E109: S04 R-04-09, §2 rows 18 and «13 → 17/19», §6 (`/me/dogs/signup`), «Canvis» 22-10. For the web: `POST /me/dogs/signup` may answer 409 `PRICE_OVERLAP`, and `familyGroupIntro` may be null with BILLING.
+Blocking: no.

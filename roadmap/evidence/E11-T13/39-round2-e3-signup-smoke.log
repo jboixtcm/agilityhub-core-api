@@ -1,0 +1,41 @@
+$ /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/e3-signup-smoke --evidence-dir target/e3-signup-smoke
+# round 2: the signup gate (public signup, add-dog, D2) on the changed code; 38 failed on the missing --evidence-dir (the script's own per-step logs go to the ignored target/ dir; its stdout is this file)
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 16 changes (applied); seed-canic-1.log
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 0 changes (applied); seed-canic-2.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 12 changes (applied); seed-minim-1.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 0 changes (applied); seed-minim-2.log
+Fixture setup: disposable clubs activated; committed seeds retain ONBOARDING
+curl -X GET /api/v1/signup -> 200
+curl -X GET /api/v1/signup/towns -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+curl -X POST /api/v1/signup/upload-urls -> 200
+curl -X PUT /api/v1/signup/uploads -> 204
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/ed6284a2-725c-4ccd-8131-3c7fe2240d56/signup -> 200
+curl -X POST /api/v1/members/ed6284a2-725c-4ccd-8131-3c7fe2240d56/validation -> 200
+curl -X POST /api/v1/members/ed6284a2-725c-4ccd-8131-3c7fe2240d56/validation -> 200
+Mailbox N-02 (ca): Benvinguda, Example!; token=[truncated]
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/me -> 200
+curl -X GET /api/v1/signup -> 200
+curl -X POST /api/v1/me/dogs/signup -> 201
+curl -X GET /api/v1/members/ed6284a2-725c-4ccd-8131-3c7fe2240d56/signup -> 200
+curl -X POST /api/v1/members/ed6284a2-725c-4ccd-8131-3c7fe2240d56/validation -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+PASS add-dog validation, unchanged identity, N-37 APP and N-39 mailbox recognition
+PASS canic: public signup -> dry run -> validation -> welcome mailbox -> magic-link login
+curl -X GET /api/v1/signup -> 200
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/2477b056-91a6-4fa5-b9a8-f9f20ad5a008/signup -> 200
+curl -X POST /api/v1/members/2477b056-91a6-4fa5-b9a8-f9f20ad5a008/validation -> 200
+curl -X POST /api/v1/members/2477b056-91a6-4fa5-b9a8-f9f20ad5a008/validation -> 200
+Mailbox N-02 (en): Welcome, Example!; token=[truncated]
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/me -> 200
+PASS minim: public signup -> dry run -> validation -> welcome mailbox -> magic-link login
+PASS both seeds idempotent; curl/local-mailbox S04 rehearsal completed
+exit 0

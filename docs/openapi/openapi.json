@@ -22172,7 +22172,7 @@
             "type" : "string"
           },
           "current" : {
-            "description" : "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan, or whose plan is no longer assignable, gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup",
+            "description" : "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan, or whose plan is no longer assignable or has a price twin (ruling E138), gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup",
             "type" : "boolean"
           },
           "description" : {
@@ -22515,7 +22515,7 @@
             "type" : "string"
           },
           "familyGroupIntro" : {
-            "description" : "null when the club has no family fare (R-04-13)",
+            "description" : "null when the club has no family fare (R-04-13), or with BILLING when that fare has a price twin (ruling E138): never an amount read from one of two current prices",
             "type" : [ "string", "null" ]
           },
           "freeTrainingConditions" : {
@@ -22558,7 +22558,7 @@
       "SignupUpfrontConfig" : {
         "properties" : {
           "additionalDogOptions" : {
-            "description" : "Add-dog mode: TODAY always, ALTERNATIVE only up to billing.upfrontCutoffDay",
+            "description" : "Add-dog mode: TODAY always, ALTERNATIVE only up to billing.upfrontCutoffDay. Absent without a current plan, or when the quote would read a price twin (ruling E138)",
             "items" : {
               "$ref" : "#/components/schemas/SignupConfigChoice"
             },
@@ -22576,7 +22576,7 @@
             "type" : "integer"
           },
           "planQuotes" : {
-            "description" : "R-04-14/15: one quote per offered plan (add-dog mode: also the member's own plan), computed like the submission",
+            "description" : "R-04-14/15: one quote per offered plan (add-dog mode: also the member's own plan), computed like the submission. Add-dog mode: no quote that would read a price twin (ruling E138); its submission answers 409 PRICE_OVERLAP",
             "items" : {
               "$ref" : "#/components/schemas/SignupPlanQuote"
             },
@@ -55895,7 +55895,7 @@
     },
     "/api/v1/me/dogs/signup" : {
       "post" : {
-        "description" : "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status.",
+        "description" : "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status. With BILLING, a quote that would read a plan with two current prices of one concept (a legacy price twin, INC-68, ruling E138): the requested plan (the member's own, which GET /signup no longer lists as current) or the family fare the added dog moves the member to → 409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId} on that plan, and nothing is written.",
         "operationId" : "addDog",
         "parameters" : [ {
           "in" : "header",
@@ -55969,7 +55969,7 @@
           },
           "409" : {
             "$ref" : "#/components/responses/StaleVersion",
-            "description" : "MEMBER_ERASED, CHIP_ALREADY_EXISTS, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
+            "description" : "MEMBER_ERASED, CHIP_ALREADY_EXISTS, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, PRICE_OVERLAP"
           },
           "422" : {
             "content" : {
