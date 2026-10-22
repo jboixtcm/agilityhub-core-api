@@ -26,10 +26,10 @@ regexTarget = "match"
 regexes = ['''(?i)^dedupKey['"]?\s*[:=]\s*['"]?[^'"\s,}]+['"]?$''']
 
 [[allowlists]]
-description = "E11-T03: UUID request trace and idempotency identifiers in test evidence are not credentials. Match only the identifier, never a whole log line."
+description = "E11-T03: UUID request trace and idempotency identifiers in test evidence are not credentials. Match only the identifier, never a whole log line. E11-T12 (organizer, 22-10): the same identifiers in the evidence tails file (`00-tails.md`)."
 targetRules = ["generic-api-key"]
 condition = "AND"
-paths = ['''roadmap/evidence/.*\.log$''']
+paths = ['''roadmap/evidence/.*\.(log|md)$''']
 regexTarget = "match"
 regexes = [
   '''^o\.springdoc\.api\.AbstractOpenApiResource traceId=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s*$''',
