@@ -1,0 +1,1 @@
+PASS: production + filesystem override resolves explicit disabled Brevo, filesystem policy, 3 provisioned binds, read-only backup input and retained /work scratch volume. No container started.

@@ -48,7 +48,7 @@ public class TenantFilter extends OncePerRequestFilter {
         try {
             String path = request.getRequestURI().substring(request.getContextPath().length());
             boolean global = path.equals("/webhooks/email/sendgrid") || path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json") || path.equals("/api/v1/openapi.json") || path.startsWith("/actuator/") || path.equals("/api/v1/health") || path.equals("/api/v1/platform") || path.startsWith("/api/v1/platform/");
-            global = global || path.equals("/.well-known/openid-configuration") || path.equals("/oauth2/authorize")
+            global = global || path.equals("/webhooks/email/brevo") || path.equals("/.well-known/openid-configuration") || path.equals("/oauth2/authorize")
                     || path.equals("/connect/logout") || path.equals("/oauth2/session") || path.matches("/api/v1/accounts/[^/]+/(password|erasure)")
                     || path.matches("/api/v1/public/[^/]+/(plans|theme/[^/]+|pages/[^/]+|activities(?:/[^/]+(?:/files/[^/]+)?)?)")
                     || path.equals("/api/v1/test/clock") || path.equals("/api/v1/test/dns")

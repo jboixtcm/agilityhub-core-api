@@ -27,25 +27,48 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 public class EmailConfiguration {
     @Bean EmailSender emailSender(Environment environment, ObjectMapper mapper,
             @Value("${email.sendgrid.api-key:}") String key, @Value("${email.platform-from:}") String from,
-            @Value("${email.local-mailbox-directory:}") String mailbox) {
+            @Value("${email.local-mailbox-directory:}") String mailbox, BrevoWebhookRepository brevoState) {
         var demo = HostedDemoPolicy.from(environment);
+        String provider = provider(environment);
+        if (!HostedDemoPolicy.emailDeliveryEnabled(environment)) { return new DisabledEmailSender(); }
+        String selectedKey = provider.equals("brevo") ? environment.getProperty("email.brevo.api-key", "") : key;
+        String variable = provider.equals("brevo") ? "BREVO_API_KEY" : "SENDGRID_API_KEY";
         if (environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
-            if (key.isBlank()) { throw new IllegalStateException("SENDGRID_API_KEY is required in staging/prod"); }
+            if (selectedKey.isBlank()) { throw new IllegalStateException(variable + " is required in staging/prod"); }
             if (from.isBlank()) { throw new IllegalStateException("MAIL_FROM_PLATFORM is required in staging/prod"); }
         } else if (environment.acceptsProfiles(Profiles.of("test"))) { return new FakeEmailSender(); }
-        else if (key.isBlank() && environment.acceptsProfiles(Profiles.of("local"))) {
+        else if (selectedKey.isBlank() && environment.acceptsProfiles(Profiles.of("local"))) {
             return new LogEmailSender(mailbox.isBlank() ? null : java.nio.file.Path.of(mailbox), mapper);
         }
-        if (key.isBlank()) { throw new IllegalStateException("SENDGRID_API_KEY is required outside local/test"); }
-        EmailSender sender = new SendGridEmailSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper,
-                URI.create("https://api.sendgrid.com/v3/mail/send"), key, Duration.ofSeconds(10));
+        if (selectedKey.isBlank()) { throw new IllegalStateException(variable + " is required outside local/test"); }
+        var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+        EmailSender sender = provider.equals("brevo")
+                ? new BrevoEmailSender(client, mapper, URI.create("https://api.brevo.com/v3/smtp/email"), selectedKey, Duration.ofSeconds(10),
+                        from, environment.getProperty("email.platform-from-name", ""), brevoState::suppressed)
+                : new SendGridEmailSender(client, mapper, URI.create("https://api.sendgrid.com/v3/mail/send"), key, Duration.ofSeconds(10));
         return demo.enabled() ? new AllowListEmailSender(sender, demo) : sender;
     }
     @Bean SendGridSignatureVerifier sendGridSignatures(Environment environment, @Value("${email.sendgrid.webhook-public-key:}") String key) {
-        if (key.isBlank() && environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
+        HostedDemoPolicy.from(environment);
+        if (HostedDemoPolicy.emailDeliveryEnabled(environment) && provider(environment).equals("sendgrid") && key.isBlank() && environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
             throw new IllegalStateException("SENDGRID_WEBHOOK_PUBLIC_KEY is required in staging/prod");
         }
         return new SendGridSignatureVerifier(key);
+    }
+    @Bean BrevoWebhookAuthentication brevoWebhookAuthentication(Environment environment) {
+        HostedDemoPolicy.from(environment);
+        String token = environment.getProperty("email.brevo.webhook-token", "");
+        if ((HostedDemoPolicy.emailDeliveryEnabled(environment) && provider(environment).equals("brevo")
+                && environment.acceptsProfiles(Profiles.of("staging", "prod")) || !token.isBlank())
+                && !token.matches("[A-Za-z0-9_-]{32,256}")) {
+            throw new IllegalStateException("BREVO_WEBHOOK_TOKEN must contain 32 to 256 random URL-safe characters in staging/prod");
+        }
+        return new BrevoWebhookAuthentication(token);
+    }
+    private static String provider(Environment environment) {
+        String provider = environment.getProperty("email.provider", "sendgrid");
+        if (!java.util.Set.of("sendgrid", "brevo").contains(provider)) { throw new IllegalStateException("EMAIL_PROVIDER must be sendgrid or brevo"); }
+        return provider;
     }
     @Bean SystemEmailRenderer systemEmailRenderer(IcuMessageSource messages) {
         var resolver = new ClassLoaderTemplateResolver();
@@ -71,7 +94,8 @@ public class EmailConfiguration {
         return args -> {
             // Collections must exist before their first transactional insert. The S11 §3 indexes of the three S11 collections
             // are the repositories' (E7-T01), on `recipient.accountId` instead of the E1 `accountId`.
-            for (Class<?> type : java.util.List.of(Notification.class, SendGridWebhookReceipt.class, MessageTemplate.class, PushSubscription.class)) {
+            for (Class<?> type : java.util.List.of(Notification.class, SendGridWebhookReceipt.class, BrevoWebhookReceipt.class,
+                    BrevoEmailSuppression.class, MessageTemplate.class, PushSubscription.class)) {
                 if (!mongo.collectionExists(type)) { mongo.createCollection(type); }
             }
         };

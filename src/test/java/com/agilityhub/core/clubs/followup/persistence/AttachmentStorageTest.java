@@ -54,4 +54,38 @@ class AttachmentStorageTest {
             assertThatThrownBy(() -> storage.metadata("missing")).hasMessage("NOT_FOUND");
         }
     }
+    @Test void T_03_23_volumeLinksSurviveRestartAndKeepSignupTenantMethodAndExpiryBindings() throws Exception {
+        byte[] key = new java.security.SecureRandom().generateSeed(32);
+        var first = new LocalAttachmentStorage(root, key, clock);
+        String id = "signup/club-a/202610/" + UUID.randomUUID() + "/document.txt";
+        String other = id.replace("club-a", "club-b");
+        long expires = now.plusSeconds(300).getEpochSecond();
+        String url = first.uploadUrl(id, "text/plain", 4, now.plusSeconds(300));
+        String token = url.substring(url.indexOf("signature=") + 10);
+        first.put(id, "text/plain", 4, new ByteArrayInputStream(new byte[] {1, 2, 3, 4}));
+        var restarted = new LocalAttachmentStorage(root, key, clock);
+        restarted.authorize(id, expires, token, "PUT");
+        assertThat(restarted.read(id)).containsExactly(1, 2, 3, 4);
+        assertThatThrownBy(() -> restarted.authorize(other, expires, token, "PUT")).hasMessage("FORBIDDEN");
+        assertThatThrownBy(() -> restarted.authorize(id, expires, token, "GET")).hasMessage("FORBIDDEN");
+        assertThatThrownBy(() -> restarted.metadata(other)).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> new LocalAttachmentStorage(root, key, Clock.fixed(now.plusSeconds(300), ZoneOffset.UTC))
+                .authorize(id, expires, token, "PUT")).hasMessage("FORBIDDEN");
+    }
+    @Test void T_03_23_volumeAttachmentBytesAndMetadataCannotEscapeThroughSymlinks() throws Exception {
+        var storage = new LocalAttachmentStorage(root, new byte[32], clock);
+        String id = UUID.randomUUID().toString();
+        Path outside = root.resolveSibling(root.getFileName() + "-outside");
+        try {
+            Files.writeString(outside, "private fixture"); Files.createSymbolicLink(root.resolve(id), outside);
+            assertThatThrownBy(() -> storage.open(id)).hasMessage("NOT_FOUND");
+            assertThatThrownBy(() -> storage.read(id)).hasMessage("NOT_FOUND");
+            assertThatThrownBy(() -> storage.delete(id)).hasMessage("NOT_FOUND");
+            Files.delete(root.resolve(id));
+            storage.put(id, "text/plain", 1, new ByteArrayInputStream(new byte[] {1}));
+            Files.delete(root.resolve(id + ".mime")); Files.createSymbolicLink(root.resolve(id + ".mime"), outside);
+            assertThatThrownBy(() -> storage.metadata(id)).hasMessage("NOT_FOUND");
+            assertThat(Files.readString(outside)).isEqualTo("private fixture");
+        } finally { Files.deleteIfExists(outside); }
+    }
 }

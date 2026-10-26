@@ -2780,6 +2780,24 @@
         "required" : [ "club", "countryProfile", "currency", "defaultLocale", "legal", "locales", "modules", "pushPublicKey", "signup", "status", "theme", "timeZone" ],
         "type" : "object"
       },
+      "BrevoEvent" : {
+        "properties" : {
+          "X-Mailin-custom" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "event" : {
+            "type" : "string"
+          },
+          "message-id" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "X-Mailin-custom", "email", "event", "message-id" ],
+        "type" : "object"
+      },
       "BuildJoinRequest" : {
         "properties" : {
           "code" : {
@@ -94411,6 +94429,164 @@
         },
         "summary" : "Get account claims permitted by the token scopes",
         "tags" : [ "identity" ]
+      }
+    },
+    "/webhooks/email/brevo" : {
+      "post" : {
+        "description" : "Requires the dedicated webhook bearer secret over HTTPS, not an account JWT. Accepts one event or a batch. Events correlate opaque custom metadata, the stored tenant, recipient and provider reference. Replays are idempotent.",
+        "operationId" : "brevoWebhook",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Authorization",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "anyOf" : [ {
+                  "$ref" : "#/components/schemas/BrevoEvent"
+                }, {
+                  "items" : {
+                    "$ref" : "#/components/schemas/BrevoEvent"
+                  },
+                  "type" : "array"
+                } ]
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Processed or safely ignored"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "WEBHOOK_SIGNATURE_INVALID"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Receive authenticated Brevo transactional events",
+        "tags" : [ "clubs.messaging" ]
       }
     },
     "/webhooks/email/sendgrid" : {

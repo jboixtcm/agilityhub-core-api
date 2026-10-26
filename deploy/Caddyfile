@@ -1,5 +1,6 @@
 {
     email {$ACME_EMAIL}
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
     {$CADDY_LOCAL_OPTIONS}
     on_demand_tls {
         # Caddy sends ?domain=; S17 specifies ?host=. Translate privately.

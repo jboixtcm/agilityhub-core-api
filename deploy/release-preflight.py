@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read-only release checks. Compose's resolved secrets never leave this process."""
 import argparse
+import base64
 import hashlib
 from html.parser import HTMLParser
 import ipaddress
@@ -61,15 +62,24 @@ def check_configuration(config):
     environment = core.get('environment', {})
     demo = str(environment.get('HOSTED_DEMO_ENABLED', 'false')).lower()
     require(demo in ('true', 'false'), 'HOSTED_DEMO_ENABLED must be true or false')
-    if demo == 'true':
+    email_enabled = str(environment.get('EMAIL_DELIVERY_ENABLED', 'true')).lower()
+    require(email_enabled in ('true', 'false'), 'EMAIL_DELIVERY_ENABLED must be true or false')
+    require(email_enabled == 'true' or demo == 'true', 'EMAIL_DELIVERY_ENABLED=false requires HOSTED_DEMO_ENABLED=true')
+    if demo == 'true' and email_enabled == 'true':
         recipients = str(environment.get('HOSTED_DEMO_EMAIL_ALLOWLIST', '')).split(',')
         require(all(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._%+\-]*@[A-Za-z0-9](?:[A-Za-z0-9.\-]*[A-Za-z0-9])?\.[A-Za-z]{2,}', address.strip()) for address in recipients),
                 'HOSTED_DEMO_EMAIL_ALLOWLIST requires nonempty exact email addresses, without wildcards')
-    else:
+    if demo != 'true':
         for key in ('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):
             require(bool(str(environment.get(key) or '').strip()), f'{key} is required outside hosted demo')
-    for key in ('SENDGRID_API_KEY', 'MAIL_FROM_PLATFORM', 'SENDGRID_WEBHOOK_PUBLIC_KEY'):
+    provider = environment.get('EMAIL_PROVIDER', 'sendgrid')
+    require(provider in ('sendgrid', 'brevo'), 'EMAIL_PROVIDER must be sendgrid or brevo')
+    email_keys = ('BREVO_API_KEY', 'BREVO_WEBHOOK_TOKEN') if provider == 'brevo' else ('SENDGRID_API_KEY', 'SENDGRID_WEBHOOK_PUBLIC_KEY')
+    for key in (('MAIL_FROM_PLATFORM', *email_keys) if email_enabled == 'true' else ()):
         require(bool(str(environment.get(key) or '').strip()), f'{key} is required before release, including hosted demo')
+    if (provider == 'brevo' and email_enabled == 'true') or environment.get('BREVO_WEBHOOK_TOKEN'):
+        require(bool(re.fullmatch(r'[A-Za-z0-9_-]{32,256}', environment.get('BREVO_WEBHOOK_TOKEN', ''))),
+                'BREVO_WEBHOOK_TOKEN must contain 32 to 256 random URL-safe characters')
     require(not any(service.get('ports') for name, service in services.items() if name != 'caddy'),
             'Only Caddy may publish production ports')
     require(not any(name in services for name in ('seed', 'local-hosts', 'minio')), 'Local proof services are forbidden in a release')
@@ -78,11 +88,10 @@ def check_configuration(config):
             require(not isinstance(value, str) or not re.search(r'REPLACE|CHANGE_ME|CHANGEME', value, re.I),
                     f'Unreplaced placeholder in {key}')
     backup = services['backup'].get('environment', {})
-    for key in ('BACKUP_AGE_RECIPIENT', 'BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY'):
+    for key in ('BACKUP_AGE_RECIPIENT',):
         require(bool(backup.get(key)), f'{key} is required before release')
     require(str(backup['BACKUP_AGE_RECIPIENT']).startswith('age1'), 'BACKUP_AGE_RECIPIENT must be a public age recipient')
-    require(backup.get('BACKUP_S3_PREFIX', '').endswith('/') and backup['BACKUP_S3_PREFIX'] != '/',
-            'BACKUP_S3_PREFIX must be nonempty and end with /')
+    check_storage(config, demo)
     require(not any('BACKUP_AGE_IDENTITY' in service.get('environment', {}) for service in services.values()),
             'The private backup identity must not be stored in the normal deployment configuration')
     addresses = [network.get('ipv4_address') for network in caddy.get('networks', {}).values() if network.get('ipv4_address')]
@@ -97,6 +106,62 @@ def check_configuration(config):
     passwords = [mongo.get(key) for key in ('MONGO_INITDB_ROOT_PASSWORD', 'MONGODB_PASSWORD', 'MONGO_BACKUP_PASSWORD')]
     require(all(passwords) and len(set(passwords)) == 3, 'Mongo root, application and backup passwords must be distinct')
     return image, match.group(2)
+
+
+def private_bind(service, target, read_only):
+    matches = [mount for mount in service.get('volumes', []) if mount.get('target') == target]
+    require(len(matches) == 1 and matches[0].get('type') == 'bind'
+            and bool(matches[0].get('read_only', False)) == read_only
+            and matches[0].get('bind', {}).get('create_host_path') is False,
+            f'{target} requires one provisioned private bind with create_host_path=false')
+    path = Path(matches[0].get('source', ''))
+    require(path.is_absolute() and path.is_dir() and not path.is_symlink()
+            and path.resolve() == path and stat.S_IMODE(path.stat().st_mode) == 0o700,
+            f'{target} bind must be an existing absolute nonsymlink directory with mode 0700')
+    return path
+
+
+def check_storage(config, demo):
+    core, backup_service = config['services']['core'], config['services']['backup']
+    environment, backup = core['environment'], backup_service['environment']
+    mode, backup_mode = environment.get('FILE_STORAGE_MODE', 's3'), backup.get('BACKUP_STORAGE_MODE', 's3')
+    require(mode in ('s3', 'filesystem'), 'FILE_STORAGE_MODE must be s3 or filesystem')
+    require(backup_mode in ('s3', 'filesystem'), 'BACKUP_STORAGE_MODE must be s3 or filesystem')
+    if mode == 'filesystem':
+        require(demo == 'true', 'Filesystem storage requires HOSTED_DEMO_ENABLED=true')
+        require(environment.get('FILE_STORAGE_ROOT') == '/storage', 'FILE_STORAGE_ROOT must be /storage for the volume deployment')
+        try:
+            signing_key = base64.b64decode(environment.get('FILE_STORAGE_SIGNING_KEY', ''), validate=True)
+        except ValueError:
+            raise PreflightError('FILE_STORAGE_SIGNING_KEY must be base64 of at least 32 random bytes') from None
+        require(len(signing_key) >= 32, 'FILE_STORAGE_SIGNING_KEY must be base64 of at least 32 random bytes')
+        root = private_bind(core, '/storage', False)
+        marker = root / '.clubs-private-storage'
+        require(marker.is_file() and not marker.is_symlink() and stat.S_IMODE(marker.stat().st_mode) == 0o600
+                and marker.read_text(encoding='utf-8').strip() == 'clubs-private-storage-v1',
+                'Filesystem storage requires the private 0600 volume marker')
+        require(backup_mode == 'filesystem', 'Filesystem application storage requires the database-and-files backup mode')
+    else:
+        for prefix in ('EXPORT', 'ATTACHMENT'):
+            for suffix in ('BUCKET', 'REGION', 'ACCESS_KEY', 'SECRET_KEY'):
+                key = f'{prefix}_S3_{suffix}'
+                require(bool(str(environment.get(key) or '').strip()), f'{key} is required in S3 mode')
+    if backup_mode == 'filesystem':
+        require(mode == 'filesystem' and demo == 'true' and backup.get('HOSTED_DEMO_ENABLED') == 'true'
+                and backup.get('FILE_STORAGE_MODE') == 'filesystem',
+                'Filesystem backup requires explicit hosted demo and filesystem application storage')
+        require(backup.get('BACKUP_LOCAL_DIRECTORY') == '/backup' and backup.get('BACKUP_FILES_DIRECTORY') == '/storage',
+                'Filesystem backup requires /backup output and /storage input')
+        files = private_bind(backup_service, '/storage', True)
+        destination = private_bind(backup_service, '/backup', False)
+        require(files == root, 'Backup /storage must bind the same application directory')
+        require(not destination.is_relative_to(files) and not files.is_relative_to(destination),
+                'Backup output and application files must use separate directories')
+    else:
+        for key in ('BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY'):
+            require(bool(backup.get(key)), f'{key} is required before release')
+        require(backup.get('BACKUP_S3_PREFIX', '').endswith('/') and backup['BACKUP_S3_PREFIX'] != '/',
+                'BACKUP_S3_PREFIX must be nonempty and end with /')
 
 
 class ModuleScripts(HTMLParser):
@@ -186,6 +251,9 @@ def main(argv=None):
         env_file = check_env_file(args.env_file)
         command = ['docker', 'compose', '--env-file', str(env_file), '--profile', 'ops', '-f', str(ROOT / 'deploy/compose.prod.yaml')]
         config = command_json(command + ['config', '--format', 'json'])
+        if config.get('services', {}).get('core', {}).get('environment', {}).get('FILE_STORAGE_MODE') == 'filesystem':
+            command += ['-f', str(ROOT / 'deploy/compose.filesystem.yaml')]
+            config = command_json(command + ['config', '--format', 'json'])
         image, pinned = check_configuration(config)
         spas = check_spas(config)
         metadata = check_image(image, pinned, args.expected_digest, command_json(['docker', 'image', 'inspect', image]))

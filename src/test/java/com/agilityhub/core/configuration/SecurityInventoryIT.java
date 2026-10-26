@@ -67,10 +67,10 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
                     request.contentType("application/x-www-form-urlencoded").param("grant_type", "password")
                             .param("username", "inventory@example.test").param("password", "fictional-invalid-password");
                 }
-                if (path.getKey().equals("/webhooks/stripe/{clubId}")) request.content("{}");
+                if (path.getKey().equals("/webhooks/stripe/{clubId}") || path.getKey().equals("/webhooks/email/brevo")) request.content("{}");
                 var response = mvc.perform(request).andReturn().getResponse();
-                if (path.getKey().equals("/webhooks/stripe/{clubId}")) {
-                    failures.assertThat(response.getStatus()).as(label + " requires Stripe signature").isEqualTo(401);
+                if (path.getKey().equals("/webhooks/stripe/{clubId}") || path.getKey().equals("/webhooks/email/brevo")) {
+                    failures.assertThat(response.getStatus()).as(label + " requires provider authentication").isEqualTo(401);
                     failures.assertThat(mapper.readTree(response.getContentAsString()).path("code").asText())
                             .isEqualTo("WEBHOOK_SIGNATURE_INVALID");
                 } else if (path.getKey().equals("/api/v1/checkout-sessions/{id}")) {
@@ -145,6 +145,7 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
                 {"PUT", "/api/v1/attachments/uploads/{id}", "/api/v1/attachments/uploads/inventory-upload"},
                 {"GET", "/api/v1/attachments/files/{id}", "/api/v1/attachments/files/inventory-file"},
                 {"GET", "/api/v1/remittances/files/{clubId}/{id}", "/api/v1/remittances/files/security-inventory/inventory-remittance"},
+                {"GET", "/api/v1/migrations/files/{clubId}/{id}", "/api/v1/migrations/files/security-inventory/inventory-run"},
                 {"PUT", "/api/v1/signup/uploads", "/api/v1/signup/uploads"},
                 {"GET", "/api/v1/signup/files", "/api/v1/signup/files"}};
         var failures = new org.assertj.core.api.SoftAssertions();

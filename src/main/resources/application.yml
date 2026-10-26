@@ -26,8 +26,14 @@ exports:
     secret-key: ${EXPORT_S3_SECRET_KEY:}
 
 email:
+  delivery-enabled: ${EMAIL_DELIVERY_ENABLED:true}
+  provider: ${EMAIL_PROVIDER:sendgrid}
   local-mailbox-directory: ${MAIL_LOCAL_DIRECTORY:}
   platform-from: ${MAIL_FROM_PLATFORM:}
+  platform-from-name: ${MAIL_FROM_NAME:}
+  brevo:
+    api-key: ${BREVO_API_KEY:}
+    webhook-token: ${BREVO_WEBHOOK_TOKEN:}
   sendgrid:
     api-key: ${SENDGRID_API_KEY:}
     webhook-public-key: ${SENDGRID_WEBHOOK_PUBLIC_KEY:}
@@ -106,6 +112,10 @@ management:
         enabled: false
 
 core:
+  storage:
+    mode: ${FILE_STORAGE_MODE:s3}
+    root: ${FILE_STORAGE_ROOT:}
+    signing-key: ${FILE_STORAGE_SIGNING_KEY:}
   hosted-demo:
     enabled: ${HOSTED_DEMO_ENABLED:false}
     email-allowlist: ${HOSTED_DEMO_EMAIL_ALLOWLIST:}

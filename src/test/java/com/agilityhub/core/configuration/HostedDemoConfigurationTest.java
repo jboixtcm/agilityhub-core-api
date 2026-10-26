@@ -20,12 +20,12 @@ class HostedDemoConfigurationTest {
     }
     @ParameterizedTest @ValueSource(strings = {"", "*", "@example.test", "*@example.test", "tester@example.test,", "tester@example.test;other@example.test"})
     void hostedDemoRequiresANonemptyExactRecipientAllowlist(String recipients) {
-        assertThatThrownBy(() -> new EmailConfiguration().emailSender(demo(recipients), mapper, "key", "sender@example.test", ""))
+        assertThatThrownBy(() -> new EmailConfiguration().emailSender(demo(recipients), mapper, "key", "sender@example.test", "", mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
                 .isInstanceOf(IllegalStateException.class).hasMessageContaining("HOSTED_DEMO_EMAIL_ALLOWLIST");
     }
     @Test void hostedDemoCannotUseLocalOrTestProviderDoubles() {
         var environment = demo("tester@example.test"); environment.setActiveProfiles("local");
-        assertThatThrownBy(() -> new EmailConfiguration().emailSender(environment, mapper, "", "", ""))
+        assertThatThrownBy(() -> new EmailConfiguration().emailSender(environment, mapper, "", "", "", mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
                 .isInstanceOf(IllegalStateException.class);
     }
     @Test void hostedDemoSmsIsNotAllowedWithoutTwilioCredentials() {
@@ -40,11 +40,11 @@ class HostedDemoConfigurationTest {
     }
     @Test void hostedDemoStillRequiresSendGridAndReturnsAGuardedRealSender() {
         var configuration = new EmailConfiguration(); var environment = demo("tester@example.test");
-        assertThatThrownBy(() -> configuration.emailSender(environment, mapper, "", "sender@example.test", ""))
+        assertThatThrownBy(() -> configuration.emailSender(environment, mapper, "", "sender@example.test", "", mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
                 .isInstanceOf(IllegalStateException.class).hasMessageContaining("SENDGRID_API_KEY");
-        assertThatThrownBy(() -> configuration.emailSender(environment, mapper, "key", "", ""))
+        assertThatThrownBy(() -> configuration.emailSender(environment, mapper, "key", "", "", mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
                 .isInstanceOf(IllegalStateException.class).hasMessageContaining("MAIL_FROM_PLATFORM");
-        assertThat(configuration.emailSender(environment, mapper, "key", "sender@example.test", ""))
+        assertThat(configuration.emailSender(environment, mapper, "key", "sender@example.test", "", mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
                 .isInstanceOf(com.agilityhub.core.clubs.messaging.application.AllowListEmailSender.class);
         assertThatThrownBy(() -> configuration.sendGridSignatures(environment, ""))
                 .isInstanceOf(IllegalStateException.class).hasMessageContaining("SENDGRID_WEBHOOK_PUBLIC_KEY");

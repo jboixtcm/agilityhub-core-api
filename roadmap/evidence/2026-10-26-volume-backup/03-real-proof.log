@@ -1,0 +1,3 @@
+PASS streaming encrypted Mongo and file archive stored on private volume
+PASS named archive restores exact Mongo counts and file manifest in isolated work storage
+PASS source files unchanged and no external provider used

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- 2026-10-26 internal review: `EMAIL_DELIVERY_ENABLED=false` with the explicit hosted-demo policy disables every software email without provider keys, local mailboxes or a future send queue. SYSTEM and engine deliveries record `SKIPPED_NOT_ALLOWED`; password login and in-app notifications remain available. Default production email remains enabled and requires provider credentials.
+
+- 2026-10-26 Brevo provider: select Brevo transactional API with a verified platform sender and the existing hosted-demo allowlist. Authenticate callbacks with a separate bearer secret, correlate tenant/recipient/message, deduplicate event outcomes, and suppress permanent failures without treating temporary bounces as permanent. SendGrid remains the default. Provider credentials and environment inventory are documented; real account/domain/delivery verification is separate.
+
 - 2026-10-26 hosted demo policy: explicit `HOSTED_DEMO_ENABLED` under a deployed profile requires an exact email recipient allowlist around real SendGrid; SMS is refused and push unavailable without constructing Twilio/VAPID clients. Normal production still requires their credentials. Stripe configuration and outbound operations reject live mode, and demo webhooks require test configuration plus `livemode=false`. Release preflight validates the same operator configuration. Local/test helpers, demo-seed restrictions, storage and backup requirements remain unchanged. Evidence: `roadmap/evidence/2026-10-26-hosted-demo-policy/`.
 
 - 2026-10-24 local functional audit fixes:

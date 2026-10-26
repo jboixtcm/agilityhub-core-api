@@ -17,6 +17,10 @@ class SignedFileRequestsTest {
         assertThat(SignedFileRequests.matches(request("GET", "/api/v1/attachments/files/abc"))).isTrue();
         assertThat(SignedFileRequests.matches(request("PUT", "/api/v1/attachments/uploads/abc"))).isTrue();
         assertThat(SignedFileRequests.matches(request("GET", "/api/v1/remittances/files/club-a/abc"))).isTrue();
+        assertThat(SignedFileRequests.matches(request("GET", "/api/v1/migrations/files/club-a/run-1"))).isTrue();
+        assertThat(SignedFileRequests.matches(request("PUT", "/api/v1/migrations/files/club-a/run-1"))).isFalse();
+        assertThat(SignedFileRequests.matches(request("GET", "/api/v1/migrations/files/club-a/run-1/extra"))).isFalse();
+        assertThat(SignedFileRequests.matches(request("GET", "/api/v1/migrations/files/club-a/.."))).isFalse();
         // What Spring routes as the signup files route is that route here too.
         assertThat(SignedFileRequests.matches(request("GET", "/api/v1/signup/files;jsessionid=fictional"))).isTrue();
         assertThat(SignedFileRequests.matches(request("PUT", "/api/v1/signup/upl%6Fads"))).isTrue();

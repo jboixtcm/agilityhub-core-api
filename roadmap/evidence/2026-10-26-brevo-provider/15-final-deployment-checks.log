@@ -1,0 +1,19 @@
+CADDY ASKED THE CORE ["/internal/domains/app?host=office.example.test%26x%3Dy", "/internal/domains/app?host=x%26host%3Doffice.example.test"]
+MAVEN -B -q -s /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-e0iy74jf/settings.xml -Dmaven.repo.local=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-e0iy74jf/repository -Daether.connector.http.retryHandler.count=3 -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-e0iy74jf/pom.xml validate -> exit 0; requests [('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 200), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 200)]
+........................................E
+======================================================================
+ERROR: test_filesystem_backup (unittest.loader._FailedTest.test_filesystem_backup)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_filesystem_backup
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/deploy/backup/test_filesystem_backup.py", line 12, in <module>
+    import backup
+ModuleNotFoundError: No module named 'backup'
+
+
+----------------------------------------------------------------------
+Ran 41 tests in 13.382s
+
+FAILED (errors=1)

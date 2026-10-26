@@ -61,6 +61,20 @@ class ExportStorageTest {
             storage.delete("key"); verify(client).deleteObject(any(DeleteObjectRequest.class));
         }
     }
+    @Test void T_14_16_volumeExportsNeverFollowObjectOrParentSymlinks() throws Exception {
+        Path root = directory.resolve("private"); Files.createDirectory(root);
+        Path outside = directory.resolve("outside"); Files.createDirectory(outside);
+        Path source = outside.resolve("secret"); Files.writeString(source, "private fixture");
+        var storage = new LocalExportStorage(root, new byte[32], Clock.systemUTC());
+        Files.createSymbolicLink(root.resolve("link"), source);
+        Files.createSymbolicLink(root.resolve("parent"), outside);
+        assertThatThrownBy(() -> storage.open("link")).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> storage.open("parent/secret")).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> storage.put("parent/changed", source, "text/plain")).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> storage.delete("link")).hasMessage("NOT_FOUND");
+        assertThat(outside.resolve("changed")).doesNotExist();
+        assertThat(Files.readString(source)).isEqualTo("private fixture");
+    }
     @Test void T_14_15_formatsLocalizedCellsAndMasksSensitiveValues() throws Exception {
         var values = new ExportValues(new IcuMessageSource(), Locale.forLanguageTag("ca"), ZoneId.of("Europe/Madrid"));
         assertThat(values.text(Map.of("amountMinor", 1200L, "currency", "EUR"))).contains("12,00");

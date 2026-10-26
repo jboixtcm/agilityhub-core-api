@@ -1,13 +1,15 @@
 """Streaming, public-key-only backup and isolated verification of a replica dump."""
 import datetime as dt
 import gzip
+import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import shutil
 import signal
 import struct
+import stat
 import subprocess
 import sys
 import tarfile
@@ -38,14 +40,218 @@ def run(command, **kwargs):
     return result.stdout
 
 
+
+def private_directory(value, *, marker=False):
+    path = Path(value)
+    if not path.is_absolute() or path == Path('/') or any(part == '..' for part in path.parts):
+        raise Failure('Private storage directory must be absolute')
+    if any(part.is_symlink() for part in (path, *path.parents)) or not path.is_dir():
+        raise Failure('Private storage directory is absent or contains a symlink')
+    if stat.S_IMODE(path.stat().st_mode) & 0o077:
+        raise Failure('Private storage directory must deny group and other access')
+    if marker:
+        check = path / '.clubs-private-storage'
+        if check.is_symlink() or not check.is_file() or stat.S_IMODE(check.stat().st_mode) & 0o077 \
+                or check.read_bytes().strip() != b'clubs-private-storage-v1':
+            raise Failure('Private application storage marker is missing or invalid')
+    return path
+
+
+def relative_file(value):
+    if not isinstance(value, str) or not value or len(value) > 4096 or '\\' in value \
+            or any(ord(c) < 32 or ord(c) == 127 for c in value):
+        raise Failure('Invalid archive path')
+    path = PurePosixPath(value)
+    if path.is_absolute() or str(path) != value or any(part in ('.', '..') for part in path.parts):
+        raise Failure('Invalid archive path')
+    return path
+
+
+def file_inventory(root):
+    result = {}
+    for directory, names, files in os.walk(root, followlinks=False):
+        for name in sorted(names + files):
+            path = Path(directory) / name
+            key = path.relative_to(root).as_posix()
+            relative_file(key)
+            info = path.lstat()
+            if stat.S_ISDIR(info.st_mode):
+                result[key] = {'type': 'directory'}
+            elif stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+                digest = hashlib.sha256()
+                with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW), 'rb') as source:
+                    opened = os.fstat(source.fileno())
+                    if (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns) != \
+                            (opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns):
+                        raise Failure('Application storage changed during backup')
+                    for chunk in iter(lambda: source.read(1024 * 1024), b''):
+                        digest.update(chunk)
+                    after = os.fstat(source.fileno())
+                    if (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns) != \
+                            (after.st_size, after.st_mtime_ns, after.st_ctime_ns):
+                        raise Failure('Application storage changed during backup')
+                result[key] = {'type': 'file', 'size': info.st_size, 'sha256': digest.hexdigest()}
+            else:
+                raise Failure('Application storage must contain only regular files and directories')
+    return dict(sorted(result.items()))
+
+
+def encrypt_files(root, expected, recipient, target):
+    process = subprocess.Popen(['age', '-r', recipient, '-o', str(target)], stdin=subprocess.PIPE,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        with tarfile.open(fileobj=process.stdin, mode='w|') as bundle:
+            for key, metadata in expected.items():
+                path = root.joinpath(*relative_file(key).parts)
+                info = tarfile.TarInfo(key)
+                info.mode = 0o700 if metadata['type'] == 'directory' else 0o600
+                if metadata['type'] == 'directory':
+                    if not path.is_dir() or path.is_symlink():
+                        raise Failure('Application storage changed during backup')
+                    info.type = tarfile.DIRTYPE
+                    bundle.addfile(info)
+                else:
+                    info.size = metadata['size']
+                    with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW), 'rb') as source:
+                        current = os.fstat(source.fileno())
+                        if not stat.S_ISREG(current.st_mode) or current.st_nlink != 1 or current.st_size != info.size:
+                            raise Failure('Application storage changed during backup')
+                        bundle.addfile(info, source)
+        process.stdin.close()
+        if process.wait(timeout=900):
+            raise Failure('Application file encryption failed')
+        if file_inventory(root) != expected:
+            raise Failure('Application storage changed during backup')
+    finally:
+        if process.poll() is None:
+            process.kill()
+        process.wait()
+        if process.stdin and not process.stdin.closed:
+            process.stdin.close()
+
+
+def verify_files(archive, expected, output):
+    if not isinstance(expected, dict):
+        raise Failure('Invalid application file manifest')
+    output.mkdir(mode=0o700)
+    seen = set()
+    with tarfile.open(archive, 'r:') as bundle:
+        for member in bundle:
+            path = relative_file(member.name)
+            if member.name in seen or member.name not in expected:
+                raise Failure('Unexpected or duplicate application file entry')
+            seen.add(member.name)
+            metadata = expected[member.name]
+            target = output.joinpath(*path.parts)
+            target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            if metadata == {'type': 'directory'} and member.isdir():
+                target.mkdir(mode=0o700, exist_ok=True)
+            elif isinstance(metadata, dict) and set(metadata) == {'type', 'size', 'sha256'} \
+                    and metadata['type'] == 'file' and type(metadata['size']) is int and metadata['size'] >= 0 \
+                    and re.fullmatch(r'[a-f0-9]{64}', str(metadata['sha256'])) \
+                    and member.isfile() and member.sparse is None and member.size == metadata['size']:
+                digest = hashlib.sha256()
+                with bundle.extractfile(member) as source, target.open('xb') as destination:
+                    for chunk in iter(lambda: source.read(1024 * 1024), b''):
+                        digest.update(chunk)
+                        destination.write(chunk)
+                target.chmod(0o600)
+                if digest.hexdigest() != metadata['sha256']:
+                    raise Failure('Application file checksum mismatch')
+            else:
+                raise Failure('Application file type or size differs from manifest')
+    if seen != set(expected) or file_inventory(output) != expected:
+        raise Failure('Application file inventory mismatch')
+
+
+class FilesystemStore:
+    """Narrow object-store interface; only encrypted immutable archives reach this directory."""
+    def __init__(self, root, files):
+        self.root = root
+        self.files = files
+
+    def _path(self, key):
+        path = relative_file(key)
+        if len(path.parts) != 2 or path.parts[0] != 'mongo' or not re.fullmatch(r'\d{8}T\d{6}Z-[a-f0-9]{32}\.tar', path.name):
+            raise Failure('Invalid filesystem backup key')
+        target = self.root.joinpath(*path.parts)
+        if target.parent.is_symlink() or target.is_symlink():
+            raise Failure('Filesystem backup symlink is forbidden')
+        return target
+
+    def list_objects_v2(self, *, Bucket, Prefix, MaxKeys=None):
+        if Prefix != 'mongo/':
+            raise Failure('Filesystem backup prefix must be mongo/')
+        directory = self.root / Prefix
+        if directory.is_symlink():
+            raise Failure('Filesystem backup symlink is forbidden')
+        rows = []
+        if directory.exists():
+            for path in sorted(directory.iterdir()):
+                if path.suffix == '.tar':
+                    target = self._path(Prefix + path.name)
+                    if not target.is_file() or target.stat().st_nlink != 1:
+                        raise Failure('Invalid filesystem backup file')
+                    rows.append({'Key': Prefix + path.name, 'LastModified': dt.datetime.fromtimestamp(target.stat().st_mtime, dt.timezone.utc)})
+        return {'Contents': rows[:MaxKeys] if MaxKeys is not None else rows}
+
+    def get_paginator(self, operation):
+        if operation != 'list_objects_v2':
+            raise Failure('Unsupported filesystem operation')
+        class Pages:
+            def paginate(inner, **kwargs):
+                yield self.list_objects_v2(**kwargs)
+        return Pages()
+
+    def upload_file(self, source, bucket, key, *, ExtraArgs, Config):
+        target = self._path(key)
+        target.parent.mkdir(mode=0o700, exist_ok=True)
+        check_space(target.parent, max(GIB, Path(source).stat().st_size * 2))
+        temporary = target.parent / ('.' + uuid.uuid4().hex + '.tmp')
+        try:
+            with open(source, 'rb') as input_file, temporary.open('xb') as output_file:
+                shutil.copyfileobj(input_file, output_file, 1024 * 1024)
+                output_file.flush()
+                os.fsync(output_file.fileno())
+            temporary.chmod(0o600)
+            # link() refuses an existing archive; readers never observe partial ciphertext.
+            os.link(temporary, target)
+            descriptor = os.open(target.parent, os.O_RDONLY)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+    def head_object(self, *, Bucket, Key):
+        target = self._path(Key)
+        if not target.is_file() or target.stat().st_nlink != 1:
+            raise Failure('Invalid filesystem backup file')
+        return {'ContentLength': target.stat().st_size, 'Metadata': {}}
+
+    def download_file(self, bucket, key, destination, *, Config):
+        source = self._path(key)
+        with os.fdopen(os.open(source, os.O_RDONLY | os.O_NOFOLLOW), 'rb') as input_file, open(destination, 'xb') as output_file:
+            info = os.fstat(input_file.fileno())
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise Failure('Invalid filesystem backup file')
+            shutil.copyfileobj(input_file, output_file, 1024 * 1024)
+
 def configuration(mode):
-    required = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY']
+    backend = os.environ.get('BACKUP_STORAGE_MODE', 's3')
+    if backend not in ('s3', 'filesystem'):
+        raise Failure('Invalid BACKUP_STORAGE_MODE')
+    local = backend == 'filesystem'
+    if local and (os.environ.get('HOSTED_DEMO_ENABLED') != 'true' or os.environ.get('FILE_STORAGE_MODE') != 'filesystem'):
+        raise Failure('Filesystem backups require explicit internal filesystem policy')
+    required = ['BACKUP_LOCAL_DIRECTORY', 'BACKUP_FILES_DIRECTORY'] if local else ['BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY']
     required += (['BACKUP_AGE_RECIPIENT', 'MONGO_BACKUP_USERNAME', 'MONGO_BACKUP_PASSWORD']
                  if mode == 'backup' else ['BACKUP_AGE_IDENTITY'])
     for key in required:
         if not os.environ.get(key):
             raise Failure(f'Missing {key}')
-    prefix = os.environ.get('BACKUP_S3_PREFIX', 'mongo/')
+    prefix = 'mongo/' if local else os.environ.get('BACKUP_S3_PREFIX', 'mongo/')
     if not re.fullmatch(r'[A-Za-z0-9_/-]+/', prefix) or '..' in prefix or prefix.startswith('/'):
         raise Failure('Invalid BACKUP_S3_PREFIX')
     recipient = os.environ.get('BACKUP_AGE_RECIPIENT', '')
@@ -55,6 +261,16 @@ def configuration(mode):
         run(['age', '-r', recipient], input=b'')
     else:
         run(['age-keygen', '-y'], input=identity)
+    if local:
+        if prefix != 'mongo/':
+            raise Failure('Filesystem backup prefix must be mongo/')
+        archive_root = private_directory(os.environ['BACKUP_LOCAL_DIRECTORY'])
+        files = private_directory(os.environ['BACKUP_FILES_DIRECTORY'], marker=True)
+        if archive_root == files or archive_root.is_relative_to(files) or files.is_relative_to(archive_root):
+            raise Failure('Backup and application directories must be separate')
+        if mode == 'backup' and os.environ.get('BACKUP_FILES_QUIESCED') != 'true':
+            raise Failure('Stop application writers before filesystem backup')
+        return FilesystemStore(archive_root, files), 'filesystem', prefix, recipient, identity
     s3 = boto3.client('s3', endpoint_url=os.environ.get('BACKUP_S3_ENDPOINT') or None,
                       region_name=os.environ.get('BACKUP_S3_REGION', 'eu-west-3'),
                       aws_access_key_id=os.environ['BACKUP_S3_ACCESS_KEY'],
@@ -221,6 +437,8 @@ def objects(s3, bucket, prefix):
 
 def backup(s3, bucket, prefix, recipient, identity, work):
     s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1)
+    local = isinstance(s3, FilesystemStore)
+    app_files = file_inventory(s3.files) if local else None
     source = MongoClient('mongodb://mongo:27017/?replicaSet=rs0&directConnection=true',
                          username=os.environ['MONGO_BACKUP_USERNAME'],
                          password=os.environ['MONGO_BACKUP_PASSWORD'], authSource='admin',
@@ -228,6 +446,8 @@ def backup(s3, bucket, prefix, recipient, identity, work):
     try:
         source.admin.command('ping')
         estimate = estimate_space(source)
+        if local:
+            estimate += 4 * sum(row.get('size', 0) for row in app_files.values())
         check_space(work, estimate)
         before = inventory(source)
         stamp, namespaces = stream_dump(work, recipient)
@@ -240,19 +460,25 @@ def backup(s3, bucket, prefix, recipient, identity, work):
             raise Failure('Source catalog changed during backup; retry without DDL')
     finally:
         source.close()
+    entries = ['manifest.json.age', 'dump.archive.gz.age']
+    if local:
+        encrypt_files(s3.files, app_files, recipient, work / 'files.tar.age')
+        manifest.update(format=3, files=app_files)
+        entries.append('files.tar.age')
     run(['age', '-r', recipient, '-o', str(work / 'manifest.json.age')],
         input=json.dumps(manifest, sort_keys=True).encode())
     archive = work / 'backup.tar'
     with tarfile.open(archive, 'w') as bundle:
-        for name in ('manifest.json.age', 'dump.archive.gz.age'):
+        for name in entries:
             bundle.add(work / name, arcname=name)
-    for name in ('manifest.json.age', 'dump.archive.gz.age'):
+    for name in entries:
         (work / name).unlink()
     key = prefix + dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex + '.tar'
     # The cron principal has only PutObject and ListBucket, no read or deletion.
     s3.upload_file(str(archive), bucket, key, ExtraArgs={
         'ContentType': 'application/x-tar', 'Metadata': {'work-bytes': str(estimate)}}, Config=TRANSFER)
-    print(f'BACKUP_OK key={key} collections={len(manifest["counts"])} snapshot={stamp.time}:{stamp.inc} retention=S3-lifecycle')
+    retention = 'operator-offhost' if local else 'S3-lifecycle'
+    print(f'BACKUP_OK key={key} collections={len(manifest["counts"])} snapshot={stamp.time}:{stamp.inc} retention={retention}')
     return key
 
 
@@ -268,12 +494,13 @@ def restore(s3, bucket, prefix, recipient, identity, work, named):
         raise Failure('No backup found under the configured prefix')
     info = s3.head_object(Bucket=bucket, Key=key)
     estimate = int(info.get('Metadata', {}).get('work-bytes', '0'))
-    check_space(work, max(estimate, info['ContentLength'] * 3))
+    check_space(work, max(GIB, estimate, info['ContentLength'] * 3))
     archive = work / 'backup.tar'
     s3.download_file(bucket, key, str(archive), Config=TRANSFER)
     with tarfile.open(archive, 'r:') as bundle:
         members = bundle.getmembers()
-        if sorted(m.name for m in members) != ['dump.archive.gz.age', 'manifest.json.age'] or not all(m.isfile() for m in members):
+        expected_entries = ['dump.archive.gz.age', 'files.tar.age', 'manifest.json.age'] if isinstance(s3, FilesystemStore) else ['dump.archive.gz.age', 'manifest.json.age']
+        if sorted(m.name for m in members) != expected_entries or not all(m.isfile() and m.sparse is None for m in members):
             raise Failure('Unexpected archive contents')
         for member in members:
             with bundle.extractfile(member) as source, (work / member.name).open('wb') as target:
@@ -282,11 +509,18 @@ def restore(s3, bucket, prefix, recipient, identity, work, named):
     keyfile = work / 'identity'
     keyfile.write_bytes(identity)
     manifest = json.loads(run(['age', '-d', '-i', str(keyfile), str(work / 'manifest.json.age')]))
-    if manifest.get('format') != 2 or not isinstance(manifest.get('counts'), dict):
+    expected_format = 3 if isinstance(s3, FilesystemStore) else 2
+    if manifest.get('format') != expected_format or not isinstance(manifest.get('counts'), dict):
         raise Failure('Unsupported manifest')
     check_space(work, manifest['workBytes'])
     # Authenticate all ciphertext before starting the isolated database.
     run(['age', '-d', '-i', str(keyfile), '-o', str(work / 'dump.archive.gz'), str(work / 'dump.archive.gz.age')])
+    if expected_format == 3:
+        run(['age', '-d', '-i', str(keyfile), '-o', str(work / 'files.tar'), str(work / 'files.tar.age')])
+        verify_files(work / 'files.tar', manifest.get('files'), work / 'restored-files')
+        (work / 'files.tar').unlink()
+        (work / 'files.tar.age').unlink()
+        print(f'FILES_OK entries={len(manifest["files"])}')
     for name in ('identity', 'manifest.json.age', 'dump.archive.gz.age'):
         (work / name).unlink()
     data = work / 'mongo'

@@ -1,0 +1,23 @@
+# Explicit internal hosted-demo storage on the provisioned encrypted host volume.
+# Add after compose.prod.yaml; neither bind source may be auto-created by Docker.
+services:
+  core:
+    volumes:
+      - type: bind
+        source: ${FILE_STORAGE_HOST_ROOT:?Set FILE_STORAGE_HOST_ROOT}
+        target: /storage
+        bind:
+          create_host_path: false
+  backup:
+    volumes:
+      - type: bind
+        source: ${FILE_STORAGE_HOST_ROOT:?Set FILE_STORAGE_HOST_ROOT}
+        target: /storage
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${BACKUP_HOST_ROOT:?Set BACKUP_HOST_ROOT}
+        target: /backup
+        bind:
+          create_host_path: false

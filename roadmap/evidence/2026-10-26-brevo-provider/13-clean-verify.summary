@@ -1,0 +1,19 @@
+surefire: {'tests': 4998, 'failures': 0, 'errors': 0, 'skipped': 0}; classes=482
+com.agilityhub.core.migration.VolumeMigrationReportStoreTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.shared.api.AnonymousRateLimitsTest: tests=29, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.BrevoEmailSenderTest: tests=12, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.PrivateFileStorageConfigurationTest: tests=9, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.HostedDemoStripeWebhooksTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.platform.application.HostedDemoProvidersTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.shared.api.SignedFileRequestsTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.HostedDemoEmailDeliveryTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.followup.persistence.AttachmentStorageTest: tests=4, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.EmailConfigurationTest: tests=12, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.HostedDemoConfigurationTest: tests=10, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.common.application.ExportStorageTest: tests=5, failures=0, errors=0, skipped=0
+failsafe: {'tests': 2333, 'failures': 0, 'errors': 0, 'skipped': 0}; classes=177
+com.agilityhub.core.clubs.messaging.application.engine.DisabledEmailDeliveryIT: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.api.BrevoWebhookIT: tests=17, failures=0, errors=0, skipped=0
+com.agilityhub.core.identity.api.DisabledEmailIdentityIT: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT: tests=20, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.SecurityInventoryIT: tests=4, failures=0, errors=0, skipped=0

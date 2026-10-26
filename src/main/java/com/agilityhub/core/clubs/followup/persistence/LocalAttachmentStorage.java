@@ -2,6 +2,7 @@ package com.agilityhub.core.clubs.followup.persistence;
 
 import com.agilityhub.core.clubs.followup.application.AttachmentStorage;
 import com.agilityhub.core.shared.domain.*;
+import com.agilityhub.core.shared.application.PrivateFiles;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
@@ -17,24 +18,27 @@ import javax.crypto.spec.SecretKeySpec;
  * authorise themselves; the routes read no bearer ({@code SignedFileRequests}).
  */
 public class LocalAttachmentStorage implements AttachmentStorage {
-    private final Path root; private final byte[] key; private final Clock clock;
+    private final Path root; private final byte[] key; private final Clock clock; private final Runnable readiness;
     
     public LocalAttachmentStorage(Path root, byte[] key, Clock clock) {
-        this.root = root.toAbsolutePath().normalize(); this.key = key.clone(); this.clock = clock;
-        try { Files.createDirectories(this.root); Files.setPosixFilePermissions(this.root, PosixFilePermissions.fromString("rwx------")); }
-        catch (IOException failure) { throw new UncheckedIOException(failure); }
+        this(root, key, clock, () -> { });
+    }
+    public LocalAttachmentStorage(Path root, byte[] key, Clock clock, Runnable readiness) {
+        this.root = root.toAbsolutePath().normalize(); this.key = key.clone(); this.clock = clock; this.readiness = readiness;
+        readiness.run(); PrivateFiles.createDirectory(this.root);
     }
     /** A scoped key (`{clubId}/{scope}/{uuid}`, {@code AttachmentService.scopedUpload}) is the plain uuid in this store and its routes. */
     static final java.util.regex.Pattern SCOPED = java.util.regex.Pattern.compile("[^/]+/[a-z-]+/([0-9a-f-]{36})");
     private static String local(String id) { var scoped = SCOPED.matcher(id); return scoped.matches() ? scoped.group(1) : id; }
     private Path path(String key) {
+        readiness.run();
         String id = local(key);
         if (id.startsWith("signup/")) {
-            try { return root.resolve(java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(id.getBytes(StandardCharsets.UTF_8)))); }
+            try { return PrivateFiles.resolve(root, java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(id.getBytes(StandardCharsets.UTF_8)))); }
             catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
         }
         if (!id.matches("[0-9a-f-]{36}")) { throw new ApiException(ErrorCode.NOT_FOUND); }
-        return root.resolve(id);
+        return PrivateFiles.resolve(root, id);
     }
     private String signature(String id, long expires, String method) {
         try {
@@ -71,7 +75,7 @@ public class LocalAttachmentStorage implements AttachmentStorage {
             Files.setPosixFilePermissions(path(id).resolveSibling(path(id).getFileName() + ".mime"), PosixFilePermissions.fromString("rw-------")); }
         finally { Files.deleteIfExists(temp); }
     }
-    public InputStream open(String id) throws IOException { return Files.newInputStream(path(id)); }
+    public InputStream open(String id) throws IOException { return Files.newInputStream(path(id), LinkOption.NOFOLLOW_LINKS); }
     @Override public byte[] read(String id) throws IOException {
         if (!Files.isRegularFile(path(id), LinkOption.NOFOLLOW_LINKS)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return Files.readAllBytes(path(id));
@@ -83,7 +87,9 @@ public class LocalAttachmentStorage implements AttachmentStorage {
     @Override public Metadata metadata(String id) {
         try {
             if (!Files.isRegularFile(path(id), LinkOption.NOFOLLOW_LINKS)) { throw new ApiException(ErrorCode.NOT_FOUND); }
-            return new Metadata(Files.readString(path(id).resolveSibling(path(id).getFileName() + ".mime")), Files.size(path(id)));
+            Path file = path(id);
+            Path mime = PrivateFiles.resolve(root, file.getFileName() + ".mime");
+            return new Metadata(Files.readString(mime), Files.size(file));
         } catch (IOException failure) { throw new UncheckedIOException(failure); }
     }
 }

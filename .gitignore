@@ -77,3 +77,7 @@ __pycache__/
 !roadmap/evidence/2026-10-24-functional-fixes-api/**/*.log
 !roadmap/evidence/2026-10-26-hosted-demo-policy/**/*.log
 !roadmap/evidence/2026-10-26-deploy-root/*.log
+
+# User-authorized internal deployment verification evidence.
+!roadmap/evidence/2026-10-26-brevo-provider/*.log
+!roadmap/evidence/2026-10-26-volume-backup/*.log

@@ -11,6 +11,11 @@ class HostedDemoEmailDeliveryTest {
         boolean retryable = NotificationDispatcher.emailRetryable(AllowListEmailSender.NOT_ALLOWED);
         assertThat(retryable).isFalse();
         assertThat(RetryPolicy.nextAttempt(1, retryable, Instant.EPOCH)).isEmpty();
+        assertThat(NotificationDispatcher.emailRetryable(com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.SUPPRESSED)).isFalse();
+        assertThat(NotificationDispatcher.emailRetryable("Brevo timeout")).isTrue();
+        assertThat(NotificationDispatcher.emailRetryable("Brevo HTTP 429")).isTrue();
+        assertThat(NotificationDispatcher.emailRetryable("Brevo HTTP 503")).isTrue();
+        assertThat(NotificationDispatcher.emailRetryable("Brevo HTTP 401")).isFalse();
         assertThat(NotificationDispatcher.emailRetryable("SendGrid timeout")).isTrue();
         assertThat(NotificationDispatcher.emailRetryable("SendGrid HTTP 429")).isTrue();
         assertThat(NotificationDispatcher.emailRetryable("SendGrid HTTP 502")).isTrue();

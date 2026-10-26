@@ -75,6 +75,40 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
         assertThat(mongo.getCollection("domain_events").countDocuments(new org.bson.Document("aggregateId", id))).isEqualTo(2);
         if (language.equals("ca")) { Files.createDirectories(Path.of("target/email-evidence")); Files.writeString(Path.of("target/email-evidence/" + code + "-ca.html"), email.html()); }
     }
+    @ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(strings = {"N-25", "N-26", "N-27"})
+    void internalReviewSkipsIdentityEmailsWithoutRenderingCredentialsOrFutureReplay(String code) {
+        account("en");
+        org.mockito.Mockito.doReturn(true).when(sender).deliveryDisabled();
+        String id = service.send(code, "email-account", Map.of("link", "https://id.example.test/private-credential"));
+        var stored = notifications.findSystem(id).orElseThrow();
+        assertThat(stored.status()).isEqualTo(Notification.Status.SKIPPED_NOT_ALLOWED);
+        assertThat(stored.sentAt()).isNull(); assertThat(stored.providerMessageId()).isNull();
+        assertThat(stored.deliveries()).singleElement().satisfies(d -> {
+            assertThat(d.status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.SKIPPED_NOT_ALLOWED);
+            assertThat(d.attempts()).isZero(); assertThat(d.nextAttemptAt()).isNull();
+        });
+        assertThat(service.completed(id)).isTrue(); assertThat(service.sent(id)).isFalse();
+        assertThat(mongo.getCollection("notifications").find(new org.bson.Document("_id", id)).first().toJson()).doesNotContain("private-credential");
+        assertThat(mongo.getCollection("domain_events").countDocuments(new org.bson.Document("aggregateId", id))).isZero();
+        org.mockito.Mockito.doReturn(false).when(sender).deliveryDisabled();
+        service.sendOnce(id, code, "email-account", Map.of("link", "https://id.example.test/new-credential"));
+        org.mockito.Mockito.verify(sender, org.mockito.Mockito.never()).send(org.mockito.ArgumentMatchers.any());
+        assertThat(mailbox().messages()).isEmpty();
+    }
+    @Test void internalReviewFinishesAnInterruptedSystemQueueAsSkipped() {
+        account("en");
+        notifications.queue(new Notification("interrupted-email", null, "email-account", "N-25", "EMAIL", Notification.Status.QUEUED,
+                null, null, null, "mailbox@example.test", "en", clock.instant(), null));
+        org.mockito.Mockito.doReturn(true).when(sender).deliveryDisabled();
+        service.sendOnce("interrupted-email", "N-25", "email-account", Map.of());
+        var stored = notifications.findSystem("interrupted-email").orElseThrow();
+        assertThat(stored.status()).isEqualTo(Notification.Status.SKIPPED_NOT_ALLOWED);
+        assertThat(stored.deliveries()).singleElement().satisfies(d -> {
+            assertThat(d.attempts()).isZero(); assertThat(d.nextAttemptAt()).isNull(); assertThat(d.sentAt()).isNull();
+        });
+        org.mockito.Mockito.verify(sender, org.mockito.Mockito.never()).send(org.mockito.ArgumentMatchers.any());
+    }
+
     @Test void T_11_25_clubBrandingLocaleAndTenantIsolation() {
         account("en");
         mongo.remove(Query.query(Criteria.where("_id").is("club-a")), Club.class);

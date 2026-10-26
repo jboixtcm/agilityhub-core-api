@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-26 · Brevo delivery callbacks
+
+**1 operation and 1 request schema added; no error codes added.**
+
+- `POST /webhooks/email/brevo` accepts a transactional event object or bounded array and authenticates a separate provider bearer secret before parsing. Tenant, recipient and provider message correlation and idempotent receipt processing guard delivery/failure updates; unknown or uncorrelated events do not change account state. Missing/invalid provider authentication returns `401 WEBHOOK_SIGNATURE_INVALID`. Outbound email can be disabled independently; configured authenticated historical callbacks remain accepted.
+
 ## 2026-10-23 · S18 · Private migration report download
 
 **1 operation and 1 response schema added; no error codes added.**

@@ -122,6 +122,7 @@ public class NotificationEngine {
      * other (the log shows them), `NotificationQueued` once per channel, and their queued deliveries sent after the commit.
      */
     public void deliver(List<Notification> fresh) {
+        fresh = fresh.stream().map(this::applyEmailPolicy).toList();
         String clubId = TenantContext.require();
         notifications.insertAll(fresh);
         fresh.forEach(notification -> publishQueued(notification.id(), notification.deliveries()));
@@ -403,6 +404,7 @@ public class NotificationEngine {
 
     /** Upsert by `dedupKey`: new documents in batches; an existing one only gets the deliveries it lacks (R-11-09). */
     private Stored store(NotificationSpec spec, NotificationTrigger trigger, List<Notification> built) {
+        built = built.stream().map(this::applyEmailPolicy).toList();
         var existing = notifications.byDedupKeys(built.stream().map(Notification::dedupKey).toList());
         var fresh = new ArrayList<Notification>(); var views = new ArrayList<NotificationFactsPort.StoredNotification>(); var toSend = new ArrayList<String>();
         var seen = new HashSet<String>();
@@ -436,6 +438,18 @@ public class NotificationEngine {
         if (!built.isEmpty()) { LOG.debug("Notifications stored code={} event={} new={} total={}", spec.code(), trigger.type(), fresh.size(), built.size()); }
         return new Stored(views, toSend);
     }
+    /** Persist internal-review email skips at creation, including direct/template-test sends; no future email backlog. */
+    private Notification applyEmailPolicy(Notification n) {
+        if (!dispatcher.emailDeliveryDisabled() || n.deliveries() == null) { return n; }
+        var deliveries = n.deliveries().stream().map(d -> d.channel() == NotificationChannel.EMAIL && d.status() == DeliveryStatus.QUEUED
+                ? new Notification.Delivery(d.channel(), d.target(), DeliveryStatus.SKIPPED_NOT_ALLOWED, 0, null, null,
+                        com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED, null, null, null) : d).toList();
+        return new Notification(n.id(), n.clubId(), n.code(), n.category(), n.templateId(), n.templateVersion(), n.eventId(), n.eventType(),
+                n.dedupKey(), n.audience(), n.recipient(), n.locale(), n.subject(), n.icon(), n.color(), n.title(), n.body(), n.smsBody(), n.action(),
+                deliveries, n.readAt(), n.createdAt(), n.accountId(), n.channel(), n.status(), n.providerMessageId(), n.sentAt(), n.error(),
+                n.recipientEmail(), n.variant(), n.variables());
+    }
+
     private static boolean hasQueued(List<Notification.Delivery> deliveries) { return deliveries.stream().anyMatch(d -> d.status() == DeliveryStatus.QUEUED); }
     private static NotificationFactsPort.StoredNotification view(Notification notification, boolean created) {
         var base = NotificationDispatcher.view(notification);

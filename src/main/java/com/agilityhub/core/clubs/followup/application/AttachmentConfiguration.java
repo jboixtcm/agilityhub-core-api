@@ -1,22 +1,31 @@
 package com.agilityhub.core.clubs.followup.application;
 
 import com.agilityhub.core.clubs.followup.persistence.*;
+import com.agilityhub.core.shared.application.PrivateFileStorageConfiguration;
+import com.agilityhub.core.shared.application.PrivateFileStorageSettings;
 import java.nio.file.Path;
 import java.time.Clock;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Configuration(proxyBeanMethods = false)
+@Import(PrivateFileStorageConfiguration.class)
 public class AttachmentConfiguration {
     @Bean @Profile("(local | test) & !staging & !prod")
     LocalAttachmentStorage localAttachments(Environment env, Clock clock) {
         return new LocalAttachmentStorage(Path.of(env.getProperty("attachments.local-directory", "./.local/attachments")), new java.security.SecureRandom().generateSeed(32), clock);
     }
-    @Bean @Profile("staging | prod") AttachmentStorage s3Attachments(Environment env, Clock clock) {
+    @Bean @Profile("staging | prod") @ConditionalOnProperty(name = "core.storage.mode", havingValue = "filesystem")
+    LocalAttachmentStorage volumeAttachments(PrivateFileStorageSettings settings, Clock clock) {
+        return new LocalAttachmentStorage(settings.directory("attachments"), settings.signingKey(), clock, settings::requireReady);
+    }
+    @Bean @Profile("staging | prod") @ConditionalOnProperty(name = "core.storage.mode", havingValue = "s3", matchIfMissing = true)
+    AttachmentStorage s3Attachments(Environment env, Clock clock) {
         var credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create(required(env, "access-key"), required(env, "secret-key")));
         var client = S3Client.builder().region(Region.of(required(env, "region"))).credentialsProvider(credentials)
                 .overrideConfiguration(config -> config.apiCallTimeout(java.time.Duration.ofMinutes(2)));

@@ -226,8 +226,9 @@ public class NotificationRepository extends TenantRepository<Notification> {
             update.set("status", status).set("providerMessageId", providerId).set("error", error);
             if (status == Notification.Status.SENT) { update.set("sentAt", at); }
         }, update -> {
-            update.set("deliveries.0.status", status.name()).set("deliveries.0.providerRef", providerId).set("deliveries.0.lastError", error)
-                    .inc("deliveries.0.attempts", 1);
+            update.set("deliveries.0.status", status.name()).set("deliveries.0.providerRef", providerId).set("deliveries.0.lastError", error);
+            if (status == Notification.Status.SENT || status == Notification.Status.FAILED) { update.inc("deliveries.0.attempts", 1); }
+            if (status == Notification.Status.SKIPPED_NOT_ALLOWED) { update.unset("deliveries.0.nextAttemptAt"); }
             if (status == Notification.Status.SENT) { update.set("deliveries.0.sentAt", at); }
             if (status == Notification.Status.FAILED) { update.set("deliveries.0.failedAt", at); }
         });

@@ -1,0 +1,12 @@
+Focused final email suite: {'tests': 120, 'failures': 0, 'errors': 0, 'skipped': 0}
+BrevoWebhookIT: tests=17, failures=0, errors=0, skipped=0
+BrevoEmailSenderTest: tests=12, failures=0, errors=0, skipped=0
+SystemNotificationServiceIT: tests=20, failures=0, errors=0, skipped=0
+DisabledEmailDeliveryIT: tests=3, failures=0, errors=0, skipped=0
+HostedDemoEmailDeliveryTest: tests=1, failures=0, errors=0, skipped=0
+EmailConfigurationTest: tests=12, failures=0, errors=0, skipped=0
+HostedDemoConfigurationTest: tests=10, failures=0, errors=0, skipped=0
+OpenApiSnapshotTest: tests=12, failures=0, errors=0, skipped=0
+SecurityInventoryIT: tests=4, failures=0, errors=0, skipped=0
+DisabledEmailIdentityIT: tests=1, failures=0, errors=0, skipped=0
+AnonymousRateLimitsTest: tests=28, failures=0, errors=0, skipped=0

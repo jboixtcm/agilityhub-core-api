@@ -55,6 +55,67 @@ class EmailConfigurationTest {
         try (var files = java.nio.file.Files.list(mailbox)) { assertThat(files).isEmpty(); }
     }
 
+    @Test void T_11_25_brevoRequiresItsOwnCredentialsAndKeepsHostedRecipientRestriction() {
+        String token = java.util.UUID.randomUUID().toString();
+        runner("prod").withPropertyValues("email.provider=brevo", "email.platform-from=sender@example.test",
+                "email.brevo.api-key=fictional", "email.brevo.webhook-token=" + token).run(context -> {
+            assertThat(context).hasNotFailed(); assertThat(context.getBean(EmailSender.class)).isInstanceOf(BrevoEmailSender.class);
+        });
+        runner("prod").withPropertyValues("email.provider=brevo", "email.platform-from=sender@example.test",
+                "email.brevo.api-key=fictional").run(context -> {
+            assertThat(context).hasFailed(); assertThat(context.getStartupFailure()).hasRootCauseMessage("BREVO_WEBHOOK_TOKEN must contain 32 to 256 random URL-safe characters in staging/prod");
+        });
+        runner("prod").withPropertyValues("email.provider=brevo", "email.platform-from=sender@example.test").run(context -> {
+            assertThat(context).hasFailed(); assertThat(context.getStartupFailure()).hasRootCauseMessage("BREVO_API_KEY is required in staging/prod");
+        });
+        runner("prod").withPropertyValues("email.provider=brevo", "email.platform-from=sender@example.test", "email.brevo.api-key=fictional",
+                "email.brevo.webhook-token=" + token, "core.hosted-demo.enabled=true", "core.hosted-demo.email-allowlist=tester@example.test").run(context -> {
+            assertThat(context).hasNotFailed(); assertThat(context.getBean(EmailSender.class)).isInstanceOf(AllowListEmailSender.class);
+            assertThat(context.getBean(EmailSender.class).send(new EmailMessage("outside@example.test", "Subject", "body", "body",
+                    new EmailMessage.Address("sender@example.test", "Example"), null, Locale.ENGLISH, Map.of())).error()).isEqualTo(AllowListEmailSender.NOT_ALLOWED);
+        });
+        runner("prod").withPropertyValues("email.provider=unknown").run(context -> {
+            assertThat(context).hasFailed(); assertThat(context.getStartupFailure()).hasRootCauseMessage("EMAIL_PROVIDER must be sendgrid or brevo");
+        });
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"sendgrid", "brevo"})
+    void internalReviewDisablesEverySenderWithoutProviderKeysOrRecipientList(String provider) {
+        runner("prod").withPropertyValues("core.hosted-demo.enabled=true", "email.delivery-enabled=false", "email.provider=" + provider)
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    var sender = context.getBean(EmailSender.class);
+                    assertThat(sender).isInstanceOf(DisabledEmailSender.class);
+                    assertThat(sender.deliveryDisabled()).isTrue();
+                    assertThat(sender.send(null)).isEqualTo(EmailSender.SendResult.failed(DisabledEmailSender.DISABLED));
+                    assertThatThrownBy(() -> context.getBean(BrevoWebhookAuthentication.class).verify("Bearer anything"))
+                            .isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+                    assertThatThrownBy(() -> context.getBean(SendGridSignatureVerifier.class).verify(new byte[0], "1", "anything"))
+                            .isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+                    org.mockito.Mockito.verifyNoInteractions(context.getBean(BrevoWebhookRepository.class));
+                });
+    }
+    @Test void internalReviewPreservesConfiguredBrevoWebhookAuthenticationWithoutOutboundCalls() {
+        String token = java.util.UUID.randomUUID().toString();
+        runner("prod").withPropertyValues("core.hosted-demo.enabled=true", "email.delivery-enabled=false", "email.provider=brevo",
+                "email.brevo.api-key=fictional", "email.brevo.webhook-token=" + token).run(context -> {
+            assertThat(context).hasNotFailed();
+            assertThat(context.getBean(EmailSender.class)).isInstanceOf(DisabledEmailSender.class);
+            context.getBean(BrevoWebhookAuthentication.class).verify("Bearer " + token);
+            assertThatThrownBy(() -> context.getBean(BrevoWebhookAuthentication.class).verify("Bearer wrong"))
+                    .isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+        });
+    }
+
+    @Test void internalReviewSwitchCannotSilentlyDisableNormalProduction() {
+        runner("prod").withPropertyValues("email.delivery-enabled=false").run(context ->
+                assertThat(context.getStartupFailure()).hasRootCauseMessage("EMAIL_DELIVERY_ENABLED=false requires HOSTED_DEMO_ENABLED=true"));
+        runner("prod").withPropertyValues("email.delivery-enabled=off").run(context ->
+                assertThat(context.getStartupFailure()).hasRootCauseMessage("EMAIL_DELIVERY_ENABLED must be true or false"));
+        runner("local").withPropertyValues("email.delivery-enabled=false", "core.hosted-demo.enabled=true").run(context ->
+                assertThat(context.getStartupFailure()).hasRootCauseMessage("HOSTED_DEMO_ENABLED requires only a deployed profile, without local/test"));
+    }
+
     private ApplicationContextRunner runner(String... profiles) {
         return new ApplicationContextRunner().withUserConfiguration(EmailConfiguration.class)
                 .withInitializer(context -> context.getEnvironment().setActiveProfiles(profiles))
@@ -64,6 +125,7 @@ class EmailConfigurationTest {
                 .withBean(ClubEmailSettings.class, () -> mock(ClubEmailSettings.class))
                 .withBean(ParameterCatalog.class, () -> mock(ParameterCatalog.class))
                 .withBean(NotificationRepository.class, () -> mock(NotificationRepository.class))
+                .withBean(BrevoWebhookRepository.class, () -> mock(BrevoWebhookRepository.class))
                 .withBean(SendGridWebhookReceiptRepository.class, () -> mock(SendGridWebhookReceiptRepository.class))
                 .withBean(EventPublisher.class, () -> mock(EventPublisher.class))
                 .withBean(PlatformTransactionManager.class, () -> mock(PlatformTransactionManager.class))

@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  */
 public final class SignedFileRequests {
     private static final Pattern UPLOAD = Pattern.compile("/api/v1/attachments/uploads/[^/]+");
-    private static final Pattern DOWNLOAD = Pattern.compile("/api/v1/attachments/files/[^/]+|/api/v1/remittances/files/[^/]+/[^/]+");
+    private static final Pattern DOWNLOAD = Pattern.compile("/api/v1/attachments/files/[^/]+|/api/v1/remittances/files/[^/]+/[^/]+|/api/v1/migrations/files/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+");
     /** INC-14: the path Spring routes (decoded, without `;` parameters), as {@code RateLimitFilter} reads it. */
     private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
     private SignedFileRequests() { }

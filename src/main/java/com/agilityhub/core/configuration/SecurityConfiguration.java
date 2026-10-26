@@ -61,7 +61,7 @@ public class SecurityConfiguration {
             // E5-T24 (CONVENCIONS_API §5, A31): a signed local file URL authorises itself; its service checks the signature.
             // E5-T26: PUT /api/v1/signup/uploads is one of them.
             authorize.requestMatchers(com.agilityhub.core.shared.api.SignedFileRequests::matches).permitAll();
-            authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid",
+            authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid", "/webhooks/email/brevo",
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",
                     "/api/v1/signup/family-group-lookups", "/api/v1/checkout-sessions").permitAll();
             // S11 R-11-08 (E7-T01): the CLUB_NEWS unsubscribe link authorises itself with its signed token; the club comes from the host.
@@ -105,6 +105,7 @@ public class SecurityConfiguration {
         streamBearers.setAllowUriQueryParameter(true);
         http.oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> com.agilityhub.core.shared.api.SignedFileRequests.matches(request)
                         || com.agilityhub.core.shared.api.HealthRequests.matches(request) ? null
+                        : "POST".equals(request.getMethod()) && "/webhooks/email/brevo".equals(PATHS.getPathWithinApplication(request)) ? null
                         : buildSessionStream(request) ? streamBearers.resolve(request) : bearers.resolve(request))
                 .jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
                 .authenticationEntryPoint((request, response, exception) -> writeError(request, response, ErrorCode.UNAUTHENTICATED, errors, mapper))

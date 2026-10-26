@@ -1,0 +1,22 @@
+test_E11_T04_archive_stream_tracks_only_the_actual_oplog (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_dump_failure_closes_source_without_lock_or_upload (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_inventory_excludes_internal_cluster_keys (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_low_space_refused (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_no_backup_or_escape_fails_before_writing (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_prefix_filters_outside_keys_among_valid_pages (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_restore_checks_disk_before_download (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_size_estimate_uses_backup_role_collection_stats (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_snapshot_counts_all_collections_at_one_timestamp (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_successful_backup_needs_only_list_and_put (test_backup.BackupSafetyTest) ... BACKUP_OK key=mongo/20261026T183714Z-3d91499b2fbd412eb07c7ba5da3a8827.tar collections=1 snapshot=100:1 retention=S3-lifecycle
+ok
+test_app_inventory_refuses_symlinks_hardlinks_and_special_files (test_filesystem_backup.FilesystemBackupTest) ... ok
+test_archive_storage_is_immutable_and_refuses_escape_and_symlinks (test_filesystem_backup.FilesystemBackupTest) ... ok
+test_configuration_needs_internal_mode_quiescence_and_private_marked_roots (test_filesystem_backup.FilesystemBackupTest) ... ok
+test_real_age_file_roundtrip_keeps_directory_and_file_inventory (test_filesystem_backup.FilesystemBackupTest) ... ok
+test_restore_filesystem_rejects_s3_archive_without_application_files (test_filesystem_backup.FilesystemBackupTest) ... ok
+test_restore_refuses_paths_links_duplicates_missing_and_tampered_files (test_filesystem_backup.FilesystemBackupTest) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.115s
+
+OK

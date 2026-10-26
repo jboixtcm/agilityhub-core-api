@@ -1,0 +1,46 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+19:00:24.582 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'privateFileStorageSettings' defined in com.agilityhub.core.shared.application.PrivateFileStorageConfiguration: Failed to instantiate [com.agilityhub.core.shared.application.PrivateFileStorageSettings]: Factory method 'privateFileStorageSettings' threw exception with message: HOSTED_DEMO_ENABLED requires only a deployed profile, without local/test
+19:00:24.767 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'privateFileStorageSettings' defined in com.agilityhub.core.shared.application.PrivateFileStorageConfiguration: Failed to instantiate [com.agilityhub.core.shared.application.PrivateFileStorageSettings]: Factory method 'privateFileStorageSettings' threw exception with message: HOSTED_DEMO_ENABLED requires only a deployed profile, without local/test
+19:00:24.783 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'privateFileStorageSettings' defined in com.agilityhub.core.shared.application.PrivateFileStorageConfiguration: Failed to instantiate [com.agilityhub.core.shared.application.PrivateFileStorageSettings]: Factory method 'privateFileStorageSettings' threw exception with message: HOSTED_DEMO_ENABLED requires only a deployed profile, without local/test
+19:00:24.796 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'privateFileStorageSettings' defined in com.agilityhub.core.shared.application.PrivateFileStorageConfiguration: Failed to instantiate [com.agilityhub.core.shared.application.PrivateFileStorageSettings]: Factory method 'privateFileStorageSettings' threw exception with message: HOSTED_DEMO_ENABLED requires only a deployed profile, without local/test
+19:00:24.917 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'exportS3Client' defined in com.agilityhub.core.clubs.common.application.ExportConfiguration: Failed to instantiate [software.amazon.awssdk.services.s3.S3Client]: Factory method 'exportS3Client' threw exception with message: Missing deployment configuration: exports.s3.region
+[ERROR] Tests run: 4, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.750 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.persistence.AttachmentStorageTest
+[ERROR] com.agilityhub.core.clubs.followup.persistence.AttachmentStorageTest.T_03_23_volumeLinksSurviveRestartAndKeepSignupTenantMethodAndExpiryBindings -- Time elapsed: 0.006 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: FORBIDDEN
+	at com.agilityhub.core.clubs.followup.persistence.LocalAttachmentStorage.authorize(LocalAttachmentStorage.java:51)
+	at com.agilityhub.core.clubs.followup.persistence.AttachmentStorageTest.T_03_23_volumeLinksSurviveRestartAndKeepSignupTenantMethodAndExpiryBindings(AttachmentStorageTest.java:67)
+
+[ERROR] Tests run: 3, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.129 s <<< FAILURE! -- in com.agilityhub.core.migration.VolumeMigrationReportStoreTest
+[ERROR] com.agilityhub.core.migration.VolumeMigrationReportStoreTest.T_18_16_volumeDownloadsRecheckPersistedTenantRunAndThirtyDayRetention -- Time elapsed: 0.082 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: NO_MEMBERSHIP
+	at com.agilityhub.core.shared.application.TenantContext.require(TenantContext.java:13)
+	at com.agilityhub.core.migration.VolumeMigrationReportStoreTest.lambda$T_18_16_volumeDownloadsRecheckPersistedTenantRunAndThirtyDayRetention$4(VolumeMigrationReportStoreTest.java:70)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:84)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:143)
+	at com.agilityhub.core.shared.persistence.TenantRepository.findById(TenantRepository.java:27)
+	at com.agilityhub.core.migration.VolumeMigrationReportStoreTest.T_18_16_volumeDownloadsRecheckPersistedTenantRunAndThirtyDayRetention(VolumeMigrationReportStoreTest.java:87)
+
+[ERROR] Errors: 
+[ERROR]   AttachmentStorageTest.T_03_23_volumeLinksSurviveRestartAndKeepSignupTenantMethodAndExpiryBindings:67 » Api FORBIDDEN
+[ERROR]   VolumeMigrationReportStoreTest.T_18_16_volumeDownloadsRecheckPersistedTenantRunAndThirtyDayRetention:87->lambda$T_18_16_volumeDownloadsRecheckPersistedTenantRunAndThirtyDayRetention$4:70 » Api NO_MEMBERSHIP
+[ERROR] Tests run: 54, Failures: 0, Errors: 2, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

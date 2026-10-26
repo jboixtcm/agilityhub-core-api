@@ -27,7 +27,15 @@ counters. Reconcile their actual records before deciding any recovery.
 
 ## Before a production apply
 
-The existing `exports.s3.*` deployment configuration supplies the client, private
+Public production defaults to S3. The explicitly configured internal team
+deployment may instead use the existing encrypted volume; see
+[Internal volume storage](INTERNAL_VOLUME_STORAGE.md) for its hosted-demo guard,
+private mount marker, signed file route, retention and backup requirements.
+It still treats an active `prod` profile as production and enforces the original
+30-day report deadline. It does not activate the unavailable local/test report
+store or bypass production migration safeguards.
+
+In default S3 mode, the existing `exports.s3.*` deployment configuration supplies the client, private
 bucket and signer. The report path is
 `migration-reports/<clubId>/<runId>/report.xlsx`. No report configuration is
 created or repaired by the application. Before its first migration write, the
@@ -121,8 +129,10 @@ not evidence of exact physical deletion at the 30-day instant. Do not claim a
 real bucket retention proof until its configured lifecycle and a scheduled
 cleanup have been checked on the actual environment.
 
-Automated tests use only fictional inputs and mocked S3 responses. They check
+Automated tests use only fictional inputs, mocked S3 responses and private
+temporary directories for the explicit internal volume adapter. They check
 privacy/encryption/lifecycle refusals, immutable manifest matching, workbook
 content and spool cleanup, post-commit upload failure recovery, tenant/role
-access and expiry/purge behavior. They do not establish real cloud access or
+access and expiry/purge behavior, plus volume marker/permission guards and
+symlink refusal. They do not establish real cloud access or
 production data reconciliation.

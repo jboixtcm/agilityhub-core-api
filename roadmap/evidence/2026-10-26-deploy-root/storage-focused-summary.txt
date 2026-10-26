@@ -1,0 +1,14 @@
+Command: HEAVY_WAIT_MIN=120 JAVA_HOME=/opt/homebrew/opt/openjdk@21 /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Dtest=PrivateFileStorageConfigurationTest,VolumeMigrationReportStoreTest,ExportStorageTest,AttachmentStorageTest,AttachmentServiceTest,MigrationReportsTest,S3MigrationReportStoreTest,SignedFileRequestsTest test
+Exit code: 0
+Totals (tests, failures, errors, skipped): (54, 0, 0, 0)
+('PrivateFileStorageConfigurationTest', 9, 0, 0, 0)
+('VolumeMigrationReportStoreTest', 3, 0, 0, 0)
+('ExportStorageTest', 5, 0, 0, 0)
+('AttachmentStorageTest', 4, 0, 0, 0)
+('AttachmentServiceTest', 14, 0, 0, 0)
+('MigrationReportsTest', 10, 0, 0, 0)
+('S3MigrationReportStoreTest', 8, 0, 0, 0)
+('SignedFileRequestsTest', 1, 0, 0, 0)
+Initial attempt: 52/54 passed; corrected only two new fixtures (signup key structure, Mockito restubbing outside tenant); final rerun passed.
+Full output: storage-focused.log
+Full combined clean verify and latest signed-route inventory/rate-limit additions remain parent-owned.

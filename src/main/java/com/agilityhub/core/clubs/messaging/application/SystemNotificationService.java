@@ -73,6 +73,15 @@ public class SystemNotificationService {
     }
     private String deliverTo(String id, String code, NotificationAccounts.Recipient account, Map<String, ?> variables) {
         String clubId = TenantContext.current();
+        if (sender.deliveryDisabled()) {
+            var skipped = new Notification(id, clubId, account.id(), code, "EMAIL", Notification.Status.SKIPPED_NOT_ALLOWED,
+                    null, null, DisabledEmailSender.DISABLED, account.email(), account.locale(), clock.instant(), null);
+            transactions.executeWithoutResult(tx -> {
+                if (notifications.findScoped(id).isEmpty()) { notifications.queue(skipped); }
+                else { notifications.finish(id, Notification.Status.SKIPPED_NOT_ALLOWED, null, DisabledEmailSender.DISABLED, clock.instant()); }
+            });
+            return id;
+        }
         var settings = clubId == null ? new ClubEmailSettings.Settings("AgilityHub", null, "#2563eb", "#ffffff",
                 platformFrom, "AgilityHub", null, "ca", parameters.defaultInteger("auth.magicLinkMinutes"))
                 : clubs.get(clubId, platformFrom);

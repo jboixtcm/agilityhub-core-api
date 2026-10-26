@@ -181,7 +181,12 @@ public class NotificationDispatcher {
         settle(new Settling(notification, delivery, token, outcome));
     }
 
+    boolean emailDeliveryDisabled() { return email.deliveryDisabled(); }
+
     private Outcome attempt(Notification notification, Notification.Delivery delivery) {
+        if (delivery.channel() == NotificationChannel.EMAIL && email.deliveryDisabled()) {
+            return Outcome.status(DeliveryStatus.SKIPPED_NOT_ALLOWED, com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED);
+        }
         if (!deliverable(notification, delivery)) { return Outcome.status(DeliveryStatus.SKIPPED_STALE, STALE); }
         if (delivery.channel() == NotificationChannel.EMAIL && suppressed(notification, delivery.target())) {
             return Outcome.status(DeliveryStatus.SKIPPED_NO_CONTACT, SUPPRESSED);
@@ -248,7 +253,9 @@ public class NotificationDispatcher {
      * rejected request, an invalid address) is final; 429, 5xx, a timeout or a transport failure is retried.
      */
     static boolean emailRetryable(String error) {
+        if (com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED.equals(error)) { return false; }
         if (com.agilityhub.core.clubs.messaging.application.AllowListEmailSender.NOT_ALLOWED.equals(error)) { return false; }
+        if (com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.SUPPRESSED.equals(error)) { return false; }
         var status = error == null ? null : java.util.regex.Pattern.compile("HTTP (\\d{3})").matcher(error);
         if (status == null || !status.find()) { return true; }
         int code = Integer.parseInt(status.group(1));
@@ -472,7 +479,7 @@ public class NotificationDispatcher {
             if (attempted) { update.set("deliveries.$.attempts", attempts); }
             if (status == DeliveryStatus.DELIVERED) { update.set("deliveries.$.deliveredAt", now); }
             if (status == DeliveryStatus.FAILED) { update.set("deliveries.$.failedAt", now).set("deliveries.$.lastError", error); }
-            if (status.skipped()) { update.set("deliveries.$.lastError", error); }
+            if (status.skipped()) { update.set("deliveries.$.lastError", error).unset("deliveries.$.nextAttemptAt"); }
         }, update -> { if (attempted) { update.set("deliveries.$.attempts", attempts); } });
         if (settlement == NotificationRepository.Settlement.MOVED && status == DeliveryStatus.FAILED) { publish(s, NotificationEvent.Kind.NotificationFailed, now); }
         return settlement;

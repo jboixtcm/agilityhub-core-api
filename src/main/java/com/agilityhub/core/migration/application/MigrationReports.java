@@ -64,6 +64,19 @@ public class MigrationReports implements MigrationReportRetention {
         audit.write(new AuditCommand(AuditAction.DATA_EXPORTED,"MigrationRun",id,null,null,null,null),Map.of("file","report.xlsx"));
         return new ReportLink(url,expires);
     }
+    /** Self-authorising file route: the signature selects the club, then the persisted run enforces its retention. */
+    public InputStream openVolume(String clubId, String id, long expires, String signature) {
+        if (!(store instanceof VolumeMigrationReportStore volume)) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        String key = "migration-reports/" + clubId + "/" + id + "/report.xlsx";
+        volume.authorize(key, expires, signature);
+        try (var scope = TenantContext.open(clubId)) {
+            var run = runs.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+            if (!"PRODUCTION".equals(run.env()) || !key.equals(run.reportFileKey())) { throw new ApiException(ErrorCode.NOT_FOUND); }
+            active(run);
+            if (Instant.ofEpochSecond(expires).isAfter(run.reportExpiresAt())) { throw new ApiException(ErrorCode.FORBIDDEN); }
+            return volume.open(key);
+        }
+    }
     @Override public List<String> expired(Instant at) { return runs.expiredReports(at).stream().map(MigrationRun::id).toList(); }
     @Override public boolean purge(String id,Instant at) {
         var run=runs.findById(id).orElse(null);

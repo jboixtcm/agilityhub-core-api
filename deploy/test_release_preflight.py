@@ -1,5 +1,6 @@
 """Release input regressions; no Docker daemon, real credentials or network needed."""
 import contextlib
+import base64
 import copy
 import importlib.util
 import io
@@ -42,8 +43,70 @@ class ReleasePreflightTest(unittest.TestCase):
         }}
         self.metadata = [{'Id': IMAGE_ID, 'RepoDigests': [PREFLIGHT.REPOSITORY + '@' + REGISTRY_DIGEST], 'Os': 'linux', 'Architecture': 'amd64'}]
         for key in ('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT',
-                    'SENDGRID_API_KEY', 'MAIL_FROM_PLATFORM', 'SENDGRID_WEBHOOK_PUBLIC_KEY'):
+                    'SENDGRID_API_KEY', 'MAIL_FROM_PLATFORM', 'SENDGRID_WEBHOOK_PUBLIC_KEY',
+                    'EXPORT_S3_BUCKET', 'EXPORT_S3_REGION', 'EXPORT_S3_ACCESS_KEY', 'EXPORT_S3_SECRET_KEY',
+                    'ATTACHMENT_S3_BUCKET', 'ATTACHMENT_S3_REGION', 'ATTACHMENT_S3_ACCESS_KEY', 'ATTACHMENT_S3_SECRET_KEY'):
             self.config['services']['core']['environment'][key] = 'fictional-provider-value'
+
+    def filesystem_configuration(self):
+        core, backup = self.config['services']['core'], self.config['services']['backup']
+        core['environment'].update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false',
+                FILE_STORAGE_MODE='filesystem', FILE_STORAGE_ROOT='/storage',
+                FILE_STORAGE_SIGNING_KEY=base64.b64encode(b'f' * 32).decode())
+        for key in list(core['environment']):
+            if '_S3_' in key:
+                core['environment'].pop(key)
+        backup['environment'] = dict(HOSTED_DEMO_ENABLED='true', FILE_STORAGE_MODE='filesystem',
+                BACKUP_STORAGE_MODE='filesystem', BACKUP_LOCAL_DIRECTORY='/backup', BACKUP_FILES_DIRECTORY='/storage',
+                BACKUP_AGE_RECIPIENT='age1fictional')
+        files, archives = self.directory.resolve() / 'files', self.directory.resolve() / 'backups'
+        files.mkdir(mode=0o700); archives.mkdir(mode=0o700)
+        marker = files / '.clubs-private-storage'
+        marker.write_text('clubs-private-storage-v1\n'); marker.chmod(0o600)
+        def bind(source, target, read_only=False):
+            return dict(type='bind', source=str(source), target=target, read_only=read_only, bind={'create_host_path': False})
+        core['volumes'] = [bind(files, '/storage')]
+        backup['volumes'] = [bind(files, '/storage', True), bind(archives, '/backup')]
+        return files, archives
+
+    def test_filesystem_storage_requires_private_bound_volume_and_no_s3_credentials(self):
+        files, _ = self.filesystem_configuration()
+        PREFLIGHT.check_configuration(self.config)
+        original = copy.deepcopy(self.config)
+        for mutate in (
+            lambda c: c['services']['core']['environment'].update(FILE_STORAGE_SIGNING_KEY='not base64'),
+            lambda c: c['services']['core']['environment'].update(FILE_STORAGE_SIGNING_KEY=base64.b64encode(b'f' * 31).decode()),
+            lambda c: c['services']['core']['environment'].update(FILE_STORAGE_ROOT='/tmp/files'),
+            lambda c: c['services']['core']['environment'].update(HOSTED_DEMO_ENABLED='false'),
+            lambda c: c['services']['core']['volumes'][0].update(type='volume'),
+            lambda c: c['services']['core']['volumes'][0]['bind'].update(create_host_path=True),
+            lambda c: c['services']['backup']['volumes'][0].update(read_only=False),
+            lambda c: c['services']['backup']['volumes'][1].update(source=str(files)),
+            lambda c: c['services']['backup']['environment'].update(BACKUP_STORAGE_MODE='s3'),
+        ):
+            config = copy.deepcopy(original); mutate(config)
+            with self.subTest(mutate=mutate), self.assertRaises(PREFLIGHT.PreflightError):
+                PREFLIGHT.check_configuration(config)
+        files.chmod(0o755)
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, '0700'):
+            PREFLIGHT.check_configuration(self.config)
+        files.chmod(0o700)
+        (files / '.clubs-private-storage').chmod(0o644)
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'volume marker'):
+            PREFLIGHT.check_configuration(self.config)
+
+    def test_preflight_automatically_resolves_filesystem_override_before_validation(self):
+        self.filesystem_configuration()
+        calls = []
+        def docker(command):
+            calls.append(command)
+            return self.config if 'config' in command else self.metadata
+        output = io.StringIO()
+        with patch.object(PREFLIGHT, 'command_json', side_effect=docker), patch.dict('os.environ', {}, clear=True), contextlib.redirect_stdout(output):
+            self.assertEqual(0, PREFLIGHT.main(['--env-file', str(self.env_file), '--expected-digest', REGISTRY_DIGEST]))
+        self.assertEqual(3, len(calls))
+        self.assertNotIn(str(PREFLIGHT.ROOT / 'deploy/compose.filesystem.yaml'), calls[0])
+        self.assertIn(str(PREFLIGHT.ROOT / 'deploy/compose.filesystem.yaml'), calls[1])
 
     def test_hosted_demo_requires_exact_allowlist_and_keeps_real_email_requirements(self):
         environment = self.config['services']['core']['environment']
@@ -65,8 +128,44 @@ class ReleasePreflightTest(unittest.TestCase):
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_configuration(self.config)
 
+    def test_disabled_internal_email_needs_no_provider_or_allowlist_but_requires_explicit_policy(self):
+        env = self.config['services']['core']['environment']
+        env.update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false', EMAIL_PROVIDER='brevo')
+        for key in ('SENDGRID_API_KEY', 'SENDGRID_WEBHOOK_PUBLIC_KEY', 'MAIL_FROM_PLATFORM'):
+            env.pop(key)
+        PREFLIGHT.check_configuration(self.config)
+        env['HOSTED_DEMO_ENABLED'] = 'false'
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'EMAIL_DELIVERY_ENABLED=false'):
+            PREFLIGHT.check_configuration(self.config)
+        env['HOSTED_DEMO_ENABLED'] = 'true'
+        env['EMAIL_DELIVERY_ENABLED'] = 'off'
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'EMAIL_DELIVERY_ENABLED must'):
+            PREFLIGHT.check_configuration(self.config)
+        env['EMAIL_DELIVERY_ENABLED'] = 'true'
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_configuration(self.config)
+
     def test_invalid_hosted_demo_toggle_is_not_silently_accepted(self):
         self.config['services']['core']['environment']['HOSTED_DEMO_ENABLED'] = 'yes'
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_configuration(self.config)
+
+    def test_brevo_uses_its_own_credentials_and_rejects_weak_webhook_auth(self):
+        env = self.config['services']['core']['environment']
+        env.update(EMAIL_PROVIDER='brevo', BREVO_API_KEY='fictional-api-key', BREVO_WEBHOOK_TOKEN='f' * 32)
+        env.pop('SENDGRID_API_KEY')
+        env.pop('SENDGRID_WEBHOOK_PUBLIC_KEY')
+        PREFLIGHT.check_configuration(self.config)
+        for key in ('BREVO_API_KEY', 'BREVO_WEBHOOK_TOKEN', 'MAIL_FROM_PLATFORM'):
+            value = env.pop(key)
+            with self.subTest(key=key), self.assertRaises(PREFLIGHT.PreflightError):
+                PREFLIGHT.check_configuration(self.config)
+            env[key] = value
+        for token in ('short', 'f' * 257, ' ' * 32, 'f' * 31 + '\n'):
+            env['BREVO_WEBHOOK_TOKEN'] = token
+            with self.assertRaises(PREFLIGHT.PreflightError):
+                PREFLIGHT.check_configuration(self.config)
+        env['EMAIL_PROVIDER'] = 'unknown'
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_configuration(self.config)
 
