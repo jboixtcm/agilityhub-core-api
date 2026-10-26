@@ -1,0 +1,102 @@
+{
+  "before": {
+    "members": {
+      "count": 187,
+      "sha256Prefix": "27bf6478c5498f3f"
+    },
+    "dogs": {
+      "count": 189,
+      "sha256Prefix": "652c27ebe958f58c"
+    },
+    "family_groups": {
+      "count": 1,
+      "sha256Prefix": "dc5eaf2518943f52"
+    },
+    "accounts": {
+      "count": 171,
+      "sha256Prefix": "eec0ff14240e7af0"
+    },
+    "memberships": {
+      "count": 171,
+      "sha256Prefix": "6e97fd135fc5d298"
+    },
+    "invoices": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "pack_balances": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "notifications": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "magic_link_tokens": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "audit_entries": {
+      "count": 39,
+      "sha256Prefix": "37395867e69cfc5a"
+    },
+    "domain_events": {
+      "count": 231,
+      "sha256Prefix": "4e8441f661b959af"
+    },
+    "migration_runs": {
+      "count": 1,
+      "sha256Prefix": "3de23c5c6e43bc62"
+    }
+  },
+  "after": {
+    "members": {
+      "count": 187,
+      "sha256Prefix": "e23e0cf9af534a25"
+    },
+    "dogs": {
+      "count": 189,
+      "sha256Prefix": "4a41e20b142e35c8"
+    },
+    "family_groups": {
+      "count": 1,
+      "sha256Prefix": "c4c32d5c48885358"
+    },
+    "accounts": {
+      "count": 171,
+      "sha256Prefix": "eec0ff14240e7af0"
+    },
+    "memberships": {
+      "count": 171,
+      "sha256Prefix": "05d0bf3290a99a41"
+    },
+    "invoices": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "pack_balances": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "notifications": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "magic_link_tokens": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "audit_entries": {
+      "count": 40,
+      "sha256Prefix": "39d022f9cb88fca3"
+    },
+    "domain_events": {
+      "count": 233,
+      "sha256Prefix": "b1d4e660f4c9c90e"
+    },
+    "migration_runs": {
+      "count": 2,
+      "sha256Prefix": "58f9d9e75499727e"
+    }
+  }
+}

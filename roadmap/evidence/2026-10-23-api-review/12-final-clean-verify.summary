@@ -1,0 +1,3 @@
+INTERRUPTED by SIGTERM to this Maven process at parent request after explicit scope expansion. Not a test failure and not a green final gate. Exit143.
+surefire-reports: tests=4903, failures=0, errors=0, skipped=0
+failsafe-reports: tests=1407, failures=0, errors=0, skipped=0

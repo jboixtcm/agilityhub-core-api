@@ -1,0 +1,372 @@
+22:24:44.923 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportsIT]: MigrationReportsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:24:45.004 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportsIT
+22:24:45.031 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportsIT]: MigrationReportsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:24:45.032 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:24:45.034 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportsIT
+22:24:45.060 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:24:45.061 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:24:45.064 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+22:24:45.151 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:24:45.314 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:24:45.315 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:24:45.324 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:24:45.657 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+22:24:45.713 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:24:45.771 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: edd113889fd6f3102836ca44448818b6210982f65d6ba2383ba78800e3dfe633
+22:24:45.931 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.274855S
+22:24:45.935 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:24:45.935 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:24:45.936 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:24:45.936 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:24:45.975 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 99b9acbe510a9bdc6b019ea1ce3c9d08849cc2c02de4c13b6010ad9167cfd604
+22:24:46.541 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.605165S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:24:47.176+02:00 INFO  [main] c.a.core.migration.MigrationReportsIT traceId= clubId= accountId= : Starting MigrationReportsIT using Java [redacted] with PID 95017 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:24:47.178+02:00 INFO  [main] c.a.core.migration.MigrationReportsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:24:47.993+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:24:48.041+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 44 ms. Found 0 MongoDB repository interfaces.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-23T22:24:48.912+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@11893180], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@74f1e112, com.mongodb.Jep395RecordCodecProvider@412bb41f, com.mongodb.KotlinCodecProvider@446dbf7b, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54705], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1cb09347], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:24:48.919+02:00 INFO  [cluster-6adbc290da7e849865264c08-localhost:54705] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54705, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=9422792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=99b9acbe510a:27017, hosts=[99b9acbe510a:27017], passives=[], arbiters=[], primary='99b9acbe510a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc28ef8ef9f63a6341ce5, counter=6}, lastWriteDate=Fri Oct 23 22:24:46 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:24:50.070+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:50.093+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:50.119+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:50.785+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:50.800+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:50.819+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:50.886+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:24:53.637+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-23T22:24:53.638+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-23T22:24:53.642+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-23T22:24:53.701+02:00 INFO  [main] c.a.core.migration.MigrationReportsIT traceId= clubId= accountId= : Started MigrationReportsIT in 6.672 seconds (process running for 9.11)
+2026-10-23T22:24:54.321+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportCheckpointIT]: MigrationReportCheckpointIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:24:54.322+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportCheckpointIT
+2026-10-23T22:24:54.323+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportCheckpointIT]: MigrationReportCheckpointIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:24:54.323+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:24:54.323+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportCheckpointIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:24:54.345+02:00 INFO  [main] c.a.c.m.MigrationReportCheckpointIT traceId= clubId= accountId= : Starting MigrationReportCheckpointIT using Java [redacted] with PID 95017 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:24:54.346+02:00 INFO  [main] c.a.c.m.MigrationReportCheckpointIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:24:54.659+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:24:54.691+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 30 ms. Found 0 MongoDB repository interfaces.
+2026-10-23T22:24:54.754+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6eb668b7], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@74f1e112, com.mongodb.Jep395RecordCodecProvider@412bb41f, com.mongodb.KotlinCodecProvider@446dbf7b, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54705], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3fdd1006], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:24:54.755+02:00 INFO  [cluster-6adbc296da7e849865264c09-localhost:54705] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54705, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1464959, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=99b9acbe510a:27017, hosts=[99b9acbe510a:27017], passives=[], arbiters=[], primary='99b9acbe510a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc28ef8ef9f63a6341ce5, counter=6}, lastWriteDate=Fri Oct 23 22:24:54 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:24:56.769+02:00 INFO  [main] c.a.c.m.MigrationReportCheckpointIT traceId= clubId= accountId= : Started MigrationReportCheckpointIT in 2.443 seconds (process running for 12.178)
+2026-10-23T22:24:56.862+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationStagedImportIT]: MigrationStagedImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:24:56.863+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationStagedImportIT
+2026-10-23T22:24:56.863+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationStagedImportIT]: MigrationStagedImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:24:56.863+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:24:56.864+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationStagedImportIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:24:56.885+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : Starting MigrationStagedImportIT using Java [redacted] with PID 95017 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:24:56.885+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:24:57.121+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:24:57.151+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 29 ms. Found 0 MongoDB repository interfaces.
+2026-10-23T22:24:57.194+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3f14d372], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@74f1e112, com.mongodb.Jep395RecordCodecProvider@412bb41f, com.mongodb.KotlinCodecProvider@446dbf7b, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54705], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@372cfd86], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:24:57.196+02:00 INFO  [cluster-6adbc299da7e849865264c0a-localhost:54705] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54705, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1142584, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=99b9acbe510a:27017, hosts=[99b9acbe510a:27017], passives=[], arbiters=[], primary='99b9acbe510a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc28ef8ef9f63a6341ce5, counter=6}, lastWriteDate=Fri Oct 23 22:24:56 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:24:59.749+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : Started MigrationStagedImportIT in 2.876 seconds (process running for 15.158)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 21c04330-c959-4887-9baf-db7726c7e1ff
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: c5ea405190000ed346072806a124e59bdc7dcd686b3d9abeeddcc01848133ddc
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 9dd25950-1225-4666-b1ae-06a3ba21aa8b
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: c5ea405190000ed346072806a124e59bdc7dcd686b3d9abeeddcc01848133ddc
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: 3a163a4dbfb6afe836dcbbf20c75e0514b00f2bb9c0760dbebb0a90ade8ff3e0
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 4]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 7]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 9]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: 787b26dd-647c-4a97-b08f-99dd6b4e03a7
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 94299b30-59bd-4c22-b095-e5c2c2dad1e2
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 158 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 35c7ba4c-d3b1-4da2-82cb-9cbe8a33cae7
+Migration run requiring review: 35c7ba4c-d3b1-4da2-82cb-9cbe8a33cae7; step 4
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 461c47bc-aa35-4a2e-80a9-d1dc41755bed
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: ec1d3ff2-98b6-4b61-b600-192e55a8651d
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: 9edadd537b5dc166aafbeee56b17b4a8870e0329e06a1602fe5210af8b1f0fb1
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-02; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4]
+Migration run: f918e70b-10fb-4ef9-8526-a88bdf471dc6
+Migration completed steps: [1, 2, 3, 4]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 1c13711f-e987-446c-b7ed-b0070db81e23
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 1a6c9e7b-7dc1-461a-b81b-b4d35a658c80
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: 9067684177836bb9adb0cf5559b1babf55e357b953043caf6bac5c3bf39a4550
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 53c8810e-f4a8-4cab-a829-b15cc3de2676
+Migration run requiring review: 53c8810e-f4a8-4cab-a829-b15cc3de2676; step 7
+Migration input manifest SHA-256: 9067684177836bb9adb0cf5559b1babf55e357b953043caf6bac5c3bf39a4550
+Migration cut-over: 2026-09-01; selected steps: [1, 7, 8, 9, 10]
+Migration run: f9eb3c74-5401-4227-8c4f-ebbfb3c23c94
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e45ee577e7d64a4cfdaf5b0daf0be0e8676d4f401d602986fe8ce080c7646fe1
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: ab1a2451-aa35-485c-b5e0-75ef359171f7
+Migration run requiring review: ab1a2451-aa35-485c-b5e0-75ef359171f7; step 3
+Migration input manifest SHA-256: e45ee577e7d64a4cfdaf5b0daf0be0e8676d4f401d602986fe8ce080c7646fe1
+Migration cut-over: 2026-09-01; selected steps: [1, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: c4670280-c7d0-467a-af30-731b95f12f63
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+2026-10-23T22:25:13.941+02:00 WARN  [main] o.s.test.context.TestContextManager traceId= clubId= accountId= : Caught exception while invoking 'afterTestMethod' callback on TestExecutionListener [org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener] for test method [void com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt()] and test instance [com.agilityhub.core.migration.MigrationStagedImportIT@33b1b262]
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException
+	at org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener.resetMocks(MockitoResetTestExecutionListener.java:123)
+	at org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener.resetMocks(MockitoResetTestExecutionListener.java:110)
+	at org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener.afterTestMethod(MockitoResetTestExecutionListener.java:103)
+	at org.springframework.test.context.TestContextManager.afterTestMethod(TestContextManager.java:488)
+	at org.springframework.test.context.junit.jupiter.SpringExtension.afterEach(SpringExtension.java:357)
+	at org.junit.jupiter.engine.descriptor.CallbackSupport.lambda$invokeAfterCallbacks$1(CallbackSupport.java:49)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.CallbackSupport.lambda$invokeAfterCallbacks$0(CallbackSupport.java:49)
+	at org.junit.platform.commons.util.CollectionUtils.forEachInReverseOrder(CollectionUtils.java:213)
+	at org.junit.jupiter.engine.descriptor.CallbackSupport.invokeAfterCallbacks(CallbackSupport.java:48)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeAfterEachCallbacks(TestMethodTestDescriptor.java:260)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:163)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+[ERROR] Tests run: 10, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 17.17 s <<< FAILURE! -- in com.agilityhub.core.migration.MigrationStagedImportIT
+[ERROR] com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt -- Time elapsed: 0.108 s <<< ERROR!
+java.lang.IllegalStateException: @Audited needs an active transaction (R-14-09): MigrationApplyService.complete
+	at com.agilityhub.core.platform.application.audit.AuditedAspect.audit(AuditedAspect.java:42)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:648)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:630)
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:168)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.complete(<generated>)
+	at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt(MigrationStagedImportIT.java:194)
+	Suppressed: org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+Misplaced or misused argument matcher detected here:
+
+-> at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt(MigrationStagedImportIT.java:194)
+-> at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt(MigrationStagedImportIT.java:194)
+-> at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt(MigrationStagedImportIT.java:194)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+		at org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener.resetMocks(MockitoResetTestExecutionListener.java:123)
+		at org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener.resetMocks(MockitoResetTestExecutionListener.java:110)
+		at org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener.afterTestMethod(MockitoResetTestExecutionListener.java:103)
+		at org.springframework.test.context.TestContextManager.afterTestMethod(TestContextManager.java:488)
+		at org.springframework.test.context.junit.jupiter.SpringExtension.afterEach(SpringExtension.java:357)
+		at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+		at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_partialDryRunAndResumePreserveExcludedFieldsAndOtherTenant -- Time elapsed: 0.081 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedStubbingException: 
+
+Unfinished stubbing detected here:
+-> at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt(MigrationStagedImportIT.java:193)
+
+E.g. thenReturn() may be missing.
+Examples of correct stubbing:
+    when(mock.isOk()).thenReturn(true);
+    when(mock.isOk()).thenThrow(exception);
+    doThrow(exception).when(mock).someVoidMethod();
+Hints:
+ 1. missing thenReturn()
+ 2. you are trying to stub a final method, which is not supported
+ 3. you are stubbing the behaviour of another mock inside before 'thenReturn' instruction is completed, possibly on another thread
+
+	at com.agilityhub.core.clubs.census.application.CensusMigrationService.snapshot(CensusMigrationService.java:22)
+	at com.agilityhub.core.migration.application.PlayoffPlanner$State.prepare(PlayoffPlanner.java:67)
+	at com.agilityhub.core.migration.application.PlayoffPlanner.plan(PlayoffPlanner.java:38)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.prepare(MigrationStagedImporter.java:159)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.importDirectory(MigrationStagedImporter.java:58)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:155)
+	at com.agilityhub.core.migration.MigrationStagedImportIT.execute(MigrationStagedImportIT.java:82)
+	at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_partialDryRunAndResumePreserveExcludedFieldsAndOtherTenant(MigrationStagedImportIT.java:108)
+
+2026-10-23T22:25:14.034+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationExecutionIT]: MigrationExecutionIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:25:14.034+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationExecutionIT
+2026-10-23T22:25:14.035+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationExecutionIT]: MigrationExecutionIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:25:14.035+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:25:14.035+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationExecutionIT
+[ERROR] Tests run: 7, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.099 s <<< FAILURE! -- in com.agilityhub.core.migration.MigrationExecutionIT
+[ERROR] com.agilityhub.core.migration.MigrationExecutionIT.T_18_13_resumeRejectsDriftRepeatedWorkStaleAttemptAndOtherTenant -- Time elapsed: 0.013 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: TENANT_MISMATCH
+	at com.agilityhub.core.shared.application.TenantContext.open(TenantContext.java:19)
+	at com.agilityhub.core.migration.MigrationExecutionIT.T_18_13_resumeRejectsDriftRepeatedWorkStaleAttemptAndOtherTenant(MigrationExecutionIT.java:62)
+
+[ERROR] Errors: 
+[ERROR]   MigrationExecutionIT.T_18_13_resumeRejectsDriftRepeatedWorkStaleAttemptAndOtherTenant:62 » Api TENANT_MISMATCH
+[ERROR]   MigrationStagedImportIT.T_18_13_partialDryRunAndResumePreserveExcludedFieldsAndOtherTenant:108->execute:82 » UnfinishedStubbing 
+Unfinished stubbing detected here:
+-> at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt(MigrationStagedImportIT.java:193)
+
+E.g. thenReturn() may be missing.
+Examples of correct stubbing:
+    when(mock.isOk()).thenReturn(true);
+    when(mock.isOk()).thenThrow(exception);
+    doThrow(exception).when(mock).someVoidMethod();
+Hints:
+ 1. missing thenReturn()
+ 2. you are trying to stub a final method, which is not supported
+ 3. you are stubbing the behaviour of another mock inside before 'thenReturn' instruction is completed, possibly on another thread
+
+[ERROR]   MigrationStagedImportIT.T_18_13_terminalCompletionFailureRollsBackLastStepAndResumesIt:194 » IllegalState @Audited needs an active transaction (R-14-09): MigrationApplyService.complete
+[ERROR] Tests run: 23, Failures: 0, Errors: 3, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -27,6 +27,42 @@ class PlacementsIT extends CourseItSupport {
     @Autowired ActivityRepository activities;
     @Autowired com.mongodb.client.MongoClient client;
 
+    @Test void T_16_07_placementFreezesTunnelControlPointsWhenTheCourseChanges() throws Exception {
+        String course = createCourse("Frozen tunnel");
+        drawRing(A1);
+        var body = placementBody(course, A1);
+        var obstacle = (ObjectNode) body.at("/resolvedObstacles/0");
+        obstacle.put("type", "Tunnel6m");
+        var points = obstacle.putArray("controlPointsMeters");
+        points.addObject().put("x", 12.0).put("y", 4.0);
+        points.addObject().put("x", 14.0).put("y", 6.0);
+        points.addObject().put("x", 16.0).put("y", 4.0);
+        var created = createPlacement("INSTRUCTOR", body, 201);
+        assertThat(created.at("/resolvedObstacles/0/controlPointsMeters")).isEqualTo(points);
+        String id = created.path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(course)), new Update()
+                .set("normalizedJson.obstacles.0.controlPointsMeters", List.of(new Document("x", 1).append("y", 1)))
+                .inc("version", 1), "courses");
+        var reloaded = ok(as(get("/api/v1/placements/" + id), CLUB, "INSTRUCTOR"), 200);
+        assertThat(reloaded.at("/resolvedObstacles/0/controlPointsMeters")).isEqualTo(points);
+        error(as(get("/api/v1/placements/" + id), OTHER, "ADMIN"), 404, "NOT_FOUND");
+        error(as(get("/api/v1/placements/" + id), CLUB, "MEMBER"), 403, "FORBIDDEN");
+    }
+
+    @Test void T_16_07_placementControlPointsAcceptLegacyAbsenceAndExplicitEmptyButRejectIncompletePoints() throws Exception {
+        String course = createCourse("Tunnel compatibility");
+        drawRing(A1);
+        var body = placementBody(course, A1);
+        assertThat(createPlacement("INSTRUCTOR", body, 201).at("/resolvedObstacles/0/controlPointsMeters").isNull()).isTrue();
+        var obstacle = (ObjectNode) body.at("/resolvedObstacles/0");
+        obstacle.putArray("controlPointsMeters");
+        assertThat(createPlacement("INSTRUCTOR", body, 201).at("/resolvedObstacles/0/controlPointsMeters")).isEmpty();
+        obstacle.putArray("controlPointsMeters").addObject().put("x", 12);
+        placementError("INSTRUCTOR", body, 400, "VALIDATION_ERROR");
+        obstacle.putArray("controlPointsMeters").addNull();
+        placementError("INSTRUCTOR", body, 400, "VALIDATION_ERROR");
+    }
+
     JsonNode placementError(String role, ObjectNode body, int status, String code) throws Exception {
         return error(as(json(post("/api/v1/placements"), body), CLUB, role).header("Idempotency-Key", UUID.randomUUID().toString()), status, code);
     }

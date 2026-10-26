@@ -17,7 +17,8 @@ final class ConsentLedgers {
             if(at==null || previous.get("version")==null) continue;
             var entry=new LinkedHashMap<>(previous);
             entry.put("type",field.equals("privacyPolicy")?"PRIVACY_POLICY":"IMAGE_USE");
-            entry.put("granted",field.equals("privacyPolicy") || Boolean.TRUE.equals(previous.getOrDefault("granted",previous.get("accepted"))));
+            entry.put("granted",field.equals("privacyPolicy") ? com.agilityhub.core.shared.domain.ConsentGrant.legacyPrivacy(previous)
+                    : com.agilityhub.core.shared.domain.ConsentGrant.granted(previous));
             entry.put("acceptedAt",at);entry.putIfAbsent("source","LEGACY");entries.add(entry);
         }
         return entries;

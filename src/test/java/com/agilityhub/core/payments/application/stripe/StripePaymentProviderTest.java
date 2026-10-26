@@ -21,6 +21,28 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class StripePaymentProviderTest {
+    @Test void hostedDemoRejectsLiveOperationsIncludingPingAndExpiredSessionsBeforeNetwork() {
+        new org.springframework.boot.test.context.runner.ApplicationContextRunner()
+                .withPropertyValues("core.hosted-demo.enabled=true")
+                .withBean(java.time.Clock.class, java.time.Clock::systemUTC)
+                .withBean(StripePaymentProvider.class, () -> provider).run(context -> {
+                    assertThat(context).hasNotFailed(); configure("live", "sk_live_example");
+                    when(sessions.providerSession("checkout")).thenReturn(Optional.of("cs_live_example"));
+                    try (var tenant = TenantContext.open("club-a")) {
+                        assertThatThrownBy(provider::ping).isInstanceOfSatisfying(ApiException.class,
+                                e -> assertThat(e.code()).isEqualTo(ErrorCode.PROVIDER_CONFIG_INVALID));
+                        assertThatThrownBy(() -> provider.forgetCustomer("cus_example")).isInstanceOf(ApiException.class);
+                        assertThatThrownBy(() -> provider.expire("checkout")).isInstanceOf(ApiException.class);
+                        configure("test", "sk_live_example");
+                        assertThatThrownBy(provider::ping).isInstanceOf(ApiException.class);
+                    }
+                    verifyNoInteractions(client);
+                    verify(vault).decrypt("encrypted-example", "club-a", "STRIPE", "secretKeyEnc");
+                    configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
+                    try (var tenant = TenantContext.open("club-a")) { provider.forgetCustomer("cus_example"); }
+                    verify(client.v1().customers()).delete(eq("cus_example"), any(RequestOptions.class));
+                });
+    }
     /** E5-T31's review nit (done in E8-T06): the real adapter's per-request timeouts come from {@code callTimeout()}, with SDK retries off. */
     @Test void E5_T31_theRealAdapterBuildsItsClientBudgetFromCallTimeout() throws Exception {
         configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");

@@ -1,0 +1,70 @@
+roadmap/evidence/2026-10-23-api-review/01-activity-red.log:20: trailing whitespace.
++[ERROR] Errors: 
+roadmap/evidence/2026-10-23-api-review/01-activity-red.log:23: trailing whitespace.
++[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+roadmap/evidence/2026-10-23-api-review/01-activity-red.log:24: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/01-activity-red.log:28: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/01-activity-red.log:31: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:13: trailing whitespace.
++21:17:49.718 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:18: trailing whitespace.
++  Labels: 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:102: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:105: trailing whitespace.
++ but was: 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:108: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:109: trailing whitespace.
++[ERROR]   PlacementsIT.T_16_07_placementFreezesTunnelControlPointsWhenTheCourseChanges:41 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:111: trailing whitespace.
++ but was: 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:114: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:118: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/02-placement-red.log:121: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/03-unit-and-snapshot.log:12: trailing whitespace.
++21:18:39.200 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/2026-10-23-api-review/03-unit-and-snapshot.log:17: trailing whitespace.
++  Labels: 
+roadmap/evidence/2026-10-23-api-review/04-production-reset-red.log:12: trailing whitespace.
++java.lang.AssertionError: 
+roadmap/evidence/2026-10-23-api-review/04-production-reset-red.log:17: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/2026-10-23-api-review/04-production-reset-red.log:18: trailing whitespace.
++[ERROR]   PlayoffAdapterTest.T_18_16_explicitProductionEnvironmentRefusesResetBeforeReadingConfirmation:245 
+roadmap/evidence/2026-10-23-api-review/04-production-reset-red.log:22: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/04-production-reset-red.log:26: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/04-production-reset-red.log:29: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:97: trailing whitespace.
++21:19:53.750 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:102: trailing whitespace.
++  Labels: 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:226: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:243: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:244: trailing whitespace.
++[ERROR]   PlacementsIT.T_16_07_placementControlPointsAcceptLegacyAbsenceAndExplicitEmptyButRejectIncompletePoints:56 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:248: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:252: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-api-review/05-focused-green.log:255: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-review/welcome-and-regression-unit.log:1: trailing whitespace.
++[ERROR] COMPILATION ERROR : 
+roadmap/evidence/2026-10-23-review/welcome-and-regression-unit.log:5: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-review/welcome-and-regression-unit.log:7: trailing whitespace.
++[ERROR] 
+roadmap/evidence/2026-10-23-review/welcome-and-regression-unit.log:10: trailing whitespace.
++[ERROR] 

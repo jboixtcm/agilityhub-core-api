@@ -639,6 +639,26 @@ class RingSetupsIT extends CourseItSupport {
         assertThat(columns).isNotEmpty().allSatisfy(c -> assertThat(c.has("activeSetupId")).isFalse());
     }
 
+    @Test void T_16_16_memberSetupKeepsThePlacedTunnelCurveAfterTheSourceIsEdited() throws Exception {
+        clock.setInstant(MONDAY);
+        drawRing(A1);
+        String course = createCourse("Frozen member tunnel");
+        var body = placementBody(course, A1);
+        var tunnel = (ObjectNode) body.at("/resolvedObstacles/0");
+        tunnel.put("type", "Tunnel6m");
+        var points = tunnel.putArray("controlPointsMeters");
+        points.addObject().put("x", 12.0).put("y", 4.0);
+        points.addObject().put("x", 14.0).put("y", 6.0);
+        points.addObject().put("x", 16.0).put("y", 4.0);
+        String placement = createPlacement("INSTRUCTOR", body, 201).path("id").asText();
+        String setup = built(placement, "INSTRUCTOR");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(course)), new Update()
+                .set("normalizedJson.obstacles.0.controlPointsMeters", List.of(new Document("x", 1).append("y", 1)))
+                .inc("version", 1), "courses");
+        assertThat(setup(setup, "MEMBER").at("/placement/resolvedObstacles/0/controlPointsMeters")).isEqualTo(points);
+        error(as(get("/api/v1/ring-setups/" + setup), OTHER, "MEMBER"), 404, "NOT_FOUND");
+    }
+
     // ---- E9-T07: the reads of the members' app (E9-W04's review) ----
 
     /** A fictional account of the club with {@code role}, named {@code name}: the builder `as(…, role)` signs in as. */

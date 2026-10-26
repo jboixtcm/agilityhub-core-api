@@ -1,0 +1,40 @@
+PASS partial person-only state
+PASS resume-drift exit
+PASS cutover drift refuses without writes
+PASS resume-complete exit
+PASS complete census cardinalities
+PASS stale-resume exit
+PASS stale resume refuses without writes
+PASS legacy-full-repeat exit
+PASS full import repeat creates no duplicate entities
+PASS production-no-confirmation exit
+PASS production confirmation enforced before writes
+PASS production-reset exit
+PASS explicit production reset forbidden
+PASS reapply-without-file exit
+PASS reapply requires written approval
+PASS duplicate-steps exit
+PASS duplicate option rejected
+PASS invalid-step exit
+PASS out-of-range steps rejected
+PASS production-local-storage exit
+PASS unconfigured production report store fails before import
+PASS report-wrong-tenant exit
+PASS report lookup tenant isolation
+PASS report-staging exit
+PASS staging report not publishable
+PASS welcome-dry exit
+PASS welcome dry-run leaves no claim/token/notification
+PASS welcome-local-send exit
+PASS welcome writes one durable sent marker
+PASS welcome-repeat exit
+PASS new-process welcome repeat does not resend
+PASS welcome-mailbox-failure exit
+PASS failed delivery remains claimed for review
+PASS welcome-uncertain-repeat exit
+PASS uncertain repeat cannot silently resend
+PASS welcome-other-tenant exit
+PASS welcome tenant isolation
+PASS actual welcome token has seven-day TTL
+PASS other tenant business untouched
+RESULT {"checks": 44, "passed": 44}

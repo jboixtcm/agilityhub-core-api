@@ -24,7 +24,7 @@ public class SecurityEventRepository extends GlobalRepository<SecurityEvent> {
         // Round 2: the name alone is not enough; a `security_event_retention` on another key is not the retention index.
         if (existing.size() == 1 && existing.getFirst().getName().equals(RETENTION_INDEX) && onAt(existing.getFirst())
                 && existing.getFirst().getExpireAfter().equals(java.util.Optional.of(retention))) { return; }
-        existing.forEach(index -> indexes.dropIndex(index.getName()));
+        existing.forEach(index -> com.agilityhub.core.shared.application.IndexDrops.ifPresent(indexes, index.getName()));
         indexes.createIndex(new Index().on("at", Direction.ASC).expire(retention).named(RETENTION_INDEX));
     }
     private static boolean onAt(org.springframework.data.mongodb.core.index.IndexInfo index) {

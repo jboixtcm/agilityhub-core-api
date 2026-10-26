@@ -41,6 +41,25 @@ public class AccountRepository extends GlobalRepository<Account> {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),
                 new Update().set("lastLoginAt", now).set("lastLoginClientId", clientId), Account.class);
     }
+    /** S18 R-18-16: durable at-most-once claim; an interrupted delivery is never blindly retried. */
+    public boolean claimMigrationWelcome(String id, String deliveryId, Instant now) {
+        var query = Query.query(Criteria.where("_id").is(id).and("status").is(Account.Status.ACTIVE)
+                .and("emailStatus").is(null).and("welcomeSentAt").is(null).and("welcomeDeliveryId").is(null));
+        return mongo.updateFirst(query, new Update().set("welcomeDeliveryId", deliveryId)
+                .set("welcomeClaimedAt", now), Account.class).getModifiedCount() == 1;
+    }
+    public record WelcomeState(Instant sentAt, String deliveryId) { }
+    public WelcomeState migrationWelcome(String id) {
+        var query = Query.query(Criteria.where("_id").is(id));
+        query.fields().include("welcomeSentAt", "welcomeDeliveryId");
+        var row = mongo.findOne(query, org.bson.Document.class, mongo.getCollectionName(Account.class));
+        return row == null ? new WelcomeState(null, null) : new WelcomeState(
+                row.getDate("welcomeSentAt") == null ? null : row.getDate("welcomeSentAt").toInstant(), row.getString("welcomeDeliveryId"));
+    }
+    public void migrationWelcomeSent(String id, String deliveryId, Instant now) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("welcomeDeliveryId").is(deliveryId)
+                .and("welcomeSentAt").is(null)), new Update().set("welcomeSentAt", now), Account.class);
+    }
     public void markEmailStatus(String id, String email, com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus status) {
         var query = Query.query(Criteria.where("_id").is(id).and("email").is(email)
                 .and("emailStatus").ne(com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus.COMPLAINED));

@@ -1,0 +1,8 @@
+{
+  "tag": "agilityhub-core-api:review-20261023",
+  "id": "sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+  "profile": "staging",
+  "commandEnvironment": "production",
+  "network": "internal; no published ports or real providers",
+  "s3EmulatorImage": "sha256:b279c01f4cfb8f985a482e4014cabc1e2697b9d7a6c8c8db2e40f4d9f93687c7"
+}

@@ -19664,6 +19664,19 @@
         "required" : [ ],
         "type" : "object"
       },
+      "ReportLink" : {
+        "properties" : {
+          "downloadUrl" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          }
+        },
+        "required" : [ "downloadUrl", "expiresAt" ],
+        "type" : "object"
+      },
       "Requester" : {
         "description" : "Who asked: the member's account, or the admin's under impersonation (impersonatedMemberId set, origin BACKOFFICE)",
         "properties" : {
@@ -19756,6 +19769,13 @@
       },
       "ResolvedObstacle" : {
         "properties" : {
+          "controlPointsMeters" : {
+            "description" : "Frozen tunnel control points in the ring frame (metres, Y up), computed by course-core when the placement is saved. Absent or null on legacy placements; an empty array explicitly records no control points.",
+            "items" : {
+              "$ref" : "#/components/schemas/PointM"
+            },
+            "type" : [ "array", "null" ]
+          },
           "numbers" : {
             "items" : {
               "format" : "int32",
@@ -73335,6 +73355,160 @@
         },
         "summary" : "platformTriggerJob",
         "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{clubId}/migrations/{runId}/report" : {
+      "get" : {
+        "description" : "S18 R-18-15. Roles: AGILITYHUB_ADMIN or ADMIN of the explicit club. Production report.xlsx only; signed private URL valid for at most five minutes and never past the run's 30-day expiry. Missing/unpublished report is NOT_FOUND; expired report is EXPORT_EXPIRED. Support and impersonation are refused.",
+        "operationId" : "getMigrationReport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "clubId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "runId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReportLink"
+                }
+              }
+            },
+            "description" : "MigrationReportLink"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED, SUPPORT_RESTRICTED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "EXPORT_EXPIRED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "getMigrationReport",
+        "tags" : [ "migration" ]
       }
     },
     "/api/v1/platform/clubs/{id}" : {

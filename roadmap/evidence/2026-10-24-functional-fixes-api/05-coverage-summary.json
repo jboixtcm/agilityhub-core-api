@@ -1,0 +1,2909 @@
+{
+  "overall": {
+    "INSTRUCTION": {
+      "missed": 9316,
+      "covered": 346439,
+      "ratio": 0.9738134390240475
+    },
+    "BRANCH": {
+      "missed": 3137,
+      "covered": 23965,
+      "ratio": 0.884252084716995
+    },
+    "LINE": {
+      "missed": 522,
+      "covered": 33659,
+      "ratio": 0.9847283578596296
+    },
+    "COMPLEXITY": {
+      "missed": 3322,
+      "covered": 23023,
+      "ratio": 0.8739039665970773
+    },
+    "METHOD": {
+      "missed": 313,
+      "covered": 12300,
+      "ratio": 0.9751843336240387
+    },
+    "CLASS": {
+      "missed": 51,
+      "covered": 2950,
+      "ratio": 0.9830056647784072
+    }
+  },
+  "gatedPackages": 77,
+  "violations": [],
+  "newClasses": [
+    {
+      "class": "com.agilityhub.core.shared.application.ConsentProjection",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 40,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 3,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "class": "com.agilityhub.core.shared.domain.ConsentGrant",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 83,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 22,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 7,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 14,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 3,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      }
+    }
+  ],
+  "packages": [
+    {
+      "package": "com.agilityhub.core.clubs.bookings.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 288,
+          "covered": 23464,
+          "ratio": 0.9878747052879757
+        },
+        "BRANCH": {
+          "missed": 180,
+          "covered": 1474,
+          "ratio": 0.8911729141475212
+        },
+        "LINE": {
+          "missed": 9,
+          "covered": 2119,
+          "ratio": 0.9957706766917294
+        },
+        "COMPLEXITY": {
+          "missed": 185,
+          "covered": 1411,
+          "ratio": 0.8840852130325815
+        },
+        "METHOD": {
+          "missed": 5,
+          "covered": 751,
+          "ratio": 0.9933862433862434
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 105,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.activities.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 199,
+          "covered": 9824,
+          "ratio": 0.9801456649705677
+        },
+        "BRANCH": {
+          "missed": 79,
+          "covered": 570,
+          "ratio": 0.8782742681047766
+        },
+        "LINE": {
+          "missed": 6,
+          "covered": 744,
+          "ratio": 0.992
+        },
+        "COMPLEXITY": {
+          "missed": 80,
+          "covered": 558,
+          "ratio": 0.8746081504702194
+        },
+        "METHOD": {
+          "missed": 4,
+          "covered": 297,
+          "ratio": 0.9867109634551495
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 35,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.census.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 5,
+          "covered": 1571,
+          "ratio": 0.9968274111675127
+        },
+        "BRANCH": {
+          "missed": 14,
+          "covered": 194,
+          "ratio": 0.9326923076923077
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 138,
+          "ratio": 0.9928057553956835
+        },
+        "COMPLEXITY": {
+          "missed": 14,
+          "covered": 140,
+          "ratio": 0.9090909090909091
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 49,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 27,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.content.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 304,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 41,
+          "ratio": 0.9761904761904762
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 31,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 33,
+          "ratio": 0.9705882352941176
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 13,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 3,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.payments.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 9,
+          "covered": 3922,
+          "ratio": 0.9977105062325108
+        },
+        "BRANCH": {
+          "missed": 21,
+          "covered": 401,
+          "ratio": 0.9502369668246445
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 383,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 21,
+          "covered": 332,
+          "ratio": 0.9405099150141643
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 141,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 57,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 108,
+          "covered": 5331,
+          "ratio": 0.9801434087148373
+        },
+        "BRANCH": {
+          "missed": 13,
+          "covered": 179,
+          "ratio": 0.9322916666666666
+        },
+        "LINE": {
+          "missed": 5,
+          "covered": 452,
+          "ratio": 0.9890590809628009
+        },
+        "COMPLEXITY": {
+          "missed": 17,
+          "covered": 329,
+          "ratio": 0.9508670520231214
+        },
+        "METHOD": {
+          "missed": 5,
+          "covered": 245,
+          "ratio": 0.98
+        },
+        "CLASS": {
+          "missed": 2,
+          "covered": 98,
+          "ratio": 0.98
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.census.inactivity.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 6,
+          "covered": 173,
+          "ratio": 0.9664804469273743
+        },
+        "BRANCH": {
+          "missed": 4,
+          "covered": 44,
+          "ratio": 0.9166666666666666
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 4,
+          "covered": 31,
+          "ratio": 0.8857142857142857
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 11,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.identity.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 2,
+          "covered": 431,
+          "ratio": 0.9953810623556582
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 21,
+          "ratio": 0.9545454545454546
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 48,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 45,
+          "ratio": 0.9782608695652174
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 35,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 10,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.payments.application.stripe",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 2,
+          "covered": 841,
+          "ratio": 0.9976275207591934
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 69,
+          "ratio": 0.9857142857142858
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 113,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 67,
+          "ratio": 0.9852941176470589
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 33,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 2,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.catalogs.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 8,
+          "covered": 3503,
+          "ratio": 0.9977214468812304
+        },
+        "BRANCH": {
+          "missed": 9,
+          "covered": 177,
+          "ratio": 0.9516129032258065
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 275,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 9,
+          "covered": 255,
+          "ratio": 0.9659090909090909
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 168,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 62,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.domain.audit",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 7,
+          "covered": 684,
+          "ratio": 0.9898697539797395
+        },
+        "BRANCH": {
+          "missed": 2,
+          "covered": 115,
+          "ratio": 0.9829059829059829
+        },
+        "LINE": {
+          "missed": 2,
+          "covered": 83,
+          "ratio": 0.9764705882352941
+        },
+        "COMPLEXITY": {
+          "missed": 2,
+          "covered": 75,
+          "ratio": 0.974025974025974
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 18,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.followup.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 353,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 33,
+          "ratio": 0.9705882352941176
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 28,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 37,
+          "ratio": 0.9736842105263158
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.payments.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 28,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 5,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 5,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 3,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 148,
+          "covered": 3526,
+          "ratio": 0.95971692977681
+        },
+        "BRANCH": {
+          "missed": 29,
+          "covered": 297,
+          "ratio": 0.911042944785276
+        },
+        "LINE": {
+          "missed": 22,
+          "covered": 443,
+          "ratio": 0.9526881720430107
+        },
+        "COMPLEXITY": {
+          "missed": 40,
+          "covered": 321,
+          "ratio": 0.889196675900277
+        },
+        "METHOD": {
+          "missed": 13,
+          "covered": 185,
+          "ratio": 0.9343434343434344
+        },
+        "CLASS": {
+          "missed": 4,
+          "covered": 62,
+          "ratio": 0.9393939393939394
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.common.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 1120,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 10,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 92,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 70,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 65,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 36,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.activities.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 33,
+          "covered": 1700,
+          "ratio": 0.9809578765147143
+        },
+        "BRANCH": {
+          "missed": 7,
+          "covered": 23,
+          "ratio": 0.7666666666666667
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 113,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 7,
+          "covered": 96,
+          "ratio": 0.9320388349514563
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 88,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 51,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.training.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 52,
+          "covered": 929,
+          "ratio": 0.9469928644240571
+        },
+        "BRANCH": {
+          "missed": 4,
+          "covered": 22,
+          "ratio": 0.8461538461538461
+        },
+        "LINE": {
+          "missed": 4,
+          "covered": 82,
+          "ratio": 0.9534883720930233
+        },
+        "COMPLEXITY": {
+          "missed": 6,
+          "covered": 60,
+          "ratio": 0.9090909090909091
+        },
+        "METHOD": {
+          "missed": 2,
+          "covered": 51,
+          "ratio": 0.9622641509433962
+        },
+        "CLASS": {
+          "missed": 2,
+          "covered": 32,
+          "ratio": 0.9411764705882353
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.migration.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 40,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 5,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 3,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.dashboard.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 1,
+          "covered": 1082,
+          "ratio": 0.9990766389658357
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 27,
+          "ratio": 0.9642857142857143
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 111,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 80,
+          "ratio": 0.9876543209876543
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 67,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 28,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.migration.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 763,
+          "covered": 13398,
+          "ratio": 0.9461196243203164
+        },
+        "BRANCH": {
+          "missed": 235,
+          "covered": 1340,
+          "ratio": 0.8507936507936508
+        },
+        "LINE": {
+          "missed": 72,
+          "covered": 1386,
+          "ratio": 0.9506172839506173
+        },
+        "COMPLEXITY": {
+          "missed": 223,
+          "covered": 850,
+          "ratio": 0.7921714818266542
+        },
+        "METHOD": {
+          "missed": 12,
+          "covered": 262,
+          "ratio": 0.9562043795620438
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 40,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.census.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 12,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.training.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 207,
+          "covered": 6962,
+          "ratio": 0.9711256800111592
+        },
+        "BRANCH": {
+          "missed": 75,
+          "covered": 441,
+          "ratio": 0.8546511627906976
+        },
+        "LINE": {
+          "missed": 4,
+          "covered": 699,
+          "ratio": 0.9943100995732574
+        },
+        "COMPLEXITY": {
+          "missed": 85,
+          "covered": 468,
+          "ratio": 0.8462929475587704
+        },
+        "METHOD": {
+          "missed": 13,
+          "covered": 279,
+          "ratio": 0.9554794520547946
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 41,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.courses.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.courses.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 2631,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 6,
+          "covered": 181,
+          "ratio": 0.9679144385026738
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 207,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 6,
+          "covered": 176,
+          "ratio": 0.967032967032967
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 88,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 58,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.courses.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 268,
+          "covered": 9590,
+          "ratio": 0.9728139582065327
+        },
+        "BRANCH": {
+          "missed": 110,
+          "covered": 718,
+          "ratio": 0.8671497584541062
+        },
+        "LINE": {
+          "missed": 3,
+          "covered": 1067,
+          "ratio": 0.997196261682243
+        },
+        "COMPLEXITY": {
+          "missed": 118,
+          "covered": 648,
+          "ratio": 0.8459530026109661
+        },
+        "METHOD": {
+          "missed": 12,
+          "covered": 331,
+          "ratio": 0.9650145772594753
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 53,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.application.audit",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 2,
+          "covered": 1868,
+          "ratio": 0.9989304812834224
+        },
+        "BRANCH": {
+          "missed": 3,
+          "covered": 91,
+          "ratio": 0.9680851063829787
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 200,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 3,
+          "covered": 104,
+          "ratio": 0.9719626168224299
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 60,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 15,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.signup.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 21,
+          "covered": 1482,
+          "ratio": 0.9860279441117764
+        },
+        "BRANCH": {
+          "missed": 18,
+          "covered": 110,
+          "ratio": 0.859375
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 130,
+          "ratio": 0.9923664122137404
+        },
+        "COMPLEXITY": {
+          "missed": 19,
+          "covered": 127,
+          "ratio": 0.8698630136986302
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 81,
+          "ratio": 0.9878048780487805
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 13,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.bookings.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 7,
+          "covered": 2952,
+          "ratio": 0.9976343359242987
+        },
+        "BRANCH": {
+          "missed": 7,
+          "covered": 286,
+          "ratio": 0.9761092150170648
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 253,
+          "ratio": 0.9960629921259843
+        },
+        "COMPLEXITY": {
+          "missed": 7,
+          "covered": 276,
+          "ratio": 0.9752650176678446
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 130,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 66,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.activities.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 19,
+          "covered": 1698,
+          "ratio": 0.9889341875364007
+        },
+        "BRANCH": {
+          "missed": 29,
+          "covered": 262,
+          "ratio": 0.9003436426116839
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 151,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 29,
+          "covered": 173,
+          "ratio": 0.8564356435643564
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 56,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 23,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.migration.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 37,
+          "covered": 1116,
+          "ratio": 0.9679098005203816
+        },
+        "BRANCH": {
+          "missed": 29,
+          "covered": 117,
+          "ratio": 0.8013698630136986
+        },
+        "LINE": {
+          "missed": 3,
+          "covered": 113,
+          "ratio": 0.9741379310344828
+        },
+        "COMPLEXITY": {
+          "missed": 29,
+          "covered": 88,
+          "ratio": 0.7521367521367521
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 44,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.application.jobs",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 187,
+          "covered": 4731,
+          "ratio": 0.9619764131760878
+        },
+        "BRANCH": {
+          "missed": 34,
+          "covered": 290,
+          "ratio": 0.8950617283950617
+        },
+        "LINE": {
+          "missed": 19,
+          "covered": 515,
+          "ratio": 0.9644194756554307
+        },
+        "COMPLEXITY": {
+          "missed": 36,
+          "covered": 313,
+          "ratio": 0.8968481375358166
+        },
+        "METHOD": {
+          "missed": 9,
+          "covered": 173,
+          "ratio": 0.9505494505494505
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 45,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.messaging.application.integrations",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 7,
+          "covered": 1313,
+          "ratio": 0.9946969696969697
+        },
+        "BRANCH": {
+          "missed": 2,
+          "covered": 66,
+          "ratio": 0.9705882352941176
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 175,
+          "ratio": 0.9943181818181818
+        },
+        "COMPLEXITY": {
+          "missed": 2,
+          "covered": 88,
+          "ratio": 0.9777777777777777
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 56,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 12,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.bookings.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 39,
+          "covered": 3182,
+          "ratio": 0.9878919590189382
+        },
+        "BRANCH": {
+          "missed": 6,
+          "covered": 52,
+          "ratio": 0.896551724137931
+        },
+        "LINE": {
+          "missed": 4,
+          "covered": 240,
+          "ratio": 0.9836065573770492
+        },
+        "COMPLEXITY": {
+          "missed": 10,
+          "covered": 177,
+          "ratio": 0.946524064171123
+        },
+        "METHOD": {
+          "missed": 4,
+          "covered": 154,
+          "ratio": 0.9746835443037974
+        },
+        "CLASS": {
+          "missed": 4,
+          "covered": 102,
+          "ratio": 0.9622641509433962
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.content.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 321,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 27,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 19,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 17,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 8,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.catalogs.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 1,
+          "covered": 916,
+          "ratio": 0.9989094874591058
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 126,
+          "ratio": 0.9921259842519685
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 100,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 116,
+          "ratio": 0.9914529914529915
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 52,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 25,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.domain.events",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 305,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 37,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 33,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 31,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 8,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.application.definition",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 62,
+          "covered": 3545,
+          "ratio": 0.982811200443582
+        },
+        "BRANCH": {
+          "missed": 18,
+          "covered": 328,
+          "ratio": 0.9479768786127167
+        },
+        "LINE": {
+          "missed": 8,
+          "covered": 405,
+          "ratio": 0.9806295399515739
+        },
+        "COMPLEXITY": {
+          "missed": 18,
+          "covered": 234,
+          "ratio": 0.9285714285714286
+        },
+        "METHOD": {
+          "missed": 3,
+          "covered": 76,
+          "ratio": 0.9620253164556962
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.census.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 1369,
+          "covered": 39045,
+          "ratio": 0.9661256000395902
+        },
+        "BRANCH": {
+          "missed": 537,
+          "covered": 2724,
+          "ratio": 0.8353265869365225
+        },
+        "LINE": {
+          "missed": 46,
+          "covered": 3107,
+          "ratio": 0.9854107199492547
+        },
+        "COMPLEXITY": {
+          "missed": 547,
+          "covered": 2152,
+          "ratio": 0.797332345313079
+        },
+        "METHOD": {
+          "missed": 38,
+          "covered": 1019,
+          "ratio": 0.9640491958372753
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 101,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.followup.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 15,
+          "covered": 1272,
+          "ratio": 0.9883449883449883
+        },
+        "BRANCH": {
+          "missed": 5,
+          "covered": 31,
+          "ratio": 0.8611111111111112
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 134,
+          "ratio": 0.9925925925925926
+        },
+        "COMPLEXITY": {
+          "missed": 5,
+          "covered": 83,
+          "ratio": 0.9431818181818182
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 70,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.catalogs.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 148,
+          "covered": 7152,
+          "ratio": 0.9797260273972602
+        },
+        "BRANCH": {
+          "missed": 72,
+          "covered": 689,
+          "ratio": 0.9053876478318003
+        },
+        "LINE": {
+          "missed": 12,
+          "covered": 746,
+          "ratio": 0.9841688654353562
+        },
+        "COMPLEXITY": {
+          "missed": 80,
+          "covered": 590,
+          "ratio": 0.8805970149253731
+        },
+        "METHOD": {
+          "missed": 9,
+          "covered": 275,
+          "ratio": 0.9683098591549296
+        },
+        "CLASS": {
+          "missed": 2,
+          "covered": 46,
+          "ratio": 0.9583333333333334
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.messaging.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 62,
+          "covered": 2040,
+          "ratio": 0.9705042816365367
+        },
+        "BRANCH": {
+          "missed": 10,
+          "covered": 58,
+          "ratio": 0.8529411764705882
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 182,
+          "ratio": 0.994535519125683
+        },
+        "COMPLEXITY": {
+          "missed": 11,
+          "covered": 121,
+          "ratio": 0.9166666666666666
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 97,
+          "ratio": 0.9897959183673469
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 53,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.application.lists",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 23,
+          "covered": 1171,
+          "ratio": 0.9807370184254607
+        },
+        "BRANCH": {
+          "missed": 8,
+          "covered": 133,
+          "ratio": 0.9432624113475178
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 145,
+          "ratio": 0.9931506849315068
+        },
+        "COMPLEXITY": {
+          "missed": 9,
+          "covered": 116,
+          "ratio": 0.928
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 52,
+          "ratio": 0.9811320754716981
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.training.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 11,
+          "covered": 939,
+          "ratio": 0.988421052631579
+        },
+        "BRANCH": {
+          "missed": 5,
+          "covered": 89,
+          "ratio": 0.9468085106382979
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 68,
+          "ratio": 0.9855072463768116
+        },
+        "COMPLEXITY": {
+          "missed": 5,
+          "covered": 93,
+          "ratio": 0.9489795918367347
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 50,
+          "ratio": 0.9803921568627451
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 436,
+          "covered": 10096,
+          "ratio": 0.9586023547284467
+        },
+        "BRANCH": {
+          "missed": 137,
+          "covered": 843,
+          "ratio": 0.860204081632653
+        },
+        "LINE": {
+          "missed": 21,
+          "covered": 1062,
+          "ratio": 0.9806094182825484
+        },
+        "COMPLEXITY": {
+          "missed": 147,
+          "covered": 789,
+          "ratio": 0.842948717948718
+        },
+        "METHOD": {
+          "missed": 25,
+          "covered": 416,
+          "ratio": 0.9433106575963719
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 83,
+          "ratio": 0.9880952380952381
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.identity.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 282,
+          "covered": 12277,
+          "ratio": 0.9775459829604268
+        },
+        "BRANCH": {
+          "missed": 167,
+          "covered": 1287,
+          "ratio": 0.8851444291609354
+        },
+        "LINE": {
+          "missed": 15,
+          "covered": 1447,
+          "ratio": 0.9897400820793434
+        },
+        "COMPLEXITY": {
+          "missed": 167,
+          "covered": 974,
+          "ratio": 0.8536371603856266
+        },
+        "METHOD": {
+          "missed": 3,
+          "covered": 410,
+          "ratio": 0.9927360774818402
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 65,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.content.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 16,
+          "covered": 557,
+          "ratio": 0.9720767888307156
+        },
+        "BRANCH": {
+          "missed": 5,
+          "covered": 81,
+          "ratio": 0.9418604651162791
+        },
+        "LINE": {
+          "missed": 3,
+          "covered": 51,
+          "ratio": 0.9444444444444444
+        },
+        "COMPLEXITY": {
+          "missed": 5,
+          "covered": 60,
+          "ratio": 0.9230769230769231
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 22,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.messaging.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 5,
+          "covered": 1200,
+          "ratio": 0.995850622406639
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 75,
+          "ratio": 0.9868421052631579
+        },
+        "LINE": {
+          "missed": 3,
+          "covered": 127,
+          "ratio": 0.9769230769230769
+        },
+        "COMPLEXITY": {
+          "missed": 4,
+          "covered": 141,
+          "ratio": 0.9724137931034482
+        },
+        "METHOD": {
+          "missed": 3,
+          "covered": 104,
+          "ratio": 0.9719626168224299
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 25,
+          "ratio": 0.9615384615384616
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 7,
+          "covered": 1584,
+          "ratio": 0.9956002514142049
+        },
+        "BRANCH": {
+          "missed": 11,
+          "covered": 229,
+          "ratio": 0.9541666666666667
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 193,
+          "ratio": 0.9948453608247423
+        },
+        "COMPLEXITY": {
+          "missed": 11,
+          "covered": 185,
+          "ratio": 0.9438775510204082
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 67,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 15,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.bookings.application.jobs",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 516,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 36,
+          "ratio": 0.972972972972973
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 57,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 37,
+          "ratio": 0.9736842105263158
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 18,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 2,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.signup.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 1830,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 2,
+          "covered": 234,
+          "ratio": 0.9915254237288136
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 199,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 2,
+          "covered": 200,
+          "ratio": 0.9900990099009901
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 83,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 36,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.scheduling.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 11,
+          "covered": 243,
+          "ratio": 0.9566929133858267
+        },
+        "LINE": {
+          "missed": 4,
+          "covered": 25,
+          "ratio": 0.8620689655172413
+        },
+        "COMPLEXITY": {
+          "missed": 6,
+          "covered": 30,
+          "ratio": 0.8333333333333334
+        },
+        "METHOD": {
+          "missed": 6,
+          "covered": 30,
+          "ratio": 0.8333333333333334
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 13,
+          "ratio": 0.9285714285714286
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.courses.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 83,
+          "covered": 3236,
+          "ratio": 0.9749924676107261
+        },
+        "BRANCH": {
+          "missed": 15,
+          "covered": 83,
+          "ratio": 0.8469387755102041
+        },
+        "LINE": {
+          "missed": 5,
+          "covered": 308,
+          "ratio": 0.9840255591054313
+        },
+        "COMPLEXITY": {
+          "missed": 16,
+          "covered": 197,
+          "ratio": 0.9248826291079812
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 163,
+          "ratio": 0.9939024390243902
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 53,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.census.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 321,
+          "covered": 4912,
+          "ratio": 0.9386585132811007
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 31,
+          "ratio": 0.96875
+        },
+        "LINE": {
+          "missed": 19,
+          "covered": 331,
+          "ratio": 0.9457142857142857
+        },
+        "COMPLEXITY": {
+          "missed": 18,
+          "covered": 335,
+          "ratio": 0.9490084985835694
+        },
+        "METHOD": {
+          "missed": 17,
+          "covered": 320,
+          "ratio": 0.9495548961424333
+        },
+        "CLASS": {
+          "missed": 17,
+          "covered": 193,
+          "ratio": 0.919047619047619
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.followup.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 283,
+          "covered": 5538,
+          "ratio": 0.9513829238962378
+        },
+        "BRANCH": {
+          "missed": 84,
+          "covered": 467,
+          "ratio": 0.8475499092558983
+        },
+        "LINE": {
+          "missed": 6,
+          "covered": 573,
+          "ratio": 0.9896373056994818
+        },
+        "COMPLEXITY": {
+          "missed": 92,
+          "covered": 410,
+          "ratio": 0.8167330677290837
+        },
+        "METHOD": {
+          "missed": 14,
+          "covered": 209,
+          "ratio": 0.9372197309417041
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 35,
+          "ratio": 0.9722222222222222
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.common.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 7,
+          "covered": 210,
+          "ratio": 0.967741935483871
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 11,
+          "ratio": 0.9166666666666666
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 22,
+          "ratio": 0.9565217391304348
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 18,
+          "ratio": 0.9473684210526315
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 13,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 3,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.payments.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 76,
+          "covered": 3647,
+          "ratio": 0.9795863550899812
+        },
+        "BRANCH": {
+          "missed": 5,
+          "covered": 71,
+          "ratio": 0.9342105263157895
+        },
+        "LINE": {
+          "missed": 9,
+          "covered": 327,
+          "ratio": 0.9732142857142857
+        },
+        "COMPLEXITY": {
+          "missed": 6,
+          "covered": 231,
+          "ratio": 0.9746835443037974
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 198,
+          "ratio": 0.9949748743718593
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 83,
+          "ratio": 0.9880952380952381
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 161,
+          "covered": 3600,
+          "ratio": 0.9571922361074182
+        },
+        "BRANCH": {
+          "missed": 38,
+          "covered": 623,
+          "ratio": 0.9425113464447806
+        },
+        "LINE": {
+          "missed": 18,
+          "covered": 570,
+          "ratio": 0.9693877551020408
+        },
+        "COMPLEXITY": {
+          "missed": 42,
+          "covered": 423,
+          "ratio": 0.9096774193548387
+        },
+        "METHOD": {
+          "missed": 7,
+          "covered": 121,
+          "ratio": 0.9453125
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 23,
+          "ratio": 0.9583333333333334
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.domain.audit",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.identity.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 106,
+          "covered": 2750,
+          "ratio": 0.9628851540616247
+        },
+        "BRANCH": {
+          "missed": 21,
+          "covered": 198,
+          "ratio": 0.9041095890410958
+        },
+        "LINE": {
+          "missed": 6,
+          "covered": 329,
+          "ratio": 0.982089552238806
+        },
+        "COMPLEXITY": {
+          "missed": 25,
+          "covered": 211,
+          "ratio": 0.8940677966101694
+        },
+        "METHOD": {
+          "missed": 4,
+          "covered": 120,
+          "ratio": 0.967741935483871
+        },
+        "CLASS": {
+          "missed": 3,
+          "covered": 46,
+          "ratio": 0.9387755102040817
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.payments.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 453,
+          "covered": 22132,
+          "ratio": 0.979942439672349
+        },
+        "BRANCH": {
+          "missed": 236,
+          "covered": 1823,
+          "ratio": 0.8853812530354541
+        },
+        "LINE": {
+          "missed": 17,
+          "covered": 2434,
+          "ratio": 0.993064055487556
+        },
+        "COMPLEXITY": {
+          "missed": 249,
+          "covered": 1578,
+          "ratio": 0.8637110016420362
+        },
+        "METHOD": {
+          "missed": 13,
+          "covered": 776,
+          "ratio": 0.9835234474017744
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 96,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.domain.events",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 194,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 26,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 14,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 12,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.scheduling.api",
+      "group": "api",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 205,
+          "covered": 2211,
+          "ratio": 0.9151490066225165
+        },
+        "BRANCH": {
+          "missed": 3,
+          "covered": 55,
+          "ratio": 0.9482758620689655
+        },
+        "LINE": {
+          "missed": 6,
+          "covered": 186,
+          "ratio": 0.96875
+        },
+        "COMPLEXITY": {
+          "missed": 9,
+          "covered": 134,
+          "ratio": 0.9370629370629371
+        },
+        "METHOD": {
+          "missed": 6,
+          "covered": 108,
+          "ratio": 0.9473684210526315
+        },
+        "CLASS": {
+          "missed": 4,
+          "covered": 58,
+          "ratio": 0.9354838709677419
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.dashboard.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 2,
+          "covered": 103,
+          "ratio": 0.9809523809523809
+        },
+        "LINE": {
+          "missed": 1,
+          "covered": 11,
+          "ratio": 0.9166666666666666
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 17,
+          "ratio": 0.9444444444444444
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 17,
+          "ratio": 0.9444444444444444
+        },
+        "CLASS": {
+          "missed": 1,
+          "covered": 5,
+          "ratio": 0.8333333333333334
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 2,
+          "covered": 2237,
+          "ratio": 0.9991067440821796
+        },
+        "BRANCH": {
+          "missed": 2,
+          "covered": 54,
+          "ratio": 0.9642857142857143
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 320,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 2,
+          "covered": 56,
+          "ratio": 0.9655172413793104
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 30,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 11,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.messaging.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 7,
+          "covered": 6349,
+          "ratio": 0.998898678414097
+        },
+        "BRANCH": {
+          "missed": 9,
+          "covered": 356,
+          "ratio": 0.9753424657534246
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 461,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 9,
+          "covered": 310,
+          "ratio": 0.9717868338557993
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 127,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 35,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.shared.application.contract",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 216,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 13,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 9,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.messaging.application.engine",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 204,
+          "covered": 8590,
+          "ratio": 0.9768023652490334
+        },
+        "BRANCH": {
+          "missed": 97,
+          "covered": 897,
+          "ratio": 0.9024144869215291
+        },
+        "LINE": {
+          "missed": 7,
+          "covered": 1005,
+          "ratio": 0.9930830039525692
+        },
+        "COMPLEXITY": {
+          "missed": 100,
+          "covered": 651,
+          "ratio": 0.8668442077230359
+        },
+        "METHOD": {
+          "missed": 5,
+          "covered": 239,
+          "ratio": 0.9795081967213115
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 27,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.scheduling.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 347,
+          "covered": 14714,
+          "ratio": 0.9769603611977956
+        },
+        "BRANCH": {
+          "missed": 133,
+          "covered": 915,
+          "ratio": 0.8730916030534351
+        },
+        "LINE": {
+          "missed": 16,
+          "covered": 1230,
+          "ratio": 0.9871589085072231
+        },
+        "COMPLEXITY": {
+          "missed": 137,
+          "covered": 888,
+          "ratio": 0.8663414634146341
+        },
+        "METHOD": {
+          "missed": 10,
+          "covered": 484,
+          "ratio": 0.979757085020243
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 89,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.payments.application.sepa",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 48,
+          "covered": 1333,
+          "ratio": 0.9652425778421434
+        },
+        "BRANCH": {
+          "missed": 12,
+          "covered": 76,
+          "ratio": 0.8636363636363636
+        },
+        "LINE": {
+          "missed": 3,
+          "covered": 213,
+          "ratio": 0.9861111111111112
+        },
+        "COMPLEXITY": {
+          "missed": 12,
+          "covered": 62,
+          "ratio": 0.8378378378378378
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 30,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 5,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.bookings.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 292,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 20,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 23,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 18,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.scheduling.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 15,
+          "covered": 2116,
+          "ratio": 0.992961051149695
+        },
+        "BRANCH": {
+          "missed": 7,
+          "covered": 235,
+          "ratio": 0.9710743801652892
+        },
+        "LINE": {
+          "missed": 2,
+          "covered": 190,
+          "ratio": 0.9895833333333334
+        },
+        "COMPLEXITY": {
+          "missed": 8,
+          "covered": 197,
+          "ratio": 0.9609756097560975
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 82,
+          "ratio": 0.9879518072289156
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 37,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.common.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 199,
+          "covered": 7155,
+          "ratio": 0.9729398966548817
+        },
+        "BRANCH": {
+          "missed": 79,
+          "covered": 479,
+          "ratio": 0.8584229390681004
+        },
+        "LINE": {
+          "missed": 10,
+          "covered": 815,
+          "ratio": 0.9878787878787879
+        },
+        "COMPLEXITY": {
+          "missed": 82,
+          "covered": 448,
+          "ratio": 0.8452830188679246
+        },
+        "METHOD": {
+          "missed": 5,
+          "covered": 240,
+          "ratio": 0.9795918367346939
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 40,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.messaging.application",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 234,
+          "covered": 9194,
+          "ratio": 0.9751803139584218
+        },
+        "BRANCH": {
+          "missed": 119,
+          "covered": 868,
+          "ratio": 0.8794326241134752
+        },
+        "LINE": {
+          "missed": 6,
+          "covered": 1064,
+          "ratio": 0.994392523364486
+        },
+        "COMPLEXITY": {
+          "missed": 131,
+          "covered": 674,
+          "ratio": 0.8372670807453416
+        },
+        "METHOD": {
+          "missed": 13,
+          "covered": 295,
+          "ratio": 0.9577922077922078
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 55,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.common.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 54,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 4,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.dashboard.domain",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 562,
+          "ratio": 1.0
+        },
+        "BRANCH": {
+          "missed": 1,
+          "covered": 60,
+          "ratio": 0.9836065573770492
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 58,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 1,
+          "covered": 56,
+          "ratio": 0.9824561403508771
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 25,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 6,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.clubs.training.application.ports",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 0,
+          "covered": 21,
+          "ratio": 1.0
+        },
+        "LINE": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "COMPLEXITY": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "METHOD": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 1,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    },
+    {
+      "package": "com.agilityhub.core.platform.application.privacy",
+      "group": "domain/application",
+      "counters": {
+        "INSTRUCTION": {
+          "missed": 76,
+          "covered": 3494,
+          "ratio": 0.9787114845938375
+        },
+        "BRANCH": {
+          "missed": 36,
+          "covered": 276,
+          "ratio": 0.8846153846153846
+        },
+        "LINE": {
+          "missed": 5,
+          "covered": 383,
+          "ratio": 0.9871134020618557
+        },
+        "COMPLEXITY": {
+          "missed": 36,
+          "covered": 265,
+          "ratio": 0.8803986710963455
+        },
+        "METHOD": {
+          "missed": 1,
+          "covered": 142,
+          "ratio": 0.993006993006993
+        },
+        "CLASS": {
+          "missed": 0,
+          "covered": 25,
+          "ratio": 1.0
+        }
+      },
+      "violations": []
+    }
+  ]
+}

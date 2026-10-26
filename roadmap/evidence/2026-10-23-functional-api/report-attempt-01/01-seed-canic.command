@@ -1,0 +1,2 @@
+docker create --name fictional-report-6a39a0b9-cmd-1 --network fictional-report-6a39a0b9-net --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-private-report-vxxvfgw4/runtime.env --mount type=bind,src=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-private-report-vxxvfgw4/input,dst=/private-input,readonly agilityhub-core-api:review-20261023 --core.command=club:apply seeds/club-canic.yaml --allow-seed-passwords
+docker start -a fictional-report-6a39a0b9-cmd-1

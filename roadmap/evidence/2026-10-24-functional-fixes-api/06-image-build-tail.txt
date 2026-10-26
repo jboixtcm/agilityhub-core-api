@@ -1,0 +1,40 @@
+#20 [stage-1  7/15] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic-consumer.yaml
+#20 DONE 0.0s
+
+#21 [stage-1  8/15] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#21 DONE 0.0s
+
+#22 [stage-1  9/15] COPY --chown=agilityhub:agilityhub seeds/club-template-default.yaml seeds/club-template-default.yaml
+#22 DONE 0.0s
+
+#23 [stage-1 10/15] COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+#23 DONE 0.0s
+
+#24 [stage-1 11/15] COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+#24 DONE 0.0s
+
+#25 [stage-1 12/15] COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+#25 DONE 0.0s
+
+#26 [stage-1 13/15] COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+#26 DONE 0.0s
+
+#27 [stage-1 14/15] COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
+#27 DONE 0.0s
+
+#28 [stage-1 15/15] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#28 DONE 0.0s
+
+#29 exporting to image
+#29 exporting layers
+#29 exporting layers 2.0s done
+#29 exporting manifest sha256:344b916c81287762791c9d0d018a6ac8aefe2770959242274b96854c3935e726 done
+#29 exporting config sha256:63c4eeed6bb6be59c4f21cc273c90b0ed9471e9cc73bde21a212836aa6bdb30b done
+#29 exporting attestation manifest sha256:66c66548b9469d01b31aa8285ea652691ecbd5b51d0484d0475504ba92fe529c done
+#29 exporting manifest list sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9 done
+#29 naming to docker.io/library/agilityhub-core-api:review-fixes-20261024 done
+#29 unpacking to docker.io/library/agilityhub-core-api:review-fixes-20261024
+#29 unpacking to docker.io/library/agilityhub-core-api:review-fixes-20261024 0.5s done
+#29 naming to ghcr.io/jboixtcm/agilityhub-core-api:review-fixes-20261024 done
+#29 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:review-fixes-20261024 done
+#29 DONE 2.5s

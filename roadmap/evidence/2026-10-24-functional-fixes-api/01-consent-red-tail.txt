@@ -1,0 +1,40 @@
+ but was: false
+	at com.agilityhub.core.clubs.census.api.CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(CensusIT.java:167)
+
+[ERROR] com.agilityhub.core.clubs.census.api.CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[9] -- Time elapsed: 0.140 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.agilityhub.core.clubs.census.api.CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(CensusIT.java:161)
+
+[ERROR] Failures: 
+[ERROR]   CensusIT.T_03_08_INC91_ledgerWithdrawalAndMissingConsentNeverBecomeGrants:182 
+Expecting value to be false but was true
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:161 
+Expecting value to be true but was false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:161 
+Expecting value to be true but was false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:167 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:161 
+Expecting value to be true but was false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:161 
+Expecting value to be true but was false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:167 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:161 
+Expecting value to be true but was false
+[ERROR] Tests run: 10, Failures: 8, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

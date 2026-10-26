@@ -1,0 +1,40 @@
+402 changes (demo planning, week start 2026-09-14)
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 12.70 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.application.DemoSeedsIT
+[ERROR] com.agilityhub.core.clubs.census.application.DemoSeedsIT.T_17_01_INC94_safeDemoRetainsItsIdentityAndPaymentInstructionsAfterCompleteSeed -- Time elapsed: 9.974 s <<< ERROR!
+java.util.NoSuchElementException: No value present
+	at java.base/java.util.Optional.orElseThrow(Optional.java:377)
+	at com.agilityhub.core.clubs.census.application.DemoSeedsIT.T_17_01_INC94_safeDemoRetainsItsIdentityAndPaymentInstructionsAfterCompleteSeed(DemoSeedsIT.java:73)
+
+[ERROR] Failures: 
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:168 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:168 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:168 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:168 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:168 
+expected: true
+ but was: false
+[ERROR]   CensusIT.T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning:168 
+expected: true
+ but was: false
+[ERROR] Errors: 
+[ERROR]   DemoSeedsIT.T_17_01_INC94_safeDemoRetainsItsIdentityAndPaymentInstructionsAfterCompleteSeed:73 » NoSuchElement No value present
+[ERROR] Tests run: 12, Failures: 6, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

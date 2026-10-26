@@ -1,0 +1,6 @@
+{
+  "reviewedSnapshotSHA256": "ba7a26b3aba270b51d04bf8ab3091142cf21a7be3b2ac050002900ef401e8a79",
+  "freshGeneratedSHA256": "ba7a26b3aba270b51d04bf8ab3091142cf21a7be3b2ac050002900ef401e8a79",
+  "byteIdentical": true,
+  "source": "Fresh full clean verify OpenApiSnapshotTest output; no snapshot rewrite"
+}

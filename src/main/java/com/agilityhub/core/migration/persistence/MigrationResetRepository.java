@@ -33,10 +33,33 @@ public class MigrationResetRepository extends TenantRepository<MigrationRun> {
         var guard = mongo.findOne(tenantQuery(), Document.class, GUARDS);
         if (guard == null || !Boolean.TRUE.equals(guard.get("production"))) { return; }
         // A legacy checkpoint cannot prove the absence of later writes; refuse destructively resetting it.
-        if (!Integer.valueOf(2).equals(guard.get("writeTrackingVersion"))
-                || !(guard.get("writeSequence") instanceof Number expected) || expected.longValue() != sequence) {
+        if (!matches(guard,sequence)) {
             throw new ApiException(ErrorCode.MIGRATION_ALREADY_APPLIED);
         }
+    }
+
+    /**
+     * Report pointer publication completes an import after its private file upload. The caller holds a transaction:
+     * retain a clean checkpoint across only this metadata write. A prior application write keeps it dirty, and the
+     * maintenance fence prevents a concurrent writer from slipping between the comparison and checkpoint update.
+     * Downloads/audits and report expiry cleanup are ordinary later writes and never use this path.
+     */
+    boolean publishReportMetadata(java.util.function.BooleanSupplier publication) {
+        long before=writes.lock();
+        var guard=mongo.findOne(tenantQuery(),Document.class,GUARDS);
+        boolean clean=guard!=null && Boolean.TRUE.equals(guard.get("production")) && matches(guard,before);
+        boolean changed=publication.getAsBoolean();
+        if (clean) {
+            long after=writes.lock(); // Flush only this transaction's report write before recording its sequence.
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(TenantContext.require())),
+                    new Update().set("writeSequence",after),GUARDS);
+        }
+        return changed;
+    }
+
+    private boolean matches(Document guard,long sequence) {
+        return Integer.valueOf(2).equals(guard.get("writeTrackingVersion"))
+                && guard.get("writeSequence") instanceof Number expected && expected.longValue()==sequence;
     }
     /** Audit history survives reset; global identity data is outside this tenant boundary; Mongo's own `system.*` are not data. */
     public Set<String> collections() {

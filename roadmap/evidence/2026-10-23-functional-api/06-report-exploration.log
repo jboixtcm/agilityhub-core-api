@@ -1,0 +1,29 @@
+heavy.sh: 07:51 waiting for the host lock, held by: 07:49 agilityhub-core-web: pnpm e2e:core 2026-10-23-functional-web/core-e3 e3-signup.spec.ts
+heavy.sh: 07:51 got the host lock after 0 min 45 s
+SETUP Mongo replica ready
+SETUP LocalStack S3 ready
+PASS strict bucket preconditions
+PASS seed-canic exit
+PASS production-dry exit
+PASS production dry-run exact zero writes
+PASS production-report-outage exit
+PASS report outage leaves completed migration
+PASS recovery guidance says report only
+PASS outage reached actual S3 PutObject
+PASS report-only-recovery exit
+PASS recovery changes no business documents
+PASS recovery publishes existing run pointer
+PASS recovered XLSX valid archive
+PASS report encrypted private unversioned object
+PASS report retention30 days
+PASS report-only-repeat exit
+PASS repeated report recovery exact zero writes
+PASS unapproved-production-repeat exit
+PASS production repeat requires approval before writes
+PASS approved-reapply exit
+PASS approved reapply adds immutable completed attempt
+PASS approved reapply updates mapped fictional name
+PASS approved repeat adds no duplicate census/accounts
+PASS stale-approval exit
+PASS stale approval refuses before any writes
+RESULT {"checks": 24, "passed": 24}

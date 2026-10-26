@@ -68,3 +68,12 @@ __pycache__/
 .local/e11-t06-*
 # E11-T09 round 2 scratch: HEAD copies for the red runs and their runners.
 .local/e11-t09-*
+
+# Requested completion/review evidence (23 October 2026).
+!roadmap/evidence/2026-10-23-*/*.log
+
+# Preserve the reviewed fictional CLI exploration logs, including setup attempts.
+!roadmap/evidence/2026-10-23-functional-api/**/*.log
+!roadmap/evidence/2026-10-24-functional-fixes-api/**/*.log
+!roadmap/evidence/2026-10-26-hosted-demo-policy/**/*.log
+!roadmap/evidence/2026-10-26-deploy-root/*.log

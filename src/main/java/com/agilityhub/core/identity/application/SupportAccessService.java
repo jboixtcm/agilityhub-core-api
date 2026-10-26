@@ -51,6 +51,7 @@ public class SupportAccessService implements ConsoleSupportAccess {
     static final Pattern RESTRICTED = Pattern.compile("(GET|POST) /api/v1/[a-z-]+/export|(GET|POST) /api/v1/instructor/week/export"
             + "|GET /api/v1/exports(/.*)?|GET /api/v1/billing/exports|POST /api/v1/(members/[^/]+|me)/data-export"
             + "|GET /api/v1/remittances/[^/]+/file|GET /api/v1/remittances/files/.+"
+            + "|GET /api/v1/platform/clubs/[^/]+/migrations/[^/]+/report"
             + "|POST /api/v1/members/[^/]+/impersonation-token|(POST|DELETE) /api/v1/members/[^/]+/erasure"
             + "|(PUT|PATCH|DELETE|POST) /api/v1/me(/password|/sessions(/[^/]+)?|/onboarding(/postpone)?)?"
             + "|DELETE /api/v1/support-accesses/[^/]+");

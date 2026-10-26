@@ -1,0 +1,74 @@
+[
+  {
+    "group": "surefire",
+    "name": "com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest",
+    "tests": "3",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "surefire",
+    "name": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+    "tests": "12",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "surefire",
+    "name": "com.agilityhub.core.configuration.TtlIndexRaceTest",
+    "tests": "1",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "surefire",
+    "name": "com.agilityhub.core.migration.PlayoffAdapterTest",
+    "tests": "11",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "failsafe",
+    "name": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+    "tests": "12",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "failsafe",
+    "name": "com.agilityhub.core.configuration.TtlIndexUpgradeIT",
+    "tests": "6",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "failsafe",
+    "name": "com.agilityhub.core.courses.api.PlacementsIT",
+    "tests": "9",
+    "failures": "1",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "failsafe",
+    "name": "com.agilityhub.core.courses.api.RingSetupsIT",
+    "tests": "20",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "group": "failsafe",
+    "name": "com.agilityhub.core.platform.privacy.RetentionSweepIT",
+    "tests": "2",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  }
+]

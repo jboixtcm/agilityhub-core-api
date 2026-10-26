@@ -1,0 +1,30 @@
+Exit: 0; tested inputs unchanged: True
+surefire-reports: {'tests': 4943, 'failures': 0, 'errors': 0, 'skipped': 0}; all fresh: True
+failsafe-reports: {'tests': 2296, 'failures': 0, 'errors': 0, 'skipped': 0}; all fresh: True
+com.agilityhub.core.cli.CommandSchedulingGuardTest: tests=2, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest: tests=3, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.configuration.TtlIndexRaceTest: tests=1, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.identity.application.MigrationWelcomeDeliveryTest: tests=4, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.InputManifestTest: tests=2, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationApplyStepsTest: tests=4, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationCensusStepsTest: tests=11, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationReportCleanupTest: tests=1, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationReportCommandTest: tests=2, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationReportsTest: tests=10, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationStepsTest: tests=13, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.PlayoffAdapterTest: tests=11, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.PlayoffAnonymizerPathsTest: tests=4, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.PlayoffExecutionCommandTest: tests=7, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.ReapplyApprovalTest: tests=4, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.S3MigrationReportStoreTest: tests=8, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.application.MigrationWelcomeCommandTest: tests=6, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT: tests=12, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.courses.api.PlacementsIT: tests=9, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.courses.api.RingSetupsIT: tests=21, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationExecutionIT: tests=7, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationReportCheckpointIT: tests=2, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationReportsIT: tests=4, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationStagedImportIT: tests=11, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.MigrationWelcomeIT: tests=4, failures=0, errors=0, skipped=0, fresh=True
+com.agilityhub.core.migration.PlayoffMigrationIT: tests=51, failures=0, errors=0, skipped=0, fresh=True
+Missing changed test classes: []

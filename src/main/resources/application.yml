@@ -106,6 +106,9 @@ management:
         enabled: false
 
 core:
+  hosted-demo:
+    enabled: ${HOSTED_DEMO_ENABLED:false}
+    email-allowlist: ${HOSTED_DEMO_EMAIL_ALLOWLIST:}
   # E11-T03 infrastructure bounds; HTTP budgets do not limit background transaction lifetimes (E85).
   mongo:
     connect-timeout: ${MONGO_CONNECT_TIMEOUT:2s}

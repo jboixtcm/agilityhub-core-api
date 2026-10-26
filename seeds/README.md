@@ -1,5 +1,24 @@
 # Club definitions
 
+For a disposable local demonstration, use `club-canic-demo.yaml` instead of the
+approved production definition `club-canic.yaml`. The demo has a fictional public
+identity, `.example.test` domains and nonoperative manual-payment instructions in
+ca/es/en. It retains the `canic` slug so `seed:demo --club=canic` uses the existing
+fictional dataset. Apply it only to a fresh, isolated demo database:
+
+```sh
+bin/core club:apply seeds/club-canic-demo.yaml
+bin/core seed:demo --club=canic
+```
+
+The billing demo adds fictional SEPA settings and preserves these MANUAL
+instructions. Signup and applicant notifications read them from the club's stored
+configuration. Do not reapply `club-canic.yaml` to a shared demo: that definition
+intentionally contains the owner's approved real public payment instructions.
+Use local/fake providers; the demo definition does not disable provider calls by
+itself. Environment credentials and any demo host overrides belong to the demo
+stack, never to the production definition.
+
 Build the current source with `./mvnw -q package`, then run:
 
 ```sh

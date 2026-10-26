@@ -1,0 +1,6 @@
+MigrationReportsIT: tests=3, failures=1, errors=0, skipped=0
+T_18_16_onlyClubAdminOrPlatformAdminCanReceiveSignedLink: Status expected:<200> but was:<403>
+PlayoffMigrationIT: tests=51, failures=1, errors=1, skipped=0
+T_18_16_point2_writeBetweenGuardAndDeletionCannotBeSilentlyLost: [The writer must explicitly fail if reset wins the shared lock]  Expecting actual not to be null
+T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport: MIGRATION_ALREADY_APPLIED
+SecurityInventoryIT: tests=4, failures=0, errors=0, skipped=0

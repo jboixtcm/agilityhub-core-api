@@ -2,6 +2,18 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-23 · S18 · Private migration report download
+
+**1 operation and 1 response schema added; no error codes added.**
+
+- `GET /platform/clubs/{clubId}/migrations/{runId}/report` returns `ReportLink {downloadUrl, expiresAt}` to the explicit club’s ADMIN or AGILITYHUB_ADMIN. The private production XLSX URL lasts at most five minutes and never beyond the run’s 30-day retention. Missing, unpublished or staging reports return `404 NOT_FOUND`; expired reports return `422 EXPORT_EXPIRED`. Support and impersonation access are refused, and successful link issuance is audited as `DATA_EXPORTED` without storing the URL.
+
+## 2026-10-23 · INC-86 · Frozen tunnel placement geometry
+
+**0 operations or error codes added or removed; 1 optional nullable property added to 1 schema.**
+
+- `ResolvedObstacle.controlPointsMeters` is an array of `PointM` in the ring frame (metres, Y up), calculated by course-core and stored with the placement. Create, update, placement reads and member setup reads preserve it, so editing the source course no longer changes a new placement's tunnel shape. Absent/null values retain compatibility with legacy placements; `[]` explicitly records no control points.
+
 ## 2026-10-22 · E11-T19 round 2 · Every grant on the console's product host (ruling E161); `SignupProposals` nullable
 
 **0 operations or error codes added or removed; 2 properties made nullable in 1 schema; 3 descriptions changed.**

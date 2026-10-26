@@ -1,0 +1,98 @@
+ M .github/workflows/ci.yml
+ M .gitignore
+ M CHANGELOG.md
+ M Dockerfile
+ M bin/test-e8-smoke
+ M docs/DEPLOY.md
+ M docs/openapi/CHANGELOG.md
+ M docs/openapi/openapi.json
+ M docs/specs/S16-recorreguts-rings-i-muntatge.md
+ M docs/specs/S18-migracio-playoff.md
+ M roadmap/evidence/E11-T12/trace.py
+ M src/main/java/com/agilityhub/core/CoreApplication.java
+ M src/main/java/com/agilityhub/core/clubs/activities/application/ActivityTransactions.java
+ M src/main/java/com/agilityhub/core/clubs/census/application/CensusErasure.java
+ M src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
+ M src/main/java/com/agilityhub/core/clubs/common/application/CleanupJob.java
+ M src/main/java/com/agilityhub/core/clubs/messaging/application/SystemEmailRenderer.java
+ M src/main/java/com/agilityhub/core/courses/application/DemoCoursesSeeder.java
+ M src/main/java/com/agilityhub/core/courses/domain/CourseParts.java
+ M src/main/java/com/agilityhub/core/identity/api/CurrentUserFilter.java
+ M src/main/java/com/agilityhub/core/identity/application/MagicLinkService.java
+ M src/main/java/com/agilityhub/core/identity/application/SupportAccessService.java
+ M src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java
+ M src/main/java/com/agilityhub/core/identity/persistence/ImpersonationGrantRepository.java
+ M src/main/java/com/agilityhub/core/migration/application/MigrationApplyService.java
+ M src/main/java/com/agilityhub/core/migration/application/PlayoffAnonymizer.java
+ M src/main/java/com/agilityhub/core/migration/application/PlayoffCommand.java
+ M src/main/java/com/agilityhub/core/migration/application/PlayoffImportService.java
+ M src/main/java/com/agilityhub/core/migration/application/PlayoffInput.java
+ M src/main/java/com/agilityhub/core/migration/persistence/MigrationResetRepository.java
+ M src/main/java/com/agilityhub/core/migration/persistence/MigrationRun.java
+ M src/main/java/com/agilityhub/core/migration/persistence/MigrationRunRepository.java
+ M src/main/java/com/agilityhub/core/platform/application/CensusClubSettings.java
+ M src/main/java/com/agilityhub/core/platform/persistence/SecurityEventRepository.java
+ M src/main/resources/messages/messages_ca.properties
+ M src/main/resources/messages/messages_en.properties
+ M src/main/resources/messages/messages_es.properties
+ M src/test/java/com/agilityhub/core/clubs/activities/application/ActivityInfrastructureTest.java
+ M src/test/java/com/agilityhub/core/clubs/census/api/SignupPlansFollowUpIT.java
+ M src/test/java/com/agilityhub/core/courses/api/PlacementsIT.java
+ M src/test/java/com/agilityhub/core/courses/api/RingSetupsIT.java
+ M src/test/java/com/agilityhub/core/migration/PlayoffAdapterTest.java
+ M src/test/java/com/agilityhub/core/migration/PlayoffMigrationIT.java
+ M src/test/resources/fixtures/contracts/e9-ring-responses.json
+?? .gitattributes
+?? bin/release-preflight
+?? bin/test-spec-trace.py
+?? deploy/release-preflight.py
+?? deploy/test_release_preflight.py
+?? docs/MIGRATION_REPORTS.md
+?? docs/MIGRATION_STEPS.md
+?? docs/MIGRATION_WELCOME.md
+?? roadmap/evidence/2026-10-23-api-review/
+?? roadmap/evidence/2026-10-23-functional-api/
+?? roadmap/evidence/2026-10-23-migration-steps-review/
+?? roadmap/evidence/2026-10-23-release-review/
+?? roadmap/evidence/2026-10-23-review/
+?? src/main/java/com/agilityhub/core/cli/CommandSchedulingGuard.java
+?? src/main/java/com/agilityhub/core/clubs/census/application/MigrationWelcomeRecipients.java
+?? src/main/java/com/agilityhub/core/identity/application/MigrationWelcomeDelivery.java
+?? src/main/java/com/agilityhub/core/migration/api/MigrationReportsController.java
+?? src/main/java/com/agilityhub/core/migration/application/MappingFingerprint.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationCensusSteps.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationReportCommand.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationReportConfiguration.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationReportStore.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationReportWorkbook.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationReports.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationStagedImporter.java
+?? src/main/java/com/agilityhub/core/migration/application/MigrationWelcomeCommand.java
+?? src/main/java/com/agilityhub/core/migration/domain/InputManifest.java
+?? src/main/java/com/agilityhub/core/migration/domain/MigrationExecution.java
+?? src/main/java/com/agilityhub/core/migration/domain/MigrationExecutionRequest.java
+?? src/main/java/com/agilityhub/core/migration/domain/MigrationSteps.java
+?? src/main/java/com/agilityhub/core/migration/domain/ReapplyApproval.java
+?? src/main/java/com/agilityhub/core/migration/persistence/S3MigrationReportStore.java
+?? src/main/java/com/agilityhub/core/shared/application/IndexDrops.java
+?? src/main/java/com/agilityhub/core/shared/application/MigrationReportRetention.java
+?? src/test/java/com/agilityhub/core/cli/CommandSchedulingGuardTest.java
+?? src/test/java/com/agilityhub/core/configuration/TtlIndexRaceTest.java
+?? src/test/java/com/agilityhub/core/identity/application/MigrationWelcomeDeliveryTest.java
+?? src/test/java/com/agilityhub/core/migration/InputManifestTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationApplyStepsTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationCensusStepsTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationExecutionIT.java
+?? src/test/java/com/agilityhub/core/migration/MigrationReportCheckpointIT.java
+?? src/test/java/com/agilityhub/core/migration/MigrationReportCleanupTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationReportCommandTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationReportsIT.java
+?? src/test/java/com/agilityhub/core/migration/MigrationReportsTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationStagedImportIT.java
+?? src/test/java/com/agilityhub/core/migration/MigrationStepsTest.java
+?? src/test/java/com/agilityhub/core/migration/MigrationWelcomeIT.java
+?? src/test/java/com/agilityhub/core/migration/PlayoffAnonymizerPathsTest.java
+?? src/test/java/com/agilityhub/core/migration/PlayoffExecutionCommandTest.java
+?? src/test/java/com/agilityhub/core/migration/ReapplyApprovalTest.java
+?? src/test/java/com/agilityhub/core/migration/S3MigrationReportStoreTest.java
+?? src/test/java/com/agilityhub/core/migration/application/MigrationWelcomeCommandTest.java

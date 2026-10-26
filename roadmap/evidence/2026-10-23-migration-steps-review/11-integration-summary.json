@@ -1,0 +1,19 @@
+{
+  "classes": [
+    {
+      "class": "com.agilityhub.core.migration.MigrationStagedImportIT",
+      "fresh": true,
+      "tests": 11,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 11,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 0
+  },
+  "missing": []
+}

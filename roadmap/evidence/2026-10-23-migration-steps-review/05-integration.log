@@ -1,0 +1,212 @@
+22:26:27.523 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportsIT]: MigrationReportsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:26:27.601 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportsIT
+22:26:27.628 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportsIT]: MigrationReportsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:26:27.629 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:26:27.631 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportsIT
+22:26:27.652 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:26:27.653 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:26:27.656 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+22:26:27.735 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:26:27.887 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:26:27.888 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:26:27.900 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:26:28.237 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+22:26:28.266 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:26:28.321 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: ea6b1391ae82e4a550b9aa0f85fcc82d695987bd1d2d4ea89508c9021dd69ec1
+22:26:28.478 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.240659S
+22:26:28.481 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:26:28.481 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:26:28.481 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:26:28.481 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:26:28.509 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 9866b893c968f2a929ee7dfbe69faf637575e390e98b9ffce3fb3946ff6628bf
+22:26:28.948 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.466469S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:26:29.519+02:00 INFO  [main] c.a.core.migration.MigrationReportsIT traceId= clubId= accountId= : Starting MigrationReportsIT using Java [redacted] with PID 95540 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:26:29.521+02:00 INFO  [main] c.a.core.migration.MigrationReportsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:26:30.294+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:26:30.344+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 46 ms. Found 0 MongoDB repository interfaces.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-23T22:26:31.203+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@75edfe9a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@468d1fcc, com.mongodb.Jep395RecordCodecProvider@267093ea, com.mongodb.KotlinCodecProvider@6b3bcab7, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54793], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7138e064], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:26:31.210+02:00 INFO  [cluster-6adbc2f7242f979dff3ac7fe-localhost:54793] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54793, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=9641792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=9866b893c968:27017, hosts=[9866b893c968:27017], passives=[], arbiters=[], primary='9866b893c968:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc2f49632ed7061f5c225, counter=6}, lastWriteDate=Fri Oct 23 22:26:29 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:26:32.275+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:32.292+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:32.311+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:32.923+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:32.936+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:32.949+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:33.006+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:26:35.682+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-23T22:26:35.682+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-23T22:26:35.687+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 5 ms
+2026-10-23T22:26:35.748+02:00 INFO  [main] c.a.core.migration.MigrationReportsIT traceId= clubId= accountId= : Started MigrationReportsIT in 6.368 seconds (process running for 8.548)
+2026-10-23T22:26:36.374+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportCheckpointIT]: MigrationReportCheckpointIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:36.375+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportCheckpointIT
+2026-10-23T22:26:36.375+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationReportCheckpointIT]: MigrationReportCheckpointIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:36.376+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:36.376+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationReportCheckpointIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:26:36.397+02:00 INFO  [main] c.a.c.m.MigrationReportCheckpointIT traceId= clubId= accountId= : Starting MigrationReportCheckpointIT using Java [redacted] with PID 95540 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:26:36.397+02:00 INFO  [main] c.a.c.m.MigrationReportCheckpointIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:26:36.708+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:26:36.737+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-10-23T22:26:36.796+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@7a1ed74], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@468d1fcc, com.mongodb.Jep395RecordCodecProvider@267093ea, com.mongodb.KotlinCodecProvider@6b3bcab7, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54793], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@60931e00], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:26:36.798+02:00 INFO  [cluster-6adbc2fc242f979dff3ac7ff-localhost:54793] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54793, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1230250, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=9866b893c968:27017, hosts=[9866b893c968:27017], passives=[], arbiters=[], primary='9866b893c968:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc2f49632ed7061f5c225, counter=6}, lastWriteDate=Fri Oct 23 22:26:36 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:26:38.817+02:00 INFO  [main] c.a.c.m.MigrationReportCheckpointIT traceId= clubId= accountId= : Started MigrationReportCheckpointIT in 2.439 seconds (process running for 11.618)
+2026-10-23T22:26:38.927+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationStagedImportIT]: MigrationStagedImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:38.928+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationStagedImportIT
+2026-10-23T22:26:38.928+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationStagedImportIT]: MigrationStagedImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:38.928+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:38.929+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationStagedImportIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:26:38.953+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : Starting MigrationStagedImportIT using Java [redacted] with PID 95540 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:26:38.953+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:26:39.202+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:26:39.238+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 35 ms. Found 0 MongoDB repository interfaces.
+2026-10-23T22:26:39.281+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4cdb2c8d], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@468d1fcc, com.mongodb.Jep395RecordCodecProvider@267093ea, com.mongodb.KotlinCodecProvider@6b3bcab7, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54793], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@29ea8c1b], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:26:39.282+02:00 INFO  [cluster-6adbc2ff242f979dff3ac800-localhost:54793] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54793, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=981583, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=9866b893c968:27017, hosts=[9866b893c968:27017], passives=[], arbiters=[], primary='9866b893c968:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc2f49632ed7061f5c225, counter=6}, lastWriteDate=Fri Oct 23 22:26:38 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:26:41.821+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : Started MigrationStagedImportIT in 2.881 seconds (process running for 14.621)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: dc4109dc-9b95-40d6-9ca0-80cb8634433f
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: c5ea405190000ed346072806a124e59bdc7dcd686b3d9abeeddcc01848133ddc
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: be4ce278-ad75-4c72-8f78-9cb68eec3785
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: c5ea405190000ed346072806a124e59bdc7dcd686b3d9abeeddcc01848133ddc
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: 3a163a4dbfb6afe836dcbbf20c75e0514b00f2bb9c0760dbebb0a90ade8ff3e0
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 4]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 7]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 9]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: 24a88560-5e9f-46c7-9568-c9ba95f07412
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: d977e4cb-6844-4587-a936-a294ca31f6a9
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 158 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: af48af33-8caa-42ec-9723-b789a1f3f56c
+Migration run requiring review: af48af33-8caa-42ec-9723-b789a1f3f56c; step 4
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 4e5439a0-1025-4897-9e01-6ff0050acbe5
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: e5dfd760-db31-480d-bc9f-918852a081d3
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: 9edadd537b5dc166aafbeee56b17b4a8870e0329e06a1602fe5210af8b1f0fb1
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-02; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4]
+Migration run: 8aa8419f-3cb5-4988-b6e9-fee3ea22438e
+Migration completed steps: [1, 2, 3, 4]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 268f6982-63ed-4192-a6ba-21c06f5b27b1
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: e7c1dd89-ef9a-4869-a916-ce9261e85cc6
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: 9067684177836bb9adb0cf5559b1babf55e357b953043caf6bac5c3bf39a4550
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 793e62aa-2fd5-44a5-bcde-e048a82f41b5
+Migration run requiring review: 793e62aa-2fd5-44a5-bcde-e048a82f41b5; step 7
+Migration input manifest SHA-256: 9067684177836bb9adb0cf5559b1babf55e357b953043caf6bac5c3bf39a4550
+Migration cut-over: 2026-09-01; selected steps: [1, 7, 8, 9, 10]
+Migration run: c7b6f78e-0833-4192-b346-f6b09cec3df2
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e45ee577e7d64a4cfdaf5b0daf0be0e8676d4f401d602986fe8ce080c7646fe1
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: ab4a7ea4-63f4-4c7f-b52f-a2afd505e0a9
+Migration run requiring review: ab4a7ea4-63f4-4c7f-b52f-a2afd505e0a9; step 3
+Migration input manifest SHA-256: e45ee577e7d64a4cfdaf5b0daf0be0e8676d4f401d602986fe8ce080c7646fe1
+Migration cut-over: 2026-09-01; selected steps: [1, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: e32661eb-c4c3-4bb9-9ce5-f5edb297e555
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 4dfccf2b-7143-4dda-ace6-0001e93e1d84
+Migration run requiring review: 4dfccf2b-7143-4dda-ace6-0001e93e1d84; step 10
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 10]
+Migration run: d585dd85-459d-4270-833c-0151f050fb86
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: 78204a43-a4f7-4a4d-9e79-c94cce38bde8
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 7ce767cc-390a-4037-bca1-9ec9d63e1424
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+2026-10-23T22:26:59.523+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationExecutionIT]: MigrationExecutionIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:59.524+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationExecutionIT
+2026-10-23T22:26:59.525+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationExecutionIT]: MigrationExecutionIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:59.525+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-23T22:26:59.525+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationExecutionIT
+E5-T07 outbox backlog discarded before MigrationExecutionIT: 160 PENDING records (more than one dispatch() batch)

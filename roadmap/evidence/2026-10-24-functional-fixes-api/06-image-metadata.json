@@ -1,0 +1,29 @@
+{
+  "imageId": "sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9",
+  "tags": [
+    "agilityhub-core-api:review-fixes-20261024",
+    "ghcr.io/jboixtcm/agilityhub-core-api:review-fixes-20261024"
+  ],
+  "architecture": "arm64",
+  "os": "linux",
+  "created": "2026-10-24T08:13:53.586905258Z",
+  "user": "agilityhub",
+  "entrypoint": [
+    "java",
+    "-jar",
+    "/app/app.jar"
+  ],
+  "repoDigests": [
+    "agilityhub-core-api@sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9",
+    "ghcr.io/jboixtcm/agilityhub-core-api@sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9"
+  ],
+  "testedInputsUnchanged": true,
+  "scope": "Local arm64 image; no registry push, no deploy, no amd64 or hosted-provider verification.",
+  "runtimeVerified": {
+    "uid": 10001,
+    "noNetwork": true,
+    "unusedPebbleAbsent": true,
+    "demoAndProductionSeedMatchSource": true,
+    "javaVersionExecuted": true
+  }
+}

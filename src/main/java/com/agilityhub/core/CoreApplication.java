@@ -1,6 +1,7 @@
 package com.agilityhub.core;
 
 import com.agilityhub.core.cli.CoreCli;
+import com.agilityhub.core.cli.CommandSchedulingGuard;
 import java.util.Arrays;
 import java.util.Map;
 import org.springframework.boot.DefaultApplicationArguments;
@@ -20,6 +21,7 @@ public class CoreApplication {
         var app = new SpringApplication(CoreApplication.class);
         if (!command) { app.run(args); return; }
         app.setWebApplicationType(WebApplicationType.NONE);
+        app.addInitializers(new CommandSchedulingGuard());
         app.setDefaultProperties(Map.of("spring.main.banner-mode", "off", "logging.level.root", "ERROR",
                 "shared.scheduling.enabled", "false"));
         int status;

@@ -1,0 +1,25 @@
+test_a_failure_is_not_hidden_by_a_skipped_parameter (trace_tests.SpecTraceTest.test_a_failure_is_not_hidden_by_a_skipped_parameter) ... ok
+test_a_skipped_parameter_never_proves_the_whole_spec_passed (trace_tests.SpecTraceTest.test_a_skipped_parameter_never_proves_the_whole_spec_passed) ... FAIL
+test_all_parameters_must_pass (trace_tests.SpecTraceTest.test_all_parameters_must_pass) ... ok
+
+======================================================================
+FAIL: test_a_skipped_parameter_never_proves_the_whole_spec_passed (trace_tests.SpecTraceTest.test_a_skipped_parameter_never_proves_the_whole_spec_passed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/test-spec-trace.py", line 50, in test_a_skipped_parameter_never_proves_the_whole_spec_passed
+    self.assertEqual([row["result"] for row in rows], ["SKIPPED"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['PASS'] != ['SKIPPED']
+
+First differing element 0:
+'PASS'
+'SKIPPED'
+
+- ['PASS']
++ ['SKIPPED']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.006s
+
+FAILED (failures=1)
+Expected baseline regression failure: 1

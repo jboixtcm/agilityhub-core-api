@@ -1,0 +1,86 @@
+{
+  "surefire": [
+    {
+      "class": "com.agilityhub.core.clubs.census.application.ConsentLedgersTest",
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failures": []
+    },
+    {
+      "class": "com.agilityhub.core.shared.domain.ConsentGrantTest",
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failures": []
+    },
+    {
+      "class": "com.agilityhub.core.platform.application.definition.DemoClubDefinitionTest",
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failures": []
+    }
+  ],
+  "failsafe": [
+    {
+      "class": "com.agilityhub.core.clubs.census.api.CensusIT",
+      "counts": {
+        "tests": 11,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failures": [
+        {
+          "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[2]",
+          "message": "\nexpected: true\n but was: false"
+        },
+        {
+          "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[4]",
+          "message": "\nexpected: true\n but was: false"
+        },
+        {
+          "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[5]",
+          "message": "\nexpected: true\n but was: false"
+        },
+        {
+          "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[6]",
+          "message": "\nexpected: true\n but was: false"
+        },
+        {
+          "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[7]",
+          "message": "\nexpected: true\n but was: false"
+        },
+        {
+          "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[9]",
+          "message": "\nexpected: true\n but was: false"
+        }
+      ]
+    },
+    {
+      "class": "com.agilityhub.core.clubs.census.application.DemoSeedsIT",
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 0
+      },
+      "failures": [
+        {
+          "test": "T_17_01_INC94_safeDemoRetainsItsIdentityAndPaymentInstructionsAfterCompleteSeed",
+          "message": "No value present"
+        }
+      ]
+    }
+  ]
+}

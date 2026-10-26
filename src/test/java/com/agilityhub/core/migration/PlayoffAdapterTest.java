@@ -231,6 +231,24 @@ class PlayoffAdapterTest {
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--in=input","--club=canic","--apply","--dry-run"))).isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test void T_18_16_explicitProductionEnvironmentRefusesResetBeforeReadingConfirmation() {
+        var importer = mock(PlayoffImportService.class);
+        var clubs = mock(MigrationClubAccess.class);
+        var reset = mock(MigrationResetService.class);
+        var env = new MockEnvironment(); env.setActiveProfiles("local");
+        when(clubs.resolve("canic")).thenReturn("club");
+        var command = new PlayoffCommand(importer, clubs, env, reset);
+        var console = System.in;
+        var input = new java.io.ByteArrayInputStream("canic\ncanic\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        try {
+            System.setIn(input);
+            assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--reset", "--club=canic", "--env=production")))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.FORBIDDEN));
+            assertThat(input.available()).isEqualTo("canic\ncanic\n".length());
+            verifyNoInteractions(reset, importer);
+        } finally { System.setIn(console); }
+    }
+
     /**
      * E11-T15 round 2 (N5, ruling E156; S18 R-18-13, R-18-17): the cut-over fixes every migrated member's first `nextInvoiceDate`.
      * A production load that falls back to the club's today (a 31-10 load would bill November to every monthly member) is refused,

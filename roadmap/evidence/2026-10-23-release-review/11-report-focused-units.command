@@ -1,0 +1,2 @@
+./mvnw -q -Dtest=MigrationReportsTest,S3MigrationReportStoreTest,InputManifestTest,MigrationReportCleanupTest,MigrationReportCommandTest,MigrationWelcomeCommandTest,MigrationWelcomeDeliveryTest,CommandSchedulingGuardTest,E9ResponseContractTest,PlayoffAnonymizerPathsTest test
+Run while host heavy.sh lock is held by run-focused.py.

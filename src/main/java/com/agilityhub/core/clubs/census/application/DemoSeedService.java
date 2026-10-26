@@ -97,7 +97,7 @@ public class DemoSeedService {
                 sepa.putAll(bankAccounts.seal(row.iban(), member.clubId, member.id));
                 member.paymentMethod = sepa;
             }
-            member.consents = Map.of("imageRights", Map.of("accepted", row.number() % 2 == 0, "at", reference));
+            member.consents = Map.of("imageRights", Map.of("granted", row.number() % 2 == 0, "at", reference));
             member.bookingBlock = Map.of("active", false); member.notificationPreferences = Map.of();
             if ("LEFT".equals(row.status())) { member.leftAt = reference.minusSeconds(86400L * 10); member.leftReason = "Fictional demo leave"; }
             if (!"PENDING".equals(member.status)) {

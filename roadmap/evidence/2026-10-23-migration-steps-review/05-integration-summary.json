@@ -1,0 +1,43 @@
+{
+  "classes": [
+    {
+      "class": "com.agilityhub.core.migration.MigrationExecutionIT",
+      "fresh": true,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportCheckpointIT",
+      "fresh": true,
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportsIT",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationStagedImportIT",
+      "fresh": true,
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "missing": []
+}

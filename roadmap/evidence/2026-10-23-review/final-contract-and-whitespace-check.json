@@ -1,0 +1,58 @@
+[
+  {
+    "contract": "openapi",
+    "paths": [
+      "/Users/jordib/dev/agilityhub/agilityhub-core-api/docs/openapi/openapi.json",
+      "/Users/jordib/dev/agilityhub/agilityhub-core-web/packages/api-client/openapi/openapi.json"
+    ],
+    "identical": true
+  },
+  {
+    "contract": "S16-recorreguts-rings-i-muntatge.md",
+    "paths": [
+      "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/specs/S16-recorreguts-rings-i-muntatge.md",
+      "/Users/jordib/dev/agilityhub/agilityhub-core-api/docs/specs/S16-recorreguts-rings-i-muntatge.md",
+      "/Users/jordib/dev/agilityhub/agilityhub-core-web/docs/specs/S16-recorreguts-rings-i-muntatge.md"
+    ],
+    "identical": true
+  },
+  {
+    "contract": "S18-migracio-playoff.md",
+    "paths": [
+      "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/specs/S18-migracio-playoff.md",
+      "/Users/jordib/dev/agilityhub/agilityhub-core-api/docs/specs/S18-migracio-playoff.md",
+      "/Users/jordib/dev/agilityhub/agilityhub-core-web/docs/specs/S18-migracio-playoff.md"
+    ],
+    "identical": true
+  },
+  {
+    "repository": "agilityhub-core-api",
+    "command": "git diff --check",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "repository": "agilityhub-core-web",
+    "command": "git diff --check",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "contract": "served-local-profile-openapi",
+    "paths": [
+      "/Users/jordib/dev/agilityhub/agilityhub-core-web/roadmap/evidence/2026-10-23-web-review/core-e1/openapi-served.json",
+      "/Users/jordib/dev/agilityhub/agilityhub-core-api/docs/openapi/openapi.json"
+    ],
+    "parsedEqual": true,
+    "objectKeyOrderIgnored": true,
+    "arrayOrderPreserved": true
+  },
+  {
+    "repository": "agilityhub-core-web",
+    "finalManifestFiles": 27,
+    "changedSinceFullProductAndMockGates": [
+      "e2e/core/e6-core.spec.ts"
+    ],
+    "currentHashMismatches": []
+  }
+]

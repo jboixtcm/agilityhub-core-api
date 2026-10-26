@@ -1,0 +1,21 @@
+{
+  "imageId": "sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+  "tags": [
+    "agilityhub-core-api:review-20261023",
+    "ghcr.io/jboixtcm/agilityhub-core-api:review-20261023"
+  ],
+  "architecture": "arm64",
+  "os": "linux",
+  "created": "2026-10-23T21:12:16.526540801Z",
+  "user": "agilityhub",
+  "entrypoint": [
+    "java",
+    "-jar",
+    "/app/app.jar"
+  ],
+  "repoDigests": [
+    "agilityhub-core-api@sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+    "ghcr.io/jboixtcm/agilityhub-core-api@sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e"
+  ],
+  "scope": "Local arm64 build only; no registry push, no remote deploy, amd64 not verified here"
+}

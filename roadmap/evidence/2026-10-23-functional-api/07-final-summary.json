@@ -1,0 +1,38 @@
+{
+  "image": "agilityhub-core-api:review-20261023",
+  "imageId": "sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+  "batches": [
+    {
+      "batch": "attempt-04",
+      "commands": 22,
+      "assertions": 44,
+      "passed": 44,
+      "exit": 0,
+      "cleanup": {
+        "ownedContainersRemoved": true,
+        "networkRemoved": true
+      },
+      "temporaryEnvironmentsRemoved": true
+    },
+    {
+      "batch": "report-attempt-01",
+      "commands": 8,
+      "assertions": 24,
+      "passed": 24,
+      "exit": 0,
+      "cleanup": {
+        "ownedContainersRemoved": true,
+        "networkRemoved": true
+      },
+      "temporaryEnvironmentsRemoved": true
+    }
+  ],
+  "totals": {
+    "commands": 30,
+    "assertions": 68,
+    "passed": 68
+  },
+  "productEdits": false,
+  "externalProviderCalls": false,
+  "deployment": false
+}

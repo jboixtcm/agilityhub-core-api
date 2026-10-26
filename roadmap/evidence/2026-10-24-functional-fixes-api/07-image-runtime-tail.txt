@@ -1,0 +1,5 @@
+openjdk version "21.0.12.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)
+3f9272c7fc7a2313d712835710616b1fe5e10856f730c2450fca022ed4fbd95b  /app/seeds/club-canic-demo.yaml
+956d7a01e69e7d3a23ad8170fa548fd6356e3854c0f3461d15cfff6027162915  /app/seeds/club-canic.yaml

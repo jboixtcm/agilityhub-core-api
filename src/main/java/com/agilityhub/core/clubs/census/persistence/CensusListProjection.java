@@ -75,6 +75,8 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         stages.add(new Document("$set",new Document("consents",new Document("$cond",List.of(ledger,new Document("imageRights",latestImage),fallback("$consents",new Document()))))
                 .append("pendingDogs",new Document("$filter",new Document("input","$dogs").append("as","dog").append("cond",expr("$eq","$$dog.status","PENDING"))))));
         stages.add(new Document("$set",new Document("consents.imageRights",new Document("$cond",java.util.Arrays.asList(expr("$ne",fallback("$submittedImage",null),null),"$submittedImage","$consents.imageRights")))));
+        stages.add(new Document("$set", new Document("consents.imageRights.granted", ConsentProjection.granted("$consents.imageRights"))
+                .append("consents.imageRights.at", fallback("$consents.imageRights.at", "$consents.imageRights.acceptedAt"))));
         // S04 §3 (E3-T10): an add-dog submission keeps its block on its dog. For an ACTIVE member the signup of the list (its
         // `submittedAt`, its READMISSION warning) is the oldest pending dog's block; the public signup otherwise.
         Object oldestPending=expr("$arrayElemAt",new Document("$sortArray",new Document("input",fallback("$pendingDogs.signup",List.of())).append("sortBy",new Document("submittedAt",1))),0);

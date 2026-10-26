@@ -21,8 +21,8 @@ public class PlayoffCommand implements CoreCommand {
     }
     public String name() { return "migration:playoff"; }
     public void run(ApplicationArguments args) {
-        if (args.getNonOptionArgs().size()>1 || !Set.of("core.command","dry-run","apply","in","cut-over","reset","seed","club","mapping","env","confirm-production").containsAll(args.getOptionNames())) { throw usage(); }
-        for (String flag:Set.of("dry-run","apply","reset","confirm-production")) {
+        if (args.getNonOptionArgs().size()>1 || !Set.of("core.command","dry-run","apply","in","cut-over","reset","seed","club","mapping","env","confirm-production","steps","resume-run","allow-reapply","reapply-confirmation").containsAll(args.getOptionNames())) { throw usage(); }
+        for (String flag:Set.of("dry-run","apply","reset","confirm-production","allow-reapply")) {
             if (args.containsOption(flag) && !args.getOptionValues(flag).isEmpty()) { throw usage(); }
         }
         String mappingPath=option(args,"mapping",null);
@@ -30,10 +30,15 @@ public class PlayoffCommand implements CoreCommand {
         String env=option(args,"env","staging");
         if (!Set.of("staging","production").contains(env)) { throw usage(); }
         boolean production=env.equals("production") || environment.matchesProfiles("prod","production");
+        boolean reapply=args.containsOption("allow-reapply");
+        String confirmation=option(args,"reapply-confirmation",null), resume=option(args,"resume-run",null);
+        if (reapply != (confirmation!=null) || reapply && (!production || resume!=null)
+                || resume!=null && !args.containsOption("steps")) { throw usage(); }
         String slug=option(args,"club",mapping.defaultClub()); String clubId=clubs.resolve(slug);
         if (args.containsOption("reset")) {
-            if (args.containsOption("dry-run") || args.containsOption("apply") || args.containsOption("in") || !args.getNonOptionArgs().isEmpty()) { throw usage(); }
-            if (environment.matchesProfiles("prod","production")) { throw new ApiException(ErrorCode.FORBIDDEN); }
+            if (args.containsOption("dry-run") || args.containsOption("apply") || args.containsOption("in")
+                    || args.containsOption("steps") || resume!=null || reapply || !args.getNonOptionArgs().isEmpty()) { throw usage(); }
+            if (production) { throw new ApiException(ErrorCode.FORBIDDEN); }
             try {
                 var reader=new java.io.BufferedReader(new java.io.InputStreamReader(System.in,java.nio.charset.StandardCharsets.UTF_8));
                 System.out.println("Reset club data. Enter the club slug:"); String first=reader.readLine();
@@ -54,8 +59,16 @@ public class PlayoffCommand implements CoreCommand {
         }
         MigrationReport report;
         try {
-            report=cutover==null ? importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed)
-                    : importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed,java.time.LocalDate.parse(cutover));
+            if (args.containsOption("steps") || reapply) {
+                if ((resume!=null || reapply) && cutover==null) { throw usage(); }
+                var execution=new MigrationExecutionRequest(MigrationSteps.parse(option(args,"steps","1-10")),
+                        true,resume,reapply ? ReapplyApproval.read(Path.of(confirmation)) : null);
+                report=importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed,
+                        cutover==null ? null : java.time.LocalDate.parse(cutover),execution);
+            } else {
+                report=cutover==null ? importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed)
+                        : importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed,java.time.LocalDate.parse(cutover));
+            }
         } catch(java.time.format.DateTimeParseException invalid) { throw usage(); }
         System.out.print(report.render());
         // Any error row, REEXECUTION_UNSUPPORTED included, means nothing was applied: the command exits non-zero.
@@ -68,6 +81,6 @@ public class PlayoffCommand implements CoreCommand {
         return values.getFirst();
     }
     private IllegalArgumentException usage() {
-        return new IllegalArgumentException("Usage: migration:playoff [<dir>|--in=dir] [--apply|--dry-run] [--cut-over=YYYY-MM-DD] [--club=slug] [--mapping=file] [--env=staging|production] [--confirm-production] | --reset --club=slug [--seed=file]");
+        return new IllegalArgumentException("Usage: migration:playoff [<dir>|--in=dir] [--apply|--dry-run] [--cut-over=YYYY-MM-DD] [--club=slug] [--mapping=file] [--env=staging|production] [--confirm-production] [--steps=1-10|1-3,5] [--resume-run=id | --allow-reapply --reapply-confirmation=private-file.json] | --reset --club=slug [--seed=file]");
     }
 }

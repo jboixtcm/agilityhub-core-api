@@ -38,7 +38,7 @@ public class CurrentUserFilter extends OncePerRequestFilter {
             // S16/S17 contract routes use an explicit denial. Existing platform delegates retain validate()'s denial.
             boolean console = path.equals("/api/v1/platform/club-templates")
                     || path.matches("/api/v1/platform/clubs(?:/[^/]+)?")
-                    || path.matches("/api/v1/platform/clubs/[^/]+/(?:definition|domains|theme|modules|payment-providers|parameters|catalog-clone|admins|status|support-access|public-api-key|usage|checklist)(?:/.*)?");
+                    || path.matches("/api/v1/platform/clubs/[^/]+/(?:definition|domains|theme|modules|payment-providers|parameters|catalog-clone|admins|status|support-access|public-api-key|usage|checklist|migrations)(?:/.*)?");
             if (console || path.matches("/api/v1/platform/courses(?:/[^/]+)?")) {
                 throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
             }

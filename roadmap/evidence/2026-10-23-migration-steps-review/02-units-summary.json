@@ -1,0 +1,67 @@
+{
+  "classes": [
+    {
+      "class": "com.agilityhub.core.migration.MigrationApplyStepsTest",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationCensusStepsTest",
+      "fresh": true,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportsTest",
+      "fresh": true,
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationStepsTest",
+      "fresh": true,
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.PlayoffAdapterTest",
+      "fresh": true,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.PlayoffExecutionCommandTest",
+      "fresh": true,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.ReapplyApprovalTest",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "missing": []
+}

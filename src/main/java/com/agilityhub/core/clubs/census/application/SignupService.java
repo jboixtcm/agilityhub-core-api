@@ -866,7 +866,7 @@ public class SignupService implements SignupPaymentAccess {
         if(holderId!=null) claim.put("holder",queries.familyMember(holderId));
         return object("member",queries.member(id,true),"dogs",dogs.stream().map(this::dogView).toList(),"signup",select(submission,"submittedAt","pendingDays","readmission","source","locale","planIdRequested"),
                 "familyGroupClaim",access.enabled(Module.FAMILY_GROUP)?claim:null,"upfront",billing()?reviewUpfront(member,dogs):null,
-                "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,
+                "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null||policy.twinned(plan.id())?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,
                 "nextInvoiceDate",first==null?member.nextInvoiceDate:policy.nextInvoice(first),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),
                 // M8: the D2 plan selector; M11: D2 shows the age warning without calling /dashboard.
                 "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"paymentMethods",paymentOptions(member),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version(),

@@ -1,0 +1,17 @@
+[
+  {
+    "command": "python3 bin/test-spec-trace.py",
+    "exit_code": 0,
+    "log": "final-trace-regression.log"
+  },
+  {
+    "command": "python3 bin/test-e8-smoke -v",
+    "exit_code": 0,
+    "log": "final-e8-smoke-regression.log"
+  },
+  {
+    "command": "python3 bin/security-secret-policy-test.py --gitleaks /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-secret-review-isl2mljr/gitleaks",
+    "exit_code": 0,
+    "log": "final-secret-policy.log"
+  }
+]

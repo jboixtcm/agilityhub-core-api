@@ -28,6 +28,7 @@ public class EmailConfiguration {
     @Bean EmailSender emailSender(Environment environment, ObjectMapper mapper,
             @Value("${email.sendgrid.api-key:}") String key, @Value("${email.platform-from:}") String from,
             @Value("${email.local-mailbox-directory:}") String mailbox) {
+        var demo = HostedDemoPolicy.from(environment);
         if (environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
             if (key.isBlank()) { throw new IllegalStateException("SENDGRID_API_KEY is required in staging/prod"); }
             if (from.isBlank()) { throw new IllegalStateException("MAIL_FROM_PLATFORM is required in staging/prod"); }
@@ -36,8 +37,9 @@ public class EmailConfiguration {
             return new LogEmailSender(mailbox.isBlank() ? null : java.nio.file.Path.of(mailbox), mapper);
         }
         if (key.isBlank()) { throw new IllegalStateException("SENDGRID_API_KEY is required outside local/test"); }
-        return new SendGridEmailSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper,
+        EmailSender sender = new SendGridEmailSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper,
                 URI.create("https://api.sendgrid.com/v3/mail/send"), key, Duration.ofSeconds(10));
+        return demo.enabled() ? new AllowListEmailSender(sender, demo) : sender;
     }
     @Bean SendGridSignatureVerifier sendGridSignatures(Environment environment, @Value("${email.sendgrid.webhook-public-key:}") String key) {
         if (key.isBlank() && environment.acceptsProfiles(Profiles.of("staging", "prod"))) {

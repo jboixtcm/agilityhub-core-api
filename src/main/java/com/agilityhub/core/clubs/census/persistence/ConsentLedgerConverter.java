@@ -1,12 +1,17 @@
 package com.agilityhub.core.clubs.census.persistence;
 
 import java.util.*;
+import com.agilityhub.core.shared.domain.ConsentGrant;
 import org.springframework.data.mongodb.core.convert.*;
 
 /** Reads legacy S03 consent objects and exposes the canonical append-only ledger through that projection. */
 public class ConsentLedgerConverter implements MongoValueConverter<Map<String,Object>,Object> {
     @Override @SuppressWarnings("unchecked") public Map<String,Object> read(Object value, MongoConversionContext context) {
-        if (value instanceof Map<?,?> map) { return new LinkedHashMap<>((Map<String,Object>)map); }
+        if (value instanceof Map<?,?> map) {
+            var result = new LinkedHashMap<>((Map<String,Object>)map);
+            if (map.get("imageRights") instanceof Map<?,?> image) { result.put("imageRights", ConsentGrant.image((Map<String,Object>)image)); }
+            return result;
+        }
         var result = new LinkedHashMap<String,Object>();
         if (value instanceof List<?> entries) {
             result.put("history",entries);
@@ -14,7 +19,7 @@ public class ConsentLedgerConverter implements MongoValueConverter<Map<String,Ob
                 var row = (Map<String,Object>)entry;
                 if ("PRIVACY_POLICY".equals(row.get("type"))) { result.put("privacyPolicy",row); }
                 if ("IMAGE_USE".equals(row.get("type"))) {
-                    var image = new LinkedHashMap<>(row); image.put("at",row.get("acceptedAt")); result.put("imageRights",image);
+                    result.put("imageRights", ConsentGrant.image(row));
                 }
             }
         }

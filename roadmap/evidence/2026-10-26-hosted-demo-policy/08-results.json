@@ -1,0 +1,154 @@
+{
+  "commandExit": 0,
+  "java": {
+    "classes": [
+      {
+        "name": "com.agilityhub.core.arch.ArchitectureRulesTest",
+        "counts": {
+          "tests": 20,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "18ea0f409e3fe1283172ab00007eba3103ac3f48d855cf2723b51b31295f8942"
+      },
+      {
+        "name": "com.agilityhub.core.arch.ArchitectureTest",
+        "counts": {
+          "tests": 22,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "e81fc1cce49be647e3e195808d09d4fccc16578395d4afe257501cc8da6b2d93"
+      },
+      {
+        "name": "com.agilityhub.core.clubs.messaging.application.AllowListEmailSenderTest",
+        "counts": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "aa412d884cec608e17e3977a13992ac485621d2e5e4f9fd10b42ab9e7c6da19a"
+      },
+      {
+        "name": "com.agilityhub.core.clubs.messaging.application.engine.HostedDemoEmailDeliveryTest",
+        "counts": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "131c1f1f59e872235365660545224b96adf03c3628de40ddf2905e1ac068ef03"
+      },
+      {
+        "name": "com.agilityhub.core.configuration.EmailConfigurationTest",
+        "counts": {
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "719c5c7f17c75f17a42c93c6812282d5f19fedcbc8d812df2ca2a703a39b2a4f"
+      },
+      {
+        "name": "com.agilityhub.core.configuration.HostedDemoConfigurationTest",
+        "counts": {
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "9daf535b07204fdb688a862e90c271d808884dee99c307a392a02d8388855e80"
+      },
+      {
+        "name": "com.agilityhub.core.configuration.MessagingConfigurationTest",
+        "counts": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "3db4005284afed77d318432e86005faee0c71ee5400b9052dfec663fb9d6285d"
+      },
+      {
+        "name": "com.agilityhub.core.payments.application.HostedDemoStripeWebhooksTest",
+        "counts": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "de6711306d461329f90b5026e66d8efb79963044ab2d00905e6d4b738e37595e"
+      },
+      {
+        "name": "com.agilityhub.core.payments.application.StripeWebhookSignaturesSurvivorsTest",
+        "counts": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "b3da488d5ce04b8d9e815445588ddb9b9ee7623e790eb49e9e6583169cfe11f4"
+      },
+      {
+        "name": "com.agilityhub.core.payments.application.StripeWebhookSignaturesTest",
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "0804b6df83ee34fe770313b95818421f095480280bfec8168c663be68d33f500"
+      },
+      {
+        "name": "com.agilityhub.core.payments.application.stripe.StripePaymentProviderSurvivorsTest",
+        "counts": {
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "8936ef8456a6ae3ef9cbfc40614adc5c880c337ac4fc0aa12acf5a5f76c42d50"
+      },
+      {
+        "name": "com.agilityhub.core.payments.application.stripe.StripePaymentProviderTest",
+        "counts": {
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "e4e8205b03ea84ca2e2f8ce2d01b57fc84d1e2764c234108ba486d2cc0976e08"
+      },
+      {
+        "name": "com.agilityhub.core.platform.application.HostedDemoProvidersTest",
+        "counts": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSha256": "89c3df49f8bf93e1a1e99d927a15aa8b0095ef876cf200261b33d4e72f6182f6"
+      }
+    ],
+    "totals": {
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "preflight": {
+    "tests": 22,
+    "exit": 0
+  },
+  "red": {
+    "tests": 9,
+    "failures": 7,
+    "errors": 2,
+    "exit": 1
+  },
+  "diffCheckExit": 0
+}

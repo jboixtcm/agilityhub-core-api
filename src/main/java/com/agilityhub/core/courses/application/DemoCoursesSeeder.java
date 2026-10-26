@@ -142,7 +142,7 @@ public class DemoCoursesSeeder implements DemoSeedStep {
         var out = new ArrayList<ResolvedObstacle>();
         for (int i = 0; i < course.obstacles().size(); i++) {
             var row = row(course, i);
-            out.add(new ResolvedObstacle("obstacle-" + i, row.type(), row.x() + placement.offsetXM(), row.y() + placement.offsetYM(), row.rotation(), List.of(i + 1)));
+            out.add(new ResolvedObstacle("obstacle-" + i, row.type(), row.x() + placement.offsetXM(), row.y() + placement.offsetYM(), row.rotation(), List.of(i + 1), List.of()));
         }
         return out;
     }

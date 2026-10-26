@@ -1,0 +1,9 @@
+[
+  "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh",
+  "./mvnw",
+  "-q",
+  "test-compile",
+  "failsafe:integration-test",
+  "-Dit.test=MigrationReportCheckpointIT,MigrationReportsIT,PlayoffMigrationIT#T_18_16_point2_writeBetweenGuardAndDeletionCannotBeSilentlyLost+T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport",
+  "failsafe:verify"
+]

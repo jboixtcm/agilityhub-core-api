@@ -1,0 +1,43 @@
+
+LocalStack version: 3.8.1
+LocalStack build date: 2024-10-08
+LocalStack build git hash: 529aba7d8
+
+2026-10-24T05:51:49.771  INFO --- [  MainThread] localstack.dns.server      : Unable to determine fallback DNS. Please check if 'localstack.cloud' is reachable by your configured DNS serversDNS fallback will be disabled.
+2026-10-24T05:51:49.772  WARN --- [  MainThread] localstack.dns.server      : Error starting the DNS server: No upstream dns server found.
+2026-10-24T05:51:49.772  WARN --- [  MainThread] localstack.deprecations    : SKIP_INFRA_DOWNLOADS is deprecated (since 1.3.0) and will be removed in upcoming releases of LocalStack! Infra downloads are triggered on-demand now. Please remove this environment variable.
+2026-10-24T05:51:49.776  INFO --- [  MainThread] localstack.utils.ssl       : Unable to download local test SSL certificate from https://api.localstack.cloud/v1/proxy/localstack.cert.key?version=3.8.1 to /var/lib/localstack/cache/server.test.pem (using self-signed cert as fallback): MyHTTPSConnectionPool(host='api.localstack.cloud', port=443): Max retries exceeded with url: /v1/proxy/localstack.cert.key?version=3.8.1 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0xffff833bd290>: Failed to resolve 'api.localstack.cloud' ([Errno -3] Temporary failure in name resolution)"))
+Ready.
+2026-10-24T05:51:52.798  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.ListBuckets => 200
+2026-10-24T05:51:52.953  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.CreateBucket => 200
+2026-10-24T05:51:52.956  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.PutPublicAccessBlock => 200
+2026-10-24T05:51:52.957  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.PutBucketLifecycleConfiguration => 200
+2026-10-24T05:51:53.207  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:51:53.209  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:51:53.210  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:15.523  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:15.537  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:15.541  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:16.858  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:16.861  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:16.863  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:25.013  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:25.028  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:25.033  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:25.376  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.PutObject => 200
+2026-10-24T05:52:26.485  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.HeadObject => 200
+2026-10-24T05:52:26.628  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetObject => 200
+2026-10-24T05:52:32.821  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:32.834  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:32.839  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:33.196  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.PutObject => 200
+2026-10-24T05:52:40.584  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:40.599  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:40.604  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:48.221  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:48.234  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:48.238  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:49.527  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetPublicAccessBlock => 200
+2026-10-24T05:52:49.531  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketVersioning => 200
+2026-10-24T05:52:49.533  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.GetBucketLifecycleConfiguration => 200
+2026-10-24T05:52:49.872  INFO --- [et.reactor-0] localstack.request.aws     : AWS s3.PutObject => 200

@@ -32,6 +32,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class StripeWebhookSignatures {
+    @org.springframework.beans.factory.annotation.Value("${core.hosted-demo.enabled:false}") private boolean hostedDemo;
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
     static final Duration TOLERANCE = Duration.ofMinutes(5);
     static final String FIELD = "webhookSecretEnc";
     private static final Logger LOG = LoggerFactory.getLogger(StripeWebhookSignatures.class);
@@ -47,13 +49,14 @@ public class StripeWebhookSignatures {
     public void authenticate(String clubId, String header, byte[] body) {
         var stripe = providers.stripe(clubId);
         String secret = stripe.map(settings -> secret(clubId, settings)).orElse(null);
-        if (secret != null && valid(header, body, secret, clock.instant())) { return; }
+        if (secret != null && valid(header, body, secret, clock.instant()) && (!hostedDemo || testEvent(body))) { return; }
         // An unknown club is recorded without the path's text.
         securityEvents.record(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID, null, stripe.isPresent() ? clubId : null);
         throw new ApiException(ErrorCode.WEBHOOK_SIGNATURE_INVALID);
     }
 
     private String secret(String clubId, StripeProviderSettings settings) {
+        if (hostedDemo && !"test".equals(settings.mode())) { return null; }
         String stored = settings.webhookSecretEnc();
         if (stored == null || stored.isBlank()) { return null; }
         try {
@@ -64,6 +67,13 @@ public class StripeWebhookSignatures {
             LOG.warn("Stripe webhook secret unusable: clubId={} error={}", clubId, misconfigured.getMessage());
             return null;
         }
+    }
+
+    private static boolean testEvent(byte[] body) {
+        try {
+            var event = JSON.readTree(body);
+            return event != null && event.path("livemode").isBoolean() && !event.path("livemode").booleanValue();
+        } catch (java.io.IOException invalid) { return false; }
     }
 
     /** Stripe's scheme: one `t`, at least one `v1` equal to HMAC-SHA256(secret, "{t}.{body}") in hex, `t` within the tolerance. */

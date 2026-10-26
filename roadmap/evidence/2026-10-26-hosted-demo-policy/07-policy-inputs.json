@@ -1,0 +1,29 @@
+{
+  "files": {
+    ".env.example": "5433d82eb37f6277c4f46b4d4b87e353178042cf6a059621070e876bb1b42db6",
+    ".gitignore": "f2b0301d636f218d5a0655a5a3c53ce9d6f5a74a10451145bf353618f9ea90bf",
+    "CHANGELOG.md": "50a8d8c6f80911fd3ce74df68d2f83ab526fb48c20e3c30138cbea33bef4d1c3",
+    "docs/DEPLOY.md": "1b851544260af8937c51d0e585ab8f738aad50386cb1e2e63d8cdde6b1a841d5",
+    "deploy/.env.prod.example": "505e91027464f4ce7164045a5285bd8750ff3f0f4926ec2d1cb4a1a149bf5272",
+    "deploy/compose.prod.yaml": "cd55d437d01d15ea6ebf6f08a2d7394041a49446ec78bc3a2052c70c634428a0",
+    "deploy/release-preflight.py": "5ed8f882d64b80829b0afe9095974e9f69cbe263777bf3cac3d2f9c59b1a5f9a",
+    "deploy/test_release_preflight.py": "f4b31f9a105ec4198572045d00d6f9110ba20c565cd649cf355e5e5f6c3d4604",
+    "src/main/resources/application.yml": "07c93be20d0d8286c6ace5d4319d921cd5dbc70d1b321912b2fde2b60055b500",
+    "src/main/java/com/agilityhub/core/shared/application/HostedDemoPolicy.java": "db0951574e510f0fbc097bf6c30cc7549af47354fb08089ca9132573507c76e3",
+    "src/main/java/com/agilityhub/core/clubs/messaging/application/AllowListEmailSender.java": "b3c6808b3c66a393d3283beb4a176882490cb06903b011cf76ad5daea66b4789",
+    "src/main/java/com/agilityhub/core/clubs/messaging/application/engine/NotificationDispatcher.java": "dc40e082f2191f72dcd4422f501cc2fa08e44187753d6ee698737e6341fea228",
+    "src/main/java/com/agilityhub/core/configuration/EmailConfiguration.java": "b388c473050070858837291e5f5103d512073a59dc269e25c01c544390b47482",
+    "src/main/java/com/agilityhub/core/configuration/MessagingConfiguration.java": "7c6947477bce365ce13d12793688662eae25d77f1d982c59b549b83fedc1defd",
+    "src/main/java/com/agilityhub/core/payments/application/stripe/StripePaymentProvider.java": "fc47763e3877c7d94242447909185989ea5ebb9d21e75e52bace7d67fb30580d",
+    "src/main/java/com/agilityhub/core/platform/application/PlatformProviders.java": "4347a0edbe8bedcd6920ae56ac604ec5040f0178ab4b448050daca00720e2db8",
+    "src/main/java/com/agilityhub/core/payments/application/StripeWebhookSignatures.java": "5ff0c8dc0825d887023f5ff7d3719e59d02ce51956ebe86c04b6102a8f257d6a",
+    "src/test/java/com/agilityhub/core/configuration/HostedDemoConfigurationTest.java": "a70c5d06f40ac5f218d2c416774100a0a101962e0d6a3051cd837b31986abd7c",
+    "src/test/java/com/agilityhub/core/clubs/messaging/application/AllowListEmailSenderTest.java": "ed62d28ef224b93136be1e0d78cb353c716e367d8883d197c071c7f97fbe8132",
+    "src/test/java/com/agilityhub/core/clubs/messaging/application/engine/HostedDemoEmailDeliveryTest.java": "64c1a2f0168480fa288f0d8a2fc92e920bd66b4a337a2640006fb4618b68a3ac",
+    "src/test/java/com/agilityhub/core/platform/application/HostedDemoProvidersTest.java": "caf4a887a071ad51bf7e17b69dba75b16ff33a78ba75a8abcd0c2960da962319",
+    "src/test/java/com/agilityhub/core/payments/application/HostedDemoStripeWebhooksTest.java": "4022cb2194d6b88e8800a38c0cbd6649d757682633db41dc6b12cba2d573df3d",
+    "src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java": "1399caf3d1af7f3c6d1dd207685318ad9e6c73b0bf3959f864b3b58dd0d9f161"
+  },
+  "count": 23,
+  "scope": "Only files changed by hosted-demo-policy lane; prior unrelated work preserved."
+}

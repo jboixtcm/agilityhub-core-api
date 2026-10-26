@@ -1,0 +1,5462 @@
+{
+  "surefire-reports": {
+    "totals": {
+      "tests": 4948,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "classCount": 474,
+    "allFresh": true,
+    "classes": [
+      {
+        "class": "com.agilityhub.core.arch.ArchitectureRulesTest",
+        "fresh": true,
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.arch.ArchitectureTest",
+        "fresh": true,
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.arch.ClockRuleTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.arch.InvoiceImmutabilityRuleTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.arch.SeedAndWriterRulesTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.cli.CommandSchedulingGuardTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.cli.CoreCliTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.activities.application.ActivityApiServiceTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.activities.domain.ActivityRulesTest",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BookingsControllerSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BookingsControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.InstructorControllerSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.InstructorControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceCallersSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceConsumersSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceContractAccessTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceListQuerySurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceListQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceSheetQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceSheetServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.AttendanceStatusCalculatorTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookableClassesQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingActivityAdapterSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingCancellationServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingChecksSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingConfirmationServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingConfirmationServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingConfirmationServiceTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingConsumersSurvivors3Test",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingConsumersSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingContractAccessSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingEventsSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFactsSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFactsSurvivorsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingOwnersSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingOwnersSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingPortsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingQueryServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingQueryServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingQueryServiceTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingTransactionsSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingViewsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingsAutoConfigurationSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.BookingsAutoConfigurationSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.CensusBookingCancellationsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.ClaimNoShowCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.ClassBookingsAdapterSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.ClassRemindersSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeederSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeederSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoBookingSeederSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoBookingSeederSurvivorsTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoBookingSeederTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoMembersSurvivorsTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoScenarioSeederSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.DemoScenarioSeederSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.HistoryQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.InstructorCardQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.InstructorDayQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.MemberDogsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.MemberHomeQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.NoShowNotificationTextsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.PaymentTimeoutsJobSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.PaymentsPackBalanceAdapterSurvivors2Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.PendingChargeConsumersSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.SeatHoldServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.SingleClassChargesSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumersSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistFifoJobSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistFifoJobSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistOffersQueueTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistServiceSurvivors2Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WaitlistTransitionsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdfSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaQuerySurvivors2Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaQuerySurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.jobs.BookingJobsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePortSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.AttendanceMetricsSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.AttendanceMetricsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.AttendanceTransitionsTest",
+        "fresh": true,
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.AttendanceWindowTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.BookingCalendarTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.BookingEligibilitySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.BookingRulesTest",
+        "fresh": true,
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.HistoryRulesTest",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.domain.WaitlistRulesTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.persistence.AttendanceRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.persistence.BookingRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.persistence.SeatHoldRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.application.CatalogServiceRetryTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.application.InstructorTracesTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.application.OfferTransactionsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccessTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.domain.CapacityCalculatorTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.domain.OfferCalculatorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.persistence.PriceDateConverterTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.persistence.PriceStartupHelpersTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.CensusMigrationServiceTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.CensusValidationTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.ConsentLedgersTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.LifecycleRulesTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.domain.CensusRulesTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.domain.DemoDatasetTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.inactivity.domain.InactivityCalendarTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.application.ExpirationsJobTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.application.ExportFileStoreAdapterTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.application.ExportLifecycleTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.application.ExportStorageTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.application.ListExportTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.domain.ExportNamesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.domain.ForeignEventTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.content.domain.PageContentTest",
+        "fresh": true,
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.dashboard.application.ports.DashboardPortDefaultsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.dashboard.domain.DashboardBuildersTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.api.AttachmentDownloadsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.api.KeyedStatusSourceTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.AttachmentServiceTest",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.FollowupContractAccessTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.FollowupNotificationTextsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.FollowupProjectionTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.FollowupServiceTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.application.FollowupTransactionsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.domain.FollowupRulesTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.persistence.AttachmentStorageTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.ErasureNoticesTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.MessagingApplicationTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.MessagingE7T03UnitTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.MessagingE7T06UnitTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.SendGridEmailSenderTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.SendGridSignatureVerifierTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedChecksTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRendererTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.NotificationMatrixTest",
+        "fresh": true,
+        "tests": 2729,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.NotificationSeedSnapshotTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.RecipientResolverTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.TemplateRendererTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.VariableFormatterTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.integrations.TwilioSmsSenderTest",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.integrations.WebPushSenderTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.ports.MessagingPortsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.domain.ChannelResolverTest",
+        "fresh": true,
+        "tests": 65,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.domain.NotificationLinksTest",
+        "fresh": true,
+        "tests": 41,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.domain.NotificationSpecTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.domain.SmsTextTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.persistence.MessagingDocumentsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.CoverageQueryTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.RiskNotificationTextsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.RiskReviewQueryTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.SchedulingTransactionsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.TemplateQueryTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.ports.SchedulingPortDefaultsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.domain.CalendarRulesTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.persistence.SchedulingPersistenceTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.signup.domain.DogChipsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.signup.domain.SignupCatalogAdapterTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.signup.domain.SignupContactsTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.signup.domain.SignupPaymentsTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.signup.domain.SignupPolicyTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.application.TrainingApplicationTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.application.TrainingSlotLocksTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.domain.TrainingRulesTest",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.AuditConfigurationTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.CiWorkflowTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.DockerfileSeedsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E10ResponseContractTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E2ResponseContractTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E3GateFixesContractTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E3ResponseContractTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E4ResponseContractTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E5BackOfficeContractTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E5ResponseContractTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E5RouteParityTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E6ResponseContractTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E7ResponseContractTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E8ResponseContractTest",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E9ResponseContractTest",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.EmailConfigurationTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.JwtConfigurationTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.ListContractValidationTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.ListItemCopiesContractTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.LogPrivacyTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.MessagingConfigurationTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.MongoTimeoutConfigurationTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.NullableReferencesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.OidcClientConfigurationTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.OpenApiConfigurationTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.OpenApiNullableEnumContractTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.OpenApiRequiredContractTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.ProfileConfigurationTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.S04ErrorContractTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.S08MemberFlowContractTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.SchedulerSeparationTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.SecurityRetentionConfigurationTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.SeedProfileTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.SentryCaptureTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.SentryPropertiesBindingTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.TestClockProfileGuardTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.TestDnsProfileGuardTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.TrustedProxyConfigurationTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.TtlIndexRaceTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.UriReferenceContractTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.BuildSessionStreamsTest",
+        "fresh": true,
+        "tests": 56,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.application.BuildSessionExportTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.application.CourseListingTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.application.CourseSchemasTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.application.DemoCoursesSeederTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.application.RingSetupLabelsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.domain.BuildSessionRulesTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.domain.CourseModelFactsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.domain.PlacementRulesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.domain.RingGeometryRulesTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.domain.RingSetupRulesTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.persistence.CourseJsonConverterTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.AuthControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.CurrentUserFilterSupportTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.MeControllerSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.MeControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.OAuthControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.PasswordGrantConverterSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.PasswordGrantConverterTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.RefreshCookiesTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.AccountEmailServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.AccountServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.AccountServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.AuthSettingsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.CensusIdentityServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.CensusIdentityServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ClubAccountServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ClubAdminServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.CompromisedPasswordsSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.CompromisedPasswordsSurvivors4Test",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.CompromisedPasswordsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.CompromisedPasswordsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ConsoleAdministratorsSurvivors3Test",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ConsoleInvitationConsumerSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.DemoIdentityServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.DemoPlatformAccountsSeederSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.GrantPlatformAdminCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.HandoffServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.IdentityTransactionsSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ImpersonationServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ImportLearnCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.ImportLearnCommandTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.LearnCsvSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.LearnCsvTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.LearnImportReportSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.LearnImportServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.MagicLinkServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.MagicLinkServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.MembershipServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.MembershipServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.MigrationIdentityServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.MigrationWelcomeDeliveryTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.OidcServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.OidcServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.OnboardingServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.PasswordHasherTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.PasswordServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.PlatformRoleServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.RotateKeysCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.SeedPasswordPolicySurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.SeedTestAccountsCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.SigningKeysSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.SignupIdentityServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.SignupLinksSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.SupportAccessServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.TeamMembershipServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.TeamMembershipServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.TokenServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.domain.EmailNormalisationTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.domain.IdentityEventSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.domain.ImpersonationEventSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.domain.LoginLockoutTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.domain.SupportAccessEventsSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.domain.TeamMembershipChangedSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.AccountRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.AccountSessionRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.AccountSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.HandoffCodeSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.MagicLinkTokenRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.MagicLinkTokenSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.MembershipRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.OidcStateRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.OidcStateSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.RefreshTokenRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.RefreshTokenSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.persistence.SigningKeyRingSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.InputManifestTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationApplyStepsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationCensusStepsTest",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationReportCleanupTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationReportCommandTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationReportsTest",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationStepsTest",
+        "fresh": true,
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.PlayoffAdapterTest",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.PlayoffAnonymizerPathsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.PlayoffExecutionCommandTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.ReapplyApprovalTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.S3MigrationReportStoreTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.application.MigrationPhotoFetcherTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.application.MigrationResetServiceTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.application.MigrationWelcomeCommandTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.application.PlayoffPlannerDatesTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.BillingControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.BillingViewsSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.CheckoutContractsSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.InvoicesControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.MemberBillingControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.MyBillingControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.PackBalancesControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.RemittancesControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.UpfrontPaymentsControllerSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.AccountingListsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BankAccountVaultTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingContractAccessSurvivorsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingEventsSurvivors2Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingExpirationsSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingMigrationAccessSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingQueriesSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingReminderJobSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingRunServiceSurvivors2Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingRunServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingRunServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingSimulationServiceSurvivors2Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingSimulationServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingTextsSurvivors2Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingTextsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingTransactionsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.BillingTransactionsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.CardPaymentsSurvivorsTest",
+        "fresh": true,
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.CheckoutProviderFailureTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.CheckoutServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.CheckoutServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.ConsolePaymentValidationSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.ConsolePaymentValidationTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.FakePaymentProviderSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.FakeProviderCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.FakeWebhookCommandSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.FakeWebhookCommandTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.InvoiceActionsSurvivorsTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.InvoiceListsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.InvoicingServiceSurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.InvoicingServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.ManualUpfrontPaymentsSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.MemberPlanChangeServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PackAuditLoaderSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PackBalanceServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PackViewsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentAuditsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentBookingCancellationsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentCheckoutsSurvivorsTest",
+        "fresh": true,
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentPrivacySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentProviderContractTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentProviderRegistrySurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentProviderSelectionTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentProviderSurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentRefundsSurvivors3Test",
+        "fresh": true,
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest",
+        "fresh": true,
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentRetryPolicySurvivors3Test",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PaymentRetryPolicySurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.PendingChargeServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.ReceiptPdfSurvivorsTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.RemittanceListsSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.RemittanceServiceSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.StripeWebhookSignaturesSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.StripeWebhookSignaturesTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.UpfrontPaymentsSurvivorsTest",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.packs.PackBalanceServiceTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.ports.BillingPortDefaultsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.sepa.Pain008DocumentSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest",
+        "fresh": true,
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.stripe.StripeCallsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.stripe.StripePaymentProviderSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.application.stripe.StripePaymentProviderTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.CapturedPaymentLedgerTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.InvoiceAmountsSurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.InvoiceArithmeticTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.InvoicingRulesSurvivorsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.InvoicingRulesTest",
+        "fresh": true,
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.PaymentIntentLedgerSurvivors3Test",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.PaymentIntentLedgerTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.PendingChargeRulesSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.SepaDirectDebitsSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.SepaDirectDebitsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.SepaTextSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.domain.SignupPaymentEventSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.BillingDocumentsSurvivorsTest",
+        "fresh": true,
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.CollectionSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.PaymentOperationRepositorySurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.PaymentOperationRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.PaymentRetryStateSurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.SignupCheckoutRepositorySurvivorsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.StripeInboxSurvivorsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.persistence.UpfrontPaymentRepositorySurvivors3Test",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.ClubCorsConfigurationSourceTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.RequiresModuleInterceptorTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.BillingProviderSettingsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ClubConfigServiceTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ClubEmailSettingsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ClubFormatsTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ClubLocaleSettingsProviderTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ConsoleTransactionsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.CountryCsvTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ModuleCatalogContractTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ModuleDependencyValidatorTest",
+        "fresh": true,
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.ParameterCatalogContractTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.PaymentProviderFlagsTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.PlatformClubLocalizedTextTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.audit.AuditContractTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.audit.AuditWriterTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.audit.AuditedAspectTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.definition.ClubDefinitionCodecTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.definition.DemoClubDefinitionTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.definition.TemplateClubSeedTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.jobs.JobCatalogContractTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.jobs.JobOccurrencesTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.jobs.JobViewsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.ErasureEligibilityTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.ErasureExecutorTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.ErasurePolicyTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.ErasureServiceTest",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.MemberDataPackageTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.PrivacyJobsTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.domain.ConsoleThemeRulesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.domain.CountryProfileTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.domain.HostNamesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.domain.ParameterValidatorTest",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.domain.audit.AuditDiffTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.domain.audit.AuditReadMaskerTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.persistence.JndiDomainDnsTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.AnonymousRateLimitsTest",
+        "fresh": true,
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.ApiExceptionHandlerTest",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.HealthControllerTest",
+        "fresh": true,
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.IdempotencyFilterBuildSessionRoutesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.IdempotencyFilterFollowupRoutesTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.RequestLocaleResolverTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.RequestTraceFilterTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.SignedFileRequestsTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.TenantFilterTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.CacheLoadsTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.ClubClockTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.DemoSeedActorTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.ErrorMessagesRegisterTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.HandlerStatusTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.IcuFormatTest",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.LocalLanesTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.LocaleContextTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.MessageParityTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.OffsetClockTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.RateLimitsTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.TenantContextTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.TransactionRetriesTest",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.application.lists.ListQueryTest",
+        "fresh": true,
+        "tests": 36,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.ConsentGrantTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.ErrorCatalogContractTest",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.EventCatalogContractTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.LocalizedTextTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.MoneyTest",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.SepaCreditorIdentifierTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.persistence.TenantWriteTrackingTest",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.support.FixturesTest",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.support.MockClockTest",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "failsafe-reports": {
+    "totals": {
+      "tests": 2308,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "classCount": 174,
+    "allFresh": true,
+    "classes": [
+      {
+        "class": "com.agilityhub.core.clubs.activities.application.ActivityConcurrencyIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.activities.application.ActivityIT",
+        "fresh": true,
+        "tests": 36,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.activities.application.ActivityRealCoreFollowUpsIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.AttendanceIT",
+        "fresh": true,
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BackOfficeContractIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BookingConcurrencyIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BookingJobsIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BookingLanesOffIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.BookingsIT",
+        "fresh": true,
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.ClassFinishingJobIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.CleanupJobIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.E8LeaveProcessesIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.InstructorAggregatesIT",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.JobsApiIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.LifecycleConcurrencyIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.LifecycleCurlIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.LifecycleIT",
+        "fresh": true,
+        "tests": 46,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.LifecycleMenuIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.MemberAggregatesIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.MemberFlowContractIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.NoShowNoticesJobIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.NotificationActionsIT",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.RemindersJobIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.RiskReviewJobIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.SingleClassCheckoutIT",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.WaitlistIT",
+        "fresh": true,
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.bookings.api.WeekOpeningJobIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.api.CatalogsIT",
+        "fresh": true,
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.api.PlansIT",
+        "fresh": true,
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.api.TeamIT",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.CensusIT",
+        "fresh": true,
+        "tests": 64,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT",
+        "fresh": true,
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupGateFixesIT",
+        "fresh": true,
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupIT",
+        "fresh": true,
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupMinorFixesIT",
+        "fresh": true,
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupS3UploadIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT",
+        "fresh": true,
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoAttendanceSeedIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoBillingSeedIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoScenarioSeedIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoSeedRetryIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoSeedsIT",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.SealIbansCommandIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.persistence.CensusForeignOwnedIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.api.ExportEngineIT",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.common.api.UniversalListsIT",
+        "fresh": true,
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.content.api.ClubPagesIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.dashboard.api.DashboardIT",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.followup.api.FollowupIT",
+        "fresh": true,
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.AnnouncementsIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.EmailUnsubscribeIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.InfoScreenIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.NotificationFeedIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.NotificationLogIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.SendGridWebhookIT",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT",
+        "fresh": true,
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT",
+        "fresh": true,
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.TemplateUpgradeIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.CalendarIT",
+        "fresh": true,
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.scheduling.application.PlanningIT",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.api.TrainingConcurrencyIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.api.TrainingIT",
+        "fresh": true,
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.api.TrainingLanesOffIT",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E10ContractIT",
+        "fresh": true,
+        "tests": 44,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E2ContractIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E3ContractIT",
+        "fresh": true,
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E4ContractIT",
+        "fresh": true,
+        "tests": 64,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E4PersistenceIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E5ContractIT",
+        "fresh": true,
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E5PersistenceIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E6ContractIT",
+        "fresh": true,
+        "tests": 31,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E6PersistenceIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E7ContractIT",
+        "fresh": true,
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E7PersistenceIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E8ContractIT",
+        "fresh": true,
+        "tests": 73,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E8PersistenceIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E9ContractIT",
+        "fresh": true,
+        "tests": 65,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.E9PersistenceIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.ListFieldsContractIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.ManagementIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.MongoTransactionSmokeIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.ResponseNullabilityIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.SecurityInventoryIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.StoredRepresentationIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.configuration.TtlIndexUpgradeIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.BuildSessionsIT",
+        "fresh": true,
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.CourseLibraryIT",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.PlacementsIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.RingGeometryIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.RingSetupsIT",
+        "fresh": true,
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.api.VenueSlugRaceIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.courses.application.DemoCoursesSeedIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.ConsoleProductHostIT",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.CookieRefreshIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.CorsIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.IdentityContractIT",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.IdentityCoreIT",
+        "fresh": true,
+        "tests": 32,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.IdentityCurlIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.ImpersonationHandoffIT",
+        "fresh": true,
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.LearnImportIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.MeIT",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.MongoRequestTimeoutIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.OidcIT",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.OnboardingIT",
+        "fresh": true,
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.PasswordGrantIT",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.PlatformRolesIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.RateLimitIT",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.RefreshGraceChainGuardIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.SecurityEventHashIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.SecurityEventIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.SecurityHardeningIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.SecurityHeadersIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.SeedTestAccountsIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.api.TokenScopeIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.identity.application.DemoPlatformAccountsSeedIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationExecutionIT",
+        "fresh": true,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationReportCheckpointIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationReportsIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationStagedImportIT",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.MigrationWelcomeIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.PlayoffMigrationIT",
+        "fresh": true,
+        "tests": 51,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.AccountingExportIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.BillingCycleIT",
+        "fresh": true,
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.BillingFollowupsIT",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT",
+        "fresh": true,
+        "tests": 85,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.CardPaymentsIT",
+        "fresh": true,
+        "tests": 119,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.E8ScheduledProcessesIT",
+        "fresh": true,
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.InvoiceActionsIT",
+        "fresh": true,
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.InvoiceNumberingIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.MemberNextInvoiceDateIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.PaymentCurlIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.PendingChargesIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.payments.api.RemittancesIT",
+        "fresh": true,
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.AuditQueriesIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.ConsoleProviderLockIT",
+        "fresh": true,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.DomainRecheckIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.PlatformConsoleIT",
+        "fresh": true,
+        "tests": 43,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.PlatformDomainsIT",
+        "fresh": true,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.PublicApiKeyIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.RequiresModuleIT",
+        "fresh": true,
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.SettingsIT",
+        "fresh": true,
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.SupportAccessIT",
+        "fresh": true,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.api.TemplateClubCatalogsIT",
+        "fresh": true,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.CacheInvalidationRaceIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.audit.AuditedAspectIT",
+        "fresh": true,
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.definition.ClubDefinitionsIT",
+        "fresh": true,
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.jobs.JobFrameworkIT",
+        "fresh": true,
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.jobs.JobFrameworkTwoInstancesIT",
+        "fresh": true,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.persistence.PlatformIT",
+        "fresh": true,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.privacy.ErasureIT",
+        "fresh": true,
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.privacy.MemberDataExportIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.privacy.RetentionSweepIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.HealthIndependenceIT",
+        "fresh": true,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.IdempotentReplayContractIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.ResponseLocaleIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.TrustedProxyClientIpIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.api.UntrustedPeerClientIpIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.persistence.IdempotencyIT",
+        "fresh": true,
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.persistence.OutboxIT",
+        "fresh": true,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.persistence.TenantWriteTrackingIT",
+        "fresh": true,
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.support.IntegrationTestSupportIT",
+        "fresh": true,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "changedClasses": [
+    {
+      "class": "com.agilityhub.core.cli.CommandSchedulingGuardTest",
+      "fresh": true,
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest",
+      "fresh": true,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.clubs.census.application.ConsentLedgersTest",
+      "fresh": true,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.configuration.TtlIndexRaceTest",
+      "fresh": true,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.identity.application.MigrationWelcomeDeliveryTest",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.InputManifestTest",
+      "fresh": true,
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationApplyStepsTest",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationCensusStepsTest",
+      "fresh": true,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportCleanupTest",
+      "fresh": true,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportCommandTest",
+      "fresh": true,
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportsTest",
+      "fresh": true,
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationStepsTest",
+      "fresh": true,
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.PlayoffAdapterTest",
+      "fresh": true,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.PlayoffAnonymizerPathsTest",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.PlayoffExecutionCommandTest",
+      "fresh": true,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.ReapplyApprovalTest",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.S3MigrationReportStoreTest",
+      "fresh": true,
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.application.MigrationWelcomeCommandTest",
+      "fresh": true,
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.platform.application.definition.DemoClubDefinitionTest",
+      "fresh": true,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.shared.domain.ConsentGrantTest",
+      "fresh": true,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.clubs.census.api.CensusIT",
+      "fresh": true,
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT",
+      "fresh": true,
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.clubs.census.application.DemoSeedsIT",
+      "fresh": true,
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.courses.api.PlacementsIT",
+      "fresh": true,
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.courses.api.RingSetupsIT",
+      "fresh": true,
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationExecutionIT",
+      "fresh": true,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportCheckpointIT",
+      "fresh": true,
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationReportsIT",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationStagedImportIT",
+      "fresh": true,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.MigrationWelcomeIT",
+      "fresh": true,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.agilityhub.core.migration.PlayoffMigrationIT",
+      "fresh": true,
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "missingChangedClasses": [],
+  "exitCode": 0
+}

@@ -1,0 +1,102 @@
+{
+  "before": {
+    "members": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "dogs": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "family_groups": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "accounts": {
+      "count": 15,
+      "sha256Prefix": "540bf41d86a6a5ee"
+    },
+    "memberships": {
+      "count": 15,
+      "sha256Prefix": "e0327dabe3ffae94"
+    },
+    "migration_runs": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "invoices": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "pack_balances": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "notifications": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "magic_link_tokens": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "audit_entries": {
+      "count": 38,
+      "sha256Prefix": "81347f2cb707417d"
+    },
+    "domain_events": {
+      "count": 73,
+      "sha256Prefix": "9ab78e7882887abb"
+    }
+  },
+  "after": {
+    "members": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "dogs": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "family_groups": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "accounts": {
+      "count": 18,
+      "sha256Prefix": "b4b8a0cc451e012a"
+    },
+    "memberships": {
+      "count": 18,
+      "sha256Prefix": "76c30ce386eeae96"
+    },
+    "migration_runs": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "invoices": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "pack_balances": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "notifications": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "magic_link_tokens": {
+      "count": 0,
+      "sha256Prefix": "4f53cda18c2baa0c"
+    },
+    "audit_entries": {
+      "count": 39,
+      "sha256Prefix": "4586431f4d569241"
+    },
+    "domain_events": {
+      "count": 84,
+      "sha256Prefix": "f414535c7f1c0047"
+    }
+  }
+}

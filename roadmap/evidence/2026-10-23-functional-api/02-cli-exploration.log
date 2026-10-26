@@ -1,0 +1,14 @@
+FAIL seed-canic exit
+FAIL seed-other exit
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/2026-10-23-functional-api/run-cli-exploration.py", line 181, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/2026-10-23-functional-api/run-cli-exploration.py", line 118, in main
+    club=js('db.clubs.findOne({slug:"canic"})._id')
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/2026-10-23-functional-api/run-cli-exploration.py", line 65, in js
+    result = shell(["docker", "exec", mongo, "mongosh", "--quiet", "functional", "--eval", "JSON.stringify("+expression+")"])
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/2026-10-23-functional-api/run-cli-exploration.py", line 28, in shell
+    raise RuntimeError(f"{command[0]} {command[1]} failed: {result.stderr[-300:]}")
+RuntimeError: docker exec failed: TypeError: Cannot read properties of null (reading '_id')
+

@@ -1,0 +1,146 @@
+[
+  {
+    "case": "strict bucket preconditions",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "seed-canic exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "production-dry exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "production dry-run exact zero writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "production-report-outage exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "report outage leaves completed migration",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "recovery guidance says report only",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "outage reached actual S3 PutObject",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "report-only-recovery exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "recovery changes no business documents",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "recovery publishes existing run pointer",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "recovered XLSX valid archive",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "report encrypted private unversioned object",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "report retention30 days",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "report-only-repeat exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "repeated report recovery exact zero writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "unapproved-production-repeat exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "production repeat requires approval before writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "approved-reapply exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "approved reapply adds immutable completed attempt",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "approved reapply updates mapped fictional name",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "approved repeat adds no duplicate census/accounts",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "stale-approval exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "stale approval refuses before any writes",
+    "passed": true,
+    "detail": {}
+  }
+]

@@ -47,6 +47,7 @@ public final class SystemEmailRenderer {
                     formats.formatDuration(Duration.ofMinutes(Set.of("N-02","N-39").contains(code) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
         }
         String key = "notif." + code;
+        if (code.equals("N-02") && "MIGRATED".equals(variables.get("variant"))) { key += ".migrated"; }
         String title = messages.format(key + ".title", variables, locale);
         String body = messages.format(key + ".body", variables, locale);
         String action = messages.format("email.layout.signIn", Map.of(), locale);

@@ -1,0 +1,57 @@
+{
+  "surefire-reports": {
+    "classes": [
+      {
+        "class": "com.agilityhub.core.clubs.census.application.ConsentLedgersTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.shared.domain.ConsentGrantTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.definition.DemoClubDefinitionTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "totals": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "failsafe-reports": {
+    "classes": [
+      {
+        "class": "com.agilityhub.core.clubs.census.api.CensusIT",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.application.DemoSeedsIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "totals": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

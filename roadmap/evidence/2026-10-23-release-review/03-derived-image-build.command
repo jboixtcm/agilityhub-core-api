@@ -1,0 +1,1 @@
+docker build --pull=false -t ghcr.io/jboixtcm/agilityhub-core-api:release-audit-no-pebble -f /Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/2026-10-23-release-review/derived-image.Dockerfile .

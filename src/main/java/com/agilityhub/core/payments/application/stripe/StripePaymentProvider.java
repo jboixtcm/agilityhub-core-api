@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 /** ADR-009: requests use only the open club's own account; no global SDK key and no Stripe Connect account header. */
 @Component
 public class StripePaymentProvider implements PaymentProvider {
+    @org.springframework.beans.factory.annotation.Value("${core.hosted-demo.enabled:false}") private boolean hostedDemo;
     @org.springframework.beans.factory.annotation.Autowired private java.time.Clock clock;
     private final ClubPaymentProviders settings;
     private final ProviderSecretVault vault;
@@ -30,6 +31,7 @@ public class StripePaymentProvider implements PaymentProvider {
         String club = TenantContext.require();
         var config = settings.stripe(club).orElseThrow(() -> new PaymentNotSubmitted(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED));
         if (requireEnabled && !config.enabled()) { throw new PaymentNotSubmitted(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
+        if (hostedDemo && !"test".equals(config.mode())) { throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID); }
         String key;
         try { key = vault.decrypt(config.secretKeyEnc(), club, "STRIPE", "secretKeyEnc"); }
         catch (RuntimeException invalid) { throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID); }

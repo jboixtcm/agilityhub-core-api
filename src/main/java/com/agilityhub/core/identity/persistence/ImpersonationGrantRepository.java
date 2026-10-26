@@ -62,7 +62,7 @@ public class ImpersonationGrantRepository extends TenantRepository<Impersonation
         // Round 2: an index that holds the name the retention index is created with goes too, whatever its key.
         var existing = indexes.getIndexInfo().stream().filter(index -> index.getName().equals(RETENTION_INDEX) || onExpiresAt(index)).toList();
         if (existing.size() == 1 && onExpiresAt(existing.getFirst()) && existing.getFirst().getExpireAfter().equals(java.util.Optional.of(RETENTION))) { return; }
-        existing.forEach(index -> indexes.dropIndex(index.getName()));
+        existing.forEach(index -> com.agilityhub.core.shared.application.IndexDrops.ifPresent(indexes, index.getName()));
         indexes.createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(RETENTION).named(RETENTION_INDEX));
     }
     private static boolean onExpiresAt(org.springframework.data.mongodb.core.index.IndexInfo index) {

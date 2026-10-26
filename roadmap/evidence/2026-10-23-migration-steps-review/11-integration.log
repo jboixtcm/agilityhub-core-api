@@ -1,0 +1,307 @@
+22:35:03.035 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationStagedImportIT]: MigrationStagedImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:35:03.117 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationStagedImportIT
+22:35:03.148 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.MigrationStagedImportIT]: MigrationStagedImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:35:03.148 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:35:03.150 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.MigrationStagedImportIT
+22:35:03.181 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:35:03.182 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:35:03.187 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+22:35:03.276 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:35:03.434 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:35:03.435 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:35:03.445 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:35:03.776 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+22:35:03.814 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:35:03.869 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 26e75979693dbc7fbc54bca8d976aaf835069c623f74deade666f507a7c59ed7
+22:35:04.034 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.257869S
+22:35:04.038 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:35:04.038 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:35:04.038 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:35:04.038 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:35:04.075 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 5be8713d6465115148b3f7e25cc5bd5d2c30eb4bbdd3463b2466b922e7182290
+22:35:04.550 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.511476S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-23T22:35:05.195+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : Starting MigrationStagedImportIT using Java [redacted] with PID 97385 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-23T22:35:05.196+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-23T22:35:06.025+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-23T22:35:06.073+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 44 ms. Found 0 MongoDB repository interfaces.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-23T22:35:06.926+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5304ac92], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@71669835, com.mongodb.Jep395RecordCodecProvider@727d937a, com.mongodb.KotlinCodecProvider@130901fd, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:55150], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@659f5f32], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-23T22:35:06.935+02:00 INFO  [cluster-6adbc4fa5f75bb71b0fd0cd7-localhost:55150] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:55150, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10695917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=5be8713d6465:27017, hosts=[5be8713d6465:27017], passives=[], arbiters=[], primary='5be8713d6465:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6adbc4f8ae2f3d6abc60d71e, counter=6}, lastWriteDate=Fri Oct 23 22:35:04 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-23T22:35:07.987+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:08.002+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:08.021+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:08.580+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:08.591+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:08.603+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:08.658+02:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-23T22:35:11.955+02:00 INFO  [main] c.a.c.migration.MigrationStagedImportIT traceId= clubId= accountId= : Started MigrationStagedImportIT in 6.889 seconds (process running for 9.243)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 9827e1ea-62a5-4cbe-b3be-a8999b47df91
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: c5ea405190000ed346072806a124e59bdc7dcd686b3d9abeeddcc01848133ddc
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: daa137bd-fd62-4da0-9e1c-3cfca460fafe
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: c5ea405190000ed346072806a124e59bdc7dcd686b3d9abeeddcc01848133ddc
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: 3a163a4dbfb6afe836dcbbf20c75e0514b00f2bb9c0760dbebb0a90ade8ff3e0
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 4]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 7]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 9]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: 01c41f7e-bb17-44d1-bc46-2575e8bf3fb6
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 138ec26a1523bb3aad3f7bf3c5486e2016ea435fd2f8078eef05e442c98381da
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 48c53457-feb2-4751-9af9-75146b2ff7da
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 158 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 46aee750-57b7-471a-a9d2-ff0d75c63f23
+Migration run requiring review: 46aee750-57b7-471a-a9d2-ff0d75c63f23; step 4
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 49e78afe-e917-45b7-8ed9-673235a0dbe3
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: 10a435a8-b6f3-4a79-9b5b-a91bb8aaeca2
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: 9edadd537b5dc166aafbeee56b17b4a8870e0329e06a1602fe5210af8b1f0fb1
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-02; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4]
+Migration run: 19d249c0-2675-4cb7-a35f-16554d0e8774
+Migration completed steps: [1, 2, 3, 4]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 208f0659-8ace-4bec-9b77-70f87a4681ff
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: cc8ca8de-94ce-40c5-a530-fd2499178ff9
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 5266cc6d-5f0b-40d0-b35a-48556f4b48f4
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration input manifest SHA-256: 52501ac1bc0a2994338f6b7229590e32a638b83a725b08bf3bb9be700976c331
+Migration cut-over: 2026-09-01; selected steps: [1, 7]
+Migration input manifest SHA-256: 52501ac1bc0a2994338f6b7229590e32a638b83a725b08bf3bb9be700976c331
+Migration cut-over: 2026-09-01; selected steps: [1, 8]
+Migration input manifest SHA-256: 52501ac1bc0a2994338f6b7229590e32a638b83a725b08bf3bb9be700976c331
+Migration cut-over: 2026-09-01; selected steps: [1, 3, 4, 5, 6, 7, 8, 9]
+Migration run: 54a0a748-2d3a-4f72-be3f-c7c032fdcb8f
+Migration run requiring review: 54a0a748-2d3a-4f72-be3f-c7c032fdcb8f; step 8
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: 9067684177836bb9adb0cf5559b1babf55e357b953043caf6bac5c3bf39a4550
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 8f851fe9-815a-4f04-85fc-af203dc57dd8
+Migration run requiring review: 8f851fe9-815a-4f04-85fc-af203dc57dd8; step 7
+Migration input manifest SHA-256: 9067684177836bb9adb0cf5559b1babf55e357b953043caf6bac5c3bf39a4550
+Migration cut-over: 2026-09-01; selected steps: [1, 7, 8, 9, 10]
+Migration run: 47b9d871-e181-4bf7-8d4d-35d5ab6168fe
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e45ee577e7d64a4cfdaf5b0daf0be0e8676d4f401d602986fe8ce080c7646fe1
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 14a702cf-18b3-4c7c-bd20-ece2eaca8547
+Migration run requiring review: 14a702cf-18b3-4c7c-bd20-ece2eaca8547; step 3
+Migration input manifest SHA-256: e45ee577e7d64a4cfdaf5b0daf0be0e8676d4f401d602986fe8ce080c7646fe1
+Migration cut-over: 2026-09-01; selected steps: [1, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: 03cd46a8-6dff-4752-b193-c31cf39679f5
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: ec1e5273-7726-4409-98ae-c28efc7bd7bb
+Migration run requiring review: ec1e5273-7726-4409-98ae-c28efc7bd7bb; step 10
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 10]
+Migration run: e7f13d70-09e9-49d8-a8c6-cbeb761ff665
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+E5-T07 outbox backlog discarded before MigrationStagedImportIT: 160 PENDING records (more than one dispatch() batch)
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3]
+Migration run: 987971f5-cea1-4d53-b929-a2dc6c68ab36
+Migration completed steps: [1, 2, 3]
+Migration input manifest SHA-256: e2fa529262eeca947ba249c1ff4fdae796fd3c698da9a0de43c70f1076609694
+Migration cut-over: 2026-09-01; selected steps: [1, 4, 5, 6, 7, 8, 9, 10]
+Migration run: dfff21af-ade3-401f-b3c7-d41f69dbb859
+Migration completed steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+[ERROR] Tests run: 11, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 28.75 s <<< FAILURE! -- in com.agilityhub.core.migration.MigrationStagedImportIT
+[ERROR] com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_billingForANewMergedSourceAliasRequiresThePersonStep -- Time elapsed: 2.346 s <<< ERROR!
+org.springframework.data.mapping.model.MappingInstantiationException: Failed to instantiate com.agilityhub.core.clubs.catalogs.persistence.Plan using constructor public com.agilityhub.core.clubs.catalogs.persistence.Plan(java.lang.String,java.lang.String,java.lang.String,com.agilityhub.core.shared.domain.LocalizedText,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$PlanType,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$BillingMode,int,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$EntryFee,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$Pack,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$SingleClass,com.agilityhub.core.shared.domain.LocalizedText,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$Texts,boolean,boolean,int,boolean,long,java.time.Instant,java.time.Instant,java.lang.String,java.lang.String) with arguments PACK10,staged-migration-test,PACK10,null,PACK,MONTHLY_FEE,1,null,Pack[sessions=10, validityMonths=6],null,null,null,null,null,null,true,null,null,null,null,null
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:301)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:95)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:578)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:530)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:462)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:458)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:128)
+	at org.springframework.data.mongodb.core.MongoTemplate$ReadDocumentCallback.doWith(MongoTemplate.java:3488)
+	at org.springframework.data.mongodb.core.MongoTemplate.executeFindOneInternal(MongoTemplate.java:3069)
+	at org.springframework.data.mongodb.core.MongoTemplate.doFindOne(MongoTemplate.java:2710)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:896)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:883)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at org.springframework.data.mongodb.core.MongoTemplate$$SpringCGLIB$$0.findOne(<generated>)
+	at com.agilityhub.core.shared.persistence.TenantRepository.findById(TenantRepository.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:135)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.agilityhub.core.clubs.catalogs.persistence.PlanRepository$$SpringCGLIB$$0.findById(<generated>)
+	at com.agilityhub.core.clubs.catalogs.application.BillingCatalogAccess.pack(BillingCatalogAccess.java:32)
+	at com.agilityhub.core.payments.application.PackBalanceService.openMigrated(PackBalanceService.java:43)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.agilityhub.core.payments.application.PackBalanceService$$SpringCGLIB$$0.openMigrated(<generated>)
+	at com.agilityhub.core.payments.application.BillingMigrationAccess.pack(BillingMigrationAccess.java:49)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.lambda$importDirectory$3(MigrationStagedImporter.java:102)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.lambda$batches$19(MigrationStagedImporter.java:243)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.lambda$write$20(MigrationStagedImporter.java:254)
+	at org.springframework.transaction.support.TransactionOperations.lambda$executeWithoutResult$0(TransactionOperations.java:68)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:137)
+	at org.springframework.transaction.support.TransactionOperations.executeWithoutResult(TransactionOperations.java:67)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.write(MigrationStagedImporter.java:251)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.batches(MigrationStagedImporter.java:243)
+	at com.agilityhub.core.migration.application.MigrationStagedImporter.importDirectory(MigrationStagedImporter.java:102)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:155)
+	at com.agilityhub.core.migration.MigrationStagedImportIT.execute(MigrationStagedImportIT.java:83)
+	at com.agilityhub.core.migration.MigrationStagedImportIT.T_18_13_billingForANewMergedSourceAliasRequiresThePersonStep(MigrationStagedImportIT.java:271)
+Caused by: java.lang.IllegalArgumentException: Parameter showOnSignup must not be null
+	at org.springframework.util.Assert.notNull(Assert.java:182)
+	at com.agilityhub.core.clubs.catalogs.persistence.Plan__Instantiator_wi5mhv.newInstance(Unknown Source)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:299)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:95)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:578)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:530)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:462)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:458)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:128)
+	at org.springframework.data.mongodb.core.MongoTemplate$ReadDocumentCallback.doWith(MongoTemplate.java:3488)
+	at org.springframework.data.mongodb.core.MongoTemplate.executeFindOneInternal(MongoTemplate.java:3069)
+	at org.springframework.data.mongodb.core.MongoTemplate.doFindOne(MongoTemplate.java:2710)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:896)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:883)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at org.springframework.data.mongodb.core.MongoTemplate$$SpringCGLIB$$0.findOne(<generated>)
+	at com.agilityhub.core.shared.persistence.TenantRepository.findById(TenantRepository.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:135)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.agilityhub.core.clubs.catalogs.persistence.PlanRepository$$SpringCGLIB$$0.findById(<generated>)
+	at com.agilityhub.core.clubs.catalogs.application.BillingCatalogAccess.pack(BillingCatalogAccess.java:32)
+	at com.agilityhub.core.payments.application.PackBalanceService.openMigrated(PackBalanceService.java:43)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.agilityhub.core.payments.application.PackBalanceService$$SpringCGLIB$$0.openMigrated(<generated>)
+	at com.agilityhub.core.payments.application.BillingMigrationAccess.pack(BillingMigrationAccess.java:49)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:733)
+	at org.mockito.internal.util.reflection.InstrumentationMemberAccessor$Dispatcher$ByteBuddy$civoz8qX.invokeWithArguments(Unknown Source)
+	at org.mockito.internal.util.reflection.InstrumentationMemberAccessor.invoke(InstrumentationMemberAccessor.java:265)
+	at org.mockito.internal.util.reflection.ModuleMemberAccessor.invoke(ModuleMemberAccessor.java:55)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.tryInvoke(MockMethodAdvice.java:333)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice$RealMethodCall.invoke(MockMethodAdvice.java:253)
+	at org.mockito.internal.invocation.InterceptedInvocation.callRealMethod(InterceptedInvocation.java:142)
+	at org.mockito.internal.stubbing.answers.CallsRealMethods.answer(CallsRealMethods.java:45)
+	at org.mockito.Answers.answer(Answers.java:90)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:111)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:84)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:143)
+	... 14 more
+
+[ERROR] Errors: 
+[ERROR]   MigrationStagedImportIT.T_18_13_billingForANewMergedSourceAliasRequiresThePersonStep:271->execute:83 » MappingInstantiation Failed to instantiate com.agilityhub.core.clubs.catalogs.persistence.Plan using constructor public com.agilityhub.core.clubs.catalogs.persistence.Plan(java.lang.String,java.lang.String,java.lang.String,com.agilityhub.core.shared.domain.LocalizedText,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$PlanType,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$BillingMode,int,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$EntryFee,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$Pack,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$SingleClass,com.agilityhub.core.shared.domain.LocalizedText,com.agilityhub.core.clubs.catalogs.domain.OfferTerms$Texts,boolean,boolean,int,boolean,long,java.time.Instant,java.time.Instant,java.lang.String,java.lang.String) with arguments PACK10,staged-migration-test,PACK10,null,PACK,MONTHLY_FEE,1,null,Pack[sessions=10, validityMonths=6],null,null,null,null,null,null,true,null,null,null,null,null
+[ERROR] Tests run: 11, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -10,7 +10,7 @@ import com.agilityhub.core.shared.domain.*;
 
 /**
  * R-07-08: one Mongo transaction per write; the `$inc registrationSeq` on the Activity ({@code ActivityRepository.lock})
- * makes concurrent writers conflict, and a `WriteConflict` / `TransientTransactionError` is retried at most 3 times with
+ * makes concurrent writers conflict, and a `WriteConflict` / `TransientTransactionError` / `DuplicateKey` is retried at most 3 times with
  * the shared 50–150 ms randomised backoff ({@link TransactionRetries#jitter()}), then `409 STALE_VERSION`. The {@link LocalLanes} (one per activity) only bound
  * contention inside one API instance.
  */
@@ -39,7 +39,6 @@ public class ActivityTransactions {
         }
     }
     public static boolean transientConflict(Throwable error) {
-        for(Throwable cause=error;cause!=null;cause=cause.getCause()) if(cause instanceof com.mongodb.MongoException mongo && (mongo.getCode()==112 || mongo.hasErrorLabel("TransientTransactionError"))) return true;
-        return false;
+        return TransactionRetries.conflict(error);
     }
 }

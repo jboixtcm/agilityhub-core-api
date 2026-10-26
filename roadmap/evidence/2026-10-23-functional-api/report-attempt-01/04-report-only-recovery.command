@@ -1,0 +1,2 @@
+docker create --name fictional-report-6a39a0b9-cmd-4 --network fictional-report-6a39a0b9-net --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-private-report-vxxvfgw4/runtime.env --mount type=bind,src=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-private-report-vxxvfgw4/input,dst=/private-input,readonly agilityhub-core-api:review-20261023 --core.command=migration:report --club=canic --run=4d029485-95f5-46b8-9f25-80ab19e93a9b --in=/private-input
+docker start -a fictional-report-6a39a0b9-cmd-4

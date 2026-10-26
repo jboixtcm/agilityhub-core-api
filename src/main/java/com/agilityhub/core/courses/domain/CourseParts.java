@@ -33,7 +33,11 @@ public final class CourseParts {
             @jakarta.validation.constraints.NotNull Double x,
             @jakarta.validation.constraints.NotNull Double y,
             @jakarta.validation.constraints.NotNull Double rotationDeg,
-            @jakarta.validation.constraints.NotNull @jakarta.validation.Valid List<Integer> numbers) { }
+            @jakarta.validation.constraints.NotNull @jakarta.validation.Valid List<Integer> numbers,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true,
+                    description = "Frozen tunnel control points in the ring frame (metres, Y up), computed by course-core when the placement is saved. "
+                            + "Absent or null on legacy placements; an empty array explicitly records no control points.")
+            List<@jakarta.validation.constraints.NotNull @jakarta.validation.Valid PointM> controlPointsMeters) { }
 
     public record PlacementWarning(@jakarta.validation.constraints.NotBlank String id,
             @jakarta.validation.constraints.NotNull WarningRule ruleId,

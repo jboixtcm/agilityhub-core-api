@@ -1,0 +1,11 @@
+MigrationReportsTest: tests=7, failures=0, errors=0, skipped=0
+S3MigrationReportStoreTest: tests=8, failures=0, errors=0, skipped=0
+InputManifestTest: tests=2, failures=0, errors=0, skipped=0
+MigrationReportCleanupTest: tests=1, failures=0, errors=0, skipped=0
+MigrationReportCommandTest: tests=2, failures=0, errors=0, skipped=0
+MigrationWelcomeCommandTest: tests=6, failures=0, errors=0, skipped=0
+MigrationWelcomeDeliveryTest: tests=4, failures=0, errors=0, skipped=0
+CommandSchedulingGuardTest: tests=2, failures=0, errors=0, skipped=0
+E9ResponseContractTest: tests=15, failures=0, errors=0, skipped=0
+PlayoffAnonymizerPathsTest: tests=4, failures=0, errors=0, skipped=0
+TOTAL: tests=51, failures=0, errors=0, skipped=0

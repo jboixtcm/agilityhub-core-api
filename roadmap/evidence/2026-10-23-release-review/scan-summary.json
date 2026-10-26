@@ -1,0 +1,171 @@
+{
+  "mode": "offline cached advisory database; local images; no registry push or production deployment",
+  "images": [
+    {
+      "image": "ghcr.io/jboixtcm/agilityhub-core-api:e11-t12",
+      "imageId": "sha256:f62b0f400501cb9c44f76dd5bccd6a94e9c945824020bf570bcf2b9270153fab",
+      "vulnerabilities": 72,
+      "critical": 0,
+      "high": 4,
+      "goFindings": 14,
+      "javaPackages": 205,
+      "focusedFindings": [
+        {
+          "target": "Java",
+          "id": "CVE-2026-113730",
+          "package": "ognl:ognl",
+          "installed": "3.3.4",
+          "fixed": "3.4.13",
+          "severity": "MEDIUM",
+          "packagePath": "app/app.jar/BOOT-INF/lib/ognl-3.3.4.jar"
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-111943",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.10, 1.27.3",
+          "severity": "HIGH",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-78667",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "HIGH",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-78669",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "HIGH",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-97031",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "HIGH",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-56866",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-78659",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-78660",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-78663",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-94439",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-94440",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-94448",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-97030",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-97032",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "MEDIUM",
+          "packagePath": null
+        },
+        {
+          "target": "usr/bin/pebble",
+          "id": "CVE-2026-56857",
+          "package": "stdlib",
+          "installed": "v1.27.1",
+          "fixed": "1.26.9, 1.27.2",
+          "severity": "LOW",
+          "packagePath": null
+        }
+      ]
+    },
+    {
+      "image": "ghcr.io/jboixtcm/agilityhub-core-api:release-audit-no-pebble",
+      "imageId": "sha256:4c3f595876c3f2830c46c3cdd8e528f9a25831109d2d92b47f10b403dc01645e",
+      "vulnerabilities": 58,
+      "critical": 0,
+      "high": 0,
+      "goFindings": 0,
+      "javaPackages": 205,
+      "focusedFindings": [
+        {
+          "target": "Java",
+          "id": "CVE-2026-113730",
+          "package": "ognl:ognl",
+          "installed": "3.3.4",
+          "fixed": "3.4.13",
+          "severity": "MEDIUM",
+          "packagePath": "app/app.jar/BOOT-INF/lib/ognl-3.3.4.jar"
+        }
+      ]
+    }
+  ]
+}

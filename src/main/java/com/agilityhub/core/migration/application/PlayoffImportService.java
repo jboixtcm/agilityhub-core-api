@@ -27,14 +27,19 @@ public class PlayoffImportService {
     private final com.agilityhub.core.payments.application.BillingMigrationAccess billing;
     private final com.agilityhub.core.platform.application.ClubConfigService configs;
     private final ClubClock clubClock;
+    private final MigrationReports reports;
+    private final MigrationStagedImporter staged;
     public PlayoffImportService(PlayoffPlanner planner, MigrationApplyService apply, MigrationRunRepository runs,
             CensusMigrationService census, MigrationCatalogAccess catalogs, TransactionTemplate transactions,
             Clock clock, EventPublisher events, MigrationResetRepository resetGuard, PlayoffBillingPlanner billingPlanner,
             com.agilityhub.core.payments.application.BillingMigrationAccess billing,
-            com.agilityhub.core.platform.application.ClubConfigService configs, ClubClock clubClock) {
+            com.agilityhub.core.platform.application.ClubConfigService configs, ClubClock clubClock, MigrationReports reports,
+            MigrationStagedImporter staged) {
         this.planner=planner; this.apply=apply; this.runs=runs; this.census=census; this.catalogs=catalogs;
         this.transactions=transactions; this.clock=clock; this.events=events; this.resetGuard=resetGuard;
         this.billingPlanner=billingPlanner; this.billing=billing; this.configs=configs; this.clubClock=clubClock;
+        this.reports=reports;
+        this.staged=staged;
     }
     public MigrationReport importDirectory(Path directory, MappingConfig mapping, String clubId,
             boolean dryRun, boolean production, boolean confirmed) {
@@ -51,7 +56,10 @@ public class PlayoffImportService {
             var report = report(dryRun, preview, billingPreview);
             if (dryRun || report.hasErrors()) { return report; }
             apply.validate(preview);
+            // Refuse an unavailable/private-retention policy before the lease, run or any imported business data is written.
+            if (production) { reports.requireReady(); }
             var started = new java.util.concurrent.atomic.AtomicReference<MigrationRun>();
+            boolean committed=false;
             String holder = UUID.randomUUID().toString();
             runs.acquire(holder, clock.instant());
             try {
@@ -66,7 +74,8 @@ public class PlayoffImportService {
                     var checked = report(false, plan, billingPlan);
                     if (checked.hasErrors()) { status.setRollbackOnly(); return new Prepared(null, checked, billingPlan); }
                     var run = new MigrationRun(UUID.randomUUID().toString(), clubId, "PLAYOFF", "APPLY",
-                            production ? "PRODUCTION" : "STAGING", mapping.version(), "RUNNING", clock.instant(), null, Map.of());
+                            production ? "PRODUCTION" : "STAGING", mapping.version(), "RUNNING", clock.instant(), null, Map.of(),
+                            input.manifest(),checked.rows(),null,null,null);
                     runs.insert(run); started.set(run);
                     events.publish(new MigrationEvent("MigrationRunStarted", run.id(), clubId, clock.instant(), Map.of("mode", run.mode(), "env", run.env())));
                     apply.apply(run, plan);
@@ -74,6 +83,7 @@ public class PlayoffImportService {
                     return new Prepared(run, checked, billingPlan);
                 });
                 if (prepared.run() == null) { return prepared.report(); }
+                System.out.println("Migration run: "+prepared.run().id());
                 batch(holder, prepared.billing().receipts(), billing::receipt);
                 batch(holder, prepared.billing().packs(), billing::pack);
                 var rows = new ArrayList<>(prepared.report().rows()); var totals = new TreeMap<>(prepared.report().totals());
@@ -112,10 +122,19 @@ public class PlayoffImportService {
                     resetGuard.checkpoint(production, clock.instant());
                     runs.fence(holder, clock.instant());
                 });
+                committed=true;
+                if (production) {
+                    try { reports.publish(prepared.run().id(),input); }
+                    catch (RuntimeException failure) {
+                        System.err.println("Migration data committed; report publication requires recovery with migration:report for run "+prepared.run().id()+". Do not reapply the migration.");
+                        throw failure;
+                    }
+                }
                 return completed;
             } catch (RuntimeException failure) {
                 var run = started.get();
-                if (run != null) {
+                if (run != null && !committed) {
+                    System.err.println("Migration run requiring review: "+run.id());
                     try {
                         transactions.executeWithoutResult(status -> {
                             if (runs.tryFence(holder, clock.instant())) {
@@ -130,9 +149,14 @@ public class PlayoffImportService {
             } finally { runs.release(holder); }
         }
     }
+    /** Explicit staged/approved execution keeps the accepted atomic full-import path compatible. */
+    public MigrationReport importDirectory(Path directory, MappingConfig mapping, String clubId,
+            boolean dryRun, boolean production, boolean confirmed, LocalDate cutover, MigrationExecutionRequest execution) {
+        return staged.importDirectory(directory,mapping,clubId,dryRun,production,confirmed,
+                cutover==null ? clubClock.today(clubId) : cutover,execution);
+    }
     private void failed(MigrationRun run, String step) {
-        runs.replace(new MigrationRun(run.id(), run.clubId(), run.source(), run.mode(), run.env(), run.mappingVersion(),
-                "FAILED", run.startedAt(), clock.instant(), Map.of()));
+        runs.replace(run.finished("FAILED",clock.instant(),Map.of(),run.reportRows()));
         events.publish(new MigrationEvent("MigrationRunFailed", run.id(), run.clubId(), clock.instant(), Map.of("step", step)));
     }
     private record Prepared(MigrationRun run, MigrationReport report, PlayoffBillingPlanner.Plan billing) { }

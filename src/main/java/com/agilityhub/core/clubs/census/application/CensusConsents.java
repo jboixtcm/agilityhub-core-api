@@ -32,12 +32,13 @@ public class CensusConsents implements MemberConsents {
                 if (ledger.get(key) instanceof Map<?, ?> row) {
                     var copy = new java.util.LinkedHashMap<String, Object>((Map<String, Object>) row);
                     copy.putIfAbsent("type", key.equals("privacyPolicy") ? "PRIVACY_POLICY" : "IMAGE_USE");
+                    if (key.equals("privacyPolicy")) { copy.put("granted", com.agilityhub.core.shared.domain.ConsentGrant.legacyPrivacy(row)); }
                     rows.add(copy);
                 }
             }
         }
         String locale = access.config().club().defaultLocale();
-        return rows.stream().map(row -> new Entry(text(row.get("type")), !Boolean.FALSE.equals(row.get("granted")), text(row.get("version")),
+        return rows.stream().map(row -> new Entry(text(row.get("type")), com.agilityhub.core.shared.domain.ConsentGrant.granted(row), text(row.get("version")),
                 instant(row.get("acceptedAt") != null ? row.get("acceptedAt") : row.get("at")), row.get("locale") == null ? locale : text(row.get("locale")),
                 row.get("ipHash") == null ? null : text(row.get("ipHash")), row.get("source") == null ? "LEGACY" : text(row.get("source"))))
                 .sorted(Comparator.comparing(Entry::at, Comparator.nullsFirst(Comparator.naturalOrder()))).toList();

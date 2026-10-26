@@ -1,0 +1,11 @@
+usage: release-preflight.py [-h] [--env-file ENV_FILE]
+                            [--expected-digest EXPECTED_DIGEST]
+
+Read-only release checks. Compose's resolved secrets never leave this process.
+
+options:
+  -h, --help            show this help message and exit
+  --env-file ENV_FILE
+  --expected-digest EXPECTED_DIGEST
+                        Registry digest recorded from the reviewed green CI
+                        image publication

@@ -14,6 +14,9 @@ import com.agilityhub.core.clubs.messaging.application.integrations.FakePushSend
 import com.agilityhub.core.clubs.messaging.application.integrations.FakeSmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.LogSmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.PushSender;
+import com.agilityhub.core.clubs.messaging.application.integrations.PushPayload;
+import com.agilityhub.core.clubs.messaging.application.integrations.PushResult;
+import com.agilityhub.core.clubs.messaging.application.integrations.SendResult;
 import com.agilityhub.core.clubs.messaging.application.integrations.SmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.TwilioSmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.WebPushSender;
@@ -88,6 +91,7 @@ public class MessagingConfiguration {
     @Bean SmsSender smsSender(Environment environment, ObjectMapper mapper, @Value("${notifications.sms.twilio-account-sid:}") String sid,
             @Value("${notifications.sms.twilio-auth-token:}") String token, @Value("${notifications.sms.twilio-messaging-service-sid:}") String service,
             @Value("${notifications.sms.allowed-numbers:}") String allowed) {
+        if (com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled()) { return message -> SendResult.notAllowed(); }
         if (environment.acceptsProfiles(STRICT)) {
             if (sid.isBlank() || token.isBlank()) { throw new IllegalStateException("TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are required in staging/prod"); }
         } else if (environment.acceptsProfiles(Profiles.of("test"))) { return new FakeSmsSender(); }
@@ -101,6 +105,14 @@ public class MessagingConfiguration {
     @Bean PushSender pushSender(Environment environment, ObjectMapper mapper, Clock clock, ClubConfigService configs,
             @Value("${notifications.push.vapid-public-key:}") String publicKey, @Value("${notifications.push.vapid-private-key:}") String privateKey,
             @Value("${notifications.push.vapid-subject:}") String subject) {
+        if (com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled()) {
+            return new PushSender() {
+                public String publicKey() { return null; }
+                public PushResult send(com.agilityhub.core.clubs.messaging.persistence.PushSubscription subscription, PushPayload payload) {
+                    return PushResult.of(PushResult.Status.FAILED, "Push disabled in hosted demo");
+                }
+            };
+        }
         boolean keys = !publicKey.isBlank() && !privateKey.isBlank() && !subject.isBlank();
         if (!keys) {
             if (environment.acceptsProfiles(STRICT)) { throw new IllegalStateException("VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT are required in staging/prod"); }

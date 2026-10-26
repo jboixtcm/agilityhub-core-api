@@ -1,0 +1,7 @@
+{
+  "tag": "agilityhub-core-api:review-fixes-20261024",
+  "id": "sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9",
+  "architecture": "arm64",
+  "profile": "local",
+  "network": "internal, no published ports, no provider egress"
+}

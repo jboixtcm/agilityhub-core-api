@@ -3,6 +3,7 @@ package com.agilityhub.core.clubs.dashboard.persistence;
 import com.agilityhub.core.clubs.dashboard.application.DashboardData.*;
 import com.agilityhub.core.clubs.dashboard.domain.DashboardPeriod;
 import com.agilityhub.core.shared.domain.*;
+import com.agilityhub.core.shared.application.ConsentProjection;
 import com.agilityhub.core.shared.persistence.TenantRepository;
 import java.time.*;
 import java.util.*;
@@ -66,7 +67,7 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
                 .append("cond", expr("$eq", "$$entry.type", "IMAGE_USE")));
         stages.add(new Document("$set", new Document("imageConsent", condition(new Document("$isArray", "$consents"),
                 new Document("$let", new Document("vars", new Document("latest", expr("$arrayElemAt", imageEntries, -1)))
-                        .append("in", fallback("$$latest.granted", false))), fallback("$consents.imageRights.granted", false)))));
+                        .append("in", ConsentProjection.granted("$$latest"))), ConsentProjection.granted("$consents.imageRights")))));
         // R-04-06 (E38, INC-33): a pending readmission is judged on what it submitted, as D2 (`SignupService.warnings`) and N-01
         // do: the name, the payment method («Compte no informat») and an image consent entry it brings; the LEFT record otherwise.
         Object readmission = expr("$and", expr("$eq", "$status", "PENDING"), expr("$ne", fallback("$readmissionRequest", null), null));
@@ -76,7 +77,7 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
                 .append("lastName1", condition(readmission, "$readmissionRequest.submitted.lastName1", "$lastName1"))
                 .append("paymentMethod", condition(readmission, "$readmissionRequest.submitted.paymentMethod", "$paymentMethod"))
                 .append("imageConsent", condition(readmission, new Document("$let", new Document("vars", new Document("latest", submittedImage))
-                        .append("in", condition(expr("$ne", fallback("$$latest", null), null), fallback("$$latest.granted", false), "$imageConsent"))), "$imageConsent"))));
+                        .append("in", condition(expr("$ne", fallback("$$latest", null), null), ConsentProjection.granted("$$latest"), "$imageConsent"))), "$imageConsent"))));
         stages.add(new Document("$project", new Document("firstName", 1).append("lastName1", 1).append("status", 1)
                 .append("pendingDogs.name", 1).append("pendingDogs.breed", 1).append("requestedPlan.name", 1)
                 .append("cardInvalid", fallback("$paymentMethod.card.invalid", false)).append("paymentMethodType", "$paymentMethod.type").append("imageConsent", 1)

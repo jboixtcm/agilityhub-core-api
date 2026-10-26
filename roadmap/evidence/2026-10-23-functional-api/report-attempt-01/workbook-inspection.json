@@ -1,0 +1,15 @@
+{
+  "zipIntegrityPassed": true,
+  "sheets": [
+    "Resum",
+    "Manifest d'entrada",
+    "Resultats"
+  ],
+  "worksheetRows": {
+    "xl/worksheets/sheet1.xml": 46,
+    "xl/worksheets/sheet2.xml": 7,
+    "xl/worksheets/sheet3.xml": 709
+  },
+  "formulaCount": 0,
+  "externalLinkParts": 0
+}

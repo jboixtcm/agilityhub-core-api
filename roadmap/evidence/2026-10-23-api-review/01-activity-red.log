@@ -1,0 +1,33 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+Finished activities: 0
+Finished activities: 0
+Finished activities: 0
+[ERROR] Tests run: 3, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.418 s <<< FAILURE! -- in com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest
+[ERROR] com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest.T_07_24_duplicateRegistrationRacesRetryTheWholeTransaction -- Time elapsed: 0.083 s <<< ERROR!
+org.springframework.dao.DuplicateKeyException: Concurrent registration
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:128)
+	at com.agilityhub.core.clubs.activities.application.ActivityTransactions.retry(ActivityTransactions.java:31)
+	at com.agilityhub.core.clubs.activities.application.ActivityTransactions.lambda$write$1(ActivityTransactions.java:27)
+	at com.agilityhub.core.shared.application.LocalLanes.hold(LocalLanes.java:42)
+	at com.agilityhub.core.clubs.activities.application.ActivityTransactions.write(ActivityTransactions.java:27)
+	at com.agilityhub.core.clubs.activities.application.ActivityInfrastructureTest.T_07_24_duplicateRegistrationRacesRetryTheWholeTransaction(ActivityInfrastructureTest.java:24)
+
+[ERROR] Errors: 
+[ERROR]   ActivityInfrastructureTest.T_07_24_duplicateRegistrationRacesRetryTheWholeTransaction:24 » DuplicateKey Concurrent registration
+[ERROR] Tests run: 3, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

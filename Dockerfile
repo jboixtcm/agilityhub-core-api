@@ -13,8 +13,10 @@ COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
 RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3 \
     -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
 
+# Core starts Java directly; the base image's unused Pebble supervisor brings a separate vulnerable Go runtime (INC-90).
 FROM eclipse-temurin:21-jre
-RUN apt-get update \
+RUN rm -f /usr/bin/pebble \
+    && apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --user-group --create-home agilityhub \
@@ -23,6 +25,7 @@ WORKDIR /app
 COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
 # INC-40 (E11-T10): each seed under its own name; the local consumer stacks apply club-canic-consumer.yaml.
 COPY --chown=agilityhub:agilityhub seeds/club-canic.yaml seeds/club-canic.yaml
+COPY --chown=agilityhub:agilityhub seeds/club-canic-demo.yaml seeds/club-canic-demo.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic-consumer.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
 # E10-T03: the console's catalog-clone source (S17 R-17-08, §13 #5), applied with `club:apply`.

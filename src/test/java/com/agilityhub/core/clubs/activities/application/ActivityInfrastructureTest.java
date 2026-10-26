@@ -12,6 +12,21 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ActivityInfrastructureTest {
+    @Test void T_07_24_duplicateRegistrationRacesRetryTheWholeTransaction() {
+        var template = mock(TransactionTemplate.class);
+        var retries = new com.agilityhub.core.shared.application.TransactionRetries(new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+        var service = new ActivityTransactions(template, new com.agilityhub.core.shared.application.LocalLanes(true), retries);
+        try (var tenant = TenantContext.open("example")) {
+            for (var duplicate : List.of(new org.springframework.dao.DuplicateKeyException("Concurrent registration"),
+                    new IllegalStateException(new com.mongodb.MongoException(11000, "Concurrent registration")))) {
+                reset(template);
+                when(template.execute(any())).thenThrow(duplicate).thenReturn("committed");
+                assertThat(service.write(List.of("activity-a"), () -> "unused")).isEqualTo("committed");
+                verify(template, times(2)).execute(any());
+            }
+        }
+        assertThat(retries.retries(ActivityTransactions.CONTEXT, "duplicate_key")).isEqualTo(2);
+    }
     @Test void T_07_18_finishCommandValidatesSelectorsAndVisitsActiveClubs() {
         var clubs=mock(ClubConfigService.class);var lifecycle=mock(ActivityLifecycleService.class);
         var now=Instant.parse("2026-09-19T00:00:00Z");var command=new FinishActivitiesCommand(clubs,lifecycle,Clock.fixed(now,ZoneOffset.UTC));

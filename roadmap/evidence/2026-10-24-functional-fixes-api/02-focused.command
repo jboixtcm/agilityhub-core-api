@@ -1,0 +1,1 @@
+HEAVY_WAIT_MIN=120 /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Dtest=ConsentGrantTest,ConsentLedgersTest,DemoClubDefinitionTest '-Dit.test=CensusIT#T_03_08_INC91_*+T_14_18_INC91_*,DemoSeedsIT#T_17_01_INC94_*' test failsafe:integration-test failsafe:verify

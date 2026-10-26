@@ -1,0 +1,107 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.72kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 0.8s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 DONE 1.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 218B done
+#4 DONE 0.0s
+
+#5 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:227118764cccd3c3294617061aaa93a08309c63a395eefa83e6b35032992ea99
+#5 resolve docker.io/library/eclipse-temurin:21-jre@sha256:227118764cccd3c3294617061aaa93a08309c63a395eefa83e6b35032992ea99 0.0s done
+#5 DONE 0.0s
+
+#6 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+#6 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 487.15kB 0.1s done
+#7 DONE 0.1s
+
+#8 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [build 3/8] WORKDIR /workspace
+#9 CACHED
+
+#10 [build 4/8] COPY .mvn/ .mvn/
+#10 CACHED
+
+#11 [build 5/8] COPY mvnw pom.xml ./
+#11 CACHED
+
+#12 [build 6/8] COPY src/ src/
+#12 DONE 0.3s
+
+#13 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#13 DONE 0.0s
+
+#14 [build 8/8] RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3     -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
+#14 DONE 113.6s
+
+#15 [stage-1  2/15] RUN rm -f /usr/bin/pebble     && apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*     && useradd --system --uid 10001 --user-group --create-home agilityhub     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
+#15 CACHED
+
+#16 [stage-1  3/15] WORKDIR /app
+#16 CACHED
+
+#17 [stage-1  4/15] COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
+#17 DONE 0.1s
+
+#18 [stage-1  5/15] COPY --chown=agilityhub:agilityhub seeds/club-canic.yaml seeds/club-canic.yaml
+#18 DONE 0.0s
+
+#19 [stage-1  6/15] COPY --chown=agilityhub:agilityhub seeds/club-canic-demo.yaml seeds/club-canic-demo.yaml
+#19 DONE 0.0s
+
+#20 [stage-1  7/15] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic-consumer.yaml
+#20 DONE 0.0s
+
+#21 [stage-1  8/15] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#21 DONE 0.0s
+
+#22 [stage-1  9/15] COPY --chown=agilityhub:agilityhub seeds/club-template-default.yaml seeds/club-template-default.yaml
+#22 DONE 0.0s
+
+#23 [stage-1 10/15] COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+#23 DONE 0.0s
+
+#24 [stage-1 11/15] COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+#24 DONE 0.0s
+
+#25 [stage-1 12/15] COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+#25 DONE 0.0s
+
+#26 [stage-1 13/15] COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+#26 DONE 0.0s
+
+#27 [stage-1 14/15] COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
+#27 DONE 0.0s
+
+#28 [stage-1 15/15] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#28 DONE 0.0s
+
+#29 exporting to image
+#29 exporting layers
+#29 exporting layers 2.0s done
+#29 exporting manifest sha256:344b916c81287762791c9d0d018a6ac8aefe2770959242274b96854c3935e726 done
+#29 exporting config sha256:63c4eeed6bb6be59c4f21cc273c90b0ed9471e9cc73bde21a212836aa6bdb30b done
+#29 exporting attestation manifest sha256:66c66548b9469d01b31aa8285ea652691ecbd5b51d0484d0475504ba92fe529c done
+#29 exporting manifest list sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9 done
+#29 naming to docker.io/library/agilityhub-core-api:review-fixes-20261024 done
+#29 unpacking to docker.io/library/agilityhub-core-api:review-fixes-20261024
+#29 unpacking to docker.io/library/agilityhub-core-api:review-fixes-20261024 0.5s done
+#29 naming to ghcr.io/jboixtcm/agilityhub-core-api:review-fixes-20261024 done
+#29 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:review-fixes-20261024 done
+#29 DONE 2.5s

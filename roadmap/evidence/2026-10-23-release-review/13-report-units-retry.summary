@@ -1,0 +1,6 @@
+MigrationReportsTest: tests=8, failures=0, errors=0, skipped=0
+S3MigrationReportStoreTest: tests=8, failures=0, errors=0, skipped=0
+InputManifestTest: tests=2, failures=0, errors=0, skipped=0
+MigrationReportCleanupTest: tests=1, failures=0, errors=0, skipped=0
+MigrationReportCommandTest: tests=2, failures=0, errors=0, skipped=0
+TOTAL: tests=21, failures=0, errors=0, skipped=0

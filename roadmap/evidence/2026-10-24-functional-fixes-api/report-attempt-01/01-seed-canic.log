@@ -1,0 +1,115 @@
++ club added
+  null -> {"slug":"canic","name":"Demo Agility Cànic","legalName":"Demo Agility Cànic — fictional demonstration","address":{"street":"Demo Street","postalCode":"00000","city":"Demo","region":"Demo","country":"ES"},"displayCity":"Demo","contactEmail":"demo@example.test","locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":"ES","status":"ONBOARDING","template":false}
++ domains added
+  null -> [{"host":"app.canic-demo.example.test","app":"clubs","primary":true},{"host":"admin.canic-demo.example.test","app":"clubs-admin","primary":false}]
++ theme added
+  null -> {"colors":{"primary":"#E26A2A","onPrimary":"#0B0B0B","background":"#0B0B0B","surface":"#161616","surfaceAlt":"#1E1E1E","text":"#FFFFFF","textMuted":"#B5B5B5","border":"#2B2B2B","success":"#4CAF7D","warning":"#E5B93C","danger":"#E05B5B","info":"#85B8E8"},"fontFamily":"Montserrat","radius":"4px","ringPalette":["#F2B58C","#8FCE8F","#C9CDD3","#F5D67A","#85B8E8"],"mode":"dark"}
++ modules added
+  null -> ["ACTIVITIES","BILLING","COURSES","FAMILY_GROUP","FAQ","FREE_TRAINING","INACTIVITY","PACKS","PUSH","SMS","TASKS","WAITLIST"]
++ paymentProviders added
+  null -> {"SEPA_XML":{"enabled":true},"MANUAL":{"enabled":true,"instructions":{"ca":"Demostració amb dades fictícies. No facis cap pagament real, transferència ni Bizum. El pagament el simula l’equip de la demo.","es":"Demostración con datos ficticios. No hagas ningún pago real, transferencia ni Bizum. El equipo de la demo simula el pago.","en":"Demonstration with fictional data. Do not make any real payment, bank transfer or Bizum payment. The demo team simulates payment."}}}
++ legal added
+  null -> {"privacyPolicyUrl":"https://app.canic-demo.example.test/privacy","imageConsentText":{"en":"I authorize publication of photos of me and my dog within club activities","ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club","es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club"},"legalTextsVersion":"1"}
++ pwa added
+  null -> {"name":"Demo Agility Cànic","shortName":"Demo Agility Cànic","icons":[]}
++ parameters.signup.enabled added
+  null -> true
++ parameters.signup.pendingExpiryDays added
+  null -> 30
++ parameters.signup.requireDogDocumentAtSignup added
+  null -> false
++ parameters.signup.firstMonthSplitDay added
+  null -> 16
++ parameters.signup.allowFamilyGroupPending added
+  null -> true
++ admins: 0 to provision
++ accounts: 15 to provision
++ catalogs.levels.CAD
++ catalogs.levels.A
++ catalogs.levels.B
++ catalogs.levels.C
++ catalogs.levels.D
++ catalogs.levels.E
++ catalogs.levels.F
++ catalogs.levels.G
++ catalogs.levels.TER
++ catalogs.levels.PENDENT
++ catalogs.rings.MUN
++ catalogs.rings.CEN
++ catalogs.rings.CAR
++ catalogs.rings.CAD
++ catalogs.rings.PET
++ catalogs.plans.ABONAT
++ catalogs.plans.ABONAT_FAMILIAR
++ catalogs.plans.PACK6
++ catalogs.plans.PACK10
++ catalogs.plans.TERAPIA
++ catalogs.plans.COMPETICIO_1
++ catalogs.prices.ABONAT:MONTHLY_FEE:2026-01-01
++ catalogs.prices.ABONAT_FAMILIAR:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK6:PACK:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.TERAPIA:MAINTENANCE_FEE:2026-01-01
++ catalogs.prices.COMPETICIO_1:MONTHLY_FEE:2026-01-01
++ catalogs.faq.FAQ_1
++ catalogs.faq.FAQ_2
++ catalogs.faq.FAQ_3
++ catalogs.faq.FAQ_4
++ catalogs.faq.FAQ_5
++ catalogs.faq.FAQ_6
++ catalogs.faq.FAQ_7
++ catalogs: 34 catalog changes
++ messageTemplates.N-01
++ messageTemplates.N-02
++ messageTemplates.N-03
++ messageTemplates.N-04
++ messageTemplates.N-05
++ messageTemplates.N-06
++ messageTemplates.N-07
++ messageTemplates.N-08a
++ messageTemplates.N-08b
++ messageTemplates.N-09
++ messageTemplates.N-10
++ messageTemplates.N-11a
++ messageTemplates.N-11b
++ messageTemplates.N-13
++ messageTemplates.N-14
++ messageTemplates.N-15
++ messageTemplates.N-16
++ messageTemplates.N-17
++ messageTemplates.N-18a
++ messageTemplates.N-18b
++ messageTemplates.N-18c
++ messageTemplates.N-19
++ messageTemplates.N-20
++ messageTemplates.N-21
++ messageTemplates.N-22
++ messageTemplates.N-23
++ messageTemplates.N-24
++ messageTemplates.N-28
++ messageTemplates.N-29
++ messageTemplates.N-30
++ messageTemplates.N-31
++ messageTemplates.N-32a
++ messageTemplates.N-32b
++ messageTemplates.N-32c
++ messageTemplates.N-33
++ messageTemplates.N-34
++ messageTemplates.N-35
++ messageTemplates.N-36
++ messageTemplates.N-37
++ messageTemplates.N-38
++ messageTemplates.N-18d
++ messageTemplates.N-32d
++ messageTemplates.N-40
++ messageTemplates.N-41
++ messageTemplates.N-42
++ messageTemplates.N-46
++ messageTemplates.N-47
++ messageTemplates.N-49
++ messageTemplates.N-50
++ messageTemplates.N-51
++ messageTemplates.N-54
++ messageTemplates: 51 templates to seed
++ pages: 3 page changes
+16 changes (applied)

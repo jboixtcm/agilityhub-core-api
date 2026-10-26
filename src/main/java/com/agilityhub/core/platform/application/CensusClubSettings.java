@@ -62,4 +62,7 @@ public class CensusClubSettings {
                 && "VERIFIED".equals(domain.status().name())).map(domain -> domain.host()).findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.INVALID_STATE));
     }
+    public String name() {
+        return clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).name();
+    }
 }

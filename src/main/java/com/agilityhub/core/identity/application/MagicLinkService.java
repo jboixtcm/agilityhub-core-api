@@ -146,7 +146,7 @@ public class MagicLinkService {
                 var account=accounts.findById(accountId).orElseThrow();
                 var variables=new java.util.HashMap<String,Object>();variables.put("link",base+"?t="+value+(purpose==MagicLinkToken.Purpose.RECOGNITION?"&redirect=%2Fgossos%2Fnou":""));
                 variables.put("member_first_name",account.name().split(" ")[0]);variables.put("gender","OTHER");variables.put("club_name",host);
-                for(String field:java.util.List.of("member_first_name","gender","club_name")) if(signupVariables.get(field)!=null) variables.put(field,signupVariables.get(field));
+                for(String field:java.util.List.of("member_first_name","gender","club_name","variant")) if(signupVariables.get(field)!=null) variables.put(field,signupVariables.get(field));
                 variables.put("expires_minutes",purpose==MagicLinkToken.Purpose.WELCOME?settings.integer("auth.welcomeLinkDays")*1440:settings.integer("auth.magicLinkMinutes"));
                 String notification=purpose==MagicLinkToken.Purpose.WELCOME?"N-02":"N-39";
                 // S04 §8 (E3-T10): N-02 and N-39 go to the account, so they render in `Account.locale`; the signup's is the fallback.

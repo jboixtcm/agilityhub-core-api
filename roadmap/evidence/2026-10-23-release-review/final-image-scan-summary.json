@@ -1,0 +1,630 @@
+{
+  "mode": "offline cached advisory database; final local arm64 image",
+  "image": {
+    "imageId": "sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+    "tags": [
+      "agilityhub-core-api:review-20261023",
+      "ghcr.io/jboixtcm/agilityhub-core-api:review-20261023"
+    ],
+    "architecture": "arm64",
+    "os": "linux",
+    "created": "2026-10-23T21:12:16.526540801Z",
+    "user": "agilityhub",
+    "entrypoint": [
+      "java",
+      "-jar",
+      "/app/app.jar"
+    ],
+    "repoDigests": [
+      "agilityhub-core-api@sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+      "ghcr.io/jboixtcm/agilityhub-core-api@sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e"
+    ],
+    "scope": "Local arm64 build only; no registry push, no remote deploy, amd64 not verified here"
+  },
+  "advisoryDatabase": {
+    "db/metadata.json": {
+      "Version": 2,
+      "NextUpdate": "2026-10-23T07:10:52.423530061Z",
+      "UpdatedAt": "2026-10-22T07:10:52.423530461Z",
+      "DownloadedAt": "2026-10-22T08:53:05.624959Z"
+    },
+    "java-db/metadata.json": {
+      "Version": 1,
+      "NextUpdate": "2026-10-25T01:08:13.998270871Z",
+      "UpdatedAt": "2026-10-22T01:08:13.998271001Z",
+      "DownloadedAt": "2026-10-22T08:59:16.619991Z"
+    }
+  },
+  "vulnerabilities": 58,
+  "javaPackages": 205,
+  "severityCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 54,
+    "LOW": 4,
+    "UNKNOWN": 0
+  },
+  "goFindings": 0,
+  "findings": [
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-102473",
+      "package": "dash",
+      "installed": "0.5.12-12ubuntu3",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-102474",
+      "package": "dash",
+      "installed": "0.5.12-12ubuntu3",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-18374",
+      "package": "libc-bin",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89092",
+      "package": "libc-bin",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-18374",
+      "package": "libc-gconv-modules-extra",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89092",
+      "package": "libc-gconv-modules-extra",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-18374",
+      "package": "libc6",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89092",
+      "package": "libc6",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2025-66382",
+      "package": "libexpat1",
+      "installed": "2.7.4-1ubuntu0.2",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-67693",
+      "package": "libgnutls30t64",
+      "installed": "3.8.12-2ubuntu1.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-88647",
+      "package": "libgnutls30t64",
+      "installed": "3.8.12-2ubuntu1.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-95184",
+      "package": "libgnutls30t64",
+      "installed": "3.8.12-2ubuntu1.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-95209",
+      "package": "libgnutls30t64",
+      "installed": "3.8.12-2ubuntu1.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-95210",
+      "package": "libgnutls30t64",
+      "installed": "3.8.12-2ubuntu1.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-13757",
+      "package": "libp11-kit0",
+      "installed": "0.26.2-2",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-103111",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-86145",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89156",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89157",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89158",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89160",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89161",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89162",
+      "package": "libpcre2-8-0",
+      "installed": "10.46-1build1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-107161",
+      "package": "libsasl2-2",
+      "installed": "2.1.28+dfsg1-9ubuntu3",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-107161",
+      "package": "libsasl2-modules-db",
+      "installed": "2.1.28+dfsg1-9ubuntu3",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-40228",
+      "package": "libsystemd0",
+      "installed": "259.5-0ubuntu3.4",
+      "fixed": null,
+      "severity": "LOW",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-40228",
+      "package": "libudev1",
+      "installed": "259.5-0ubuntu3.4",
+      "fixed": null,
+      "severity": "LOW",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-18374",
+      "package": "locales",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-89092",
+      "package": "locales",
+      "installed": "2.43-2ubuntu2.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2024-56433",
+      "package": "login.defs",
+      "installed": "1:4.17.4-2ubuntu3",
+      "fixed": null,
+      "severity": "LOW",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-13757",
+      "package": "p11-kit",
+      "installed": "0.26.2-2",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-13757",
+      "package": "p11-kit-modules",
+      "installed": "0.26.2-2",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2024-56433",
+      "package": "passwd",
+      "installed": "1:4.17.4-2ubuntu3",
+      "fixed": null,
+      "severity": "LOW",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35341",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35344",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35345",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35348",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35350",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35351",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35352",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35354",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35357",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35359",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35360",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35363",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35364",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35367",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35368",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35370",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35371",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35373",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35374",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-35377",
+      "package": "rust-coreutils",
+      "installed": "0.10.0-1ubuntu2~26.04.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-18477",
+      "package": "tar",
+      "installed": "1.35+dfsg-4ubuntu0.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-18508",
+      "package": "tar",
+      "installed": "1.35+dfsg-4ubuntu0.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2021-31879",
+      "package": "wget",
+      "installed": "1.25.0-2ubuntu4.4",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "agilityhub-core-api:review-20261023 (ubuntu 26.04)",
+      "type": "ubuntu",
+      "id": "CVE-2026-85091",
+      "package": "zlib1g",
+      "installed": "1:1.3.dfsg+really1.3.1-1ubuntu3.1",
+      "fixed": null,
+      "severity": "MEDIUM",
+      "packagePath": null
+    },
+    {
+      "target": "Java",
+      "type": "jar",
+      "id": "CVE-2026-113730",
+      "package": "ognl:ognl",
+      "installed": "3.3.4",
+      "fixed": "3.4.13",
+      "severity": "MEDIUM",
+      "packagePath": "app/app.jar/BOOT-INF/lib/ognl-3.3.4.jar"
+    }
+  ]
+}

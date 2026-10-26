@@ -1,0 +1,299 @@
+[
+  {
+    "case": "seed-canic exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "seed-other exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "dry-partial exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "partial dry-run zero business writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "apply-partial exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "partial person-only state",
+    "passed": true,
+    "detail": {
+      "completed": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "case": "resume-drift exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "cutover drift refuses without writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "resume-complete exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "complete census cardinalities",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "stale-resume exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "stale resume refuses without writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "legacy-full-repeat exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "full import repeat creates no duplicate entities",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "production-no-confirmation exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "production confirmation enforced before writes",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "production-reset exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "explicit production reset forbidden",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "reapply-without-file exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "reapply requires written approval",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "duplicate-steps exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "duplicate option rejected",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "invalid-step exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "out-of-range steps rejected",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "production-local-storage exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "unconfigured production report store fails before import",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "report-wrong-tenant exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "report lookup tenant isolation",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "report-staging exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "staging report not publishable",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "welcome-dry exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "welcome dry-run leaves no claim/token/notification",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "welcome-local-send exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "welcome writes one durable sent marker",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "welcome-repeat exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "new-process welcome repeat does not resend",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "welcome-mailbox-failure exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "failed delivery remains claimed for review",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "welcome-uncertain-repeat exit",
+    "passed": true,
+    "detail": {
+      "expected": 1,
+      "actual": 1
+    }
+  },
+  {
+    "case": "uncertain repeat cannot silently resend",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "welcome-other-tenant exit",
+    "passed": true,
+    "detail": {
+      "expected": 0,
+      "actual": 0
+    }
+  },
+  {
+    "case": "welcome tenant isolation",
+    "passed": true,
+    "detail": {}
+  },
+  {
+    "case": "actual welcome token has seven-day TTL",
+    "passed": true,
+    "detail": {
+      "seconds": [
+        604800,
+        604800
+      ]
+    }
+  },
+  {
+    "case": "other tenant business untouched",
+    "passed": true,
+    "detail": {}
+  }
+]

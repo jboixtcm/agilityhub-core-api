@@ -51,10 +51,11 @@ public class CensusErasure implements ErasureDirectory, ErasureStep, MemberDataS
         }).map(this::view).toList();
     }
     @Override public List<ErasureMember> erased() {
-        var erased = members.matching(Criteria.where("erasedAt").ne(null));
+        var erased = members.matching(Criteria.where("erasedAt").ne(null),
+                "accountId", "memberNumber", "status", "leaveDate", "leftAt", "leftReason", "erasedAt");
         if (erased.isEmpty()) { return List.of(); }
         var dogsOf = new java.util.HashMap<String, List<String>>();
-        dogs.matching(Criteria.where("memberId").in(erased.stream().map(member -> member.id).toList()))
+        dogs.matching(Criteria.where("memberId").in(erased.stream().map(member -> member.id).toList()), "memberId")
                 .forEach(dog -> dogsOf.computeIfAbsent(dog.memberId, ignored -> new java.util.ArrayList<>()).add(dog.id));
         return erased.stream().map(member -> view(member, dogsOf.getOrDefault(member.id, List.of()))).toList();
     }

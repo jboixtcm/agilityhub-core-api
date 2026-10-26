@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PlatformProviders {
+    @org.springframework.beans.factory.annotation.Value("${core.hosted-demo.enabled:false}") private boolean hostedDemo;
     public record Summary(boolean enabled,boolean configured,String masked,String last4,String mode,Instant lastTestAt) { }
     public record Change(String id,@AuditField Map<String,Summary> providers) { }
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.transaction.support.TransactionTemplate transactions;
@@ -41,6 +42,7 @@ public class PlatformProviders {
     @Transactional
     @Audited(action=AuditAction.CLUB_PAYMENT_PROVIDER_CHANGED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider configuration'")
     public Change update(String name,Map<String,Object> input) {
+        if (hostedDemo && "STRIPE".equals(name) && !"test".equals(input.get("mode"))) { throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID); }
         // R-17-05: the payment-method writers' lock first, so a disabling re-reads the provider's users under it.
         clubs.lockProviders(TenantContext.require());var old=changes.club();PlatformClubChanges.requireVersion(old,input.get("version"));
         var providers=new LinkedHashMap<>(old.paymentProviders());

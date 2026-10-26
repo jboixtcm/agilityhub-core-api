@@ -63,7 +63,7 @@ public class CensusQuery {
     private Map<String,Object> consents(Member member) {
         if (member.consents == null) { return null; }
         return object("privacyPolicy", select(map(member.consents.get("privacyPolicy")), "acceptedAt", "version"),
-                "imageRights", select(map(member.consents.get("imageRights")), "granted", "at", "version", "byAccountId"));
+                "imageRights", select(com.agilityhub.core.shared.domain.ConsentGrant.image(map(member.consents.get("imageRights"))), "granted", "at", "version", "byAccountId"));
     }
     public Map<String,Object> payment(Member member) {
         if (member.paymentMethod == null) { return null; }

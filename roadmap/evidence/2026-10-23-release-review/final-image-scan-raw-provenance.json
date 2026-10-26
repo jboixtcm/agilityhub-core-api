@@ -1,0 +1,9 @@
+{
+  "originalPath": ".local/release-review/final-trivy.json",
+  "retainedPath": "roadmap/evidence/2026-10-23-release-review/final-image-scan-raw.json",
+  "bytes": 991745,
+  "sha256": "2559a8b9eccdbaf079201a066b4b403e3d866d0624cfc191963136a96057963c",
+  "artifactName": "agilityhub-core-api:review-20261023",
+  "imageId": "sha256:1e8060615d372dc826ea431e1cd9ef3733c440d7ce4ecc02199f708e9c6d752e",
+  "operation": "Moved original scan report byte-for-byte; no scan or build rerun; historical command preserved"
+}

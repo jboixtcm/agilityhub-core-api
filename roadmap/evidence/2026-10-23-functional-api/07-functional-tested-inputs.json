@@ -1,0 +1,10 @@
+{
+  "roadmap/evidence/2026-10-23-functional-api/run-cli-exploration.py": "ae18177c69391f70afb9af6e3d3b080416f397796ecdcce342168b2656cc5e01",
+  "roadmap/evidence/2026-10-23-functional-api/run-report-exploration.py": "d6ea05e492f0fbe31002d78203a027cb35174f2c23126745a2214814c4040c42",
+  "src/test/resources/fixtures/playoff/equip.csv": "5631ff66b827e4fac67c62ce9f9090c47f6f129bbd8eeab4927ad5ec558fdfeb",
+  "src/test/resources/fixtures/playoff/family_groups.csv": "2ceac20782579eec14fb46e155ebd7013231a16eb587fde3b33e3dacf8f10148",
+  "src/test/resources/fixtures/playoff/nivell.csv": "a8bf78d2bac3706dff4a6f84120230605fab0826d2840211837af138f2308304",
+  "src/test/resources/fixtures/playoff/persones.csv": "cc27cffd0c274ed0e76f4bdba071d26c82e9a8b266c14838e5698937cc8e8026",
+  "src/test/resources/fixtures/playoff/socis.csv": "b418c3ff5a3869e2c5368d993f40ff4ac001f225ecb60aaa9914ad2833330ac7",
+  "src/test/resources/fixtures/playoff/tipologia.csv": "41f03be4aaa4e0844a5edca7ec9c610d6766e09e914eec9a1dd1e962ed78e5ac"
+}

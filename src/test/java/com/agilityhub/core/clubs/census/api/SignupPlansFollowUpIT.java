@@ -297,6 +297,10 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         twin.put("amount",new Document("amountMinor",twin.get("amount",Document.class).get("amountMinor",Number.class).longValue()+500).append("currency","EUR"));
         mongo.getCollection("prices").insertOne(twin);
 
+        var ambiguousReview=result(admin(get("/api/v1/members/"+id+"/signup")),200);
+        assertThat(ambiguousReview.at("/proposals/planId").asText()).isEqualTo(planId("ABONAT"));
+        assertThat(ambiguousReview.at("/proposals/priceId").isMissingNode()).as("no arbitrary price is proposed from a twin").isTrue();
+
         assertThat(ids(anonymous("ca").path("plans"))).doesNotContain(planId("ABONAT")).contains(planId("PACK6"));
         assertThat(result(postJson("/signup",request(planId("ABONAT"))).header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr("198.51.100.252");return r;}),422)
                 .path("code").asText()).isEqualTo("PLAN_NOT_AVAILABLE");
@@ -313,6 +317,7 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         assertThat(row.path("currentPrices").findValuesAsText("id")).containsExactlyInAnyOrder(priceId,"e138-twin");
 
         mongo.getCollection("prices").deleteOne(new Document("_id","e138-twin").append("clubId",club));
+        assertThat(result(admin(get("/api/v1/members/"+id+"/signup")),200).at("/proposals/priceId").asText()).isEqualTo(priceId);
         var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
         assertThat(dry.at("/price/id").asText()).isEqualTo(priceId);
         body.put("upfrontAmountPaid",mapper.convertValue(dry.at("/upfront/totalDue"),Map.class));

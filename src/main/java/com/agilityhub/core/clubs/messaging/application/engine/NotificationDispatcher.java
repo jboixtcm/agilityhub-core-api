@@ -248,6 +248,7 @@ public class NotificationDispatcher {
      * rejected request, an invalid address) is final; 429, 5xx, a timeout or a transport failure is retried.
      */
     static boolean emailRetryable(String error) {
+        if (com.agilityhub.core.clubs.messaging.application.AllowListEmailSender.NOT_ALLOWED.equals(error)) { return false; }
         var status = error == null ? null : java.util.regex.Pattern.compile("HTTP (\\d{3})").matcher(error);
         if (status == null || !status.find()) { return true; }
         int code = Integer.parseInt(status.group(1));

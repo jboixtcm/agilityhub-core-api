@@ -32,35 +32,45 @@ public class MigrationApplyService {
     public record Applied(String id, @com.agilityhub.core.shared.domain.audit.AuditField Map<String,Object> details) { }
     public void apply(MigrationRun run, PlayoffPlanner.Plan plan) {
         validate(plan);
-        for (var change:plan.changes()) {
+        applyChanges(run,plan.changes());
+        applyIdentities(plan.identities());
+        reserveNumbers(plan.maximumNumber());
+    }
+    /** The orchestrator owns each selected step's transaction and batch of at most 100 changes. */
+    public void applyChanges(MigrationRun run,List<PlayoffPlanner.Change> changes) {
+        for (var change:changes) {
             var fields=new LinkedHashMap<>(change.fields());
             if (change.entity().equals("members")) {
-                var payment=new LinkedHashMap<>(map(fields.get("paymentMethod")));
-                String iban=string(payment.remove("iban"));
-                if (iban!=null) {
-                    payment.put("ibanEncrypted",vault.encrypt(iban,run.clubId(),change.id()));
-                    payment.put("ibanLast4",iban.substring(iban.length()-4));
+                if (fields.containsKey("paymentMethod")) {
+                    var payment=new LinkedHashMap<>(map(fields.get("paymentMethod")));
+                    String iban=string(payment.remove("iban"));
+                    if (iban!=null) {
+                        payment.put("ibanEncrypted",vault.encrypt(iban,run.clubId(),change.id()));
+                        payment.put("ibanLast4",iban.substring(iban.length()-4));
+                    }
+                    fields.put("paymentMethod",payment);
                 }
-                fields.put("paymentMethod",payment);
                 census.member(change.id(),fields);
             } else if (change.entity().equals("leaves")) { census.plannedLeave(change.id(), string(fields.get("memberId")), string(fields.get("effectiveDate"))); }
             else if (change.entity().equals("dogs")) { census.dog(change.id(),fields); }
             else { census.group(change.id(),fields); }
         }
-        for (var identity:plan.identities()) {
+    }
+    public void applyIdentities(List<PlayoffPlanner.Identity> identitiesToApply) {
+        for (var identity:identitiesToApply) {
             String account=identities.apply(identity.memberId(),identity.email(),identity.name(),identity.locale(),identity.active(),identity.roles());
             census.member(identity.memberId(),Map.of("accountId",account));
         }
-        clubs.reserveNumbers(plan.maximumNumber());
     }
+    public void reserveNumbers(int maximumNumber) { clubs.reserveNumbers(maximumNumber); }
     @Audited(action=AuditAction.MIGRATION_APPLIED,entityType="'MigrationRun'",entity="#result.id",reason="'MIGRATED'")
     public Applied complete(MigrationRun run, MigrationReport report, boolean reconciled) {
         var counters=new TreeMap<String,Long>(report.totals());
         for (String entity:List.of("members","dogs","familyGroups","accounts","invoices","packBalances","leaves")) {
             for (String outcome:List.of("CREATED","UPDATED","SKIPPED","ERROR")) { counters.put(entity+outcome,report.count(entity,outcome)); }
         }
-        var completed=new MigrationRun(run.id(),run.clubId(),run.source(),run.mode(),run.env(),run.mappingVersion(),
-                reconciled ? "RECONCILED" : "COMPLETED",run.startedAt(),clock.instant(),counters);
+        var current=runs.findById(run.id()).orElse(run);
+        var completed=current.finished(reconciled ? "RECONCILED" : "COMPLETED",clock.instant(),counters,report.rows());
         runs.replace(completed);
         events.publish(new MigrationEvent("MigrationRunCompleted",run.id(),run.clubId(),clock.instant(),Map.of("counters",counters)));
         return new Applied(completed.id(), Map.of("counters", counters));

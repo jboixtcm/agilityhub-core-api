@@ -30,6 +30,8 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
     @Autowired com.agilityhub.core.identity.application.AccountService accounts;
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean MigrationBankVault vault;
+    @org.springframework.test.context.bean.override.mockito.MockitoBean MigrationReportStore reportStore;
+    @Autowired MigrationReports reports;
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.clubs.messaging.application.EmailSender mail;
     @TempDir Path temp;
     @BeforeEach void seed() throws Exception {
@@ -450,6 +452,44 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         org.mockito.Mockito.reset(vault);
         assertThat(apply().hasErrors()).isFalse();
         assertThat(rows("migration_runs")).hasSize(2);
+    }
+    @Test void T_18_16_productionReportReadinessFailsBeforeAnyMigrationWrite() {
+        var before=snapshot();
+        org.mockito.Mockito.doThrow(new IllegalStateException("fictional report configuration missing")).when(reportStore).requireReady();
+        assertThatThrownBy(()->importer.importDirectory(fixture,MAPPING,CLUB,false,true,true)).isInstanceOf(IllegalStateException.class);
+        assertThat(snapshot()).isEqualTo(before);
+        org.mockito.Mockito.verify(reportStore,org.mockito.Mockito.never()).put(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any());
+    }
+    @Test void T_18_16_productionPreviewDoesNotCreateRunOrNamedObject() {
+        var before=snapshot();
+        var preview=importer.importDirectory(fixture,MAPPING,CLUB,true,true,false);
+        assertThat(preview.hasErrors()).isFalse(); assertThat(snapshot()).isEqualTo(before);
+        org.mockito.Mockito.verifyNoInteractions(reportStore);
+        assertThat(preview.render()).doesNotContain(input().files().get("members").stream().map(row->row.get("email")).filter(value->!value.isBlank()).findFirst().orElseThrow());
+    }
+    @Test void T_18_16_unsupportedClubRetentionOverrideRefusesBeforeRunOrObjectWrites() {
+        mongo.insert(new com.agilityhub.core.platform.persistence.Parameter("migration-report-retention",CLUB,"migration.exportRetentionDays",31,"int","club",null,List.of(),null,clock.instant()));
+        configs.invalidate(CLUB); var before=snapshot();
+        assertThatThrownBy(()->importer.importDirectory(fixture,MAPPING,CLUB,false,true,true))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("migration.exportRetentionDays=30");
+        assertThat(snapshot()).isEqualTo(before); org.mockito.Mockito.verifyNoInteractions(reportStore);
+    }
+    @Test void T_18_16_uploadFailureKeepsCommittedMigrationAndRecoveryDoesNotReapplyOrExtendRetention() {
+        org.mockito.Mockito.doThrow(new IllegalStateException("fictional storage unavailable")).when(reportStore)
+                .put(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any());
+        assertThatThrownBy(()->importer.importDirectory(fixture,MAPPING,CLUB,false,true,true)).isInstanceOf(IllegalStateException.class);
+        var run=rows("migration_runs").getFirst();
+        assertThat(run.getString("status")).isEqualTo("COMPLETED"); assertThat(run.get("reportFileKey")).isNull();
+        assertThat(run.get("inputManifest")).isNotNull(); assertThat(rows("members")).isNotEmpty();
+        var expiry=run.get("reportExpiresAt"); var members=rows("members"); var invoices=rows("invoices");
+        assertThat(rows("domain_events")).noneMatch(event->"MigrationRunFailed".equals(event.getString("type")));
+        org.mockito.Mockito.doNothing().when(reportStore).put(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any());
+        clock.setInstant(clock.instant().plus(Duration.ofDays(29)));
+        try(var scope=TenantContext.open(CLUB)) { reports.publish(run.getString("_id"),input()); }
+        assertThat(rows("members")).isEqualTo(members); assertThat(rows("invoices")).isEqualTo(invoices);
+        var recovered=rows("migration_runs").getFirst(); assertThat(recovered.get("reportExpiresAt")).isEqualTo(expiry); assertThat(recovered.getString("reportFileKey")).endsWith("/report.xlsx");
+        assertThatThrownBy(()->importer.importDirectory(fixture,MAPPING,CLUB,false,true,true))
+                .isInstanceOfSatisfying(ApiException.class,error->assertThat(error.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
     }
     @Test void T_18_01_unknownAndInvalidRowsReportErrorsWithoutAnyApplyWrites() throws Exception {
         var directory=copyFixture(); var table=PlayoffTable.read(directory.resolve("socis.csv")); table.set(1,new ArrayList<>(table.get(1))); table.get(1).set(4,"Unknown");

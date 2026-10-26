@@ -1,0 +1,9 @@
+{
+  "unchanged": true,
+  "production": {
+    "seeds/club-canic.yaml": "956d7a01e69e7d3a23ad8170fa548fd6356e3854c0f3461d15cfff6027162915"
+  },
+  "demo": {
+    "seeds/club-canic-demo.yaml": "3f9272c7fc7a2313d712835710616b1fe5e10856f730c2450fca022ed4fbd95b"
+  }
+}

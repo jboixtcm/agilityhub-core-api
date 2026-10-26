@@ -149,7 +149,8 @@
         "x": 1.5,
         "y": 1.5,
         "rotationDeg": 1.5,
-        "numbers": []
+        "numbers": [],
+        "controlPointsMeters": null
       }
     ],
     "warnings": [
@@ -195,7 +196,8 @@
     "x": 1.5,
     "y": 1.5,
     "rotationDeg": 1.5,
-    "numbers": []
+    "numbers": [],
+    "controlPointsMeters": null
   },
   "PlacementWarning": {
     "id": "e9-item-a",
@@ -280,7 +282,8 @@
           "x": 1.5,
           "y": 1.5,
           "rotationDeg": 1.5,
-          "numbers": []
+          "numbers": [],
+          "controlPointsMeters": null
         }
       ],
       "ringLengthM": 40.0,
@@ -303,7 +306,8 @@
         "x": 1.5,
         "y": 1.5,
         "rotationDeg": 1.5,
-        "numbers": []
+        "numbers": [],
+        "controlPointsMeters": null
       }
     ],
     "ringLengthM": 40.0,

@@ -1,5 +1,8 @@
 # Deployment recipes
 
+For the migration's reviewed batch email procedure, see [Migration welcome](MIGRATION_WELCOME.md).
+Production report storage, access and recovery are described in [Migration reports](MIGRATION_REPORTS.md).
+
 ## Release runbook (E11-T04; local proof now, E12-T01 executes the release)
 
 The release topology is `deploy/compose.prod.yaml`: one authenticated MongoDB 7
@@ -21,6 +24,35 @@ The private identity is supplied only to an explicit verification/recovery run.
 
 ### Prepare and deploy
 
+For the initial demonstration stage on the definitive host, keep `SPRING_PROFILES_ACTIVE=prod` and set
+`HOSTED_DEMO_ENABLED=true` explicitly in its private deployment environment.
+`HOSTED_DEMO_EMAIL_ALLOWLIST` must contain a nonempty comma-separated list of
+individual tester email addresses; wildcard/domain patterns and empty entries
+are rejected. Address matching is case insensitive and exact. All email still
+uses the real SendGrid adapter, with its real API key, verified sender and webhook
+verification key. A recipient outside the list receives no provider call and the
+notification is recorded as failed without retry, never sent. This mode creates no mailbox or
+public message-capture endpoint.
+
+Hosted demo always refuses SMS (`SKIPPED_NOT_ALLOWED`) and makes push unavailable
+(`FAILED`, no public VAPID key), even if credentials were supplied. Leave Twilio
+and VAPID variables empty in this environment, removing example placeholders;
+they remain mandatory when the demo flag is false. Disable the SMS/PUSH club
+modules as well to keep their unavailable options out of the demo UI. Stripe may
+remain disabled. If enabled, configure real **test** keys and a test webhook:
+live configuration and outbound clients are rejected, and signed webhook events
+must have `livemode=false`. Do not import a production database or live Stripe
+inbox into the isolated demo.
+
+This is an outbound-provider restriction, not a local/test profile. Authentication,
+TLS, private S3, encrypted backups, migration confirmations, real host verification
+and seed restrictions still apply. Bootstrap a reviewed hosted club definition and
+operator through the normal `club:apply`/`identity:grant-platform-admin` commands;
+use the guarded migration for an anonymized Playoff dataset. `seed:demo` remains
+forbidden in prod/staging. Leaving the flag unset preserves normal production
+behavior. `bin/release-preflight` validates the demo flag/list and mandatory real
+email settings before activation; never supply fake credentials to pass it.
+
 1. At E12-T01, provision the dedicated droplet, firewall 80/443 plus restricted
    SSH, DNS for the four fixed hosts, disk/backup monitoring and private S3
    buckets. Select a free Docker subnet. Set `CADDY_IPV4_ADDRESS` inside it and
@@ -28,8 +60,12 @@ The private identity is supplied only to an explicit verification/recovery run.
    Retain the same IP across updates. Do not trust the whole Internet or forward
    arbitrary client `X-Forwarded-*` values. Confirm no other proxy is in front;
    adding one requires its own reviewed trust configuration.
-2. Record the reviewed current and previous `sha-…` image tags and matching web
-   artifact versions. Pull the target, copy all three built SPAs to versioned
+2. Record the reviewed current and previous `sha-…` image tags, their registry
+   digests from the green publication, and matching web artifact versions.
+   Never select `:main`: INC-88 can leave it on an older successful build.
+   Prefer `IMAGE_TAG=sha-<commit>@sha256:<registry-digest>`; Compose accepts this
+   tag-plus-digest form and Docker selects the digest. Pull the target explicitly,
+   copy all three built SPAs to versioned
    release directories and set `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR`.
    Verify each contains `index.html`. The checked-in `deploy/local/*/index.html`
    files are proof fixtures, never the release apps. GHCR access uses the recipe
@@ -58,6 +94,8 @@ The private identity is supplied only to an explicit verification/recovery run.
    ```sh
    export DEPLOY_ENV_FILE=/etc/agilityhub/core.env
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml config --quiet
+   # IMAGE_TAG is pinned as sha-<commit>@sha256:<reviewed-registry-digest>.
+   bin/release-preflight
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml build backup
    bin/backup-mongo
    # Supply BACKUP_AGE_IDENTITY from escrow; recovery.env holds Get/List credentials.
@@ -73,12 +111,37 @@ The private identity is supplied only to an explicit verification/recovery run.
    `Path=/oauth2/token`, and no refresh token is in JSON. Check the real provider
    flows listed below and one scheduler run. Keep responses containing tokens,
    cookies or personal data out of the operational log.
-6. Release rollback: restore the previous `IMAGE_TAG` **and** previous three
-   `*_DIST_DIR` values, then repeat `pull core`, `up -d --wait` and the smoke.
+6. Release rollback: restore the previous digest-pinned `IMAGE_TAG` **and**
+   previous three `*_DIST_DIR` values, then repeat `pull core`,
+   `bin/release-preflight`, `up -d --wait` and the smoke.
    Never use `down -v` on a release. If the new version changed persisted data
    incompatibly, an image rollback alone is unsafe: keep writers stopped and
    use the verified database recovery procedure below. Record the chosen
    recovery point and any data after it that must be reconciled.
+
+`bin/release-preflight` is read-only: it resolves the production Compose file
+privately and inspects an already pulled image; it never starts containers, pulls
+images, changes infrastructure or contacts a provider. The populated env file must
+stay outside the checkout without group/other permissions (0600, or read-only
+0400). If using an unpinned `sha-…` tag, pass
+`--expected-digest sha256:<reviewed-registry-digest>` from the green image
+publication. A local image ID is not a registry digest. The command rejects
+`:main`, local/CI tags, absent or mismatched registry digests, local proof profiles,
+exposed database/API ports, broad proxy trust, reused Mongo passwords, placeholders,
+missing backup configuration and proof HTML in place of the built SPAs. It also
+checks each mounted SPA's compiled entry module exists and fingerprints every
+file of its distinct read-only dist directory. Its JSON output contains only image
+identifiers and artifact hashes, suitable for the release record. Keep the reviewed
+API/web commits and CI run IDs beside that output; matching hashes do not establish
+that a release was reviewed.
+
+Run it again after selecting rollback artifacts. A PASS establishes only local
+input consistency; it does not verify DNS, provider credentials/delivery, bank
+acceptance, legal content, a completed restore, or migration reconciliation. At a
+first installation, there is no previous database to back up: start the stack with
+schedulers held off, create/verify its first backup, and finish the provider and
+migration checks before opening access. On an existing installation, the verified
+pre-deploy backup in step 4 remains required.
 
 The local proof boots Core with **prod**, fictional non-blank provider credentials
 and real S3 adapters pointing at MinIO. Only the one-shot seed uses `local`.
@@ -478,7 +541,7 @@ and URIs are included because they must remain consistent across recovery.
 
 | Variables | Purpose, source and rotation |
 |---|---|
-| `IMAGE_TAG` | Reviewed GHCR `sha-…` tag from a green publish. Change to deploy/rollback together with web artifacts. |
+| `IMAGE_TAG` | Reviewed GHCR `sha-…` tag, preferably `sha-…@sha256:<registry-digest>`, from a green publish. Never `main`. Change to deploy/rollback together with web artifacts; `release-preflight` checks the registry digest. |
 | `MONGO_ROOT_USERNAME`, `MONGO_ROOT_PASSWORD` | Dedicated bootstrap/operations account, generated by the operator; update stored user and env together. Never used by Core. |
 | `MONGODB_DATABASE` | Application database name chosen for this deployment; changing selects another database, it does not migrate data. |
 | `MONGODB_USERNAME`, `MONGODB_PASSWORD` | Generated least-privilege application login in `admin`; rotate stored user and recreate Core together. |
@@ -998,6 +1061,17 @@ record of what went to the bank. Downloads are presigned GETs valid for five
 minutes, answering `Content-Disposition: attachment` with the stored
 `application/xml` type, and each link issued is audited (`DATA_EXPORTED`).
 Treat the bucket as holding bank data: private and encrypted at rest.
+
+### Release image vulnerability follow-up (INC-90)
+
+The 23-10 offline re-scan of the E11-T12 image located the four fixable Go HIGH
+findings in `/usr/bin/pebble`, an unused supervisor inherited from the runtime base.
+Core starts Java directly. The runtime Dockerfile removes that binary; the local
+image derived from the gate image with only that removal has no Go findings under
+the same cached advisory database. This is not a claim about newer advisories or a
+published release: build and scan the final release image on both CI architectures
+and run the Compose proof before promotion. The separate OGNL 3.3.4 MEDIUM is in
+`app.jar/BOOT-INF/lib`, so refreshing a base image alone does not fix it.
 
 ### Billing and migration facts for the first runs (E11-T15)
 

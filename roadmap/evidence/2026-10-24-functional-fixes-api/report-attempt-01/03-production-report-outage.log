@@ -1,0 +1,5 @@
+Migration input manifest SHA-256: [manifest SHA-256 redacted]
+Migration cut-over: 2026-09-01; selected steps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Migration run: ad3bb72a-eaa3-4204-861a-8e0df6d58994
+Migration data committed; recover only the report with migration:report for run ad3bb72a-eaa3-4204-861a-8e0df6d58994. Do not reapply the migration.
+Command failed (AccessDeniedException)

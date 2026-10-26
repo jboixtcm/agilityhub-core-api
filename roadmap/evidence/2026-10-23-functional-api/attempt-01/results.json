@@ -1,0 +1,18 @@
+[
+  {
+    "case": "seed-canic exit",
+    "passed": false,
+    "detail": {
+      "expected": 0,
+      "actual": 1
+    }
+  },
+  {
+    "case": "seed-other exit",
+    "passed": false,
+    "detail": {
+      "expected": 0,
+      "actual": 1
+    }
+  }
+]

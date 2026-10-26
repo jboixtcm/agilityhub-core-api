@@ -1,0 +1,3 @@
+MigrationReportCheckpointIT: tests=2, failures=0, errors=0, skipped=0
+MigrationReportsIT: tests=4, failures=0, errors=0, skipped=0
+PlayoffMigrationIT: tests=2, failures=0, errors=0, skipped=0

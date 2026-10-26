@@ -1,0 +1,50 @@
+{
+  "com.agilityhub.core.migration.api": {
+    "BRANCH": {
+      "covered": 4,
+      "missed": 0
+    },
+    "LINE": {
+      "covered": 4,
+      "missed": 0
+    }
+  },
+  "com.agilityhub.core.migration.application": {
+    "BRANCH": {
+      "covered": 1340,
+      "missed": 235
+    },
+    "LINE": {
+      "covered": 1386,
+      "missed": 72
+    }
+  },
+  "com.agilityhub.core.migration.persistence": {
+    "BRANCH": {
+      "covered": 132,
+      "missed": 30
+    },
+    "LINE": {
+      "covered": 147,
+      "missed": 3
+    }
+  },
+  "com.agilityhub.core.migration.domain": {
+    "BRANCH": {
+      "covered": 117,
+      "missed": 29
+    },
+    "LINE": {
+      "covered": 113,
+      "missed": 3
+    }
+  },
+  "overallLINE": {
+    "covered": 33631,
+    "missed": 533
+  },
+  "overallBRANCH": {
+    "covered": 23919,
+    "missed": 3161
+  }
+}

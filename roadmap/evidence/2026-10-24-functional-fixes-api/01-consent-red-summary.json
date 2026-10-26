@@ -1,0 +1,43 @@
+{
+  "class": "com.agilityhub.core.clubs.census.api.CensusIT",
+  "counts": {
+    "tests": 10,
+    "failures": 8,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failures": [
+    {
+      "test": "T_03_08_INC91_ledgerWithdrawalAndMissingConsentNeverBecomeGrants",
+      "message": "\nExpecting value to be false but was true"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[1]",
+      "message": "\nExpecting value to be true but was false"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[2]",
+      "message": "\nExpecting value to be true but was false"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[4]",
+      "message": "\nexpected: true\n but was: false"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[5]",
+      "message": "\nExpecting value to be true but was false"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[6]",
+      "message": "\nExpecting value to be true but was false"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[7]",
+      "message": "\nexpected: true\n but was: false"
+    },
+    {
+      "test": "T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document, boolean)[9]",
+      "message": "\nExpecting value to be true but was false"
+    }
+  ]
+}

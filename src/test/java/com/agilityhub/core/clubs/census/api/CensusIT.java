@@ -57,6 +57,7 @@ class CensusIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.payments.application.BankAccountVault vault;
     @Autowired com.agilityhub.core.platform.application.audit.AuditErasure auditErasure;
     @Autowired com.agilityhub.core.platform.application.privacy.ErasureDirectory erasureDirectory;
+    @Autowired com.agilityhub.core.clubs.dashboard.persistence.DashboardRepository dashboard;
 
     @BeforeEach void seed() {
         TenantContext.clear();
@@ -137,6 +138,72 @@ class CensusIT extends AbstractIntegrationTest {
     }
     String family() throws Exception {
         return json(admin(body(post("/api/v1/family-groups"), Map.of("holderMemberId", "one", "memberIds", List.of("one", "two")))), 201).path("id").asText();
+    }
+    static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> legacyImageConsents() {
+        return java.util.stream.Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of(new Document("accepted", true), true),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("accepted", false), false),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("granted", true), true),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("granted", false), false),
+                org.junit.jupiter.params.provider.Arguments.of(new Document(), false),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("accepted", "true"), false),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("granted", false).append("accepted", true), false),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("granted", true).append("accepted", false), true),
+                org.junit.jupiter.params.provider.Arguments.of(new Document("granted", null).append("accepted", true), false));
+    }
+
+    /** INC-91: historical consent representations must agree in detail, history, list and its filter; reads never rewrite evidence. */
+    @ParameterizedTest @org.junit.jupiter.params.provider.MethodSource("legacyImageConsents")
+    void T_03_08_INC91_legacyImageConsentHasOneConservativeMeaning(Document image, boolean granted) throws Exception {
+        image.append("at", Date.from(clock.instant())).append("version", "legacy-v1");
+        field("members", "one", "consents", new Document("imageRights", image));
+        field("dogs", "dog-one", "status", "PENDING"); // Signup warnings require an actual pending dog.
+        var before = mongo.findById("one", Document.class, "members");
+        var detail = json(admin(get("/api/v1/members/one")), 200).at("/consents/imageRights/granted");
+        assertThat(detail.isBoolean()).isTrue(); assertThat(detail.asBoolean()).isEqualTo(granted);
+        var history = json(admin(get("/api/v1/members/one/consents")), 200);
+        assertThat(history).hasSize(1); assertThat(history.get(0).path("granted").asBoolean()).isEqualTo(granted);
+        var listed = json(admin(get("/api/v1/members").param("filter", "id:eq:one").param("fields", "id,imageRights,warnings")), 200).path("items").get(0);
+        assertThat(listed.at("/imageRights/granted").isBoolean()).isTrue();
+        assertThat(listed.at("/imageRights/granted").asBoolean()).isEqualTo(granted);
+        assertThat(listed.path("warnings").toString().contains("NO_IMAGE_CONSENT")).isEqualTo(!granted);
+        for (boolean filter : List.of(true, false)) {
+            var page = json(admin(get("/api/v1/members").param("filter", "id:eq:one", "imageRightsGranted:eq:" + filter)), 200);
+            assertThat(page.path("totalItems").asInt()).isEqualTo(filter == granted ? 1 : 0);
+        }
+        assertThat(mongo.findById("one", Document.class, "members")).isEqualTo(before);
+        field("members", "one", "status", "PENDING");
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(dashboard.pendingSignups()).singleElement().satisfies(row -> assertThat(row.imageConsent()).isEqualTo(granted));
+        }
+    }
+
+    @Test void T_03_08_INC91_ledgerWithdrawalAndMissingConsentNeverBecomeGrants() throws Exception {
+        field("members", "one", "consents", List.of(
+                new Document("type", "IMAGE_USE").append("granted", true).append("acceptedAt", Date.from(clock.instant().minusSeconds(1))),
+                new Document("type", "IMAGE_USE").append("accepted", false).append("acceptedAt", Date.from(clock.instant()))));
+        assertThat(json(admin(get("/api/v1/members/one")), 200).at("/consents/imageRights/granted").asBoolean()).isFalse();
+        var history = json(admin(get("/api/v1/members/one/consents")), 200);
+        assertThat(history).hasSize(2); assertThat(history.get(0).path("granted").asBoolean()).isTrue();
+        assertThat(history.get(1).path("granted").asBoolean()).isFalse();
+        assertThat(json(admin(get("/api/v1/members").param("filter", "id:eq:one")), 200).at("/items/0/imageRights/granted").asBoolean()).isFalse();
+        field("members", "one", "consents", new Document());
+        var absent = json(admin(get("/api/v1/members/one")), 200).at("/consents/imageRights/granted");
+        assertThat(absent.isBoolean()).isTrue(); assertThat(absent.asBoolean()).isFalse();
+        assertThat(json(admin(get("/api/v1/members/one/consents")), 200)).isEmpty();
+        error(call(get("/api/v1/members/one/consents"), OTHER, "foreign", "ADMIN"), ErrorCode.NOT_FOUND);
+        own(get("/api/v1/members/one/consents")).andExpect(status().isForbidden());
+    }
+
+    @Test void T_14_18_INC91_legacyPrivacyAcceptanceRemainsTrueWhileAbsentImageEvidenceIsFalse() throws Exception {
+        var acceptance = new Document("acceptedAt", Date.from(clock.instant())).append("version", "legacy-v1");
+        field("members", "one", "consents", new Document("privacyPolicy", acceptance).append("imageRights", new Document("at", Date.from(clock.instant()))));
+        var history = json(admin(get("/api/v1/members/one/consents")), 200);
+        assertThat(history).hasSize(2);
+        assertThat(history.get(0).path("type").asText()).isEqualTo("PRIVACY_POLICY");
+        assertThat(history.findValues("granted")).extracting(JsonNode::asBoolean).containsExactly(true, false);
+        field("members", "one", "consents", List.of(new Document("type", "PRIVACY_POLICY").append("acceptedAt", Date.from(clock.instant())).append("version", "v1")));
+        assertThat(json(admin(get("/api/v1/members/one/consents")), 200).get(0).path("granted").asBoolean()).isFalse();
     }
     void reference(String collection, String id, String dog, String state, Instant starts) {
         mongo.insert(new Document("_id", id).append("clubId", CLUB).append("dogId", dog).append("state", state).append("startsAt", starts == null ? null : Date.from(starts)), collection);

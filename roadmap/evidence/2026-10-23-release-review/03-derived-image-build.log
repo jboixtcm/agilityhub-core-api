@@ -1,0 +1,29 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from derived-image.Dockerfile
+#1 transferring dockerfile: 153B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for ghcr.io/jboixtcm/agilityhub-core-api:e11-t12
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 218B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM ghcr.io/jboixtcm/agilityhub-core-api:e11-t12@sha256:f62b0f400501cb9c44f76dd5bccd6a94e9c945824020bf570bcf2b9270153fab
+#4 resolve ghcr.io/jboixtcm/agilityhub-core-api:e11-t12@sha256:f62b0f400501cb9c44f76dd5bccd6a94e9c945824020bf570bcf2b9270153fab 0.0s done
+#4 DONE 0.0s
+
+#5 [2/2] RUN rm -f /usr/bin/pebble
+#5 CACHED
+
+#6 exporting to image
+#6 exporting layers 0.0s done
+#6 exporting manifest sha256:fb3cd29851bf13c306a44fc81b7853381861bdcae4f9bd5aa9059f03d4e2df5c done
+#6 exporting config sha256:3071249d0739db607f6ad50647c3218686ec7eb34ea8a239a7d52388353e5f36 done
+#6 exporting attestation manifest sha256:8cd6bc453897a59cf2702896b5fd4aafbeb7eaa67b4137c5d2f70f65a6a26375 0.0s done
+#6 exporting manifest list sha256:4c3f595876c3f2830c46c3cdd8e528f9a25831109d2d92b47f10b403dc01645e 0.0s done
+#6 naming to ghcr.io/jboixtcm/agilityhub-core-api:release-audit-no-pebble done
+#6 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:release-audit-no-pebble 0.0s done
+#6 DONE 0.2s

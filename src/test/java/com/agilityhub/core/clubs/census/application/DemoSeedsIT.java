@@ -37,6 +37,7 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Autowired DemoSeedCommand command; @Autowired CatalogService catalogs; @Autowired PlanService plans; @Autowired PriceService prices;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo;
     @Autowired MockMvc mvc; @Autowired DocumentService documents;
+    @Autowired CensusNotificationFacts notificationFacts;
     @BeforeEach void clear() {
         for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "members", "dogs", "family_groups", "dog_documents",
                 "levels", "rings", "plans", "prices", "faq_entries", "instructors", "catalog_seed_references", "demo_seed_runs",
@@ -50,6 +51,43 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     Map<String, List<Document>> snapshot() {
         var result = new TreeMap<String, List<Document>>();
         for (String name : mongo.getCollectionNames()) { result.put(name, mongo.findAll(Document.class, name)); } return result;
+    }
+    /** INC-94: the actual definition + complete demo seed keep safe instructions through the billing seed and N-01 facts. */
+    @Test void T_17_01_INC94_safeDemoRetainsItsIdentityAndPaymentInstructionsAfterCompleteSeed() throws Exception {
+        var definition = codec.read(Path.of("seeds/club-canic-demo.yaml"));
+        ((ObjectNode) definition.path("club")).put("status", "ACTIVE"); // Same disposable-stack activation as the browser runner.
+        String club = definitions.apply(definition, false).id();
+        var expected = definition.at("/paymentProviders/MANUAL/instructions");
+        command.run(new DefaultApplicationArguments("--club=canic"));
+        var stored = mongo.findById(club, Document.class, "clubs");
+        assertThat(mapper.<JsonNode>valueToTree(stored.get("paymentProviders", Document.class).get("MANUAL", Document.class).get("instructions")))
+                .isEqualTo(expected);
+        var branding = mapper.readTree(mvc.perform(get("/api/v1/branding").header("Host", "app.canic-demo.example.test"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(branding.at("/club/name").asText()).isEqualTo("Demo Agility Cànic");
+        assertThat(branding.path("modules").toString()).doesNotContain("LEARN_LINK");
+        var member = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("memberNumber").is(6)), Document.class, "members");
+        for (String locale : List.of("ca", "es", "en")) {
+            var signup = mapper.readTree(mvc.perform(get("/api/v1/signup").header("Host", "app.canic-demo.example.test").header("Accept-Language", locale))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+            assertThat(signup.path("enabled").asBoolean()).isTrue();
+            var manual = java.util.stream.StreamSupport.stream(signup.path("paymentMethods").spliterator(), false)
+                    .filter(method -> method.path("type").asText().equals("MANUAL")).findFirst().orElseThrow();
+            assertThat(manual.path("instructions").asText()).isEqualTo(expected.path(locale).asText());
+            try (var tenant = TenantContext.open(club)) {
+                var trigger = new com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger(
+                        "demo-safe-payment-" + locale, "SignupSubmitted", club, "Member", member.getString("_id"), clock.instant(),
+                        Map.of("memberId", member.getString("_id"), "locale", locale, "dogNames", List.of("Fictional dog"),
+                                "upfrontTotal", Map.of("amountMinor", 1000, "currency", "EUR")), null, null, DomainEvent.Origin.SYSTEM);
+                assertThat(notificationFacts.facts(trigger, "N-01").orElseThrow().valuesOf("APPLICANT"))
+                        .containsEntry("payment_instructions", expected.path(locale).asText());
+            }
+        }
+        for (int number : List.of(6, 7)) {
+            var seeded = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("memberNumber").is(number)), Document.class, "members");
+            var image = seeded.get("consents", Document.class).get("imageRights", Document.class);
+            assertThat(image).containsEntry("granted", number % 2 == 0).doesNotContainKey("accepted");
+        }
     }
     @Test @AuditCovers(AuditAction.CATALOG_CHANGED)
     void T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites() throws Exception {

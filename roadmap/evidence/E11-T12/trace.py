@@ -166,8 +166,7 @@ def main():
     by_id = defaultdict(list)
     for (klass, method), entry in methods.items():
         results = entry["results"]
-        result = next((r for r in ("ERROR", "FAIL") if r in results), None) \
-            or ("SKIPPED" if all(r == "SKIPPED" for r in results) else "PASS")
+        result = next((r for r in ("ERROR", "FAIL", "SKIPPED") if r in results), "PASS")
         seen = []
         for match in SPEC_ID.finditer(method):
             spec = f"T-{match[1]}-{match[2]}"

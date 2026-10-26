@@ -1,0 +1,59 @@
+{
+  "scannerVersion": "8.30.1",
+  "scope": "evidence",
+  "results": [
+    {
+      "repository": "agilityhub-core-api",
+      "files": 438,
+      "exit_code": 0,
+      "findings": 0,
+      "command": [
+        "/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-secret-review-isl2mljr/gitleaks",
+        "dir",
+        "--no-banner",
+        "--redact",
+        "--config",
+        "/Users/jordib/dev/agilityhub/agilityhub-core-api/.gitleaks.toml",
+        "--report-format",
+        "json",
+        "--report-path",
+        "/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-review-scan-mgay3dv0/findings.json",
+        "<private-temporary-copy>"
+      ],
+      "locations": [],
+      "sourceUnchanged": true
+    },
+    {
+      "repository": "agilityhub-core-web",
+      "files": 724,
+      "exit_code": 1,
+      "findings": 2,
+      "command": [
+        "/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-secret-review-isl2mljr/gitleaks",
+        "dir",
+        "--no-banner",
+        "--redact",
+        "--config",
+        "/Users/jordib/dev/agilityhub/agilityhub-core-api/.gitleaks.toml",
+        "--report-format",
+        "json",
+        "--report-path",
+        "/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-review-scan-9pzdtz94/findings.json",
+        "<private-temporary-copy>"
+      ],
+      "locations": [
+        {
+          "file": "roadmap/evidence/2026-10-23-functional-web/core-e3/d2-readmission-add-file-core.json",
+          "line": 6,
+          "rule": "generic-api-key"
+        },
+        {
+          "file": "roadmap/evidence/2026-10-23-functional-web/core-e3/d2-readmission-add-file-core.json",
+          "line": 10,
+          "rule": "generic-api-key"
+        }
+      ],
+      "sourceUnchanged": true
+    }
+  ]
+}

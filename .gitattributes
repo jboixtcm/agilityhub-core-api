@@ -1,0 +1,2 @@
+# Preserve literal tool output; application sources retain Git's whitespace checks.
+roadmap/evidence/2026-10-23-*/*.log -whitespace

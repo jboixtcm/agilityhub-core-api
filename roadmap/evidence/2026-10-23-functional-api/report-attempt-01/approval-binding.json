@@ -1,0 +1,21 @@
+{
+  "clubId": "633be7bf-2984-4c1f-933d-f39188694bd1",
+  "priorRunId": "4d029485-95f5-46b8-9f25-80ab19e93a9b",
+  "cutover": "2026-09-01",
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "inputManifestSha256Prefix": "c1bdac1d0ea0e4d4",
+  "fileMode": "0600",
+  "fileOwnerInContainer": 10001,
+  "approvedAt": "2026-10-24T05:52:41.458922+00:00"
+}

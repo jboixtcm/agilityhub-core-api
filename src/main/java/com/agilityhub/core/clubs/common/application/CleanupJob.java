@@ -56,10 +56,12 @@ public class CleanupJob implements Job {
     private final CleanupRepository cleanup; private final ListExportRepository exports; private final ExportStorage exportFiles;
     private final AttachmentStorage uploads; private final ParameterCatalog parameters; private final OutlivedBuildSessionsPort buildSessions;
     private final PlatformDomains domains;
+    private final com.agilityhub.core.shared.application.MigrationReportRetention migrationReports;
     public CleanupJob(CleanupRepository cleanup, ListExportRepository exports, ExportStorage exportFiles, AttachmentStorage uploads, ParameterCatalog parameters,
-            OutlivedBuildSessionsPort buildSessions, PlatformDomains domains) {
+            OutlivedBuildSessionsPort buildSessions, PlatformDomains domains, com.agilityhub.core.shared.application.MigrationReportRetention migrationReports) {
         this.cleanup = cleanup; this.exports = exports; this.exportFiles = exportFiles; this.uploads = uploads; this.parameters = parameters;
         this.buildSessions = buildSessions; this.domains = domains;
+        this.migrationReports=migrationReports;
     }
     /** Platform rows belong to no club, so their retention is the catalog's product value, never a club's (R-15-19). */
     private record PlatformCutoffs(Instant events, Instant runs) { }
@@ -101,6 +103,9 @@ public class CleanupJob implements Job {
         var purgeable = exports.purgeable(cut.exports());
         purgeable.forEach(job -> items.add(new JobItem("ExportJob", job.id(), DELETE)));
         totals.put("exports", (long) purgeable.size());
+        var migrationExpired=migrationReports.expired(now);
+        migrationExpired.forEach(id->items.add(new JobItem("MigrationReport",id,DELETE)));
+        totals.put("migrationReports",(long)migrationExpired.size());
         long events = cleanup.processedEvents(club, cut.events());
         if (events > 0) { items.add(new JobItem("DomainEvents", CleanupRepository.DOMAIN_EVENTS, DELETE, Map.of("count", events))); }
         totals.put("domainEvents", events);
@@ -174,6 +179,7 @@ public class CleanupJob implements Job {
                 files(job).forEach(exportFiles::delete);
                 yield counted(item, "exportsPurged", exports.purged(job, context.scheduledFor()) ? 1 : 0);
             }
+            case "MigrationReport" -> counted(item,"migrationReportsPurged",migrationReports.purge(item.entityId(),context.scheduledFor()) ? 1 : 0);
             case "DomainEvents" -> counted(item, "domainEventsDeleted", cleanup.deleteProcessedEvents(club, cut.events()));
             case "StripeEvents" -> counted(item, "stripeEventsDeleted", cleanup.deleteStripeEvents(club, cut.stripe()));
             case "JobRuns" -> counted(item, "jobRunsDeleted", cleanup.deleteRuns(club, cleanup.expiredRuns(club, item.entityId(), cut.runs(), KEEP_RUNS)));

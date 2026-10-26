@@ -1,0 +1,8 @@
+{
+  "tag": "agilityhub-core-api:review-fixes-20261024",
+  "id": "sha256:9f8a73041597a46df54ec22789dba793e9d6d20b7454fae61a9238d1824753a9",
+  "profile": "staging",
+  "commandEnvironment": "production",
+  "network": "internal; no published ports or real providers",
+  "s3EmulatorImage": "sha256:b279c01f4cfb8f985a482e4014cabc1e2697b9d7a6c8c8db2e40f4d9f93687c7"
+}

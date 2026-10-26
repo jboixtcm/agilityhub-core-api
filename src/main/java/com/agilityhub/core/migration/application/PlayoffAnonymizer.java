@@ -70,6 +70,9 @@ public final class PlayoffAnonymizer {
         return new BigInteger(digits.toString()).mod(BigInteger.valueOf(97)).intValue()==1;
     }
     public void anonymize(Path dir, Path out, MappingConfig mapping) {
+        // R-18-01 applies before anonymization too: raw exports cannot be read from a repository, Dropbox or symlinked file.
+        mapping.validate();
+        dir = MigrationPaths.input(dir);
         try {
             if (dir.toAbsolutePath().normalize().equals(out.toAbsolutePath().normalize())
                     || Files.exists(out) && Files.isSameFile(dir,out)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }

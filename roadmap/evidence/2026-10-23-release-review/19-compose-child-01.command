@@ -1,0 +1,1 @@
+docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-oj5l51z8/local.env -p e11-t04-4453ac95 -f /Users/jordib/dev/agilityhub/agilityhub-core-api/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api/deploy/compose.prod.local.yaml up -d --wait --wait-timeout 420
