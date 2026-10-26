@@ -41,6 +41,9 @@ def main():
         manifest.parent.mkdir(parents=True)
         manifest_line = '{\n "src/main/java/com/agilityhub/core/SecretKeyHolder.java": "%s"\n}\n'
         manifest.write_text(manifest_line % ('0123456789abcdef' * 4))
+        deploy_manifest = root / 'roadmap/evidence/2026-10-26-deploy-root/01-clean-verify-inputs.json'
+        deploy_manifest.parent.mkdir(parents=True)
+        deploy_manifest.write_text(manifest_line % ('0123456789abcdef' * 4))
 
         def scan():
             result = subprocess.run([args.gitleaks, 'dir', '--no-banner', '--redact', '--config', str(ROOT / '.gitleaks.toml'),
@@ -63,13 +66,15 @@ def main():
         export_fixture.write_text(filename_argument + ' api_key="' + fixture_value() + '"\n'
                                   + 'downloadUrl("key", "' + fixture_value() + '");\n')
         manifest.write_text(manifest_line % fixture_value())
+        deploy_manifest.write_text(manifest_line % fixture_value())
         code, findings = scan()
         locations = {(Path(f['File']).relative_to(root).as_posix(), f['StartLine'], f['RuleID']) for f in findings}
         expected = {('roadmap/evidence/E11-T03/fixture.log', line, 'generic-api-key') for line in (1, 2, 3)}
         expected.add(('.env.example', 1, 'generic-api-key'))
         expected.update((export_fixture.relative_to(root).as_posix(), line, 'generic-api-key') for line in (1, 2))
         expected.add(('roadmap/evidence/E9-T01/fixture-tested-inputs.json', 2, 'generic-api-key'))
-        assert code == 1 and len(findings) == 7 and locations == expected, 'Every injected secret must remain detected'
+        expected.add(('roadmap/evidence/2026-10-26-deploy-root/01-clean-verify-inputs.json', 2, 'generic-api-key'))
+        assert code == 1 and len(findings) == 8 and locations == expected, 'Every injected secret must remain detected'
         print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, changed filename and a non-digest manifest value all fail')
 
 

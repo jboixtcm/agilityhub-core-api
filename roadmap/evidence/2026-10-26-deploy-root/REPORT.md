@@ -56,3 +56,12 @@ Migration run: fd55f916-efb8-4a0d-8671-e6d9a687b240
 2026-10-26T18:28:40.451+01:00 INFO  [main] c.a.core.migration.MigrationWelcomeIT traceId= clubId= accountId= : Started MigrationWelcomeIT in 3.598 seconds (process running for 2028.873)
 E5-T07 outbox backlog discarded before MigrationWelcomeIT: 158 PENDING records (more than one dispatch() batch)
 ```
+
+
+## CI preparation corrections
+
+Initial publication `6595007` exposed two checks outside Maven. The Compose/deploy inventory test required explicit inventory rows for `HOSTED_DEMO_ENABLED` and `HOSTED_DEMO_EMAIL_ALLOWLIST`; those documentation rows are now present. All seven deployment proofs pass (`03-deploy-proofs.*`).
+
+Gitleaks reported 96 matches, all in `01-clean-verify-inputs.json`. Every value in that 2231-entry manifest was verified as a SHA-256 digest of a source/build file. The existing two-rule, 64-hex-only evidence-manifest exception now includes this one exact file path. No code/resource/log exemption was added. A scanner policy regression proves non-digest credentials at that same path still fail; all eight injected credentials remain detected (`05-secret-policy-final.*`). The initial absolute-path fixture mismatch is retained in `04-secret-policy.*`; the final pattern covers relative and absolute scanner paths. Scanning the complete published change from `de50be0` to `6595007` with the corrected policy reports zero leaks (`06-publish-secret-scan.*`).
+
+Only documentation, scanner configuration and its policy test changed after the green 7272-test run. Application source/build inputs remain unchanged; another full Maven run is not needed for these non-runtime corrections. Hosted deployment still awaits a green publishing workflow and private provider configuration.

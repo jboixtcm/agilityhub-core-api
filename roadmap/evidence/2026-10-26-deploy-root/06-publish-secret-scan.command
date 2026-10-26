@@ -1,0 +1,1 @@
+/Users/jordib/dev/agilityhub/agilityhub-core-api/.local/security-tools/gitleaks-8.30.1 git --redact --no-banner --config /Users/jordib/dev/agilityhub/agilityhub-core-api/.gitleaks.toml --log-opts=de50be06b1c0bb3d278a4335e16378292ca6d276..HEAD .
