@@ -120,7 +120,8 @@ class StripePaymentProviderTest {
         var params = ArgumentCaptor.forClass(SessionCreateParams.class); var options = ArgumentCaptor.forClass(RequestOptions.class);
         verify(client.v1().checkout().sessions()).create(params.capture(), options.capture());
         assertThat(params.getValue().getMode()).isEqualTo(SessionCreateParams.Mode.PAYMENT);
-        assertThat(params.getValue().toMap()).containsEntry("payment_method_types", List.of("card"));
+        assertThat(params.getValue().toMap()).containsEntry("allowed_payment_method_types", List.of("card"))
+                .doesNotContainKey("payment_method_types");
         assertThat(params.getValue().getMetadata()).containsEntry("operationId", "operation").containsEntry("upfrontPaymentIds", "payment");
         assertThat(params.getValue().getClientReferenceId()).isEqualTo("booking");
         assertThat(options.getValue().getIdempotencyKey()).isEqualTo("operation");
@@ -145,7 +146,8 @@ class StripePaymentProviderTest {
             verify(client.v1().checkout().sessions()).create(params.capture(), any(RequestOptions.class));
             assertThat(params.getValue().getCustomer()).isEqualTo("cus_example"); assertThat(params.getValue().getCustomerEmail()).isNull();
             assertThat(params.getValue().getCurrency()).isEqualTo("gbp");
-            assertThat(params.getValue().toMap()).containsEntry("payment_method_types", List.of("card"));
+            assertThat(params.getValue().toMap()).containsEntry("allowed_payment_method_types", List.of("card"))
+                    .doesNotContainKey("payment_method_types");
             assertThat(params.getValue().getSetupIntentData().getMetadata()).containsEntry("operationId", "setup-op");
             assertThat(provider.cardDetails(mapper.valueToTree(Map.of("payment_intent", "pi_example"))).last4()).isEqualTo("4242");
             assertThat(provider.cardDetails(mapper.valueToTree(Map.of("payment_method", "pm_example", "customer", "cus_example"))).usable()).isTrue();

@@ -66,7 +66,7 @@ public class StripePaymentProvider implements PaymentProvider {
         metadata.put("operationId", request.sessionId());
         var params = SessionCreateParams.builder().setMode(SessionCreateParams.Mode.valueOf(request.mode().toUpperCase(Locale.ROOT)))
                 .setSuccessUrl(request.successUrl()).setCancelUrl(request.cancelUrl()).setClientReferenceId(request.clientReferenceId())
-                .putAllMetadata(metadata).putExtraParam("payment_method_types", List.of("card")); // Stripe defaults to 24h; Core enforces its shorter booking deadline and refunds late captures.
+                .putAllMetadata(metadata).putExtraParam("allowed_payment_method_types", List.of("card")); // Stripe defaults to 24h; Core enforces its shorter booking deadline and refunds late captures.
         if (!"setup".equals(request.mode()) && request.customerEmail() != null) { params.setCustomerEmail(request.customerEmail()); }
         if ("setup".equals(request.mode())) {
             var customer = calls.call(() -> client.v1().customers().create(CustomerCreateParams.builder().putMetadata("memberId", request.memberId()).build(), options("customer:" + request.memberId())));

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- 2026-10-28 Stripe test rehearsal: use Checkout's `allowed_payment_method_types` filter for saved-card setup and payments. Stripe API 2026-09-30 rejects the removed `payment_method_types` input; both flows retain the card-only restriction. The disposable billing smoke shares fresh vault keys between the seed and API containers so the API can read encrypted fixture bank accounts.
+
 - 2026-10-26 internal review: `EMAIL_DELIVERY_ENABLED=false` with the explicit hosted-demo policy disables every software email without provider keys, local mailboxes or a future send queue. SYSTEM and engine deliveries record `SKIPPED_NOT_ALLOWED`; password login and in-app notifications remain available. Default production email remains enabled and requires provider credentials.
 
 - 2026-10-26 Brevo provider: select Brevo transactional API with a verified platform sender and the existing hosted-demo allowlist. Authenticate callbacks with a separate bearer secret, correlate tenant/recipient/message, deduplicate event outcomes, and suppress permanent failures without treating temporary bounces as permanent. SendGrid remains the default. Provider credentials and environment inventory are documented; real account/domain/delivery verification is separate.

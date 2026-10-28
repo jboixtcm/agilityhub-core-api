@@ -1,0 +1,187 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.72kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 0.7s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 DONE 1.3s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 218B done
+#4 DONE 0.0s
+
+#5 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+#5 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320 0.0s done
+#5 DONE 0.0s
+
+#6 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56
+#6 resolve docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56 0.0s done
+#6 DONE 0.1s
+
+#7 [internal] load build context
+#7 transferring context: 16.98MB 0.2s done
+#7 DONE 0.3s
+
+#6 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56
+#6 sha256:c245b7a1c8de9a3d6528ce4ed90410488f18461475f9194fd1070ac7edd99961 156B / 156B 0.1s done
+#6 sha256:e63591917c2638c7c92da89daea6d1681f9e1f8459c7fbeaffe405d082fa7512 2.46kB / 2.46kB 0.2s done
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 0B / 53.10MB 0.2s
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 0B / 20.14MB 0.2s
+#6 ...
+
+#8 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [build 3/8] WORKDIR /workspace
+#9 CACHED
+
+#10 [build 4/8] COPY .mvn/ .mvn/
+#10 CACHED
+
+#11 [build 5/8] COPY mvnw pom.xml ./
+#11 CACHED
+
+#6 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56
+#6 sha256:f3f25b84a7d74315d94ee4108231f8f5e0cd2a44725a7204d5dd6ce91c151697 0B / 392B 0.2s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 0B / 42.14MB 0.2s
+#6 ...
+
+#12 [build 6/8] COPY src/ src/
+#12 DONE 0.2s
+
+#13 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#13 DONE 0.0s
+
+#6 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 7.34MB / 53.10MB 0.5s
+#6 sha256:f3f25b84a7d74315d94ee4108231f8f5e0cd2a44725a7204d5dd6ce91c151697 392B / 392B 0.3s done
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 16.78MB / 53.10MB 0.6s
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 4.19MB / 20.14MB 0.6s
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 26.21MB / 53.10MB 0.8s
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 7.34MB / 20.14MB 0.8s
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 31.46MB / 53.10MB 0.9s
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 9.44MB / 20.14MB 0.9s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 4.19MB / 42.14MB 0.8s
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 37.75MB / 53.10MB 1.1s
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 13.63MB / 20.14MB 1.1s
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 44.04MB / 53.10MB 1.2s
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 17.83MB / 20.14MB 1.2s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 7.34MB / 42.14MB 1.1s
+#6 sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 53.10MB / 53.10MB 1.4s done
+#6 sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 20.14MB / 20.14MB 1.3s done
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 12.58MB / 42.14MB 1.4s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 15.73MB / 42.14MB 1.5s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 20.97MB / 42.14MB 1.7s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 29.36MB / 42.14MB 1.8s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 40.89MB / 42.14MB 2.0s
+#6 sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 42.14MB / 42.14MB 2.0s done
+#6 extracting sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf
+#6 extracting sha256:edafa32f5d9e4d9629f0dbc6c01e63c79ff08133c01cfb7d3363aa8bd8a614cf 0.7s done
+#6 DONE 3.0s
+
+#14 [build 8/8] RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3     -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
+#14 ...
+
+#6 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56
+#6 extracting sha256:f3f25b84a7d74315d94ee4108231f8f5e0cd2a44725a7204d5dd6ce91c151697 done
+#6 extracting sha256:dbf7808018106e8dd0eb0c93db936d01666d9366c7aea09fa71d890a0cf44b62 0.2s done
+#6 DONE 3.2s
+
+#6 [stage-1  1/15] FROM docker.io/library/eclipse-temurin:21-jre@sha256:f37956012e0cb88400e5b3689aeae2d2d735364c1922ae2225536163b5a99f56
+#6 extracting sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176
+#6 extracting sha256:fc572c000eb78b4ce6f7e796699cb01a2f90aefa1eafe945802155c1a457c176 0.4s done
+#6 extracting sha256:c245b7a1c8de9a3d6528ce4ed90410488f18461475f9194fd1070ac7edd99961
+#6 extracting sha256:c245b7a1c8de9a3d6528ce4ed90410488f18461475f9194fd1070ac7edd99961 done
+#6 extracting sha256:e63591917c2638c7c92da89daea6d1681f9e1f8459c7fbeaffe405d082fa7512 done
+#6 DONE 3.7s
+
+#15 [stage-1  2/15] RUN rm -f /usr/bin/pebble     && apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*     && useradd --system --uid 10001 --user-group --create-home agilityhub     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
+#15 0.391 Get:1 http://archive.ubuntu.com/ubuntu resolute InRelease [136 kB]
+#15 0.486 Get:2 http://security.ubuntu.com/ubuntu resolute-security InRelease [137 kB]
+#15 0.662 Get:3 http://archive.ubuntu.com/ubuntu resolute-updates InRelease [137 kB]
+#15 0.771 Get:4 http://archive.ubuntu.com/ubuntu resolute-backports InRelease [137 kB]
+#15 0.872 Get:5 http://archive.ubuntu.com/ubuntu resolute/multiverse amd64 Packages [352 kB]
+#15 0.986 Get:6 http://archive.ubuntu.com/ubuntu resolute/restricted amd64 Packages [189 kB]
+#15 0.998 Get:7 http://archive.ubuntu.com/ubuntu resolute/universe amd64 Packages [20.1 MB]
+#15 1.022 Get:8 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages [746 kB]
+#15 1.468 Get:9 http://security.ubuntu.com/ubuntu resolute-security/restricted amd64 Packages [609 kB]
+#15 1.490 Get:10 http://archive.ubuntu.com/ubuntu resolute/main amd64 Packages [1,874 kB]
+#15 1.521 Get:11 http://security.ubuntu.com/ubuntu resolute-security/multiverse amd64 Packages [24.6 kB]
+#15 1.538 Get:12 http://archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages [979 kB]
+#15 1.548 Get:13 http://archive.ubuntu.com/ubuntu resolute-updates/universe amd64 Packages [424 kB]
+#15 1.551 Get:14 http://archive.ubuntu.com/ubuntu resolute-updates/multiverse amd64 Packages [26.1 kB]
+#15 1.551 Get:15 http://archive.ubuntu.com/ubuntu resolute-updates/restricted amd64 Packages [668 kB]
+#15 1.558 Get:16 http://archive.ubuntu.com/ubuntu resolute-backports/universe amd64 Packages [3,308 B]
+#15 1.582 Get:17 http://security.ubuntu.com/ubuntu resolute-security/universe amd64 Packages [258 kB]
+#15 2.330 Fetched 26.8 MB in 2s (12.7 MB/s)
+#15 2.330 Reading package lists...
+#15 2.858 Reading package lists...
+#15 3.430 Building dependency tree...
+#15 3.567 Reading state information...
+#15 3.597 curl is already the newest version (8.18.0-1ubuntu2.8).
+#15 3.597 Solving dependencies...
+#15 3.785 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+#15 3.825 useradd warning: agilityhub's uid 10001 is greater than SYS_UID_MAX 999
+#15 DONE 4.1s
+
+#14 [build 8/8] RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3     -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
+#14 ...
+
+#16 [stage-1  3/15] WORKDIR /app
+#16 DONE 0.0s
+
+#14 [build 8/8] RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3     -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
+#14 DONE 43.7s
+
+#17 [stage-1  4/15] COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
+#17 DONE 0.1s
+
+#18 [stage-1  5/15] COPY --chown=agilityhub:agilityhub seeds/club-canic.yaml seeds/club-canic.yaml
+#18 DONE 0.0s
+
+#19 [stage-1  6/15] COPY --chown=agilityhub:agilityhub seeds/club-canic-demo.yaml seeds/club-canic-demo.yaml
+#19 DONE 0.0s
+
+#20 [stage-1  7/15] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic-consumer.yaml
+#20 DONE 0.0s
+
+#21 [stage-1  8/15] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#21 DONE 0.0s
+
+#22 [stage-1  9/15] COPY --chown=agilityhub:agilityhub seeds/club-template-default.yaml seeds/club-template-default.yaml
+#22 DONE 0.0s
+
+#23 [stage-1 10/15] COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+#23 DONE 0.0s
+
+#24 [stage-1 11/15] COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+#24 DONE 0.0s
+
+#25 [stage-1 12/15] COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+#25 DONE 0.0s
+
+#26 [stage-1 13/15] COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+#26 DONE 0.0s
+
+#27 [stage-1 14/15] COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
+#27 DONE 0.0s
+
+#28 [stage-1 15/15] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#28 DONE 0.0s
+
+#29 exporting to image
+#29 exporting layers
+#29 exporting layers 2.1s done
+#29 exporting manifest sha256:8034bdb2653943f6e05afe6206a900e8c98e13c6af8281eb883133b0086a7411 done
+#29 exporting config sha256:1689aeec746703a99a55c17d3c7261deffd1633d9b1444f8dd7e9ed30213fb33 done
+#29 exporting attestation manifest sha256:de9dcc6afa8df30694db1f55a2bf44d38662690eb53ddc78c4f84cac64299695 done
+#29 exporting manifest list sha256:72ee2c437250c90f99104595a485e25f1644ec6ce5e461a95b2a8d446a3820bf done
+#29 naming to ghcr.io/jboixtcm/agilityhub-core-api:stripe-test-20261028 done
+#29 DONE 2.2s

@@ -1,0 +1,30 @@
+{
+  "command": "./mvnw -q clean verify",
+  "exit_code": 0,
+  "reports": {
+    "surefire": {
+      "classes": 482,
+      "tests": 4998,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "changed_classes": [
+        {
+          "name": "com.agilityhub.core.payments.application.stripe.StripePaymentProviderTest",
+          "tests": "10",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        }
+      ]
+    },
+    "failsafe": {
+      "classes": 177,
+      "tests": 2333,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "changed_classes": []
+    }
+  }
+}

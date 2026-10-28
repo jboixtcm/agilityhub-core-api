@@ -18,6 +18,16 @@ loader.exec_module(m)
 
 
 class E8SmokeTest(unittest.TestCase):
+    def test_T_12_11_seed_and_api_share_the_same_disposable_vault_keys(self):
+        with tempfile.TemporaryDirectory() as directory:
+            private = Path(directory)
+            m.E8(m.load_smoke(), private, "fictional:test")
+            services = json.loads((private / "compose.override.json").read_text())["services"]
+            for key in ("BILLING_BANK_KEY", "BILLING_SECRETS_KEY"):
+                with self.subTest(key=key):
+                    self.assertTrue(services["seed"]["environment"][key] == services["core"]["environment"][key],
+                                    "Seeded ciphertext must be readable by the API")
+
     def xml(self, count="1", total="10.00", sequence="RCUR"):
         return f'''<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02"><CstmrDrctDbtInitn>
         <GrpHdr><NbOfTxs>{count}</NbOfTxs><CtrlSum>{total}</CtrlSum></GrpHdr><PmtInf><SeqTp>{sequence}</SeqTp>
