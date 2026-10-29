@@ -46,7 +46,7 @@ class CoverageQueryTest {
         verify(booking).dogsWithBooking("club", Instant.parse("2026-10-25T23:00:00Z"), until);
         verify(booking).dogsWithBooking("club", Instant.parse("2026-10-18T22:00:00Z"), until);
     }
-    @Test void T_06_05_E29_coverageListsOnlyTheActiveProgressionLevels() {
+    @Test void T_06_05_E29_coverageListsOnlyTheActiveProgressionLevelsIncludingDogsWithoutLevel() {
         var repository = mock(com.agilityhub.core.clubs.dashboard.persistence.DashboardRepository.class);
         var booking = mock(BookingActivity.class); var dogs = new DogActivityQuery(repository, booking);
         var context = mock(PlanningContext.class); var weeks = mock(WeekGenerationUseCase.class);
@@ -68,7 +68,7 @@ class CoverageQueryTest {
         var mixed = mock(PlanningViews.TemplateClass.class); when(mixed.capacity()).thenReturn(4); when(mixed.levelIds()).thenReturn(List.of("G", "TER"));
         when(template.classes()).thenReturn(List.of(therapy, mixed));
         when(booking.dogsWithBooking(anyString(), any(), any())).thenReturn(Set.of());
-        when(repository.dogCounts(Set.of())).thenReturn(List.of(new DashboardData.DogCount("TER", 3, 0), new DashboardData.DogCount("PENDENT", 6, 0), new DashboardData.DogCount("G", 2, 0)));
+        when(repository.dogCounts(Set.of())).thenReturn(List.of(new DashboardData.DogCount("TER", 3, 0), new DashboardData.DogCount("PENDENT", 6, 0), new DashboardData.DogCount(null, 12, 0), new DashboardData.DogCount("G", 2, 0)));
         var query = new CoverageQuery(context, templates, weeks, sessions, dogs, mock(com.agilityhub.core.clubs.scheduling.application.ports.ClassBookingsPort.class),
                 mock(com.agilityhub.core.clubs.census.application.SchedulingRecipients.class), clock);
         try (var tenant = TenantContext.open("club")) {

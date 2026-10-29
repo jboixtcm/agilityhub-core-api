@@ -407,6 +407,9 @@ class PlanningIT extends AbstractIntegrationTest {
         sourceTemplates();
         mongo.insert(new Document("_id", "plan-member").append("clubId", CLUB).append("status", "ACTIVE"), "members");
         mongo.insert(new Document("_id", "plan-dog").append("clubId", CLUB).append("status", "ACTIVE").append("memberId", "plan-member").append("levelId", "plan-level-B"), "dogs");
+        // Imported census entries may legitimately have no assigned level.
+        mongo.insert(new Document("_id", "coverage-unassigned").append("clubId", CLUB).append("memberId", "plan-member")
+                .append("name", "Unassigned").append("status", "ACTIVE"), "dogs");
         var coverage = ok("GET", "/coverage?templateId=plan-weekdays&saturdayTemplateId=plan-saturday", null);
         JsonNode b = java.util.stream.StreamSupport.stream(coverage.path("levels").spliterator(), false).filter(l -> l.path("levelId").asText().equals("plan-level-B")).findFirst().orElseThrow();
         assertThat(b.path("maxSeats").asInt()).isEqualTo(230); assertThat(b.path("dogsTotal").asInt()).isEqualTo(1); assertThat(b.path("dogsActive").asInt()).isZero(); assertThat(b.path("status").asText()).isEqualTo("NO_DOGS");

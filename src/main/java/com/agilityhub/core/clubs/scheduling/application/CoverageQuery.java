@@ -44,6 +44,8 @@ public class CoverageQuery {
         int activeWeeks = config.get("coverage.activeDogWeeks", Integer.class);
         var counts = new HashMap<String, CoverageCalculator.Dogs>();
         for (var count : dogs.counts(clock.today(TenantContext.require()), zone, activeWeeks)) {
+            // Unassigned dogs have no progression row; immutable booking maps reject null keys.
+            if (count.levelId() == null) { continue; }
             counts.put(count.levelId(), new CoverageCalculator.Dogs(count.total(), count.withRecentBooking(), booked.getOrDefault(count.levelId(), 0)));
         }
         // R-06-06 (E29): the table lists only the active progression levels; Teràpia or Pendent never appear.
