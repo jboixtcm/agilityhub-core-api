@@ -254,7 +254,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                 .content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", "Fictional new password", "repeat", "Fictional new password"))))
                 .andExpect(status().isOk());
         var notice = ((FakeEmailSender) emailSender).lastTo("admin@example.test");
-        assertThat(notice.subject()).isEqualTo("Your AgilityHub password has changed");
+        assertThat(notice.subject()).isEqualTo("Your Example Agility Club password has changed");
         assertThat(notice.text()).contains("from: Firefox / Linux.").doesNotContain("Unknown device", "{device}");
     }
 

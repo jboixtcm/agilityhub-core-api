@@ -1,0 +1,16 @@
+{
+  "run": 41051998379,
+  "commit": "6b382ccd1b01feb4dc617a97803898cff4d3bbce",
+  "unit": {
+    "tests": 5005,
+    "failures": 0,
+    "errors": 0
+  },
+  "integration": {
+    "tests": 2341,
+    "failures": 1,
+    "errors": 0
+  },
+  "failure": "IdentityCoreIT.T_01_09_INC_37_theN26NoticeNamesTheDeviceThatChangedThePassword expected the previous fixed product name instead of the fixture tenant name",
+  "correction": "Test expectation now requires the fixture tenant brand; the device assertion remains unchanged. No production code changed."
+}

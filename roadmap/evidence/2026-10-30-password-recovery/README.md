@@ -1,6 +1,6 @@
 # Password recovery email — 30 October 2026
 
-Local implementation; not committed, published or deployed. Jordi authorized enabling recovery emails. Provider key creation awaits action-time browser confirmation. The existing sender was observed as verified; the provider homepage displayed a phone-verification requirement.
+Published API commits `2851e477` and `6b382ccd`; production activation pending final image CI. The restricted Brevo key is installed privately and the authenticated webhook is verified. The user-approved email test will use the corrected AgilityCanic subject.
 
 ## Behavior
 
@@ -8,7 +8,7 @@ Local implementation; not committed, published or deployed. Jordi authorized ena
 
 ## Verification limits
 
-The focused identity/delivery integration run passes 54 tests. The full clean gate ran 5,003 unit tests with one existing timing assertion failure in PasswordHasherTest while other browser/build workloads were running; integration was consequently not reached by that gate. Do not claim a clean full gate. Repeat via the shared `05-desenvolupament/roadmap-kit/mac/heavy.sh` lock after the active browser work finishes. The initial selected verification reached successful integration but its coverage report failed with malformed input; after clean rebuild the standalone report succeeded. No timing assertion or coverage threshold was relaxed.
+The full serial clean recovery gate passed: 5,003 unit tests and 2,341 integration tests, zero failures/errors/skips, coverage and architecture gates green. This precedes the requested branding correction. Branding-specific unit tests (16) and system-notification integration tests (21) pass. The final exact-commit CI includes a clean full run and image scanning. Earlier concurrent timing and malformed coverage failures remain in the historical logs below; no threshold or test was weakened.
 
 ## 01-focused.log
 
@@ -252,4 +252,54 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 E0-T08 ca: 248 error messages; 693 keys; parity and ICU syntax OK
 E0-T08 en: 248 error messages; 693 keys; parity and ICU syntax OK
 E0-T08 es: 248 error messages; 693 keys; parity and ICU syntax OK
+```
+
+
+## Identity regression expectation corrected
+
+CI 41051998379 completed 5,005 passing unit tests and 2,341 integration tests with one failure: IdentityCoreIT still expected the previous fixed product name in N-26. The actual subject correctly used the fixture tenant name. Only that expected subject was updated; the device assertion and production code are unchanged.
+
+`HEAVY_WAIT_MIN=120 heavy.sh ./mvnw -q test-compile failsafe:integration-test failsafe:verify -Dit.test=IdentityCoreIT,SystemNotificationServiceIT` exited 0: 53 integration tests, zero failures/errors/skips. See `16-branding-identity-final.log`, `.exit` and summary JSON. The initial compile-only invocation used skipTests; it is not reported as a test pass.
+
+```text
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-30T14:00:34.220+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:34.271+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:34.340+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:36.536+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:36.567+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:36.590+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:36.763+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-30T14:00:43.629+01:00 INFO  [main] c.a.c.c.m.a.SystemNotificationServiceIT traceId= clubId= accountId= : Started SystemNotificationServiceIT in 17.078 seconds (process running for 24.69)
+2026-10-30T14:00:50.217+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-30T14:00:50.407+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+2026-10-30T14:00:50.410+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-30T14:00:50.411+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-30T14:00:50.412+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-30T14:00:50.416+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-30T14:00:50.556+01:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Starting IdentityCoreIT using Java [redacted] with PID 46213 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-30T14:00:50.562+01:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-30T14:00:52.475+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-30T14:00:52.606+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 127 ms. Found 0 MongoDB repository interfaces.
+2026-10-30T14:00:52.906+01:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@65da7d02], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3721aca7, com.mongodb.Jep395RecordCodecProvider@48d60c2d, com.mongodb.KotlinCodecProvider@465926f9, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50482], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@4cd5e48c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-30T14:00:52.912+01:00 INFO  [cluster-6ae4950468f86d4de3b910e8-localhost:50482] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50482, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=3785833, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=78cab2238fb0:27017, hosts=[78cab2238fb0:27017], passives=[], arbiters=[], primary='78cab2238fb0:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ae494e8d04b5209e6c266e6, counter=6}, lastWriteDate=Fri Oct 30 14:00:50 CET 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-30T14:00:58.703+01:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-30T14:00:58.704+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-30T14:00:58.718+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 14 ms
+2026-10-30T14:00:58.846+01:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Started IdentityCoreIT in 8.419 seconds (process running for 39.903)
 ```
