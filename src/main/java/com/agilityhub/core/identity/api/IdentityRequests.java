@@ -41,7 +41,7 @@ public final class IdentityRequests {
             @Schema(requiredMode = NOT_REQUIRED, description = "Existing Learn bcrypt hash, preserved on import", accessMode = Schema.AccessMode.WRITE_ONLY)
             String passwordHash) { }
     public record AccountPasswordRequest(@NotBlank @Schema(accessMode = Schema.AccessMode.WRITE_ONLY) String passwordHash) { }
-    public record OnboardingRequest(@NotNull @AssertTrue Boolean consentAccepted, @NotBlank String consentVersion,
+    public record OnboardingRequest(@NotNull Boolean consentAccepted, @NotNull String consentVersion,
             @Schema(requiredMode = NOT_REQUIRED) OnboardingFields fields, @Schema(requiredMode = NOT_REQUIRED) Boolean imageConsent) { }
     public record OnboardingFields(@Schema(requiredMode = NOT_REQUIRED) String name, @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale,
             @Schema(requiredMode = NOT_REQUIRED, description = "Requested only when configured by the club") String phone) { }

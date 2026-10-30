@@ -1,0 +1,90 @@
+{
+  "status": "PASS",
+  "command": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH ./mvnw -q clean verify",
+  "exit_code": 0,
+  "log": "08-api-clean-verify.log",
+  "groups": {
+    "surefire": {
+      "suites": 484,
+      "tests": 5006,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    "failsafe": {
+      "suites": 177,
+      "tests": 2345,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    }
+  },
+  "changed_or_sensitive_suites": [
+    {
+      "suite": "com.agilityhub.core.identity.application.PasswordHasherTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    {
+      "suite": "com.agilityhub.core.clubs.common.application.ListExportTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    {
+      "suite": "com.agilityhub.core.identity.api.IdentityContractIT",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    {
+      "suite": "com.agilityhub.core.identity.api.OnboardingIT",
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    {
+      "suite": "com.agilityhub.core.clubs.common.api.UniversalListsIT",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    {
+      "suite": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    },
+    {
+      "suite": "com.agilityhub.core.clubs.scheduling.application.CalendarIT",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "flakes": 0
+    }
+  ],
+  "total": {
+    "tests": 7351,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "flakes": 0
+  },
+  "openapi_sha256": "97554f07e2da7d4a108208a7e74f5954eaa78eda46d1e14624b060be2e860d66"
+}

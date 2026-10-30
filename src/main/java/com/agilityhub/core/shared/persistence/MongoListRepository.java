@@ -17,11 +17,21 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
     public MongoListRepository(MongoTemplate mongo) { super(mongo, ListRecord.class); }
 
     public ListPage<Map<String, Object>> page(ListDataset data, ListQuery query) {
-        var pipeline = pipeline(data, query);
+        var selection = censusSelection(data, query);
+        var pipeline = selection == null ? pipeline(data, query) : selection;
         var items = new ArrayList<Document>();
         items.add(new Document("$sort", sort(data, query)));
         items.add(new Document("$skip", (long) query.page() * query.size()));
         items.add(new Document("$limit", query.size()));
+        if (selection != null) {
+            // Reload only the page from the same collection before the complete presentation pipeline.
+            // Selection, count and page enrichment remain in one tenant-scoped aggregate operation.
+            items.add(new Document("$lookup", new Document("from", data.collection()).append("localField", "_id")
+                    .append("foreignField", "_id").append("as", "__censusSource")
+                    .append("pipeline", List.of(new Document("$match", tenantQuery().getQueryObject())))));
+            items.add(new Document("$replaceWith", new Document("$arrayElemAt", List.of("$__censusSource", 0))));
+            items.addAll(data.stages());
+        }
         items.add(project(data, query.fields()));
         pipeline.add(new Document("$facet", new Document("items", items)
                 .append("total", List.of(new Document("$count", "count")))));
@@ -73,6 +83,46 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
             Object value = normalize(row.get("_id"), Set.of(), "");
             return new FilterValue(value, data.label().apply(field, value), ((Number) row.get("count")).longValue());
         }).toList();
+    }
+    /** Defer census-only presentation joins until after pagination; preserve computed filters and search. */
+    private List<Document> censusSelection(ListDataset data, ListQuery query) {
+        if (!Set.of("members", "dogs").contains(data.definition().key()) || data.scope() != null || data.search() != null) return null;
+        var needed = new HashSet<String>(sort(data, query).keySet());
+        query.filters().forEach(filter -> needed.add(data.definition().field(filter.field()).path()));
+        if (!query.q().isEmpty()) needed.addAll(data.definition().searchable());
+        var selected = new LinkedList<Document>();
+        for (int index = data.stages().size() - 1; index >= 0; index--) {
+            var stage = data.stages().get(index);
+            if (stage.size() == 1 && stage.get("$set") instanceof Document fields) {
+                var required = new Document();
+                fields.forEach((field, expression) -> {
+                    if (needed.stream().anyMatch(path -> overlaps(path, field))) required.put(field, expression);
+                });
+                if (!required.isEmpty()) {
+                    // All expressions in a $set read the document before that stage.
+                    needed.removeIf(path -> required.keySet().stream().anyMatch(field -> path.equals(field) || path.startsWith(field + ".")));
+                    references(required, needed);
+                    selected.addFirst(new Document("$set", required));
+                }
+            } else if (stage.size() == 1 && stage.get("$lookup") instanceof Document lookup) {
+                String target = lookup.getString("as");
+                if (needed.stream().anyMatch(path -> overlaps(path, target))) {
+                    needed.removeIf(path -> path.equals(target) || path.startsWith(target + "."));
+                    references(lookup.get("let"), needed);
+                    if (lookup.get("localField") instanceof String field) needed.add(field);
+                    selected.addFirst(stage);
+                }
+            } else return null; // Never reorder stages that can change row membership or cardinality.
+        }
+        var stages = new ArrayList<Document>();
+        stages.add(new Document("$match", tenantQuery().getQueryObject()));
+        stages.addAll(selected); match(data, query, stages); return stages;
+    }
+    private static boolean overlaps(String a, String b) { return a.equals(b) || a.startsWith(b + ".") || b.startsWith(a + "."); }
+    private static void references(Object value, Set<String> paths) {
+        if (value instanceof String text && text.startsWith("$") && !text.startsWith("$$")) paths.add(text.substring(1));
+        else if (value instanceof Map<?, ?> map) map.values().forEach(item -> references(item, paths));
+        else if (value instanceof Iterable<?> items) items.forEach(item -> references(item, paths));
     }
     private List<Document> pipeline(ListDataset data, ListQuery query) {
         var stages = new ArrayList<Document>();

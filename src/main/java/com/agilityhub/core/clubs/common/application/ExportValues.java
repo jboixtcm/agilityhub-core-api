@@ -22,6 +22,39 @@ final class ExportValues {
         var format = java.text.NumberFormat.getNumberInstance(locale); format.setGroupingUsed(false);
         format.setMinimumFractionDigits(2); format.setMaximumFractionDigits(2); return format.format(number);
     }
+    String census(Object value, String column) {
+        if (value instanceof List<?> list && column.equals("dogs")) {
+            return String.join("; ", list.stream().map(dog -> {
+                if (!(dog instanceof Map<?, ?> item)) return text(dog);
+                String name = text(item.get("name"));
+                String level = item.get("level") instanceof Map<?, ?> ref ? text(ref.get("code")) : "";
+                return name + (level.isEmpty() ? "" : " (" + level + ")");
+            }).toList());
+        }
+        if (!(value instanceof Map<?, ?> map)) return text(value);
+        return switch (column) {
+            case "plan", "familyGroup", "level" -> text(map.get("name"));
+            case "owner" -> text(map.get("fullName"));
+            case "displayStatus" -> text(map.get("kind")) + (map.get("date") == null ? "" : " · " + text(map.get("date")));
+            case "imageRights" -> text(map.get("granted"));
+            case "freeTraining" -> text(map.get("allowed"));
+            case "paymentMethod" -> join(map.get("type"), map.get("channel"), map.get("maskedAccount"));
+            case "contact" -> {
+                var parts = new ArrayList<String>();
+                if (map.get("emails") instanceof List<?> emails) for (Object item : emails) {
+                    if (item instanceof Map<?, ?> email) parts.add(text(email.get("email")));
+                }
+                if (map.get("phones") instanceof List<?> phones) for (Object item : phones) {
+                    if (item instanceof Map<?, ?> phone) parts.add(text(phone.get("prefix")) + " " + text(phone.get("number")));
+                }
+                yield String.join("; ", parts);
+            }
+            default -> text(value);
+        };
+    }
+    private String join(Object... values) {
+        return String.join(" · ", Arrays.stream(values).map(this::text).filter(value -> !value.isEmpty()).toList());
+    }
     String text(Object value) {
         if (value == null || value instanceof com.fasterxml.jackson.databind.node.NullNode) { return ""; }
         if (value instanceof Boolean flag) { return messages.getMessage("export.boolean." + flag, null, locale); }

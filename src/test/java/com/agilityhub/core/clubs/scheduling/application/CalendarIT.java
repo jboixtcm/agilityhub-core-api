@@ -141,7 +141,7 @@ class CalendarIT extends AbstractIntegrationTest {
         String active=session("2026-08-26","19:00",null); assertThat(session(active).path("state").asText()).isEqualTo("ACTIVE");
         var list=ok("GET","/class-sessions?filter=weekId:eq:"+week+"&filter=state:eq:ACTIVE&sort=date,asc&fields=id,state",null);assertThat(list.path("items")).hasSize(2);assertThat(list.at("/items/0").fieldNames()).toIterable().containsExactlyInAnyOrder("id","state");
         error("GET","/class-sessions?filter=bad:eq:value",null,ErrorCode.INVALID_FILTER);
-        assertThat(ok("GET","/weeks/"+week+"/calendar?filter=ACTIVE",null).path("classes")).hasSize(3);
+        assertThat(ok("GET","/weeks/"+week+"/calendar?filter=ACTIVE",null).path("classes")).hasSize(2);
         assertThat(ok("GET","/weeks/"+week+"/calendar?filter=CANCELLED",null).path("classes")).hasSize(1);
     }
     @Test @AuditCovers({AuditAction.CLASS_UPDATED_WITH_BOOKINGS,AuditAction.CLASS_RISK_EXEMPTION_CHANGED})

@@ -29,7 +29,7 @@ public class ListExportRenderer {
         var values = new ExportValues(messages, locale, zone);
         Iterable<Map<String, Object>> formatted = () -> java.util.stream.StreamSupport.stream(rows.spliterator(), false).map(row -> {
             var cells = new LinkedHashMap<String, Object>();
-            columns.forEach(column -> cells.put(column, "accounting".equals(listKey) ? values.accounting(row.get(column), column) : values.text(row.get(column))));
+            columns.forEach(column -> cells.put(column, "accounting".equals(listKey) ? values.accounting(row.get(column), column) : Set.of("members", "dogs").contains(listKey) ? values.census(row.get(column), column) : values.text(row.get(column))));
             return (Map<String, Object>) cells;
         }).iterator();
         try { write(format, club, color, listKey, columns, columns.stream().map(column -> values.label(listKey, column)).toList(), formatted, output, locale); }
@@ -79,17 +79,25 @@ public class ListExportRenderer {
              var fontInput = ListExportRenderer.class.getResourceAsStream("/org/apache/pdfbox/resources/ttf/LiberationSans-Regular.ttf")) {
             PDFont font = PDType0Font.load(document, Objects.requireNonNull(fontInput, "PDFBox bundled Liberation Sans"));
             var pageSize = columns.size() > 6 ? new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()) : PDRectangle.A4;
-            try (var pages = new PdfPages(document, font, pageSize, club, color, key)) {
-                int number = 0;
-                for (var row : rows) {
-                    pages.line("#" + ++number);
-                    for (int c = 0; c < columns.size(); c++) {
-                        String value = printable(font, labels.get(c) + ": " + text(row.get(columns.get(c))));
-                        for (String line : wrap(font, value, 9, pageSize.getWidth() - 80)) { pages.line(line); }
-                    }
-                    pages.line("");
+            if (Set.of("members", "dogs").contains(key)) {
+                String title = locale == null ? key : messages.getMessage("export.list." + key, null, key, locale);
+                try (var table = new PdfTable(document, font, pageSize, club, color, title, labels)) {
+                    for (var row : rows) table.row(columns.stream().map(column -> text(row.get(column))).toList());
+                    table.ensurePage();
                 }
-                if (number == 0) { pages.line("0"); }
+            } else {
+                try (var pages = new PdfPages(document, font, pageSize, club, color, key)) {
+                    int number = 0;
+                    for (var row : rows) {
+                        pages.line("#" + ++number);
+                        for (int c = 0; c < columns.size(); c++) {
+                            String value = printable(font, labels.get(c) + ": " + text(row.get(columns.get(c))));
+                            for (String line : wrap(font, value, 9, pageSize.getWidth() - 80)) { pages.line(line); }
+                        }
+                        pages.line("");
+                    }
+                    if (number == 0) { pages.line("0"); }
+                }
             }
             for (int page = 0; page < document.getNumberOfPages(); page++) {
                 String label = locale == null ? Integer.toString(page + 1) : messages.format("export.pdf.page", Map.of("page", page + 1, "total", document.getNumberOfPages()), locale);
@@ -145,6 +153,53 @@ public class ListExportRenderer {
                 stream.setNonStrokingColor(Color.BLACK); y = size.getHeight() - 78;
             }
             stream.beginText(); stream.setFont(font, 9); stream.newLineAtOffset(40, y); stream.showText(text); stream.endText(); y -= 12;
+        }
+        @Override public void close() throws IOException { if (stream != null) { stream.close(); stream = null; } }
+    }
+    /** Tabular list output with repeated headings and continuation rows on every page. */
+    private static final class PdfTable implements AutoCloseable {
+        private final PDDocument document; private final PDFont font; private final PDRectangle size;
+        private final String club, color, title; private final List<String> labels;
+        private final float width; private PDPageContentStream stream; private float y;
+        PdfTable(PDDocument document, PDFont font, PDRectangle size, String club, String color, String title, List<String> labels) {
+            this.document = document; this.font = font; this.size = size; this.club = club; this.color = color; this.title = title;
+            this.labels = labels; this.width = (size.getWidth() - 64) / Math.max(1, labels.size());
+        }
+        void ensurePage() throws IOException { if (stream == null) newPage(); }
+        private void newPage() throws IOException {
+            close(); var page = new PDPage(size); document.addPage(page); stream = new PDPageContentStream(document, page);
+            stream.setNonStrokingColor(Color.decode(color)); stream.addRect(32, size.getHeight() - 58, size.getWidth() - 64, 30); stream.fill();
+            stream.setNonStrokingColor(Color.WHITE); draw(club + " · " + title, 40, size.getHeight() - 47, 12);
+            stream.setNonStrokingColor(Color.BLACK); y = size.getHeight() - 74;
+            var headings = lines(labels); int count = headings.stream().mapToInt(List::size).max().orElse(1);
+            drawCells(headings, 0, count); y -= 6;
+        }
+        private List<List<String>> lines(List<String> values) throws IOException {
+            var result = new ArrayList<List<String>>();
+            for (String value : values) result.add(wrap(font, printable(font, value), 9, width - 12));
+            return result;
+        }
+        void row(List<String> values) throws IOException {
+            ensurePage(); var cells = lines(values); int count = cells.stream().mapToInt(List::size).max().orElse(1);
+            int offset = 0;
+            // Keep ordinary rows together. A single tall row continues without losing text.
+            if (y - count * 12 - 10 < 60 && count * 12 + 10 < size.getHeight() - 160) newPage();
+            while (offset < count) {
+                int room = Math.max(0, (int)((y - 70) / 12));
+                if (room == 0) { newPage(); continue; }
+                int part = Math.min(room, count - offset); drawCells(cells, offset, part); offset += part;
+                if (offset < count) newPage();
+            }
+            stream.setStrokingColor(Color.LIGHT_GRAY); stream.moveTo(32, y); stream.lineTo(size.getWidth() - 32, y); stream.stroke(); y -= 10;
+        }
+        private void drawCells(List<List<String>> cells, int offset, int count) throws IOException {
+            for (int c = 0; c < cells.size(); c++) for (int line = 0; line < count; line++) {
+                if (offset + line < cells.get(c).size()) draw(cells.get(c).get(offset + line), 38 + width * c, y - 12 * line, 9);
+            }
+            y -= count * 12;
+        }
+        private void draw(String text, float x, float y, float fontSize) throws IOException {
+            stream.beginText(); stream.setFont(font, fontSize); stream.newLineAtOffset(x, y); stream.showText(printable(font, text)); stream.endText();
         }
         @Override public void close() throws IOException { if (stream != null) { stream.close(); stream = null; } }
     }

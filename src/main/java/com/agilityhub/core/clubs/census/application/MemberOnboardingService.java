@@ -16,6 +16,14 @@ public class MemberOnboardingService implements MemberOnboardingAccess {
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     public MemberOnboardingService(CensusRepository<Member> members, CountryContacts countries) { this.members = members; this.countries = countries; }
     private Optional<Member> member(String id, String account) { return members.findById(id).filter(item -> account.equals(item.accountId) && !"ERASED".equals(item.status)); }
+    @Override public Boolean imageConsent(String memberId, String accountId) {
+        return member(memberId, accountId).map(member -> {
+            var original = map(map(member.consents).get("imageRights"));
+            if (original.isEmpty()) return null;
+            var image = com.agilityhub.core.shared.domain.ConsentGrant.image(original);
+            return image.get("granted") instanceof Boolean granted ? granted : null;
+        }).orElse(null);
+    }
     @Override public String phone(String memberId, String accountId) {
         return member(memberId, accountId).map(member -> {
             if (rows(member.phones).isEmpty()) { return null; }

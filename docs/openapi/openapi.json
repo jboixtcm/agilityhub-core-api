@@ -16190,7 +16190,6 @@
             "type" : "boolean"
           },
           "consentVersion" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "fields" : {
@@ -16212,6 +16211,10 @@
               "$ref" : "#/components/schemas/OnboardingField"
             },
             "type" : "array"
+          },
+          "imageConsent" : {
+            "description" : "Existing image permission, absent when no decision is recorded",
+            "type" : [ "boolean", "null" ]
           },
           "pending" : {
             "type" : "boolean"
@@ -59693,7 +59696,7 @@
         "tags" : [ "identity" ]
       },
       "put" : {
-        "description" : "Account token, never impersonated. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. Profile data may be deferred; imageConsent is optional.",
+        "description" : "Account token, never impersonated. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion when a policy is pending. Already accepted policies need no new acceptance. Profile data may be deferred; imageConsent is optional.",
         "operationId" : "completeOnboarding",
         "requestBody" : {
           "content" : {

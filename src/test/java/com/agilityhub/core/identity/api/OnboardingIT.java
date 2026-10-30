@@ -334,4 +334,26 @@ class OnboardingIT extends IdentityIntegrationSupport {
         mongo.updateFirst(new Query(), new Update().set("phones", List.of(new Document("number", "600000005"))), "members");
         assertThat(state("club-a").at("/fields/2/value").asText()).isEqualTo("600000005");
     }
+    @Test void Word_20261030_existingImageConsentIsReadAndPreservedWithoutANewChoice() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("member-a")), new Update().set("consents.imageRights.granted", true), "members");
+        assertThat(state("club-a").path("imageConsent").asBoolean()).isTrue();
+        json(call(acceptance("platform-v1"), "club-a", "MEMBER"));
+        assertThat(state("club-a").path("imageConsent").asBoolean()).isTrue();
+        var member = mongo.findOne(Query.query(Criteria.where("_id").is("member-a")), Document.class, "members");
+        assertThat(member.get("consents", Document.class).get("imageRights", Document.class).getBoolean("granted")).isTrue();
+    }
+    @Test void Word_20261030_profileCanCompleteWithoutReacceptingCurrentPolicies() throws Exception {
+        accept("club-a", "platform-v1");
+        accept("club-a", state("club-a").at("/requiredConsent/version").asText());
+        var before = accounts.findById("account-a").orElseThrow().consents();
+        mongo.updateFirst(accountQuery(), new Update().set("onboardingPending", true), Account.class);
+        assertThat(state("club-a").path("requiredConsent").isNull()).isTrue();
+        var completed = json(call(put(PATH).contentType("application/json").content("""
+                {"consentAccepted":false,"consentVersion":"","fields":{"name":"Updated Example"}}
+                """), "club-a", "MEMBER"));
+        assertThat(completed.path("pending").asBoolean()).isFalse();
+        assertThat(accounts.findById("account-a").orElseThrow().consents()).isEqualTo(before);
+        assertThat(accounts.findById("account-a").orElseThrow().name()).isEqualTo("Updated Example");
+    }
+
 }

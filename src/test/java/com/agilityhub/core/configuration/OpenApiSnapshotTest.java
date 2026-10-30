@@ -337,7 +337,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 .isEqualTo("#/components/schemas/OnboardingFields");
         assertThat(document.at("/components/schemas/OnboardingFields/required")).isEmpty();
         assertThat(names(document.at("/components/schemas/OnboardingState/properties")))
-                .containsExactlyInAnyOrder("pending", "postponeRemaining", "requiredConsent", "fields");
+                .containsExactlyInAnyOrder("pending", "postponeRemaining", "requiredConsent", "fields", "imageConsent");
         assertThat(strings(document.at("/components/schemas/OnboardingState/required")))
                 .containsExactlyInAnyOrder("pending", "postponeRemaining", "fields");
         assertThat(document.at("/components/schemas/OnboardingState/properties/pending/type").asText()).isEqualTo("boolean");

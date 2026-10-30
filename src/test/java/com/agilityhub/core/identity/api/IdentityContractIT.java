@@ -78,8 +78,9 @@ class IdentityContractIT extends IdentityIntegrationSupport {
         var request = mapper.readValue(body, IdentityRequests.OnboardingRequest.class);
         assertThat(request.fields()).isEqualTo(new IdentityRequests.OnboardingFields("Example", "es", "+34900000000"));
         assertThat(request.imageConsent()).isFalse();
-        for (String invalid : List.of("{}", "{\"consentAccepted\":false,\"consentVersion\":\"v1\"}",
-                "{\"consentAccepted\":true,\"consentVersion\":\" \"}",
+        // Acceptance is validated against the currently pending policy in the service; profile-only completion can send false/empty.
+        for (String invalid : List.of("{}", "{\"consentAccepted\":null,\"consentVersion\":\"v1\"}",
+                "{\"consentAccepted\":true,\"consentVersion\":null}",
                 "{\"privacyAccepted\":true,\"privacyPolicyVersion\":\"v1\"}")) {
             mvc.perform(put("/api/v1/me/onboarding").with(jwt()).contentType("application/json").content(invalid))
                     .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
@@ -88,14 +89,14 @@ class IdentityContractIT extends IdentityIntegrationSupport {
 
     @Test void T_01_26_onboardingSerializationRetainsExplicitNullConsentAndFieldValues() throws Exception {
         var state = new IdentityResponses.OnboardingState(false, 0, null,
-                List.of(new IdentityResponses.OnboardingField("phone", null, false)));
+                List.of(new IdentityResponses.OnboardingField("phone", null, false)), null);
         assertThat(mapper.readTree(mapper.writeValueAsString(state))).isEqualTo(mapper.readTree("""
-                {"pending":false,"postponeRemaining":0,"requiredConsent":null,"fields":[{"key":"phone","value":null,"required":false}]}
+                {"pending":false,"postponeRemaining":0,"requiredConsent":null,"fields":[{"key":"phone","value":null,"required":false}],"imageConsent":null}
                 """));
         for (var policy : IdentityResponses.ConsentPolicy.values()) {
             var consent = new IdentityResponses.RequiredConsent(policy, "v1", "https://example.test/privacy");
             var pending = new IdentityResponses.OnboardingState(true, 3, consent,
-                    List.of(new IdentityResponses.OnboardingField("name", "Example", true)));
+                    List.of(new IdentityResponses.OnboardingField("name", "Example", true)), true);
             var json = mapper.readTree(mapper.writeValueAsString(pending));
             assertThat(json.at("/requiredConsent/policy").asText()).isEqualTo(policy.name());
             assertThat(json.at("/requiredConsent/version").asText()).isEqualTo("v1");

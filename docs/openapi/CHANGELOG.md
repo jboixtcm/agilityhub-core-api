@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-30 · Onboarding consent readback
+
+- `GET/PUT /me/onboarding` return optional nullable `imageConsent`, preserving an existing image permission when the request omits it. `consentAccepted` and `consentVersion` remain required request fields; acceptance must match the current pending policy. When all policies are already accepted, profile completion can send `false` and an empty version without recording a new consent. Impersonated sessions remain unable to complete or postpone personal consent.
+
+- `GET /weeks/{id}/calendar?filter=ACTIVE` returns active and finished classes; cancelled classes are returned only by `filter=CANCELLED`. Response shapes and the daily-grid contract are unchanged.
+
 ## 2026-10-26 · Brevo delivery callbacks
 
 **1 operation and 1 request schema added; no error codes added.**

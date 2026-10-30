@@ -176,7 +176,7 @@ class UniversalListsIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {
             String text = new org.apache.pdfbox.text.PDFTextStripper().getText(document);
-            assertThat(text).contains("Fictional Example 000", "2231", "members").doesNotContain("ES0000");
+            assertThat(text).contains("Fictional Example 000", "2231", "Socios").doesNotContain("ES0000");
         }
         admin(get("/api/v1/dogs/export").param("format", "xlsx")).andExpect(status().isOk());
         admin(get("/api/v1/dogs/export").param("format", "pdf")).andExpect(status().isOk());
@@ -226,7 +226,7 @@ class UniversalListsIT extends AbstractIntegrationTest {
         byte[] pdf = admin(get("/api/v1/dogs/export").param("format", "pdf").param("columns", "name,owner").param("filter", "id:in:dog-a"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {
-            assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(document)).contains("Titular: Fictional Example 000").doesNotContain("member-0");
+            assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(document)).contains("Titular", "Fictional Example 000").doesNotContain("member-0");
         }
         admin(get("/api/v1/dogs").param("filter", "id:in:dog-a")).andExpect(jsonPath("$.items[0].owner.id").value("member-0"))
                 .andExpect(jsonPath("$.items[0].owner.fullName").value("Fictional Example 000")).andExpect(jsonPath("$.items[0].owner.firstName").value("Fictional"));
@@ -304,4 +304,32 @@ class UniversalListsIT extends AbstractIntegrationTest {
         java.nio.file.Files.writeString(java.nio.file.Path.of("target/e2-t07-curl.txt"), evidence);
     }
 
+    @Autowired com.agilityhub.core.clubs.census.application.CensusLists censusLists;
+    @Autowired com.agilityhub.core.shared.persistence.MongoListRepository listRepository;
+
+    @Test void Word_20261030_paginatedCensusMatchesFullProjectionForSearchFiltersAndSorting() throws Exception {
+        var extra = new ArrayList<Document>();
+        for (int i = 100; i < 1100; i++) extra.add(member(i));
+        mongo.insert(extra, "members");
+        var jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("fictional").header("alg", "none").subject("example-admin").claim("clubId", CLUB).build();
+        var security = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        var previous = security.getAuthentication();
+        security.setAuthentication(new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt, List.of(() -> "ROLE_ADMIN")));
+        try (var tenant = TenantContext.open(CLUB); var locale = com.agilityhub.core.shared.application.LocaleContext.open(Locale.forLanguageTag("ca"))) {
+            for (String key : List.of("members", "dogs")) {
+                var data = censusLists.dataset(key);
+                var scenarios = key.equals("members") ? List.of("", "q=Duna", "q=Example 109", "filter=status:eq:ACTIVE", "filter=dogLevelId:eq:level-a", "filter=imageRightsGranted:eq:true", "filter=hasPendingDocuments:eq:true", "filter=freeTrainingAllowed:eq:true", "sort=lastName,desc&page=1", "filter=id:eq:other-member")
+                        : List.of("", "q=Fictional", "filter=levelId:eq:level-a", "filter=hasPendingDocuments:eq:true", "sort=ownerLastName,desc");
+                for (String scenario : scenarios) {
+                    var params = new org.springframework.util.LinkedMultiValueMap<String,String>(); params.add("size", "20");
+                    if (!scenario.isEmpty()) for (String part : scenario.split("&")) { var pair = part.split("=", 2); params.add(pair[0], pair[1]); }
+                    var query = com.agilityhub.core.shared.application.lists.ListQuery.parse(data.definition(), params);
+                    long start = System.nanoTime(); var optimized = listRepository.page(data, query); long optimizedNs = System.nanoTime() - start;
+                    start = System.nanoTime(); var original = listRepository.page(data.withScope(ignored -> new Document()), query); long originalNs = System.nanoTime() - start;
+                    assertThat(optimized).as(key + " " + scenario).isEqualTo(original);
+                    System.out.printf("CENSUS_BENCH %s %s optimizedMs=%.2f originalMs=%.2f%n", key, scenario, optimizedNs / 1e6, originalNs / 1e6);
+                }
+            }
+        } finally { security.setAuthentication(previous); }
+    }
 }

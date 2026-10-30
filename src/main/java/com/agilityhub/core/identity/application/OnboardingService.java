@@ -50,9 +50,9 @@ public class OnboardingService {
         var session = identities.current(accountId);
         var policies = policies();
         var required = required(session.account(), policies);
-        if (!consentAccepted || consentVersion == null || consentVersion.isBlank()) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
-        if (required == null ? policies.stream().noneMatch(policy -> policy.version().equals(consentVersion))
-                : !required.version().equals(consentVersion)) {
+        if (required != null && (!consentAccepted || consentVersion == null || consentVersion.isBlank())) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        if ((required != null && !required.version().equals(consentVersion))
+                || (required == null && consentAccepted && policies.stream().noneMatch(policy -> policy.version().equals(consentVersion)))) {
             throw new ApiException(ErrorCode.CONSENT_VERSION_OUTDATED);
         }
         if (phone != null && (phone.isBlank() || phone.length() > 50)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
@@ -101,7 +101,7 @@ public class OnboardingService {
             };
             fields.add(new Field(key, value, Boolean.TRUE.equals(definition.get("required"))));
         }
-        return new State(account.onboardingPending() || required != null, remaining(account, required), required, List.copyOf(fields));
+        return new State(account.onboardingPending() || required != null, remaining(account, required), required, List.copyOf(fields), memberId == null ? null : members.imageConsent(memberId, account.id()));
     }
 
     private List<Policy> policies() {
@@ -135,5 +135,5 @@ public class OnboardingService {
     }
     public record Policy(Account.ConsentPolicy policy, String clubId, String version, String url) { }
     public record Field(String key, String value, boolean required) { }
-    public record State(boolean pending, int postponeRemaining, Policy requiredConsent, List<Field> fields) { }
+    public record State(boolean pending, int postponeRemaining, Policy requiredConsent, List<Field> fields, Boolean imageConsent) { }
 }

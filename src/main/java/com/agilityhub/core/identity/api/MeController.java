@@ -164,7 +164,7 @@ public class MeController {
     @PutMapping("/api/v1/me/onboarding")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Complete first-access privacy consent and optional profile fields",
-            description = "Account token, never impersonated. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. "
+            description = "Account token, never impersonated. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion when a policy is pending. Already accepted policies need no new acceptance. "
                     + "Profile data may be deferred; imageConsent is optional.",
             responses = {@ApiResponse(responseCode = "200", description = "Updated onboarding state"),
                     @ApiResponse(responseCode = "400", description = "VALIDATION_ERROR if consent is not accepted; LOCALE_NOT_SUPPORTED"),
@@ -189,6 +189,6 @@ public class MeController {
         var consent = state.requiredConsent();
         return new OnboardingState(state.pending(), state.postponeRemaining(), consent == null ? null
                 : new RequiredConsent(ConsentPolicy.valueOf(consent.policy().name()), consent.version(), consent.url()),
-                state.fields().stream().map(field -> new OnboardingField(field.key(), field.value(), field.required())).toList());
+                state.fields().stream().map(field -> new OnboardingField(field.key(), field.value(), field.required())).toList(), state.imageConsent());
     }
 }

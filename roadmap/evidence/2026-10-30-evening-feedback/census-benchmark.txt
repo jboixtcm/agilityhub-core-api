@@ -1,0 +1,15 @@
+CENSUS_BENCH members  optimizedMs=11,17 originalMs=276,36
+CENSUS_BENCH members q=Duna optimizedMs=86,55 originalMs=255,30
+CENSUS_BENCH members q=Example 109 optimizedMs=99,22 originalMs=254,75
+CENSUS_BENCH members filter=status:eq:ACTIVE optimizedMs=9,70 originalMs=132,22
+CENSUS_BENCH members filter=dogLevelId:eq:level-a optimizedMs=85,59 originalMs=182,44
+CENSUS_BENCH members filter=imageRightsGranted:eq:true optimizedMs=11,83 originalMs=278,26
+CENSUS_BENCH members filter=hasPendingDocuments:eq:true optimizedMs=142,67 originalMs=577,44
+CENSUS_BENCH members filter=freeTrainingAllowed:eq:true optimizedMs=202,65 originalMs=590,66
+CENSUS_BENCH members sort=lastName,desc&page=1 optimizedMs=35,32 originalMs=607,23
+CENSUS_BENCH members filter=id:eq:other-member optimizedMs=3,39 originalMs=3,73
+CENSUS_BENCH dogs  optimizedMs=3,29 originalMs=3,54
+CENSUS_BENCH dogs q=Fictional optimizedMs=3,76 originalMs=3,93
+CENSUS_BENCH dogs filter=levelId:eq:level-a optimizedMs=3,08 originalMs=4,96
+CENSUS_BENCH dogs filter=hasPendingDocuments:eq:true optimizedMs=6,24 originalMs=3,46
+CENSUS_BENCH dogs sort=ownerLastName,desc optimizedMs=2,63 originalMs=2,08

@@ -52,7 +52,8 @@ public final class IdentityResponses {
             @Schema(requiredMode = REQUIRED, minimum = "0") int postponeRemaining,
             @Schema(requiredMode = NOT_REQUIRED) RequiredConsent requiredConsent,
             @Schema(requiredMode = REQUIRED, description = "Keys and required flags from signup.onboardingFields")
-            List<OnboardingField> fields) { }
+            List<OnboardingField> fields,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"boolean", "null"}, description = "Existing image permission, absent when no decision is recorded") Boolean imageConsent) { }
     public enum ConsentPolicy { PLATFORM, CLUB }
     @Schema(types = {"object", "null"})
     public record RequiredConsent(@Schema(requiredMode = REQUIRED) ConsentPolicy policy,

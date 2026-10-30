@@ -37,7 +37,7 @@ public class CalendarQuery {
     }
     public Map<String,Object> get(String id,String filter) {
         var week=planning.require(id); var all=classes.forWeek(id); var inconsistencies=inconsistencies(week); var zone=projection.zone();
-        var selected=all.stream().filter(c -> switch(filter) { case "DRAFT" -> c.state()==ClassState.DRAFT; case "CANCELLED" -> c.state()==ClassState.CANCELLED; default -> c.state()!=ClassState.DRAFT; })
+        var selected=all.stream().filter(c -> switch(filter) { case "DRAFT" -> c.state()==ClassState.DRAFT; case "CANCELLED" -> c.state()==ClassState.CANCELLED; default -> c.state()==ClassState.ACTIVE || c.state()==ClassState.FINISHED; })
                 .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id)).toList();
         var ringBlocks=blocks.between(week.startDate().atStartOfDay(zone).toInstant(),week.endDate().plusDays(1).atStartOfDay(zone).toInstant()).stream().filter(projection::visible).toList();
         var rows=new TreeSet<String>(); selected.forEach(c -> rows.add(c.startTime())); ringBlocks.forEach(b -> rows.add(b.from().atZone(zone).toLocalTime().toString()));
