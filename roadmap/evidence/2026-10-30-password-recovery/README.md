@@ -303,3 +303,8 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 2026-10-30T14:00:58.718+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 14 ms
 2026-10-30T14:00:58.846+01:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Started IdentityCoreIT in 8.419 seconds (process running for 39.903)
 ```
+
+
+## Final exact-commit CI
+
+Commit `45667b075829f93ea33c60e2a6e567ff344b78d1` passed CI run 41062509262: 5,005 unit tests and 2,341 integration tests, zero failures/errors/skips; coverage, OpenAPI, secret/dependency scans, both platform image scans and image publication all passed. See `19-final-ci-summary.json` and https://github.com/jboixtcm/agilityhub-core-api/actions/runs/41062509262. The deployable amd64 digest is `sha256:68621894ed9b11bd58a94a79f926b1567e40c4de89227147aa7028678ac8ac4c`. Production activation is pending restoration of the operator’s authorized SSH network; no live recovery email has yet been sent.

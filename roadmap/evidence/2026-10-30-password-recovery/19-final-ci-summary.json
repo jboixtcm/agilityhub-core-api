@@ -1,0 +1,10 @@
+{
+  "run": 41062509262,
+  "commit": "45667b075829f93ea33c60e2a6e567ff344b78d1",
+  "conclusion": "success",
+  "testSummaryLines": [
+    "[INFO] Tests run: 5005, Failures: 0, Errors: 0, Skipped: 0",
+    "[INFO] Tests run: 2341, Failures: 0, Errors: 0, Skipped: 0",
+    "[INFO] BUILD SUCCESS"
+  ]
+}
