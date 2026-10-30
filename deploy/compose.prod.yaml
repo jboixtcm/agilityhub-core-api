@@ -70,6 +70,7 @@ services:
       CLUBS_HOST: ${CLUBS_HOST:-clubs.agilitydoghub.com}
       ADMIN_HOST: ${ADMIN_HOST:-clubsadmin.agilitydoghub.com}
       EMAIL_DELIVERY_ENABLED: ${EMAIL_DELIVERY_ENABLED:-true}
+      EMAIL_RECOVERY_ENABLED: ${EMAIL_RECOVERY_ENABLED:-false}
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-sendgrid}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_WEBHOOK_TOKEN: ${BREVO_WEBHOOK_TOKEN:-}

@@ -157,7 +157,8 @@ public class MagicLinkService {
             // S01 R-01-04 (amended 28-09, ruling E70): a RESET link says so, for the club clients and for the ID alike, so screen 02
             // titles «Ja hi ets»; a LOGIN link carries no `purpose`.
             String link = base + "?t=" + value + (purpose == MagicLinkToken.Purpose.RESET ? "&purpose=reset" : "");
-            if (deliveryId == null) { notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", link)); }
+            if (purpose == MagicLinkToken.Purpose.RESET) { notifications.sendPasswordRecovery(accountId, link); }
+            else if (deliveryId == null) { notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", link)); }
             else { notifications.sendOnce(deliveryId, "N-27", accountId, Map.of("link", base + "?t=" + value)); }
         }
     }

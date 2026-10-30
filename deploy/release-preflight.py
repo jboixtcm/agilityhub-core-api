@@ -64,6 +64,9 @@ def check_configuration(config):
     require(demo in ('true', 'false'), 'HOSTED_DEMO_ENABLED must be true or false')
     email_enabled = str(environment.get('EMAIL_DELIVERY_ENABLED', 'true')).lower()
     require(email_enabled in ('true', 'false'), 'EMAIL_DELIVERY_ENABLED must be true or false')
+    recovery_enabled = str(environment.get('EMAIL_RECOVERY_ENABLED', 'false')).lower()
+    require(recovery_enabled in ('true', 'false'), 'EMAIL_RECOVERY_ENABLED must be true or false')
+    transport_enabled = email_enabled == 'true' or recovery_enabled == 'true'
     require(email_enabled == 'true' or demo == 'true', 'EMAIL_DELIVERY_ENABLED=false requires HOSTED_DEMO_ENABLED=true')
     if demo == 'true' and email_enabled == 'true':
         recipients = str(environment.get('HOSTED_DEMO_EMAIL_ALLOWLIST', '')).split(',')
@@ -75,9 +78,9 @@ def check_configuration(config):
     provider = environment.get('EMAIL_PROVIDER', 'sendgrid')
     require(provider in ('sendgrid', 'brevo'), 'EMAIL_PROVIDER must be sendgrid or brevo')
     email_keys = ('BREVO_API_KEY', 'BREVO_WEBHOOK_TOKEN') if provider == 'brevo' else ('SENDGRID_API_KEY', 'SENDGRID_WEBHOOK_PUBLIC_KEY')
-    for key in (('MAIL_FROM_PLATFORM', *email_keys) if email_enabled == 'true' else ()):
+    for key in (('MAIL_FROM_PLATFORM', *email_keys) if transport_enabled else ()):
         require(bool(str(environment.get(key) or '').strip()), f'{key} is required before release, including hosted demo')
-    if (provider == 'brevo' and email_enabled == 'true') or environment.get('BREVO_WEBHOOK_TOKEN'):
+    if (provider == 'brevo' and transport_enabled) or environment.get('BREVO_WEBHOOK_TOKEN'):
         require(bool(re.fullmatch(r'[A-Za-z0-9_-]{32,256}', environment.get('BREVO_WEBHOOK_TOKEN', ''))),
                 'BREVO_WEBHOOK_TOKEN must contain 32 to 256 random URL-safe characters')
     require(not any(service.get('ports') for name, service in services.items() if name != 'caddy'),

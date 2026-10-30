@@ -109,6 +109,23 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
         org.mockito.Mockito.verify(sender, org.mockito.Mockito.never()).send(org.mockito.ArgumentMatchers.any());
     }
 
+    @Test void T_01_08_recoveryOnlyDeliversResetAndKeepsOtherSystemEmailsTerminal() {
+        account("ca");
+        var recoveryMailbox = new FakeEmailSender();
+        org.mockito.Mockito.doReturn(true).when(sender).deliveryDisabled();
+        org.mockito.Mockito.doReturn(recoveryMailbox).when(sender).forPasswordRecovery();
+        for (String code : List.of("N-25", "N-26", "N-27", "N-02", "N-39")) {
+            String skipped = service.send(code, "email-account", Map.of("link", "https://id.example.test/ignored"));
+            assertThat(notifications.findSystem(skipped).orElseThrow().status()).isEqualTo(Notification.Status.SKIPPED_NOT_ALLOWED);
+        }
+        String id = service.sendPasswordRecovery("email-account", "https://id.example.test/magic-link?t=private-reset&purpose=reset");
+        assertThat(notifications.findSystem(id).orElseThrow().status()).isEqualTo(Notification.Status.SENT);
+        assertThat(recoveryMailbox.messages()).hasSize(1);
+        assertThat(recoveryMailbox.lastTo("mailbox@example.test").text()).contains("purpose=reset");
+        assertThat(mailbox().messages()).isEmpty();
+        assertThat(mongo.getCollection("notifications").find(new org.bson.Document("_id", id)).first().toJson()).doesNotContain("private-reset");
+    }
+
     @Test void T_11_25_clubBrandingLocaleAndTenantIsolation() {
         account("en");
         mongo.remove(Query.query(Criteria.where("_id").is("club-a")), Club.class);

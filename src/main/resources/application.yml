@@ -27,6 +27,7 @@ exports:
 
 email:
   delivery-enabled: ${EMAIL_DELIVERY_ENABLED:true}
+  recovery-enabled: ${EMAIL_RECOVERY_ENABLED:false}
   provider: ${EMAIL_PROVIDER:sendgrid}
   local-mailbox-directory: ${MAIL_LOCAL_DIRECTORY:}
   platform-from: ${MAIL_FROM_PLATFORM:}

@@ -150,6 +150,20 @@ class ReleasePreflightTest(unittest.TestCase):
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_configuration(self.config)
 
+    def test_recovery_only_requires_provider_credentials_without_general_email_allowlist(self):
+        env = self.config['services']['core']['environment']
+        env.update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false', EMAIL_RECOVERY_ENABLED='true',
+                   EMAIL_PROVIDER='brevo', BREVO_API_KEY='fictional-api-key', BREVO_WEBHOOK_TOKEN='r' * 32)
+        PREFLIGHT.check_configuration(self.config)
+        for key in ('BREVO_API_KEY', 'BREVO_WEBHOOK_TOKEN', 'MAIL_FROM_PLATFORM'):
+            value = env.pop(key)
+            with self.subTest(key=key), self.assertRaises(PREFLIGHT.PreflightError):
+                PREFLIGHT.check_configuration(self.config)
+            env[key] = value
+        env['EMAIL_RECOVERY_ENABLED'] = 'yes'
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'EMAIL_RECOVERY_ENABLED must'):
+            PREFLIGHT.check_configuration(self.config)
+
     def test_brevo_uses_its_own_credentials_and_rejects_weak_webhook_auth(self):
         env = self.config['services']['core']['environment']
         env.update(EMAIL_PROVIDER='brevo', BREVO_API_KEY='fictional-api-key', BREVO_WEBHOOK_TOKEN='f' * 32)

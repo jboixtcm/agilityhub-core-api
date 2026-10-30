@@ -89,6 +89,16 @@ class MagicLinkServiceSurvivorsTest {
 
     @AfterEach void tearDown() { TenantContext.clear(); }
 
+    @Test void T_01_08_onlyResetUsesTheRecoveryDeliveryRoute() {
+        service.createAndSend("laura@example.test", MagicLinkToken.Purpose.RESET, "clubs-app", null, HOST, null, null);
+        verify(notifications).sendPasswordRecovery(eq("acc-1"), matches("https://club-a\\.example\\.test/activacio\\?t=.+&purpose=reset"));
+        verify(notifications, never()).send(any(), any(), any());
+        reset(notifications);
+        service.createAndSend("laura@example.test", MagicLinkToken.Purpose.LOGIN, "clubs-app", null, HOST, null, null);
+        verify(notifications).send(eq("N-25"), eq("acc-1"), any());
+        verify(notifications, never()).sendPasswordRecovery(any(), any());
+    }
+
     /**
      * The member's membership: ACTIVE as SignupIdentityService.java:39 creates it, or SUSPENDED without roles after the member left
      * (RoleAssignmentService.java:184-193 via TeamMembershipService.java:71-72).

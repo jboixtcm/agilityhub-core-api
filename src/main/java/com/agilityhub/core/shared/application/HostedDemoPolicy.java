@@ -40,6 +40,17 @@ public record HostedDemoPolicy(boolean enabled, Set<String> emailAllowlist) {
         }
         return Boolean.parseBoolean(value);
     }
+    public static boolean emailRecoveryEnabled(Environment environment) {
+        String value = environment.getProperty("email.recovery-enabled", "false");
+        if (!Set.of("true", "false").contains(value.toLowerCase(Locale.ROOT))) {
+            throw new IllegalStateException("EMAIL_RECOVERY_ENABLED must be true or false");
+        }
+        return Boolean.parseBoolean(value);
+    }
+    public static boolean emailTransportEnabled(Environment environment) {
+        boolean recovery = emailRecoveryEnabled(environment);
+        return emailDeliveryEnabled(environment) || recovery;
+    }
     public boolean permitsEmail(String recipient) {
         return recipient != null && emailAllowlist.contains(recipient.strip().toLowerCase(Locale.ROOT));
     }

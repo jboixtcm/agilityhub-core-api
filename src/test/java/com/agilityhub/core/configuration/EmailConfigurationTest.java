@@ -116,6 +116,26 @@ class EmailConfigurationTest {
                 assertThat(context.getStartupFailure()).hasRootCauseMessage("HOSTED_DEMO_ENABLED requires only a deployed profile, without local/test"));
     }
 
+    @Test void T_01_08_recoveryOnlyRequiresARealProviderWithoutEnablingOrdinaryMail() {
+        var recovery = runner("prod").withPropertyValues("core.hosted-demo.enabled=true", "email.delivery-enabled=false",
+                "email.recovery-enabled=true", "email.provider=brevo", "email.platform-from=sender@example.test",
+                "email.brevo.webhook-token=" + java.util.UUID.randomUUID());
+        recovery.run(context -> assertThat(context.getStartupFailure()).hasRootCauseMessage("BREVO_API_KEY is required in staging/prod"));
+        recovery.withPropertyValues("email.brevo.api-key=fictional").run(context -> {
+            assertThat(context).hasNotFailed();
+            var sender = context.getBean(EmailSender.class);
+            assertThat(sender).isInstanceOf(RecoveryOnlyEmailSender.class);
+            assertThat(sender.deliveryDisabled()).isTrue();
+            assertThat(sender.send(null).sent()).isFalse();
+            assertThat(sender.forPasswordRecovery()).isInstanceOf(BrevoEmailSender.class);
+            assertThat(sender.forPasswordRecovery().deliveryDisabled()).isFalse();
+        });
+        recovery.withPropertyValues("email.brevo.api-key=fictional", "email.brevo.webhook-token=").run(context ->
+                assertThat(context.getStartupFailure()).hasRootCauseMessage("BREVO_WEBHOOK_TOKEN must contain 32 to 256 random URL-safe characters in staging/prod"));
+        recovery.withPropertyValues("email.recovery-enabled=off").run(context ->
+                assertThat(context.getStartupFailure()).hasRootCauseMessage("EMAIL_RECOVERY_ENABLED must be true or false"));
+    }
+
     private ApplicationContextRunner runner(String... profiles) {
         return new ApplicationContextRunner().withUserConfiguration(EmailConfiguration.class)
                 .withInitializer(context -> context.getEnvironment().setActiveProfiles(profiles))

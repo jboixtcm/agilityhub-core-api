@@ -50,6 +50,13 @@ public class SystemNotificationService {
     public String send(String code, String accountId, Map<String, ?> variables) {
         return deliver(UUID.randomUUID().toString(), code, accountId, variables);
     }
+    /** Called only after issuing an account-bound RESET token, never for LOGIN/welcome/resend links. */
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendPasswordRecovery(String accountId, String link) {
+        return deliverTo(UUID.randomUUID().toString(), "N-25",
+                accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), Map.of("link", link),
+                sender.forPasswordRecovery());
+    }
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }
@@ -72,8 +79,11 @@ public class SystemNotificationService {
         return deliverTo(id, code, accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), variables);
     }
     private String deliverTo(String id, String code, NotificationAccounts.Recipient account, Map<String, ?> variables) {
+        return deliverTo(id, code, account, variables, sender);
+    }
+    private String deliverTo(String id, String code, NotificationAccounts.Recipient account, Map<String, ?> variables, EmailSender deliverySender) {
         String clubId = TenantContext.current();
-        if (sender.deliveryDisabled()) {
+        if (deliverySender.deliveryDisabled()) {
             var skipped = new Notification(id, clubId, account.id(), code, "EMAIL", Notification.Status.SKIPPED_NOT_ALLOWED,
                     null, null, DisabledEmailSender.DISABLED, account.email(), account.locale(), clock.instant(), null);
             transactions.executeWithoutResult(tx -> {
@@ -99,7 +109,7 @@ public class SystemNotificationService {
                 events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued, clubId, id, clock.instant()));
             }
         });
-        var result = account.emailStatus() == null ? sender.send(email) : EmailSender.SendResult.failed("Recipient email suppressed");
+        var result = account.emailStatus() == null ? deliverySender.send(email) : EmailSender.SendResult.failed("Recipient email suppressed");
         transactions.executeWithoutResult(tx -> {
             if (notifications.finish(id, result.sent() ? Notification.Status.SENT : Notification.Status.FAILED,
                     result.providerMessageId(), result.error(), clock.instant())) {

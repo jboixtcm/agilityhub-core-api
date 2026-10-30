@@ -18,6 +18,7 @@ class DisabledEmailIdentityIT extends IdentityIntegrationSupport {
     @MockitoBean EmailSender disabledSender;
     @Test void internalPasswordLoginWorksWhileMagicAndResetEmailNeverReachSenderOrLogs(CapturedOutput output) throws Exception {
         when(disabledSender.deliveryDisabled()).thenReturn(true);
+        when(disabledSender.forPasswordRecovery()).thenReturn(disabledSender);
         assertThat(login().path("access_token").asText()).isNotBlank();
         for (String purpose : new String[]{"LOGIN", "RESET"}) {
             mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json")
