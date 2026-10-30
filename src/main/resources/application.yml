@@ -32,6 +32,7 @@ email:
   local-mailbox-directory: ${MAIL_LOCAL_DIRECTORY:}
   platform-from: ${MAIL_FROM_PLATFORM:}
   platform-from-name: ${MAIL_FROM_NAME:}
+  brand-name: ${MAIL_BRAND_NAME:}
   brevo:
     api-key: ${BREVO_API_KEY:}
     webhook-token: ${BREVO_WEBHOOK_TOKEN:}

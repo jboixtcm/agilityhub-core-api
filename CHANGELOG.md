@@ -1,4 +1,5 @@
 # Changelog
+- Render security email subjects, actions and footers with the configured installation or tenant brand in Catalan, Spanish and English.
 
 All notable changes to this project will be documented in this file.
 

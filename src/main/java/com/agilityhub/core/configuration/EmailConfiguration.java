@@ -71,12 +71,12 @@ public class EmailConfiguration {
         if (!java.util.Set.of("sendgrid", "brevo").contains(provider)) { throw new IllegalStateException("EMAIL_PROVIDER must be sendgrid or brevo"); }
         return provider;
     }
-    @Bean SystemEmailRenderer systemEmailRenderer(IcuMessageSource messages) {
+    @Bean SystemEmailRenderer systemEmailRenderer(IcuMessageSource messages, @Value("${email.brand-name:}") String brand) {
         var resolver = new ClassLoaderTemplateResolver();
         resolver.setPrefix("templates/"); resolver.setSuffix(".html"); resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
         var engine = new TemplateEngine(); engine.setTemplateResolver(resolver);
-        return new SystemEmailRenderer(messages, engine);
+        return new SystemEmailRenderer(messages, engine, brand);
     }
     @Bean SystemNotificationService systemNotifications(NotificationAccounts accounts, ClubEmailSettings clubs, ParameterCatalog parameters,
             NotificationRepository notifications, EmailSender sender, SystemEmailRenderer renderer, EventPublisher events,

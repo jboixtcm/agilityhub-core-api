@@ -1,0 +1,19 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/messaging/application/SystemEmailBrandingTest.java:[46,40] unreported exception java.io.IOException; must be caught or declared to be thrown
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/configuration/EmailConfigurationTest.java:[185,48] method systemEmailRenderer in class com.agilityhub.core.configuration.EmailConfiguration cannot be applied to given types;
+  required: com.agilityhub.core.shared.application.IcuMessageSource,java.lang.String
+  found:    com.agilityhub.core.shared.application.IcuMessageSource
+  reason: actual and formal argument lists differ in length
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/messaging/application/SystemEmailBrandingTest.java:[46,40] unreported exception java.io.IOException; must be caught or declared to be thrown
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/configuration/EmailConfigurationTest.java:[185,48] method systemEmailRenderer in class com.agilityhub.core.configuration.EmailConfiguration cannot be applied to given types;
+[ERROR]   required: com.agilityhub.core.shared.application.IcuMessageSource,java.lang.String
+[ERROR]   found:    com.agilityhub.core.shared.application.IcuMessageSource
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

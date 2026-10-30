@@ -19,8 +19,10 @@ public final class SystemEmailRenderer {
     private final IcuMessageSource messages;
     private final TemplateEngine templates;
     private final ClubFormats formats;
-    public SystemEmailRenderer(IcuMessageSource messages, TemplateEngine templates) {
+    private final String brandOverride;
+    public SystemEmailRenderer(IcuMessageSource messages, TemplateEngine templates, String brandOverride) {
         this.messages = messages; this.templates = templates; this.formats = new ClubFormats(ZoneOffset.UTC, messages);
+        this.brandOverride = brandOverride.strip();
     }
     /**
      * The SYSTEM codes (S11 R-11-01: product copy of `messages_*`, never a template) and N-02's welcome e-mail, whose S01
@@ -46,22 +48,25 @@ public final class SystemEmailRenderer {
             expiry = messages.format("email.layout.expiry", Map.of("duration",
                     formats.formatDuration(Duration.ofMinutes(Set.of("N-02","N-39").contains(code) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
         }
+        String brand = brandOverride.isBlank() ? settings.brand() : brandOverride;
+        var copy = new java.util.HashMap<String, Object>(variables);
+        copy.put("brand", brand);
         String key = "notif." + code;
         if (code.equals("N-02") && "MIGRATED".equals(variables.get("variant"))) { key += ".migrated"; }
-        String title = messages.format(key + ".title", variables, locale);
-        String body = messages.format(key + ".body", variables, locale);
-        String action = messages.format("email.layout.signIn", Map.of(), locale);
-        String footer = messages.format("email.layout.system", Map.of(), locale);
+        String title = messages.format(key + ".title", copy, locale);
+        String body = messages.format(key + ".body", copy, locale);
+        String action = messages.format("email.layout.signIn", copy, locale);
+        String footer = messages.format("email.layout.system", copy, locale);
         var context = new Context(locale);
         var values = new java.util.HashMap<String, Object>();
         values.put("title", title); values.put("body", body); values.put("action", action); values.put("footer", footer);
-        values.put("link", link); values.put("expiry", expiry); values.put("brand", settings.brand());
+        values.put("link", link); values.put("expiry", expiry); values.put("brand", brand);
         values.put("logo", safeLogo(settings.logoUrl())); values.put("primary", color(settings.primary(), "#2563eb"));
         values.put("onPrimary", color(settings.onPrimary(), "#ffffff")); values.put("language", locale.toLanguageTag());
         context.setVariables(values);
         String html = templates.process("email/system", context);
         String text = title + "\n\n" + body + (link == null ? "" : "\n\n" + action + ": " + link + "\n" + expiry)
-                + "\n\n" + settings.brand() + "\n" + footer;
+                + "\n\n" + brand + "\n" + footer;
         return new EmailMessage(to, title, html, text, new EmailMessage.Address(settings.fromAddress(), settings.fromName()),
                 settings.replyTo(), locale, tags);
     }

@@ -51,7 +51,7 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
     }
     @ParameterizedTest @CsvSource({
         "N-25,ca,Enllaç per entrar a AgilityHub", "N-25,es,Enlace para entrar en AgilityHub", "N-25,en,Your AgilityHub sign-in link",
-        "N-26,ca,La contrasenya d’AgilityHub ha canviat", "N-26,es,La contraseña de AgilityHub ha cambiado", "N-26,en,Your AgilityHub password has changed",
+        "N-26,ca,La teva contrasenya a AgilityHub ha canviat", "N-26,es,La contraseña de AgilityHub ha cambiado", "N-26,en,Your AgilityHub password has changed",
         "N-27,ca,El teu accés a AgilityHub", "N-27,es,Tu acceso a AgilityHub", "N-27,en,Your AgilityHub access"})
     void T_11_25_systemMessagesUseAccountLocaleAndPersistDelivery(String code, String language, String title) throws Exception {
         account(language);

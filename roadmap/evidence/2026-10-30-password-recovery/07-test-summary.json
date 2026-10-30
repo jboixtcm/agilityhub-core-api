@@ -1,0 +1,17 @@
+{
+  "command": "HEAVY_WAIT_MIN=120 heavy.sh ./mvnw -q clean verify",
+  "exit": 0,
+  "scope": "Recovery-only commit 2851e47, before the later user-requested email-branding correction",
+  "surefire-reports": {
+    "tests": 5003,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failsafe-reports": {
+    "tests": 2341,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

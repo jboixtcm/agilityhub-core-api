@@ -566,6 +566,7 @@ and URIs are included because they must remain consistent across recovery.
 | `EMAIL_PROVIDER` | `sendgrid` (default) or `brevo`. When email delivery is enabled, selected provider credentials and webhook authentication are mandatory in staging/prod, including hosted demo. Leave the unused provider credentials blank. |
 | `BREVO_API_KEY` | Brevo API key (not SMTP key). Required for Brevo; rotate by proving the replacement before revocation. |
 | `BREVO_WEBHOOK_TOKEN` | Separate random URL-safe bearer secret of 32–256 characters for Brevo transactional callbacks. Configure the same token in the provider webhook auth; never in the URL. |
+| `MAIL_BRAND_NAME` | Optional installation email brand for system subjects, actions and footers; blank uses the tenant/product brand. |
 | `MAIL_FROM_NAME` | Optional Brevo sender display name; blank retains the rendered message sender name. |
 | `SENDGRID_API_KEY` | SendGrid restricted mail-send credential, required only for SendGrid; provision replacement, prove delivery, revoke old. |
 | `MAIL_FROM_PLATFORM` | Platform address verified by the selected provider; change only after sender-domain verification. Brevo always sends from this address. |

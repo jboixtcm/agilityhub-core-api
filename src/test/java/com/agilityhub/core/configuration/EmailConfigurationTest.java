@@ -182,7 +182,7 @@ class EmailConfigurationTest {
                 assertThat(context.getStartupFailure()).hasRootCauseMessage("SENDGRID_WEBHOOK_PUBLIC_KEY is required in staging/prod"));
     }
     @Test void T_11_25_rendererEscapesBrandingAndRejectsUnsafeAssets() throws Exception {
-        var renderer = new EmailConfiguration().systemEmailRenderer(new IcuMessageSource());
+        var renderer = new EmailConfiguration().systemEmailRenderer(new IcuMessageSource(), "");
         for (String logo : java.util.Arrays.asList("javascript:alert(1)", "not a URI", null)) {
             var settings = new ClubEmailSettings.Settings("<script>Example</script>", logo, "red;bad", null,
                     "sender@example.test", "Example", null, "en", 15);
