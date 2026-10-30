@@ -66,3 +66,11 @@ paths = [
 ]
 regexTarget = "secret"
 regexes = ['''^[0-9a-f]{64}$''']
+
+[[allowlists]]
+description = "Josep feedback test evidence records this exact verified OpenAPI SHA-256; it is a file checksum, not a credential. Other values and adjacent credentials remain scanned."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)roadmap/evidence/2026-10-30-evening-feedback/api-test-summary\.json$''']
+regexTarget = "match"
+regexes = ['''^openapi_sha256": "97554f07e2da7d4a108208a7e74f5954eaa78eda46d1e14624b060be2e860d66"$''']

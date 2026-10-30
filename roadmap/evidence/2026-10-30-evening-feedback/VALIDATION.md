@@ -70,3 +70,11 @@ E5-T07 outbox backlog discarded before MigrationWelcomeIT: 158 PENDING records (
 OpenAPI command after successful verification: `bin/openapi-snapshot --from-build`. Exit: **0**; output: `Updated docs/openapi/openapi.json`. Target, API snapshot and web snapshot SHA-256 all match: `97554f07e2da7d4a108208a7e74f5954eaa78eda46d1e14624b060be2e860d66`. The web generated types were already built from this identical snapshot.
 
 Final PDF artifacts are in `export-qa/`: `feedback-table.png` visually reviewed (readable business cells); `page-1.png` reviewed for wrapping; `members.pdf` includes the long row that continues across pages and its end-marker assertion passed.
+
+
+## Deployment CI checksum classification
+
+The first deployment CI run (41121732955) reported the verified OpenAPI SHA-256 in `api-test-summary.json:89` as `generic-api-key`. The value equals the checksum of `docs/openapi/openapi.json`; no credential was present. An AND-constrained exception accepts only that exact key/value match in that exact evidence file. The policy regression proves an adjacent credential and a changed value still fail. Runtime source and the OpenAPI contract are unchanged.
+
+- `python3 bin/security-secret-policy-test.py --gitleaks <private-tools>/gitleaks/gitleaks`: exit 0; all positive and negative fixtures pass.
+- `gitleaks git --redact --no-banner --config .gitleaks.toml --log-opts=a17dde2cc21639ebf2697116ef279d68ed37fa1d..HEAD`: exit 0; no findings. Scanner 8.30.1 matches CI and its published archive checksum was verified.
