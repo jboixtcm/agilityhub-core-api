@@ -78,3 +78,5 @@ The first deployment CI run (41121732955) reported the verified OpenAPI SHA-256 
 
 - `python3 bin/security-secret-policy-test.py --gitleaks <private-tools>/gitleaks/gitleaks`: exit 0; all positive and negative fixtures pass.
 - `gitleaks git --redact --no-banner --config .gitleaks.toml --log-opts=a17dde2cc21639ebf2697116ef279d68ed37fa1d..HEAD`: exit 0; no findings. Scanner 8.30.1 matches CI and its published archive checksum was verified.
+
+The follow-up CI also classified the identical known checksum in the policy regression itself. The exact-match exception now covers the summary and that single test file, with positive/negative fixtures for both paths. Local policy regression, complete two-commit release history scan, and a directory scan of all changed scanner/evidence inputs pass.

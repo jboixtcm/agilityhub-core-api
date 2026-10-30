@@ -58,6 +58,9 @@ def main():
         feedback_summary.parent.mkdir(parents=True)
         feedback_line = '"openapi_sha256": "97554f07e2da7d4a108208a7e74f5954eaa78eda46d1e14624b060be2e860d66"'
         feedback_summary.write_text(feedback_line + '\n')
+        feedback_fixture = root / 'bin/security-secret-policy-test.py'
+        feedback_fixture.parent.mkdir(parents=True)
+        feedback_fixture.write_text(feedback_line + '\n')
 
         def scan():
             result = subprocess.run([args.gitleaks, 'dir', '--no-banner', '--redact', '--config', str(ROOT / '.gitleaks.toml'),
@@ -84,8 +87,9 @@ def main():
         deploy_manifest.write_text(manifest_line % fixture_value())
         for reviewed_manifest in coordinated_manifests:
             reviewed_manifest.write_text(manifest_line % fixture_value())
-        feedback_summary.write_text(feedback_line + ' api_key="' + fixture_value() + '"\n'
-                                    + '"openapi_sha256": "' + fixture_value() + '"\n')
+        for feedback_file in (feedback_summary, feedback_fixture):
+            feedback_file.write_text(feedback_line + ' api_key="' + fixture_value() + '"\n'
+                                     + '"openapi_sha256": "' + fixture_value() + '"\n')
         code, findings = scan()
         locations = {(Path(f['File']).relative_to(root).as_posix(), f['StartLine'], f['RuleID']) for f in findings}
         expected = {('roadmap/evidence/E11-T03/fixture.log', line, 'generic-api-key') for line in (1, 2, 3)}
@@ -94,7 +98,8 @@ def main():
         expected.add(('roadmap/evidence/E9-T01/fixture-tested-inputs.json', 2, 'generic-api-key'))
         expected.add(('roadmap/evidence/2026-10-26-deploy-root/01-clean-verify-inputs.json', 2, 'generic-api-key'))
         expected.update((p.relative_to(root).as_posix(), 2, 'generic-api-key') for p in coordinated_manifests)
-        expected.update((feedback_summary.relative_to(root).as_posix(), line, 'generic-api-key') for line in (1, 2))
+        expected.update((p.relative_to(root).as_posix(), line, 'generic-api-key')
+                        for p in (feedback_summary, feedback_fixture) for line in (1, 2))
         assert code == 1 and len(findings) == len(expected) and locations == expected, 'Every injected secret must remain detected'
         print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, changed filename and a non-digest manifest value all fail')
 
