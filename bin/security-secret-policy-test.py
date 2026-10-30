@@ -45,6 +45,15 @@ def main():
         deploy_manifest.parent.mkdir(parents=True)
         deploy_manifest.write_text(manifest_line % ('0123456789abcdef' * 4))
 
+        coordinated_manifests = [root / path for path in (
+            'roadmap/evidence/2026-10-30-coordinated-release/api-reviewed-source-sha256.json',
+            'roadmap/evidence/2026-10-30-coordinated-release/05-test-summary.json',
+            'roadmap/evidence/2026-10-30-word-feedback/api-source-sha256.json',
+        )]
+        for reviewed_manifest in coordinated_manifests:
+            reviewed_manifest.parent.mkdir(parents=True, exist_ok=True)
+            reviewed_manifest.write_text(manifest_line % ('0123456789abcdef' * 4))
+
         def scan():
             result = subprocess.run([args.gitleaks, 'dir', '--no-banner', '--redact', '--config', str(ROOT / '.gitleaks.toml'),
                                      '--report-format', 'json', '--report-path', str(root / 'report.json'), str(root)],
@@ -67,6 +76,8 @@ def main():
                                   + 'downloadUrl("key", "' + fixture_value() + '");\n')
         manifest.write_text(manifest_line % fixture_value())
         deploy_manifest.write_text(manifest_line % fixture_value())
+        for reviewed_manifest in coordinated_manifests:
+            reviewed_manifest.write_text(manifest_line % fixture_value())
         code, findings = scan()
         locations = {(Path(f['File']).relative_to(root).as_posix(), f['StartLine'], f['RuleID']) for f in findings}
         expected = {('roadmap/evidence/E11-T03/fixture.log', line, 'generic-api-key') for line in (1, 2, 3)}
@@ -74,7 +85,8 @@ def main():
         expected.update((export_fixture.relative_to(root).as_posix(), line, 'generic-api-key') for line in (1, 2))
         expected.add(('roadmap/evidence/E9-T01/fixture-tested-inputs.json', 2, 'generic-api-key'))
         expected.add(('roadmap/evidence/2026-10-26-deploy-root/01-clean-verify-inputs.json', 2, 'generic-api-key'))
-        assert code == 1 and len(findings) == 8 and locations == expected, 'Every injected secret must remain detected'
+        expected.update((p.relative_to(root).as_posix(), 2, 'generic-api-key') for p in coordinated_manifests)
+        assert code == 1 and len(findings) == len(expected) and locations == expected, 'Every injected secret must remain detected'
         print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, changed filename and a non-digest manifest value all fail')
 
 

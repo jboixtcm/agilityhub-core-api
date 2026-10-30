@@ -60,6 +60,9 @@ paths = [
   '''roadmap/evidence/.*-tested-inputs\.json$''',
   # Same format: all 2231 values were checked against the actual source files.
   '''(^|/)roadmap/evidence/2026-10-26-deploy-root/01-clean-verify-inputs\.json$''',
+  # Reviewed source/OpenAPI SHA-256 evidence for the coordinated Clubs release.
+  '''(^|/)roadmap/evidence/2026-10-30-coordinated-release/(api-reviewed-source-sha256|05-test-summary)\.json$''',
+  '''(^|/)roadmap/evidence/2026-10-30-word-feedback/api-source-sha256\.json$''',
 ]
 regexTarget = "secret"
 regexes = ['''^[0-9a-f]{64}$''']
