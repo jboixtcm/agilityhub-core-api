@@ -8770,6 +8770,10 @@
             },
             "type" : "array"
           },
+          "photoUrl" : {
+            "description" : "Short-lived signed dog photo URL",
+            "type" : "string"
+          },
           "registeredAt" : {
             "format" : "date-time",
             "type" : "string"
@@ -8861,6 +8865,10 @@
             "$ref" : "#/components/schemas/LevelSummary"
           },
           "name" : {
+            "type" : "string"
+          },
+          "photoUrl" : {
+            "description" : "Short-lived signed dog photo URL",
             "type" : "string"
           }
         },
@@ -16339,6 +16347,10 @@
               "type" : "string"
             },
             "type" : "array"
+          },
+          "photoUrl" : {
+            "description" : "Short-lived signed dog photo URL",
+            "type" : "string"
           }
         },
         "required" : [ "breed", "id", "name", "pendingDocuments" ],
@@ -42011,7 +42023,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "name", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -42308,7 +42320,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -42603,7 +42615,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],

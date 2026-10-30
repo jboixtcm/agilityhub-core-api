@@ -1,0 +1,65 @@
+{
+  "command": "./mvnw -q -Dtest=ArchitectureTest,ArchitectureRulesTest,OpenApiSnapshotTest -Dit.test=CensusIT,UniversalListsIT,ListFieldsContractIT -Djacoco.skip=true clean verify",
+  "exitCode": 0,
+  "coverageGate": "Pending exact-commit CI clean verify; focused run deliberately skips JaCoCo",
+  "suites": {
+    "surefire-reports": {
+      "classes": [
+        {
+          "name": "com.agilityhub.core.arch.ArchitectureRulesTest",
+          "tests": 20,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.agilityhub.core.arch.ArchitectureTest",
+          "tests": 22,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "tests": 54,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "failsafe-reports": {
+      "classes": [
+        {
+          "name": "com.agilityhub.core.clubs.census.api.CensusIT",
+          "tests": 68,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.agilityhub.core.clubs.common.api.UniversalListsIT",
+          "tests": 35,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.agilityhub.core.configuration.ListFieldsContractIT",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "tests": 107,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.census.persistence;
 
 import com.agilityhub.core.platform.application.ClubConfigService;
+import com.agilityhub.core.clubs.followup.application.AttachmentService;
 import com.agilityhub.core.shared.application.*;
 import com.agilityhub.core.shared.application.lists.*;
 import com.agilityhub.core.shared.domain.TenantEntity;
@@ -16,14 +17,15 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     public record Projection(String id, String clubId) implements TenantEntity { }
     private final ClubConfigService configs;
     private final ClubClock clock;
-    public CensusListProjection(MongoTemplate mongo, ClubConfigService configs, ClubClock clock) {
-        super(mongo, Projection.class); this.configs = configs; this.clock = clock;
+    private final AttachmentService attachments;
+    public CensusListProjection(MongoTemplate mongo, ClubConfigService configs, ClubClock clock, AttachmentService attachments) {
+        super(mongo, Projection.class); this.configs = configs; this.clock = clock; this.attachments = attachments;
     }
     public ListDataset dataset(ListDefinition definition, boolean members, boolean admin) {
         var stages = members ? memberStages() : dogStages(true);
         Map<String, Object> fields = members ? memberFields(admin) : dogFields();
         fields.keySet().retainAll(definition.fields());
-        var dataset = new ListDataset(definition, members ? "members" : "dogs", stages, fields, members ? Set.of() : Set.of("freeTraining.override"), this::label);
+        var dataset = new ListDataset(definition, members ? "members" : "dogs", stages, fields, members ? Set.of() : Set.of("freeTraining.override"), this::label, this::signPhotos);
         // S03 R-03-24 (E5-T29 round 2, review #3): the dogs export's «Titular» cell is the owner's full name; the list keeps the owner object.
         return members ? dataset : dataset.withExportProjection(Map.of("owner", "$owner.fullName"));
     }
@@ -125,7 +127,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private Map<String, Object> memberFields(boolean admin) {
         var fields = fields("memberNumber", "fullName", "displayStatus", "joinedAt", "leaveDate", "roles", "birthDate", "gender", "leaveSource", "inactivityUntil", "hasPendingRequest");
         fields.put("version", fallback("$version", 0));
-        fields.put("dogs", map("$dogs", "dog", new Document("id", "$$dog._id").append("name", "$$dog.name").append("level", level("$$dog.level"))));
+        fields.put("dogs", map("$dogs", "dog", new Document("id", "$$dog._id").append("name", "$$dog.name").append("photoUrl", photoReference("$$dog.")).append("level", level("$$dog.level"))));
         fields.put("bookingBlocked", fallback("$bookingBlock.active", false));
         fields.put("contact", new Document("emails", emails()).append("phones", phones()));
         fields.put("plan", reference("$plan")); fields.put("familyGroup", reference("$familyGroup"));
@@ -156,6 +158,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     }
     private Map<String, Object> dogFields() {
         var fields = fields("name", "breed", "sex", "chip", "handlerName", "handlerIsMember", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
+        fields.put("photoUrl", photoReference("$"));
         fields.put("version", fallback("$version", 0));
         fields.put("level", level("$level"));
         // E5-T29 (S10 R-10-00): the owner's first name whole, so the instructor's «{guia} + {gos}» never cuts «Joan Antoni».
@@ -177,6 +180,30 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         fields.put("pack", new Document("$cond", List.of(expr("$ne", fallback("$pack.id", ""), ""), new Document("id", "$pack.id")
                 .append("remaining", "$pack.remaining").append("total", "$pack.total").append("expiresOn", "$pack.expiresOn"), "$$REMOVE")));
         return fields;
+    }
+    private static Document photoReference(String prefix) {
+        return new Document("key", prefix + "photoFileKey").append("name", prefix + "name");
+    }
+    /** Sign only the projected page, without another query per dog. Never return internal file keys. */
+    private Map<String, Object> signPhotos(Map<String, Object> row) {
+        signPhoto(row);
+        for (String field : List.of("dogs", "pendingDogs")) {
+            if (row.get(field) instanceof List<?> dogs) {
+                for (Object dog : dogs) {
+                    if (dog instanceof Map<?, ?> value) {
+                        @SuppressWarnings("unchecked") var child = (Map<String, Object>) value;
+                        signPhoto(child);
+                    }
+                }
+            }
+        }
+        return row;
+    }
+    private void signPhoto(Map<String, Object> row) {
+        Object reference = row.remove("photoUrl");
+        if (reference instanceof Map<?, ?> photo && photo.get("key") instanceof String key && !key.isBlank()) {
+            row.put("photoUrl", attachments.url(key, Objects.toString(photo.get("name"), "Dog photo")));
+        }
     }
     private Document join(String collection, Object local, String foreign, String as, List<Document> rest) {
         var pipeline = new ArrayList<Document>();

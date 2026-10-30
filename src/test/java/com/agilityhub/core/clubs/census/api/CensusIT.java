@@ -801,6 +801,34 @@ class CensusIT extends AbstractIntegrationTest {
         }
     }
 
+    @Test void T_03_23_photosAreSignedInCensusListsAndMemberOverviewWithoutLeakingFileKeys() throws Exception {
+        byte[] data = "Example photo bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var photo = uploadUrl("DOG_PHOTO", "image/png", data, true);
+        admin(body(put("/api/v1/dogs/dog-one/photo"), Map.of("fileKey", photo.path("fileKey").asText()))).andExpect(status().isOk());
+        for (String role : List.of("ADMIN", "INSTRUCTOR")) {
+            var row = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl").param("filter", "id:eq:dog-one"), CLUB, "admin", role), 200).path("items").get(0);
+            assertThat(row.size()).isEqualTo(2);
+            assertThat(row.path("photoUrl").isTextual()).isTrue();
+            call(get(row.path("photoUrl").asText()), CLUB, "admin", role).andExpect(status().isOk()).andExpect(content().bytes(data));
+            assertThat(row.has("photoFileKey")).isFalse();
+            var without = json(call(get("/api/v1/dogs").param("fields", "id,name").param("filter", "id:eq:dog-one"), CLUB, "admin", role), 200).path("items").get(0);
+            assertThat(without.size()).isEqualTo(2); assertThat(without.has("photoUrl")).isFalse();
+            var absent = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl").param("filter", "id:eq:dog-two"), CLUB, "admin", role), 200).path("items").get(0);
+            assertThat(absent.size()).isEqualTo(1); assertThat(absent.has("photoUrl")).isFalse();
+        }
+        var membersPage = json(admin(get("/api/v1/members").param("fields", "dogs").param("filter", "id:eq:one")), 200);
+        var dogs = membersPage.path("items").get(0).path("dogs");
+        var listed = java.util.stream.StreamSupport.stream(dogs.spliterator(), false).filter(d -> d.path("id").asText().equals("dog-one")).findFirst().orElseThrow();
+        admin(get(listed.path("photoUrl").asText())).andExpect(status().isOk()).andExpect(content().bytes(data));
+        var overview = json(admin(get("/api/v1/members/one/overview")), 200).path("dogs");
+        var detailed = java.util.stream.StreamSupport.stream(overview.spliterator(), false).filter(d -> d.path("id").asText().equals("dog-one")).findFirst().orElseThrow();
+        admin(get(detailed.path("photoUrl").asText())).andExpect(status().isOk()).andExpect(content().bytes(data));
+        assertThat(json(call(get("/api/v1/dogs").param("fields", "id,photoUrl"), OTHER, "foreign", "ADMIN"), 200).toString()).doesNotContain(photo.path("fileKey").asText());
+        error(own(get("/api/v1/dogs").param("fields", "id,photoUrl")), ErrorCode.FORBIDDEN);
+        clock.advance(Duration.ofMinutes(6));
+        error(admin(get(detailed.path("photoUrl").asText())), ErrorCode.FORBIDDEN);
+    }
+
     @Test void T_03_23_photoAndNoteAttachmentsAreBoundPrivateAndReplaySafe() throws Exception {
         byte[] data = "Example image bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
         var photo = uploadUrl("DOG_PHOTO", "image/png", data, false);

@@ -122,6 +122,7 @@ public final class CensusResponses {
     public record DogSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level) { }
     @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
     public record MemberInstructorView(
@@ -297,6 +298,7 @@ public final class CensusResponses {
     public record DogListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
@@ -376,6 +378,7 @@ public final class CensusResponses {
     public record OverviewDog(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = NOT_REQUIRED) boolean freeTrainingAllowed,
