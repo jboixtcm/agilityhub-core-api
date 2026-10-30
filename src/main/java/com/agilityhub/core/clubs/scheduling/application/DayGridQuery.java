@@ -17,9 +17,10 @@ public class DayGridQuery {
     public DayGridQuery(ClassSessionRepository classes,RingBlockRepository blocks,SessionProjection projection,PlanningCatalogAccess catalogs,TrainingOccupancyPort training) {
         this.classes=classes; this.blocks=blocks; this.projection=projection; this.catalogs=catalogs; this.training=training;
     }
-    public Map<String,Object> get(LocalDate date,boolean staff) {
+    public Map<String,Object> get(LocalDate date,boolean staff) { return get(date, staff, null); }
+    public Map<String,Object> get(LocalDate date,boolean staff,ClassState state) {
         var zone=projection.zone(); var from=date.atStartOfDay(zone).toInstant(); var to=date.plusDays(1).atStartOfDay(zone).toInstant();
-        var selected=classes.between(from,to).stream().filter(c -> c.state()!=ClassState.DRAFT && (staff || c.state()!=ClassState.CANCELLED))
+        var selected=classes.between(from,to).stream().filter(c -> staff && state != null ? c.state() == state : c.state()!=ClassState.DRAFT && (staff || c.state()!=ClassState.CANCELLED))
                 .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id)).toList();
         var rows=new TreeMap<String,List<Map<String,Object>>>();
         for(var c:selected) {

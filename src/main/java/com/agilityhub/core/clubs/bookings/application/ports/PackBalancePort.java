@@ -17,5 +17,6 @@ public interface PackBalancePort {
     /** Consumes one session; returns the movement id. */
     String consume(String memberId, String dogId, String bookingId);
     /** Returns one previously consumed session even after expiry; returns the movement id, or null on replay. */
+    default String restore(String bookingId) { throw new UnsupportedOperationException("Pack restore is not configured"); }
     String refund(String memberId, String dogId, String bookingId, LocalDate today);
 }

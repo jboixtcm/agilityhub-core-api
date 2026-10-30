@@ -141,4 +141,26 @@ class PackBalanceServiceTest {
     static PackBalance version(PackBalance p, long version) {
         return new PackBalance(p.id(), p.clubId(), p.memberId(), p.dogId(), p.planId(), p.upfrontPaymentId(), p.sessionsTotal(), p.consumed(), p.remaining(), p.openedOn(), p.expiresOn(), p.state(), p.movements(), p.expiryWarnedAt(), p.expiredAt(), p.lowBalanceNotifiedAt(), p.sourceIds(), version, p.createdAt(), p.createdByAccountId());
     }
+    @Test void Word_noticeCorrectionsAppendMovementsWithoutDoubleConsumptionOrDoubleRefunds() {
+        var pack = open("correction-paid", 2, null);
+        service.consume("member", "dog", "correction-booking", LocalDate.of(2026, 7, 1));
+        service.refund("correction-booking");
+        assertThat(service.get(pack.id()).remaining()).isEqualTo(2);
+        var movement = service.restore("correction-booking");
+        assertThat(service.restore("correction-booking")).isEqualTo(movement);
+        assertThat(service.get(pack.id()).remaining()).isEqualTo(1);
+        service.refund("correction-booking"); service.refund("correction-booking");
+        assertThat(service.get(pack.id()).remaining()).isEqualTo(2);
+        service.restore("correction-booking");
+        assertThat(service.get(pack.id()).movements()).hasSize(6);
+        assertThat(service.get(pack.id()).remaining()).isEqualTo(1);
+    }
+    @Test void Word_noticeCannotBeRestoredWhenRefundedSessionWasSpent() {
+        var pack = open("correction-empty", 1, null);
+        service.consume("member", "dog", "original", LocalDate.of(2026, 7, 1)); service.refund("original");
+        service.consume("member", "dog", "replacement", LocalDate.of(2026, 7, 1));
+        assertThatThrownBy(() -> service.restore("original")).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.PACK_EMPTY));
+        assertThat(service.get(pack.id()).remaining()).isZero();
+    }
+
 }

@@ -1,0 +1,18 @@
+{
+  "status": "stopped-after-findings",
+  "reason": "Compiled snapshot predates export contract and instructor-fixture corrections; final clean verification will run in CI on the corrected commit.",
+  "totals": {
+    "surefire-reports": {
+      "tests": 5000,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "failsafe-reports": {
+      "tests": 657,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

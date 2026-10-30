@@ -34,6 +34,39 @@
     }
 }
 
+# F08: gateway failures remain unavailable, with a readable page for navigation and JSON for API clients.
+# Do not expose the internal upstream, the request URI or signed query parameters in the response.
+(gateway_unavailable) {
+    handle_errors 502 503 504 {
+        header {
+            Cache-Control "no-store"
+            Retry-After "30"
+            X-Content-Type-Options "nosniff"
+        }
+        @navigation {
+            method GET HEAD
+            header Accept *text/html*
+            not path /api/* /oauth2/* /.well-known/* /connect/logout
+        }
+        handle @navigation {
+            header Content-Type "text/html; charset=utf-8"
+            respond <<HTML
+                <!doctype html>
+                <html lang="ca"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>Servei temporalment no disponible</title>
+                <style>:root{color-scheme:light dark}body{font:1.05rem/1.6 system-ui,sans-serif;max-width:42rem;margin:10vh auto;padding:1.5rem}h1{line-height:1.2}a{color:inherit;display:inline-block;padding:.7rem 1.2rem;border:1px solid;border-radius:.4rem}small{display:block;margin-top:2rem}</style>
+                <main><h1>Servei temporalment no disponible</h1><p>Espera uns instants i torna-ho a provar. Si estaves confirmant una reserva, comprova primer si apareix a Inici abans de repetir-la.</p><p><a href="">Torna-ho a provar</a></p>
+                <p lang="es">Servicio temporalmente no disponible. Inténtalo de nuevo en unos instantes. Si estabas confirmando una reserva, comprueba antes si aparece en Inicio.</p>
+                <p lang="en">Service temporarily unavailable. Please try again shortly. If you were confirming a booking, first check whether it appears on Home.</p><small>Referència / Referencia / Reference: {err.id}</small></main></html>
+                HTML 503
+        }
+        handle {
+            header Content-Type "application/json; charset=utf-8"
+            respond `{"code":"INTERNAL_ERROR","message":"Service temporarily unavailable. Please try again shortly.","details":{},"traceId":"{err.id}"}` 503
+        }
+    }
+}
+
 (api_proxy) {
     @backend path /api/* /oauth2/* /.well-known/* /connect/logout
     handle @backend {
@@ -42,6 +75,7 @@
 }
 
 (spa) {
+    import gateway_unavailable
     import security_headers
     import api_proxy
     handle {
@@ -64,6 +98,7 @@
     import spa /srv/clubsadmin
 }
 {$CORE_HOST} {
+    import gateway_unavailable
     @private path /internal/* /actuator/*
     respond @private 404
     reverse_proxy core:8080
@@ -100,6 +135,11 @@ http://127.0.0.1:9080 {
             header_up -X-Forwarded-Uri
             header_up -X-Forwarded-Method
             copy_headers X-Club-App
+            # forward_auth normally copies a non-2xx response without entering handle_errors.
+            @routing_unavailable status 502 503 504
+            handle_response @routing_unavailable {
+                error 503
+            }
         }
         # The two roots are one exclusive group: the first that matches wins, so the back office comes first.
         @club_admin header X-Club-App clubs-admin
@@ -112,6 +152,7 @@ http://127.0.0.1:9080 {
 }
 
 https:// {
+    import gateway_unavailable
     import security_headers
     tls {
         on_demand

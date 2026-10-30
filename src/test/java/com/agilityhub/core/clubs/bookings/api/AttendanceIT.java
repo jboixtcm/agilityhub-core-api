@@ -112,7 +112,7 @@ class AttendanceIT extends BookingFixtures {
         var after = sheet("wed", as("admin"));
         assertThat(after.path("rows").findValuesAsText("bookingId")).containsExactly(duna, toby);
         var notified = row(after, toby);
-        assertThat(notified.path("state").asText()).isEqualTo("NOTIFIED"); assertThat(notified.path("final").asBoolean()).isTrue();
+        assertThat(notified.path("state").asText()).isEqualTo("NOTIFIED"); assertThat(notified.path("final").asBoolean()).isFalse();
         assertThat(notified.path("notice").path("bookingState").asText()).isEqualTo("CANCELLED_LATE");
         assertThat(notified.path("notice").path("atLocal").asText()).isEqualTo("18:00");
         assertThat(notified.path("markedByName").asText()).isEqualTo("Estela");
@@ -283,6 +283,7 @@ class AttendanceIT extends BookingFixtures {
         mongo.save(new com.agilityhub.core.identity.persistence.Membership("s08-dual", "s08-dual", CLUB, "s08-m-dual",
                 Set.of(com.agilityhub.core.identity.domain.Role.INSTRUCTOR, com.agilityhub.core.identity.domain.Role.MEMBER),
                 com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.INSTRUCTOR));
+        assignInstructor("dual", "wed");
         var staff = dual("ROLE_INSTRUCTOR", "ROLE_MEMBER"); var memberOnly = dual("ROLE_MEMBER"); var instructorOnly = dual("ROLE_INSTRUCTOR");
         var duna = id(book(as("laura"), "wed", "s08-d-duna"));
         clock.setInstant(local("2026-10-07T19:00"));
@@ -381,6 +382,7 @@ class AttendanceIT extends BookingFixtures {
 
     @Test void T_10_23_twoInstructorsSavingTheSameVersionGiveOne200AndOne409ThatReappliesItsOwnRow() throws Exception {
         account("inst2", "INSTRUCTOR", "s08-m-inst2"); member("s08-m-inst2", "inst2", "Neus", "ca");
+        assignInstructor("inst2", "sat");
         var duna = id(book(as("laura"), "sat", "s08-d-duna"));
         var toby = id(book(as("joan"), "sat", "s08-d-toby"));
         var nit = id(book(as("pere"), "sat", "s08-d-nit"));
@@ -528,9 +530,11 @@ class AttendanceIT extends BookingFixtures {
         assertThat(code(call(HttpMethod.GET, "/class-sessions/s08-wed/attendance", null, impersonated, 403))).isEqualTo("IMPERSONATION_DENIED");
         assertThat(code(save("wed", impersonated, 403, 0, duna, "PRESENT"))).isEqualTo("IMPERSONATION_DENIED");
         assertThat(code(call(HttpMethod.GET, "/class-sessions/s08-missing/attendance", null, as("inst"), 404))).isEqualTo("NOT_FOUND");
-        // Global vision: Neus is not the class's instructor (Estela is) and marks it.
-        save("wed", as("inst2"), 200, 0, duna, "PRESENT");
-        assertThat(attendance(duna).get("markedBy", Document.class)).containsEntry("accountId", "s08-inst2").containsEntry("role", "INSTRUCTOR");
+        // Global read remains; corrections belong to this class's instructors and administrators.
+        assertThat(sheet("wed", as("inst2")).at("/sheet/canMarkPresence").asBoolean()).isFalse();
+        assertThat(code(save("wed", as("inst2"), 403, 0, duna, "PRESENT"))).isEqualTo("FORBIDDEN");
+        assertThat(attendance(duna)).isNull();
+        save("wed", as("admin"), 200, 0, duna, "PRESENT");
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER)), "attendances")).isZero();
     }
 
@@ -559,7 +563,8 @@ class AttendanceIT extends BookingFixtures {
         assertThat(closed.path("details").path("editableUntil").asText()).isEqualTo("2026-10-08T21:59:59Z");
         save("wed", as("admin"), 200, 2, toby, "NO_SHOW");
         assertThat(count("audit_entries", Criteria.where("action").is("ATTENDANCE_OVERRIDDEN"))).isEqualTo(2);
-        assertThat(code(save("wed", as("admin"), 422, 3, duna, "PRESENT"))).isEqualTo("ATTENDANCE_NOTIFIED_FINAL");
+        save("wed", as("admin"), 200, 3, duna, "PRESENT");
+        assertThat(booking(duna).getString("state")).isEqualTo("ACTIVE");
     }
 
     @Test void R_08_10_aMarkedBookingIsNoLongerCancellableAndANoShowReadsNoPresentat() throws Exception {
@@ -594,4 +599,44 @@ class AttendanceIT extends BookingFixtures {
                 "s08-inst", null, DomainEvent.Origin.INSTRUCTOR));
         assertThat(attendance(duna).getList("history", Document.class)).hasSize(2);
     }
+    @Test void Word_noticeRestorationIsAuditedAndPreservesTheSameBooking() throws Exception {
+        var duna = id(book(as("laura"), "wed", "s08-d-duna"));
+        clock.setInstant(local("2026-10-07T12:00"));
+        save("wed", as("inst"), 200, 0, duna, "NOTIFIED");
+        var restored = save("wed", as("inst"), 200, 1, duna, "PENDING");
+        assertThat(row(restored, duna).path("state").asText()).isEqualTo("PENDING");
+        assertThat(booking(duna).getString("state")).isEqualTo("ACTIVE");
+        assertThat(attendance(duna).getList("history", Document.class)).hasSize(2);
+        assertThat(count("audit_entries", Criteria.where("action").is("ATTENDANCE_OVERRIDDEN"))).isEqualTo(1);
+        save("wed", as("inst"), 200, 2, duna, "NOTIFIED");
+        save("wed", as("admin"), 200, 3, duna, "PRESENT");
+        assertThat(attendance(duna).getList("history", Document.class)).hasSize(4);
+    }
+    @Test void Word_fullClassRefusesNoticeRestorationWithoutChangingSheetOrBooking() throws Exception {
+        var duna = id(book(as("laura"), "wed", "s08-d-duna"));
+        clock.setInstant(local("2026-10-07T12:00"));
+        save("wed", as("inst"), 200, 0, duna, "NOTIFIED");
+        var toby = id(book(as("joan"), "wed", "s08-d-toby"));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-wed")), new Update().set("capacity", 1), "class_sessions");
+        var denied = save("wed", as("admin"), 409, 1, duna, "PENDING");
+        assertThat(code(denied)).isEqualTo("CLASS_FULL");
+        assertThat(booking(duna).getString("state")).isEqualTo("CANCELLED");
+        assertThat(booking(toby).getString("state")).isEqualTo("ACTIVE");
+        assertThat(summary("wed").getInteger("version")).isEqualTo(1);
+    }
+
+    private void assignInstructor(String account, String classId) {
+        var original = mongo.findById("s08-instructor", Document.class, "instructors");
+        var extra = new Document(original); extra.put("_id", "s08-instructor-" + account); extra.put("memberId", "s08-m-" + account); extra.put("shortName", account);
+        mongo.insert(extra, "instructors");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-" + classId)), new Update().addToSet("instructorIds", "s08-instructor-" + account), "class_sessions");
+    }
+
+    @Test void Word_explicitMemberHandlerKeepsUsualNameWithoutOwnerParenthesis() throws Exception {
+        var duna = id(book(as("laura"), "wed", "s08-d-duna"));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-d-duna")), new Update().set("handlerName", "Lau").set("handlerIsMember", true), "dogs");
+        var result = row(sheet("wed", as("inst")), duna);
+        assertThat(result.path("handlerName").asText()).isEqualTo("Lau"); assertThat(result.has("memberFullName")).isFalse();
+    }
+
 }

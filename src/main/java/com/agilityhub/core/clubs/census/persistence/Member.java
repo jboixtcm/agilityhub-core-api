@@ -9,6 +9,8 @@ public class Member extends CensusEntity {
     public Map<String,Object> sourceIds;
     public Map<String,Object> externalIds;
     public String accountId;
+    public String mergedIntoMemberId;
+    public Instant mergedAt;
     public Integer memberNumber;
     public Map<String,Object> idDocument;
     public String firstName;

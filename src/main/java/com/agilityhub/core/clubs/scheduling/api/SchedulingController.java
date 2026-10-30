@@ -367,13 +367,14 @@ public class SchedulingController {
     @PreAuthorize("isAuthenticated() and (#view != 'instructor' or hasAnyRole('ADMIN','INSTRUCTOR'))")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "dayGrid", description = "Roles: ADMIN, INSTRUCTOR, MEMBER, AGILITYHUB_ADMIN. Tenant and role guards apply. Every authenticated role may use member view; instructor view requires INSTRUCTOR/ADMIN. Impersonation permits only member view. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "DayGrid", useReturnTypeSchema = true))
-    public DayGrid dayGrid(@RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date, @RequestParam(defaultValue = "member") @Schema(allowableValues = {"member", "instructor"}) String view) {
+    public DayGrid dayGrid(@RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date, @RequestParam(defaultValue = "member") @Schema(allowableValues = {"member", "instructor"}) String view, @RequestParam(required = false) ClassState state) {
         access.tenant();
         // CONVENCIONS_API §5-§6 (E5-T20): the error names its field, like every other 400 VALIDATION_ERROR.
         if (!java.util.Set.of("member", "instructor").contains(view)) {
             throw new com.agilityhub.core.shared.domain.ApiException(VALIDATION_ERROR, java.util.Map.of("field", "view",
                     "fieldErrors", java.util.List.of(java.util.Map.of("field", "view", "code", "INVALID_VALUE"))));
         }
-        return view(grid.get(date,view.equals("instructor")),DayGrid.class);
+        if (state != null && !view.equals("instructor")) { throw new com.agilityhub.core.shared.domain.ApiException(FORBIDDEN); }
+        return view(grid.get(date,view.equals("instructor"),state),DayGrid.class);
     }
 }

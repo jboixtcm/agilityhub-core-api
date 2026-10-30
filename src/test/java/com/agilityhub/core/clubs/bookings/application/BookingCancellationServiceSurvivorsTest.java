@@ -67,7 +67,7 @@ class BookingCancellationServiceSurvivorsTest {
     final ClassSessionBookingAccess classes = mock(ClassSessionBookingAccess.class);
     final WaitlistTransitions transitions = mock(WaitlistTransitions.class);
     final BookingCancellationService service = new BookingCancellationService(context, transactions, locks, bookings, holds, waitlist, packs,
-            attendance, events, counters, audit, classes, transitions);
+            attendance, events, counters, audit, classes, transitions, mock(com.agilityhub.core.clubs.census.application.BookingMemberAccess.class));
 
     final BookingActor member = new BookingActor("account-laura", "member-laura", "Laura Serra", null, BookingOrigin.APP, ActorRole.MEMBER);
     /** Another member's live booking in class-a: what `forClass(LIVE)` still returns once the cancelled one left LIVE. */

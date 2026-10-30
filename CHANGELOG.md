@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- 2026-10-30 club feedback: administrators can add an active dog to an existing member and explicitly consolidate duplicate members after a versioned conflict preview, preserving source history and invoices. Attendance corrections by administrators or assigned instructors restore notice-cancelled bookings and pack balances atomically when capacity and eligibility allow. Dog handler identity is explicit, and staff daily calendars retain their DRAFT filter. The merged-member links have a nullable contract for typed signup views.
+
+- 2026-10-29 planning incident: template coverage skips the unassigned-level census group, so active dogs without a level no longer cause an internal error. Existing progression rows and their counts are preserved.
+
 - 2026-10-28 Stripe test rehearsal: use Checkout's `allowed_payment_method_types` filter for saved-card setup and payments. Stripe API 2026-09-30 rejects the removed `payment_method_types` input; both flows retain the card-only restriction. The disposable billing smoke shares fresh vault keys between the seed and API containers so the API can read encrypted fixture bank accounts.
+
+- 2026-10-28 flow audit F08: Caddy returns a no-store, retryable 503 page for browser navigation when the gateway or club routing upstream is unavailable, and structured JSON for API clients. Application errors, tenant routing, authorization and signed-URL privacy are preserved. Six real-Caddy failure/recovery checks cover the behavior.
 
 - 2026-10-26 internal review: `EMAIL_DELIVERY_ENABLED=false` with the explicit hosted-demo policy disables every software email without provider keys, local mailboxes or a future send queue. SYSTEM and engine deliveries record `SKIPPED_NOT_ALLOWED`; password login and in-app notifications remain available. Default production email remains enabled and requires provider credentials.
 

@@ -64,7 +64,7 @@ class CensusIT extends AbstractIntegrationTest {
         for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "members", "dogs", "family_groups", "dog_documents",
                 "levels", "plans", "prices", "instructors", "tasks", "attachments", "attachment_uploads", "inactivity_periods", "pack_balances",
                 "bookings", "training_bookings", "waitlist_entries", "class_sessions", "audit_entries", "domain_events", "notifications", "magic_link_tokens",
-                "attachment_write_locks", "impersonation_grants", "refresh_tokens", "account_sessions", "census_write_locks", "catalog_write_locks", "team_write_locks", "invoices")) { mongo.remove(new Query(), collection); }
+                "activity_registrations", "upfront_payments", "leave_requests", "seat_holds", "attachment_write_locks", "impersonation_grants", "refresh_tokens", "account_sessions", "census_write_locks", "catalog_write_locks", "team_write_locks", "invoices")) { mongo.remove(new Query(), collection); }
         club(CLUB, Set.of(Module.values())); club(OTHER, Set.of(Module.values()));
         member(CLUB, "one", "ACTIVE", 1, "12345678Z", Set.of(Role.MEMBER));
         member(CLUB, "two", "ACTIVE", 2, "X1234567L", Set.of(Role.MEMBER));
@@ -1086,4 +1086,69 @@ class CensusIT extends AbstractIntegrationTest {
         error(own(body(patch("/api/v1/me/profile"), Map.of("version", 1, "phones", List.of(Map.of("number", "600000001"))))), ErrorCode.MEMBER_ERASED);
         error(own(body(put("/api/v1/me/dogs/dog-one/instructor-note"), Map.of("text", "No"))), ErrorCode.MEMBER_ERASED);
     }
+    private void importedDuplicate() {
+        field("members", "one", "accountId", null);
+        mongo.remove(Query.query(Criteria.where("memberId").is("one")), Membership.class);
+    }
+    private JsonNode mergePreview() throws Exception { return json(admin(get("/api/v1/members/one/merge-preview").param("targetMemberId", "two")), 200); }
+    private Map<String,Object> mergeBody(JsonNode preview) { return Map.of("targetMemberId", "two", "sourceVersion", preview.at("/source/version").asLong(), "targetVersion", preview.at("/target/version").asLong()); }
+
+    @Test void Word_adminDogIsActiveAndRetryCreatesExactlyOneWithExplicitHandlerIdentity() throws Exception {
+        var input = Map.<String,Object>of("name", "Nova", "breed", "Mixed", "sex", "FEMALE", "birthDate", "2023-01-01", "handlerName", "Ex", "handlerIsMember", true, "levelId", "level-c");
+        var key = UUID.randomUUID().toString();
+        var first = json(admin(body(post("/api/v1/members/one/dogs").header("Idempotency-Key", key), input)), 201);
+        var again = json(admin(body(post("/api/v1/members/one/dogs").header("Idempotency-Key", key), input)), 201);
+        assertThat(again).isEqualTo(first);
+        assertThat(first.has("chip")).isFalse();
+        assertThat(first.path("status").asText()).isEqualTo("ACTIVE");
+        assertThat(first.path("memberId").asText()).isEqualTo("one");
+        assertThat(first.path("handlerName").asText()).isEqualTo("Ex");
+        assertThat(first.path("handlerIsMember").asBoolean()).isTrue();
+        assertThat(mongo.count(Query.query(Criteria.where("name").is("Nova")), Dog.class)).isEqualTo(1);
+        assertThat(member("one").status).isEqualTo("ACTIVE");
+        error(own(body(post("/api/v1/members/one/dogs").header("Idempotency-Key", UUID.randomUUID()), input)), ErrorCode.FORBIDDEN);
+        error(admin(body(post("/api/v1/members/foreign/dogs").header("Idempotency-Key", UUID.randomUUID()), input)), ErrorCode.NOT_FOUND);
+    }
+    @Test void Word_mergePreservesHistoryMovesDogsAndFutureBookingsAndIsIdempotent() throws Exception {
+        importedDuplicate();
+        for (String id : List.of("merge-future", "merge-past")) {
+            mongo.insert(new Document("_id", id).append("clubId", CLUB).append("memberId", "one").append("dogId", "dog-one").append("state", "ACTIVE")
+                    .append("classEndsAt", Date.from(clock.instant().plusSeconds(id.endsWith("future") ? 86400 : -86400))).append("version", 0), "bookings");
+        }
+        mongo.insert(new Document("_id", "merge-invoice").append("clubId", CLUB).append("memberId", "one").append("immutableSnapshot", "Original identity"), "invoices");
+        var joined = member("two").joinedAt;
+        var preview = mergePreview(); assertThat(preview.path("blockers")).isEmpty();
+        assertThat(preview.at("/counts/dogs").asInt()).isEqualTo(2);
+        assertThat(preview.at("/counts/classBookings").asInt()).isEqualTo(1);
+        var key = UUID.randomUUID().toString(); var input = mergeBody(preview);
+        var result = json(admin(body(post("/api/v1/members/one/merge").header("Idempotency-Key", key), input)), 200);
+        assertThat(json(admin(body(post("/api/v1/members/one/merge").header("Idempotency-Key", key), input)), 200)).isEqualTo(result);
+        assertThat(dog("dog-one").memberId).isEqualTo("two"); assertThat(dog("dog-two").memberId).isEqualTo("two");
+        assertThat(member("one").mergedIntoMemberId).isEqualTo("two"); assertThat(member("one").status).isEqualTo("LEFT"); assertThat(member("one").nextInvoiceDate).isNull();
+        assertThat(member("two").joinedAt).isEqualTo(joined);
+        assertThat(mongo.findById("merge-future", Document.class, "bookings").getString("memberId")).isEqualTo("two");
+        assertThat(mongo.findById("merge-past", Document.class, "bookings").getString("memberId")).isEqualTo("one");
+        assertThat(mongo.findById("merge-invoice", Document.class, "invoices").getString("memberId")).isEqualTo("one");
+        var target = json(admin(get("/api/v1/members/two")), 200);
+        assertThat(target.path("mergedMembers").findValuesAsText("id")).contains("one");
+        assertThat(audit(AuditAction.MEMBER_UPDATED)).isNotEmpty();
+        error(admin(body(patch("/api/v1/members/one"), Map.of("version", member("one").version(), "firstName", "No"))), ErrorCode.INVALID_STATE);
+    }
+    @Test void Word_mergePreviewShowsAccountsAndActivityConflictsAndRefusalIsAtomic() throws Exception {
+        assertThat(mergePreview().path("blockers").toString()).contains("DIFFERENT_ACCESS_ACCOUNTS", "TWO_MEMBERSHIPS");
+        importedDuplicate();
+        for (String owner : List.of("one", "two")) mongo.insert(new Document("_id", "merge-activity-" + owner).append("clubId", CLUB).append("memberId", owner)
+                .append("activityId", "merge-shared").append("state", "ACTIVE").append("activityStartsAt", Date.from(clock.instant().plusSeconds(86400))).append("version", 0), "activity_registrations");
+        var preview = mergePreview(); assertThat(preview.path("blockers").toString()).contains("ACTIVITY_CONFLICT");
+        error(admin(body(post("/api/v1/members/one/merge").header("Idempotency-Key", UUID.randomUUID()), mergeBody(preview))), ErrorCode.INVALID_STATE);
+        assertThat(dog("dog-one").memberId).isEqualTo("one"); assertThat(member("one").status).isEqualTo("ACTIVE");
+        error(own(get("/api/v1/members/one/merge-preview").param("targetMemberId", "two")), ErrorCode.FORBIDDEN);
+        error(admin(get("/api/v1/members/one/merge-preview").param("targetMemberId", "foreign")), ErrorCode.NOT_FOUND);
+        mongo.remove(Query.query(Criteria.where("activityId").is("merge-shared")), "activity_registrations");
+        var clear = mergePreview();
+        field("members", "two", "version", member("two").version() + 1);
+        error(admin(body(post("/api/v1/members/one/merge").header("Idempotency-Key", UUID.randomUUID()), mergeBody(clear))), ErrorCode.STALE_VERSION);
+        assertThat(dog("dog-one").memberId).isEqualTo("one");
+    }
+
 }

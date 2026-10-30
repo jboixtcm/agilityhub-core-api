@@ -37,7 +37,7 @@ public class CensusAccess implements DogOwnerAccess {
         if (user.impersonation() != null) { return members.require(user.impersonation().memberId()); }
         return members.matching(Criteria.where("accountId").is(user.accountId())).stream().findFirst().orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
-    public Member mutableMember(String id) { var member = members.require(id); CensusRules.mutable(member.erasedAt); return member; }
+    public Member mutableMember(String id) { var member = members.require(id); CensusRules.mutable(member.erasedAt); if (member.mergedIntoMemberId != null) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "MEMBER_MERGED", "targetMemberId", member.mergedIntoMemberId)); } return member; }
     public Dog mutableDog(String id) { var dog = dogs.require(id); mutableMember(dog.memberId); return dog; }
     /** R-04-06 (E38, E3-T17): the reused dog of a pending readmission, whose submitted values and documents wait in its request. */
     public static boolean readmissionPending(Dog dog) { return dog.readmissionRequest != null && "PENDING".equals(dog.status); }

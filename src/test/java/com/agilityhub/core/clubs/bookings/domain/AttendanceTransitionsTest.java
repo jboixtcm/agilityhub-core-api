@@ -71,11 +71,11 @@ class AttendanceTransitionsTest {
         assertThat(decision.override()).isFalse();
     }
 
-    @Test void T_10_02_notifiedIsFinalAndEveryRefusalIsTheCatalogCode() {
+    @Test void Word_notifiedCanBeCorrectedAndOtherRefusalsKeepCatalogCodes() {
         var inside = local("2026-08-03T08:40", MADRID); var instructor = sheet(MADRID, false, "ACTIVE", true);
         for (var to : new AttendanceState[] {PENDING, PRESENT, NO_SHOW}) {
-            assertThat(refused(NOTIFIED, to, BookingState.CANCELLED, instructor, inside)).isEqualTo(ErrorCode.ATTENDANCE_NOTIFIED_FINAL);
-            assertThat(refused(NOTIFIED, to, BookingState.ACTIVE, sheet(MADRID, true, "ACTIVE", true), inside)).isEqualTo(ErrorCode.ATTENDANCE_NOTIFIED_FINAL);
+            assertThat(decide(NOTIFIED, to, BookingState.CANCELLED, instructor, inside).effect()).isEqualTo(Effect.RESTORE_NOTICE);
+            assertThat(decide(NOTIFIED, to, BookingState.ACTIVE, sheet(MADRID, true, "ACTIVE", true), inside).effect()).isEqualTo(Effect.RESTORE_NOTICE);
         }
         // Resending the NOTIFIED row as it is: a no-op, not an error.
         assertThat(decide(NOTIFIED, NOTIFIED, BookingState.CANCELLED, instructor, inside).changes()).isFalse();

@@ -32,12 +32,13 @@ public class BookingCancellationService {
     private final PackBalancePort packs; private final AttendanceStatePort attendance; private final BookingEvents events;
     private final BookingCounters counters; private final BookingAudit audit; private final ClassSessionBookingAccess classes;
     private final WaitlistTransitions transitions;
+    private final com.agilityhub.core.clubs.census.application.BookingMemberAccess census;
     public BookingCancellationService(BookingContext context, BookingTransactions transactions, SeatLockRepository locks, BookingRepository bookings,
             SeatHoldRepository holds, WaitlistEntryRepository waitlist, PackBalancePort packs, AttendanceStatePort attendance, BookingEvents events,
-            BookingCounters counters, BookingAudit audit, ClassSessionBookingAccess classes, WaitlistTransitions transitions) {
+            BookingCounters counters, BookingAudit audit, ClassSessionBookingAccess classes, WaitlistTransitions transitions, com.agilityhub.core.clubs.census.application.BookingMemberAccess census) {
         this.context = context; this.transactions = transactions; this.locks = locks; this.bookings = bookings; this.holds = holds; this.waitlist = waitlist;
         this.packs = packs; this.attendance = attendance; this.events = events; this.counters = counters; this.audit = audit; this.classes = classes;
-        this.transitions = transitions;
+        this.transitions = transitions; this.census = census;
     }
 
     /** `POST /bookings/{id}/cancellation` (member, impersonating admin) and the S10 «ha avisat» call (instructor). */
@@ -104,6 +105,38 @@ public class BookingCancellationService {
     @Transactional(propagation = Propagation.MANDATORY)
     public Cancellation cancelForNotice(String bookingId, BookingActor actor) {
         return cancel(bookings.require(bookingId), actor, BookingCancelReason.INSTRUCTOR_NOTICE, null, null, false, true);
+    }
+
+    /** Same class seat lock and transaction as attendance; never displaces another booking or hold. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Booking restoreNotice(Booking b, BookingActor actor) {
+        if (b.state() == BookingState.ACTIVE) return b; // A notice recorded after class end did not cancel.
+        if (b.cancelReason() != BookingCancelReason.INSTRUCTOR_NOTICE
+                || !List.of(BookingState.CANCELLED, BookingState.CANCELLED_LATE).contains(b.state())) {
+            throw new ApiException(ErrorCode.ATTENDANCE_BOOKING_NOT_ACTIVE);
+        }
+        var session = classes.require(b.classSessionId()); var now = context.now();
+        if (b.classEndsAt().isAfter(now)) {
+            census.lockBooking(b.memberId());
+            var dog = census.dog(b.dogId()).orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACTIVE));
+            var owner = census.member(dog.memberId()).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
+            var booker = census.member(b.memberId()).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
+            if (!dog.active()) throw new ApiException(ErrorCode.DOG_NOT_ACTIVE);
+            if (!"ACTIVE".equals(owner.status()) || !"ACTIVE".equals(booker.status())) throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE);
+            if (!census.canAccess(booker.id(), dog)) throw new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE);
+            if (owner.blocked() || booker.blocked()) throw new ApiException(ErrorCode.BOOKING_BLOCKED);
+        }
+        var live = bookings.forClass(b.classSessionId(), BookingRepository.LIVE);
+        if (live.stream().anyMatch(other -> other.dogId().equals(b.dogId()))) throw new ApiException(ErrorCode.SEAT_TAKEN);
+        var held = holds.live(b.classSessionId(), now);
+        if (live.size() + held.size() >= session.capacity()) throw new ApiException(ErrorCode.CLASS_FULL);
+        String movement = b.packRefundMovementId() == null ? b.packMovementId() : packs.restore(b.id());
+        var restored = bookings.update(new Booking(b.id(), b.clubId(), b.classSessionId(), b.dogId(), b.memberId(), BookingState.ACTIVE,
+                b.origin(), b.bookedAt(), b.bookedBy(), b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), null, null, null, null, null, null,
+                b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(), movement, null, b.charge(), b.reminderSentAt(),
+                b.version() + 1, b.createdAt(), b.createdByAccountId(), now, actor.accountId()), b.version());
+        counters.recount(b.classSessionId(), false, actor);
+        return restored;
     }
 
     /**

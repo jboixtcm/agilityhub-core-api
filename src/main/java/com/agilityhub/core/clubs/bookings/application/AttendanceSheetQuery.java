@@ -52,7 +52,7 @@ public class AttendanceSheetQuery {
 
     Map<String, Object> build(ClassView cls, AttendanceCaller caller) {
         var now = context.now(); var zone = context.zone(); var window = calculator.window(cls.date());
-        boolean markable = "ACTIVE".equals(cls.state()) || "FINISHED".equals(cls.state());
+        boolean markable = ("ACTIVE".equals(cls.state()) || "FINISHED".equals(cls.state())) && (caller.admin() || caller.instructorId() != null && cls.instructorIds().contains(caller.instructorId()));
         boolean waitlistOn = context.enabled(Module.WAITLIST);
         var classSession = map("id", cls.id(), "date", cls.date(), "startTime", cls.startTime(), "endTime", cls.endTime(), "displayDescription", cls.description(),
                 "ring", cls.ring() == null ? null : map("id", cls.ring().id(), "name", cls.ring().name(), "color", cls.ring().color()),
@@ -73,11 +73,11 @@ public class AttendanceSheetQuery {
             var b = r.booking(); var a = r.attendance(); var pair = pairs.get(b.dogId());
             var row = map("bookingId", b.id(), "dogId", b.dogId(), "dogName", pair == null ? null : pair.dogName(), "dogPhotoUrl", census.photoUrl(pair),
                     "memberId", b.memberId(), "memberFirstName", pair == null ? null : pair.memberFirstName(), "handlerName", pair == null ? null : pair.handlerName());
-            if (pair != null && pair.handlerName() != null && !pair.handlerName().isBlank() && !pair.handlerName().equals(pair.memberFirstName())) {
+            if (pair != null && pair.differentHandler()) {
                 row.put("memberFullName", pair.memberFullName()); // R-10-00: «(abonat: {nom i cognom})» when someone else handles the dog
             }
             row.put("levelCode", levelCode(levels, pair));
-            row.put("state", r.state()); row.put("final", r.state() == AttendanceState.NOTIFIED);
+            row.put("state", r.state()); row.put("final", r.state() == AttendanceState.NOTIFIED && (!markable || !caller.admin() && window.closed(now)));
             row.put("markedAt", a == null ? null : a.markedAt()); row.put("markedByName", a == null || a.markedBy() == null ? null : a.markedBy().displayName());
             if (tasks) { row.put("pendingTasksCount", pending.getOrDefault(b.dogId(), 0)); }
             row.put("notice", r.state() == AttendanceState.NOTIFIED && a.notice() != null ? notice(a.notice(), zone) : null);

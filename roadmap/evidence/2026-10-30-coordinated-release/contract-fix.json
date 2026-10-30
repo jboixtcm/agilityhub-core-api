@@ -1,0 +1,8 @@
+{
+  "finding": "Optional Member.mergedMembers lacked nullable declaration in typed signup projections",
+  "correction": "Declare nullable=true; regenerate OpenAPI",
+  "changedFiles": [
+    "docs/openapi/openapi.json",
+    "src/main/java/com/agilityhub/core/clubs/census/api/CensusResponses.java"
+  ]
+}

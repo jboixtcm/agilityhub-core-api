@@ -43,7 +43,9 @@ public class CensusQuery {
         result.putAll(object("accountId", member.accountId, "idDocument", select(map(member.idDocument), "type", "number"), "gender", member.gender,
                 "birthDate", member.birthDate, "consents", consents(member), "remarks", member.remarks, "internalNotes", member.internalNotes,
                 "joinedAt", member.joinedAt, "leaveDate", member.leaveDate, "bookingBlock", block(id), "roles", roles(id),
-                "erasedAt", member.erasedAt, "erasureRequestId", member.erasureRequestId));
+                "erasedAt", member.erasedAt, "erasureRequestId", member.erasureRequestId,
+                "mergedIntoMemberId", member.mergedIntoMemberId, "mergedAt", member.mergedAt,
+                "mergedMembers", access.members.matching(Criteria.where("mergedIntoMemberId").is(id)).stream().map(m -> object("id", m.id, "name", fullName(m))).toList()));
         if (access.enabled(Module.FAMILY_GROUP)) { result.putAll(object("familyGroupId", member.familyGroupId, "billedViaMemberId", access.billedViaMemberId(id))); }
         if (access.enabled(Module.BILLING)) {
             result.putAll(object("paymentMethod", payment(member), "maskedAccount", map(payment(member)).get("maskedAccount"),
@@ -108,7 +110,7 @@ public class CensusQuery {
     public Map<String,Object> dog(String id) {
         var dog = access.dogs.require(id);
         var result = object("id", id, "memberId", dog.memberId, "name", dog.name, "breed", dog.breed, "sex", dog.sex, "birthDate", dog.birthDate,
-                "chip", dog.chip, "handlerName", dog.handlerName, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "licenses", licenses(dog),
+                "chip", dog.chip, "handlerName", dog.handlerName, "handlerIsMember", dog.handlerIsMember, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "licenses", licenses(dog),
                 "status", dog.status, "registeredAt", dog.registeredAt, "deactivatedAt", dog.deactivatedAt, "deactivationReason", dog.deactivationReason, "version", dog.version());
         if (access.levels()) { result.putAll(object("levelId", dog.levelId, "levelAssignedAt", dog.levelAssignedAt)); }
         if (access.enabled(Module.FREE_TRAINING)) { result.putAll(object("freeTrainingOverride", dog.freeTrainingOverride)); }

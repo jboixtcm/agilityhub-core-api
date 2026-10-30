@@ -66,6 +66,16 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record RolesRequest(
             @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1) List<@NotNull MemberRole> roles) { }
+    public record AdminDogCreate(
+            @Schema(requiredMode = REQUIRED) @NotBlank @Size(max = 40) String name,
+            @Schema(requiredMode = REQUIRED) @NotBlank @Size(max = 60) String breed,
+            @Schema(requiredMode = REQUIRED) @NotNull Sex sex,
+            @Schema(requiredMode = REQUIRED) @NotNull LocalDate birthDate,
+            @Schema(requiredMode = NOT_REQUIRED) String chip,
+            @Schema(requiredMode = NOT_REQUIRED) String handlerName,
+            @Schema(requiredMode = NOT_REQUIRED) Boolean handlerIsMember,
+            @Schema(requiredMode = NOT_REQUIRED) String levelId,
+            @Schema(requiredMode = NOT_REQUIRED) Boolean freeTrainingAllowed) { }
     public record DogPatch(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) String name,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String breed,
@@ -73,6 +83,7 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 20) String chip,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 80) String handlerName,
+            @Schema(requiredMode = NOT_REQUIRED, description = "The handler is the member, independently of their customary display name. Null uses the legacy name comparison.") Boolean handlerIsMember,
             @Schema(requiredMode = NOT_REQUIRED) List<License> licenses,
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; YYYY-MM.") String birthMonth,
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only.") @Size(max = 1000) String notesToInstructors,

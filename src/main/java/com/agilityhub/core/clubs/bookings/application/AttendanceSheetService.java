@@ -49,6 +49,9 @@ public class AttendanceSheetService {
             locks.lock(classSessionId);
             var cls = schedule.find(classSessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
             AttendanceTransitions.requireMarkable(cls.state());
+            if (!caller.admin() && (caller.instructorId() == null || !cls.instructorIds().contains(caller.instructorId()))) {
+                throw new ApiException(ErrorCode.FORBIDDEN);
+            }
             if (version != cls.summary().version()) { throw new ApiException(ErrorCode.STALE_VERSION, Map.of("current", sheets.build(cls, caller))); }
             var now = context.now();
             var sheet = new AttendanceTransitions.Sheet(cls.state(), cls.endsAt(), calculator.window(cls.date()), caller.admin(),
@@ -79,6 +82,7 @@ public class AttendanceSheetService {
             AttendanceTransitions.Decision decision, AttendanceCaller caller, Instant now) {
         Attendance.Notice notice = null;
         switch (decision.effect()) {
+            case RESTORE_NOTICE -> cancellations.restoreNotice(booking, caller.noticeActor());
             case NOTICE_CANCEL -> {
                 var cancellation = cancellations.cancelForNotice(booking.id(), caller.noticeActor());
                 notice = new Attendance.Notice(now, cancellation.late(), cancellation.minutesBefore(), cancellation.seatReleased(),

@@ -18,5 +18,6 @@ public class PaymentsPackBalanceAdapter implements PackBalancePort {
     }
     @Override public String consume(String memberId, String dogId, String bookingId) { return consume(memberId, dogId, bookingId, context.today()); }
     @Override public String consume(String memberId, String dogId, String bookingId, LocalDate date) { return packs.consume(memberId, dogId, bookingId, date); }
+    @Override public String restore(String bookingId) { return packs.restore(bookingId); }
     @Override public String refund(String memberId, String dogId, String bookingId, LocalDate today) { return packs.refund(bookingId); }
 }

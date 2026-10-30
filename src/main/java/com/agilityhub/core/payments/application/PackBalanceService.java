@@ -124,13 +124,28 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         return movement.id();
     }
 
+    /** Undo an attendance cancellation with an appended consumption, including an expired historical pack. */
+    @Transactional
+    public String restore(String bookingId) {
+        var pack = packs.forBooking(bookingId).orElseThrow(() -> new ApiException(ErrorCode.PACK_EMPTY));
+        var relevant = pack.movements().stream().filter(m -> bookingId.equals(m.bookingId()) && (m.type() == PackMovementType.CONSUME || m.type() == PackMovementType.REFUND)).toList();
+        if (relevant.isEmpty()) throw new ApiException(ErrorCode.PACK_EMPTY);
+        if (relevant.getLast().type() == PackMovementType.CONSUME) return relevant.getLast().id();
+        if (pack.remaining() < 1) throw new ApiException(ErrorCode.PACK_EMPTY);
+        var movement = movement(PackMovementType.CONSUME, -1, bookingId, "Attendance correction");
+        var next = write(pack, movement, pack.consumed() + 1, pack.remaining() - 1, pack.state(), pack.expiresOn(), pack.expiredAt(), pack.lowBalanceNotifiedAt());
+        publish(BillingEvent.Kind.PackConsumed, next, bookingId, Map.of());
+        return movement.id();
+    }
+
     @Transactional
     public String refund(String bookingId) {
         if (!enabled()) { return null; }
         var found = packs.forBooking(bookingId);
         if (found.isEmpty()) { return null; }
         var pack = found.get();
-        if (pack.movements().stream().anyMatch(m -> m.type() == PackMovementType.REFUND && bookingId.equals(m.bookingId()))) { return null; }
+        var relevant = pack.movements().stream().filter(m -> bookingId.equals(m.bookingId()) && (m.type() == PackMovementType.CONSUME || m.type() == PackMovementType.REFUND)).toList();
+        if (!relevant.isEmpty() && relevant.getLast().type() == PackMovementType.REFUND) { return null; }
         if (pack.movements().stream().noneMatch(m -> m.type() == PackMovementType.CONSUME && bookingId.equals(m.bookingId()))) { return null; }
         var movement = movement(PackMovementType.REFUND, 1, bookingId, null);
         // B11: the balance remains EXPIRED and unusable; a refund is still visible in its history.

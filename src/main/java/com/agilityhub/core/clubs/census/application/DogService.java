@@ -19,6 +19,27 @@ public class DogService {
     public DogService(CensusAccess access, CensusValidation validation, CensusEvents events, Clock clock, ClubClock clubClock) {
         this.access = access; this.validation = validation; this.events = events; this.clock = clock; this.clubClock = clubClock;
     }
+    @Transactional
+    @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#result", member = "#memberId")
+    public String createActive(String memberId, Map<String,Object> request) {
+        access.members.lock(); var member = CensusAccess.unfrozen(access.mutableMember(memberId));
+        if (!"ACTIVE".equals(member.status)) { throw new ApiException(ErrorCode.TARGET_MEMBER_NOT_ACTIVE); }
+        allow(request, Set.of("name", "breed", "sex", "birthDate", "chip", "handlerName", "handlerIsMember", "levelId", "freeTrainingAllowed"));
+        var dog = new Dog(); dog.id = UUID.randomUUID().toString(); dog.clubId = TenantContext.require(); dog.memberId = memberId;
+        dog.name = text(request.get("name"), "name", 40, true); dog.breed = text(request.get("breed"), "breed", 60, true);
+        dog.sex = string(request.get("sex")); if (!Set.of("MALE", "FEMALE").contains(Objects.toString(dog.sex, ""))) { throw invalid("sex", "INVALID_VALUE"); }
+        try { dog.birthDate = LocalDate.parse(string(request.get("birthDate"))); } catch (RuntimeException invalidDate) { throw invalid("birthDate", "INVALID_VALUE"); }
+        if (dog.birthDate.isAfter(clubClock.today(TenantContext.require()))) { throw invalid("birthDate", "INVALID_VALUE"); }
+        var chip = text(request.get("chip"), "chip", 40, false); dog.chip = chip == null || chip.isBlank() ? null : signups.getObject().chip(chip, "chip");
+        dog.handlerName = text(request.get("handlerName"), "handlerName", 80, false);
+        dog.handlerIsMember = !Boolean.FALSE.equals(request.get("handlerIsMember"));
+        dog.status = "ACTIVE"; dog.registeredAt = clock.instant(); dog.licenses = List.of();
+        dog.freeTrainingOverride = Boolean.TRUE.equals(request.get("freeTrainingAllowed")); dog.freeTrainingAllowed = dog.freeTrainingOverride;
+        access.dogs.insert(dog);
+        if (request.get("levelId") != null) { assignLevel(dog.id, text(request.get("levelId"), "levelId", 100, true), true); }
+        events.emit("DogUpdated", "Dog", dog.id, object("dogId", dog.id, "memberId", memberId, "diff", object("status", object("before", null, "after", "ACTIVE"))));
+        return dog.id;
+    }
     public String owner(String id) { return access.dogs.require(id).memberId; }
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
@@ -28,7 +49,7 @@ public class DogService {
     public void patchPending(String id,Map<String,Object> request) { edit(id,request); }
     private void edit(String id,Map<String,Object> request) {
         var dog = access.mutableDog(id);
-        var allowed=new HashSet<>(Set.of("name", "breed", "sex", "birthDate", "chip", "handlerName", "licenses", "version"));
+        var allowed=new HashSet<>(Set.of("name", "breed", "sex", "birthDate", "chip", "handlerName", "handlerIsMember", "licenses", "version"));
         if("PENDING".equals(dog.status)) allowed.addAll(Set.of("birthMonth","notesToInstructors","documents"));
         allow(request,allowed);
         version(dog.version(), request.get("version"));
@@ -77,6 +98,11 @@ public class DogService {
             if (readmission && !Objects.equals(handler, dog.handlerName)) { throw CensusAccess.readmissionFrozen(); }
             dog.handlerName = handler;
         }
+        if (request.containsKey("handlerIsMember")) {
+            if (!(request.get("handlerIsMember") instanceof Boolean value)) { throw invalid("handlerIsMember", "INVALID_VALUE"); }
+            if (readmission && !Objects.equals(value, dog.handlerIsMember)) { throw CensusAccess.readmissionFrozen(); }
+            dog.handlerIsMember = value;
+        }
         if (request.containsKey("licenses")) {
             var licenses = validation.licenses(request.get("licenses"));
             if (readmission && !licenses.equals(Objects.requireNonNullElse(dog.licenses, List.of()))) { throw CensusAccess.readmissionFrozen(); }
@@ -90,7 +116,7 @@ public class DogService {
     /** The edited fields: the step-17 values from `values` (the submitted ones of a pending readmission), the rest from the record. */
     private Map<String,Object> fields(Dog values, Dog dog) {
         return object("name", values.name, "breed", values.breed, "sex", values.sex, "birthDate", values.birthDate, "chip", dog.chip,
-                "handlerName", dog.handlerName, "licenses", dog.licenses, "instructorNote", values.instructorNote);
+                "handlerName", dog.handlerName, "handlerIsMember", dog.handlerIsMember, "licenses", dog.licenses, "instructorNote", values.instructorNote);
     }
     @Transactional
     @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")

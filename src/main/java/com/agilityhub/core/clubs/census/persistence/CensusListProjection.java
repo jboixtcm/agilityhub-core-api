@@ -155,7 +155,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         return fields;
     }
     private Map<String, Object> dogFields() {
-        var fields = fields("name", "breed", "sex", "chip", "handlerName", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
+        var fields = fields("name", "breed", "sex", "chip", "handlerName", "handlerIsMember", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
         fields.put("version", fallback("$version", 0));
         fields.put("level", level("$level"));
         // E5-T29 (S10 R-10-00): the owner's first name whole, so the instructor's «{guia} + {gos}» never cuts «Joan Antoni».

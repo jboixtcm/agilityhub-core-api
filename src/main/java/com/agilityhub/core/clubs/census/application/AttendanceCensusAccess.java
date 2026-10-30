@@ -20,7 +20,11 @@ import org.springframework.stereotype.Service;
 public class AttendanceCensusAccess {
     /** @param memberFullName «Laura Serra»: the backoffice «(abonat: …)» when the handler differs (R-10-00) */
     public record Pair(String dogId, String dogName, String handlerName, String breed, String sex, LocalDate birthDate, String photoFileKey, String dogStatus,
-            String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender) {
+            String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender, Boolean handlerIsMember) {
+        public Pair(String dogId, String dogName, String handlerName, String breed, String sex, LocalDate birthDate, String photoFileKey, String dogStatus, String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender) {
+            this(dogId, dogName, handlerName, breed, sex, birthDate, photoFileKey, dogStatus, levelId, levelAssignedAt, memberId, memberFirstName, memberFullName, gender, null);
+        }
+        public boolean differentHandler() { return handlerIsMember != null ? !handlerIsMember : handlerName != null && !handlerName.isBlank() && !handlerName.equals(memberFirstName) && !handlerName.equals(memberFullName); }
         /** «{guia}»: the handler when there is one, the owner's first name otherwise (R-10-00). */
         public String guide() { return handlerName != null && !handlerName.isBlank() ? handlerName : memberFirstName; }
     }
@@ -40,7 +44,7 @@ public class AttendanceCensusAccess {
         for (var d : dogs) {
             var m = members.get(d.memberId);
             result.put(d.id, new Pair(d.id, d.name, d.handlerName, d.breed, d.sex, d.birthDate, d.photoFileKey, d.status, d.levelId, d.levelAssignedAt, d.memberId,
-                    m == null ? null : m.firstName, m == null ? null : fullName(m), m == null ? null : m.gender));
+                    m == null ? null : m.firstName, m == null ? null : fullName(m), m == null ? null : m.gender, d.handlerIsMember));
         }
         return result;
     }

@@ -1,0 +1,78 @@
+{
+  "focused_exit_code": 0,
+  "contract_final_exit_code": 0,
+  "reports": [
+    {
+      "name": "com.agilityhub.core.clubs.census.api.CensusIT",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.clubs.bookings.domain.AttendanceTransitionsTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.clubs.bookings.api.AttendanceIT",
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.arch.ArchitectureRulesTest",
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.clubs.bookings.application.AttendanceSheetServiceSurvivorsTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.clubs.bookings.application.BookingCancellationServiceSurvivorsTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.payments.application.packs.PackBalanceServiceTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.clubs.scheduling.application.CalendarIT",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.agilityhub.core.arch.ArchitectureTest",
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "full_CensusIT_before_final_contract": 67,
+  "full_verify_owner": "coordinated-release chat"
+}

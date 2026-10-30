@@ -692,4 +692,12 @@ class CalendarIT extends AbstractIntegrationTest {
     record Refund(String clubId,String aggregateId,Instant occurredAt,Map<String,Object> payload,String actorAccountId) implements DomainEvent {
         public String type(){return "PackRefunded";}public String aggregateType(){return "Pack";}public String impersonatedMemberId(){return null;}public Origin origin(){return Origin.BACKOFFICE;}
     }
+    @Test void Word_dayGridKeepsDraftFilterAndMembersCannotRequestDrafts() throws Exception {
+        var id = session("2026-08-25", "16:00", "plan-ring");
+        assertThat(ok("GET", "/day-grid?date=2026-08-25&view=instructor&state=DRAFT", null).toString()).contains(id, "DRAFT");
+        assertThat(ok("GET", "/day-grid?date=2026-08-25&view=instructor&state=ACTIVE", null).toString()).doesNotContain(id);
+        mvc.perform(call("GET", "/day-grid?date=2026-08-25&view=member&state=DRAFT", null)
+                .with(jwt().jwt(j -> j.subject("planning-member").claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isForbidden());
+    }
+
 }

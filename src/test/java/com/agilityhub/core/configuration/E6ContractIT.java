@@ -128,7 +128,11 @@ class E6ContractIT extends AbstractIntegrationTest {
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (!role.equals("ANON")) {
-            request.with(jwt().jwt(j -> j.subject("e6-" + role).claim("clubId", clubId).claim("memberId", memberId))
+            request.with(jwt().jwt(j -> {
+                        j.subject("e6-" + role).claim("clubId", clubId).claim("memberId", memberId);
+                        // Attendance writes require the class's assigned instructor, not only the role.
+                        if (role.equals("INSTRUCTOR")) j.claim("instructorId", "e6-instructor-a");
+                    })
                     .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         }
         return request;
@@ -223,13 +227,16 @@ class E6ContractIT extends AbstractIntegrationTest {
         error(as(get("/api/v1/tasks").param("dogId", "e6-dog-a").param("includeDeleted", "true"), "MEMBER"), 403, "FORBIDDEN");
         served(as(get("/api/v1/tasks").param("dogId", "e6-dog-a").param("includeDeleted", "true"), "ADMIN"), 200);
         error(as(get("/api/v1/tasks"), "ADMIN"), 400, "VALIDATION_ERROR");
-        // Global vision (MATRIU rule 1): any instructor reaches any class, dog, task, item of the club.
+        // Global read access remains; an attendance write additionally requires assignment to the class.
         error(as(put("/api/v1/class-sessions/e6-class-a/attendance").contentType("application/json").content("{\"version\":0,\"items\":[{\"bookingId\":\"b\",\"state\":\"LATE\"}]}")
                 .header("Idempotency-Key", UUID.randomUUID().toString()), "INSTRUCTOR"), 400, "VALIDATION_ERROR");
         error(as(put("/api/v1/class-sessions/e6-class-a/attendance").contentType("application/json").content("{\"version\":0,\"items\":[]}")
                 .header("Idempotency-Key", UUID.randomUUID().toString()), "INSTRUCTOR"), 400, "VALIDATION_ERROR");
         error(as(put("/api/v1/class-sessions/e6-class-a/attendance").contentType("application/json").content("{\"version\":0,\"items\":[{\"bookingId\":\"b\",\"state\":\"PRESENT\"}]}"),
                 "INSTRUCTOR"), 400, "VALIDATION_ERROR");
+        error(as(put("/api/v1/class-sessions/e6-class-a/attendance").contentType("application/json")
+                .content("{\"version\":0,\"items\":[{\"bookingId\":\"e6-booking-a\",\"state\":\"PENDING\"}]}")
+                .header("Idempotency-Key", UUID.randomUUID().toString()), "INSTRUCTOR"), 403, "FORBIDDEN");
         served(as(get("/api/v1/instructor/day").param("instructorId", "e6-instructor-a"), "INSTRUCTOR"), 200);
         error(as(get("/api/v1/instructor/day").param("instructorId", "e6-instructor-b"), "INSTRUCTOR"), 404, "NOT_FOUND");
         error(as(get("/api/v1/instructor/week").param("ringId", "e6-ring-b"), "ADMIN"), 404, "NOT_FOUND");

@@ -7,14 +7,14 @@ import java.util.Map;
 
 /**
  * S10 §5 attendance state machine and the R-10-03 permissions of one sheet item, evaluated at the save instant.
- * An item equal to the current state is a no-op (resending the whole sheet is harmless, R-10-04); `NOTIFIED` is final;
+ * An item equal to the current state is a no-op (resending the whole sheet is harmless, R-10-04); a saved `NOTIFIED` can be corrected with reservation restoration;
  * the booking must be live (ACTIVE or PAYMENT_PENDING) and, for `NOTIFIED`, ACTIVE; a DRAFT or CANCELLED class
  * accepts nothing (409 INVALID_STATE, CATALEG_ERRORS §1). Every other refusal is a 422 (rule 0).
  */
 public final class AttendanceTransitions {
     private AttendanceTransitions() { }
     /** NONE = no-op; MARK = PRESENT/NO_SHOW/PENDING; NOTICE_CANCEL = S08 cancellation (`now < classEndsAt`); NOTICE_RECORD = afterClassEnd. */
-    public enum Effect { NONE, MARK, NOTICE_CANCEL, NOTICE_RECORD }
+    public enum Effect { NONE, MARK, NOTICE_CANCEL, NOTICE_RECORD, RESTORE_NOTICE }
     public record Item(String bookingId, AttendanceState from, AttendanceState to, BookingState bookingState) { }
     public record Sheet(String classState, Instant classEndsAt, AttendanceWindow window, boolean admin, boolean instructorLastMinuteNotice) { }
     /** @param override an ADMIN mark outside `[T0, T1]` (audited `ATTENDANCE_OVERRIDDEN`) */
@@ -30,7 +30,11 @@ public final class AttendanceTransitions {
     public static Decision decide(Item item, Sheet sheet, Instant now) {
         requireMarkable(sheet.classState());
         if (item.from() == item.to()) { return new Decision(Effect.NONE, false); }
-        if (item.from() == AttendanceState.NOTIFIED) { throw new ApiException(ErrorCode.ATTENDANCE_NOTIFIED_FINAL); }
+        if (item.from() == AttendanceState.NOTIFIED) {
+            if (!sheet.admin() && windowClosed(sheet, now)) { throw closed(sheet.window()); }
+            if (item.to() != AttendanceState.PENDING && !sheet.window().canMarkPresence(sheet.admin(), now)) { throw new ApiException(ErrorCode.ATTENDANCE_NOT_OPEN); }
+            return new Decision(Effect.RESTORE_NOTICE, true);
+        }
         boolean live = item.bookingState() == BookingState.ACTIVE || item.bookingState() == BookingState.PAYMENT_PENDING;
         if (!live) { throw notActive(item.bookingId()); }
         var window = sheet.window();
@@ -46,6 +50,7 @@ public final class AttendanceTransitions {
         }
         return new Decision(Effect.MARK, window.overrides(sheet.admin(), now));
     }
+    private static boolean windowClosed(Sheet sheet, Instant now) { return sheet.window().closed(now); }
     private static ApiException notActive(String bookingId) { return new ApiException(ErrorCode.ATTENDANCE_BOOKING_NOT_ACTIVE, Map.of("bookingId", bookingId)); }
     private static ApiException closed(AttendanceWindow window) {
         return new ApiException(ErrorCode.ATTENDANCE_WINDOW_CLOSED, Map.of("editableUntil", window.editableUntil()));

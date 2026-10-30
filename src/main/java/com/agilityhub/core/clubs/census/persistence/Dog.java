@@ -29,6 +29,8 @@ public class Dog extends CensusEntity {
     public LocalDate birthDate;
     public String chip;
     public String handlerName;
+    /** Explicit identity of the handler; null retains the legacy name comparison. */
+    public Boolean handlerIsMember;
     public String photoFileKey;
     public String levelId;
     public Instant levelAssignedAt;

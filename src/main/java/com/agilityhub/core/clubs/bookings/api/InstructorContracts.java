@@ -80,10 +80,10 @@ public final class InstructorContracts {
             String memberId, String memberFirstName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)") String handlerName,
             @JsonInclude(JsonInclude.Include.NON_NULL)
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only when handlerName differs from memberFirstName: the owner's full name, «(abonat: {nom i cognom})» (R-10-00)") String memberFullName,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only when the explicit handlerIsMember flag is false (legacy rows compare names): the owner's full name, «(abonat: {nom i cognom})» (R-10-00)") String memberFullName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null with levels.enabled = false") String levelCode,
             AttendanceState state,
-            @JsonProperty("final") @Schema(description = "A saved NOTIFIED row is fixed (R-10-03)") boolean fixed,
+            @JsonProperty("final") @Schema(description = "This row cannot currently be corrected. A saved NOTIFIED can be restored by an administrator or an instructor assigned to this class while their attendance window remains open.") boolean fixed,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant markedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String markedByName,
             @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") Integer pendingTasksCount,
