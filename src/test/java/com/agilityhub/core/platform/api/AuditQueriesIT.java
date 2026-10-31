@@ -31,6 +31,7 @@ class AuditQueriesIT extends AbstractIntegrationTest {
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo;
     @Autowired ClubRepository clubs; @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts;
     @Autowired AuditLists provider;
+    @Autowired com.agilityhub.core.shared.persistence.MongoListRepository listRepository;
     @Autowired com.agilityhub.core.clubs.common.application.ExportWorker worker;
     String requesterLocale = "en";
     @BeforeEach void seed() {
@@ -138,6 +139,81 @@ class AuditQueriesIT extends AbstractIntegrationTest {
         assertThat(stored.path("origin").asText()).isEqualTo("APP"); assertThat(stored.path("eventIds").get(0).asText()).isEqualTo("fictional-event");
         var foreign = json(call(get("/api/v1/audit-entries/audit-foreign"), OTHER, "ADMIN"));
         assertThat(foreign.has("impersonatedName")).isFalse();
+    }
+    @Test void T_14_13_missingImpersonationUsesTheIdIndexWithoutScanningTheCensus() {
+        var members = new ArrayList<Document>();
+        var entries = new ArrayList<Document>();
+        for (int i = 0; i < 200; i++) {
+            members.add(new Document("_id", "audit-perf-member-" + i).append("clubId", CLUB)
+                    .append("firstName", "Fictional").append("lastName1", "Member " + i));
+            entries.add(entry("perf-" + i, CLUB, "MEMBER_UPDATED", "2026-08-01T10:00:00Z"));
+        }
+        mongo.insert(members, "members");
+        mongo.insert(entries, "audit_entries");
+        var stages = new ArrayList<Document>();
+        stages.add(new Document("$match", new Document("clubId", CLUB)));
+        stages.addAll(new com.agilityhub.core.platform.persistence.audit.AuditListProjection(mongo).stages());
+        var explain = mongo.executeCommand(new Document("explain", new Document("aggregate", "audit_entries")
+                .append("pipeline", stages).append("cursor", new Document())).append("verbosity", "executionStats"));
+        var lookup = explain.getList("stages", Document.class).stream().filter(stage -> stage.containsKey("$lookup")).findFirst().orElseThrow();
+        assertThat(((Number) lookup.get("collectionScans")).longValue()).as("No census scan per audit entry without impersonation").isZero();
+        assertThat(((Number) lookup.get("totalDocsExamined")).longValue()).as("Only the impersonated member needs to be read").isLessThanOrEqualTo(1);
+        assertThat(lookup.getList("indexesUsed", String.class)).contains("_id_");
+    }
+    @Test void T_14_13_impersonationNameFallbackPreservesSnapshotsAndHandlesMissingMembers() throws Exception {
+        for (String id : List.of("null-member", "removed-member", "snapshot")) {
+            var row = entry(id, CLUB, "MEMBER_UPDATED", "2026-08-06T10:00:00Z");
+            row.put("impersonatedMemberId", id.equals("null-member") ? null : id.equals("snapshot") ? MEMBER : "removed");
+            if (id.equals("snapshot")) row.put("impersonatedName", "Historical Name");
+            mongo.insert(row, "audit_entries");
+        }
+        assertThat(json(admin(get("/api/v1/audit-entries/audit-null-member"))).has("impersonatedName")).isFalse();
+        assertThat(json(admin(get("/api/v1/audit-entries/audit-removed-member"))).has("impersonatedName")).isFalse();
+        assertThat(json(admin(get("/api/v1/audit-entries/audit-snapshot"))).path("impersonatedName").asText()).isEqualTo("Historical Name");
+        assertThat(json(admin(get("/api/v1/audit-entries/audit-impersonated"))).path("impersonatedName").asText()).isEqualTo("Fictional Member");
+        assertThat(json(admin(get("/api/v1/audit-entries/audit-old"))).has("impersonatedName")).isFalse();
+    }
+    @Test void T_14_13_pageEnrichmentMatchesFullHistoryForFiltersSearchAndMemberScope() {
+        var entries = new ArrayList<Document>();
+        for (int i = 0; i < 80; i++) {
+            var row = entry("paged-" + i, CLUB, "MEMBER_UPDATED", "2026-08-01T10:00:00Z");
+            if (i % 2 == 0) row.put("impersonatedMemberId", MEMBER);
+            if (i % 3 == 0) row.remove("entityLabel");
+            if (i % 5 == 0) row.put("origin", "INSTRUCTOR");
+            entries.add(row);
+        }
+        mongo.insert(entries, "audit_entries");
+        var jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("fictional").header("alg", "none").subject("audit-admin").build();
+        var security = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        var previous = security.getAuthentication();
+        security.setAuthentication(new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt, List.of(() -> "ROLE_ADMIN")));
+        try (var tenant = TenantContext.open(CLUB)) {
+            for (var data : List.of(provider.dataset(false, null), provider.dataset(false, MEMBER))) {
+                for (String scenario : List.of("", "q=Member ·", "q=correction", "q=no-match", "filter=origin:eq:BACKOFFICE", "filter=origin:eq:INSTRUCTOR",
+                        "filter=action:eq:MEMBER_UPDATED", "filter=impersonatedMemberId:eq:" + MEMBER,
+                        "filter=at:between:2026-08-02T00:00:00Z,2026-08-04T23:59:59Z", "sort=at,asc&page=1", "page=10", "fields=at,action")) {
+                    var params = new org.springframework.util.LinkedMultiValueMap<String, String>(); params.add("size", "20");
+                    if (!scenario.isEmpty()) for (String part : scenario.split("&")) { var pair = part.split("=", 2); params.add(pair[0], pair[1]); }
+                    var query = com.agilityhub.core.shared.application.lists.ListQuery.parse(data.definition(), params);
+                    assertThat(listRepository.page(data, query)).as(scenario)
+                            .isEqualTo(listRepository.page(data.withScope(ignored -> new Document()), query));
+                }
+            }
+        } finally { security.setAuthentication(previous); }
+    }
+    @Test void T_14_13_pageReadsOnlyTheDisplayedImpersonationNames() throws Exception {
+        var entries = new ArrayList<Document>();
+        for (int i = 0; i < 200; i++) entries.add(entry("paged-read-" + i, CLUB, "MEMBER_UPDATED", "2026-08-10T10:00:00Z").append("impersonatedMemberId", MEMBER));
+        mongo.insert(entries, "audit_entries");
+        var reads = com.agilityhub.core.support.MongoReads.during(mongo, List.of("audit_entries"), () -> {
+            var result = json(admin(get("/api/v1/audit-entries").param("size", "20")));
+            assertThat(result.path("totalItems").asInt()).isEqualTo(204);
+            assertThat(result.path("items")).hasSize(20);
+            assertThat(result.path("items").findValuesAsText("impersonatedName")).containsOnly("Fictional Member");
+        });
+        assertThat(reads).hasSize(1);
+        assertThat(((Number) reads.getFirst().get("docsExamined")).longValue())
+                .as("Count the history once and enrich only 20 displayed entries").isLessThanOrEqualTo(244);
     }
     /**
      * E5-T22 (found by ListFieldsContractIT on the Cànic demo). The writer stores no `null`, so a created value has no `before`

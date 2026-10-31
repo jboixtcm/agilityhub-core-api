@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Audit lists defer presentation joins until after pagination and use an indexed member-id lookup for impersonation names, avoiding a census read for every entry without impersonation. Historical names, tenant isolation, legacy metadata, filters and exports retain their existing behavior.
+
 - 2026-10-30 evening feedback (`20263010-1_Josep.docx`): render census exports as readable values and a repeated-header PDF table; defer census presentation joins until after pagination while retaining filter/search semantics. Exclude cancelled classes from the active calendar. Read existing image consent in onboarding and allow profile-only completion when the current policies are already accepted; retain consent validation and the impersonation write restriction.
 
 - Census dog lists, member dog summaries and member overviews include short-lived signed photo URLs. Sign the projected page without per-dog database reads, keep sparse fields and tenant restrictions, and never expose raw photo keys.

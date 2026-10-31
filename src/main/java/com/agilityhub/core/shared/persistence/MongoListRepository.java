@@ -17,7 +17,7 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
     public MongoListRepository(MongoTemplate mongo) { super(mongo, ListRecord.class); }
 
     public ListPage<Map<String, Object>> page(ListDataset data, ListQuery query) {
-        var selection = censusSelection(data, query);
+        var selection = pageSelection(data, query);
         var pipeline = selection == null ? pipeline(data, query) : selection;
         var items = new ArrayList<Document>();
         items.add(new Document("$sort", sort(data, query)));
@@ -84,9 +84,9 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
             return new FilterValue(value, data.label().apply(field, value), ((Number) row.get("count")).longValue());
         }).toList();
     }
-    /** Defer census-only presentation joins until after pagination; preserve computed filters and search. */
-    private List<Document> censusSelection(ListDataset data, ListQuery query) {
-        if (!Set.of("members", "dogs").contains(data.definition().key()) || data.scope() != null || data.search() != null) return null;
+    /** Defer census and audit presentation joins until after pagination; preserve computed filters and search. */
+    private List<Document> pageSelection(ListDataset data, ListQuery query) {
+        if (!Set.of("members", "dogs", "audit-entries").contains(data.definition().key()) || data.scope() != null || data.search() != null) return null;
         var needed = new HashSet<String>(sort(data, query).keySet());
         query.filters().forEach(filter -> needed.add(data.definition().field(filter.field()).path()));
         if (!query.q().isEmpty()) needed.addAll(data.definition().searchable());

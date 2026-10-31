@@ -1,0 +1,242 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+Audit coverage: ACTIVITY_PUBLISHED -> ActivityIT.T_07_10_publicationCreatesFiveBlocksAndTitleCellsWithAtomicReplay
+Audit coverage: ACTIVITY_CANCELLED -> ActivityIT.T_07_13_cancellationNotifiesActiveAndWaitingAndZeroesCounters
+Audit coverage: ACTIVITY_UPDATED -> ActivityIT.T_07_10_publicationCreatesFiveBlocksAndTitleCellsWithAtomicReplay
+Audit coverage: ACTIVITY_REGISTERED_BY_CLUB -> ActivityIT.T_07_23_impersonationRecordsBothActorsAndClubChangeChannels
+Audit coverage: ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB -> ActivityIT.T_07_23_impersonationRecordsBothActorsAndClubChangeChannels
+Audit coverage: WEEK_VALIDATED -> CalendarIT.T_06_12_validateAtomicallyAndExposeDraftsOnlyAfterValidation
+Audit coverage: CLASS_CANCELLED -> CalendarIT.T_06_14_T_06_15_T_06_34_cancellationRollsBackAndDeliversEveryDogInRecipientLocaleOnce
+Audit coverage: CLASS_UPDATED_WITH_BOOKINGS -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: CLASS_RISK_EXEMPTION_CHANGED -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: RING_BLOCK_CREATED -> CalendarIT.R_14_09_anInstructorsAuditedActionIsStoredBackofficeAndItsEventKeepsInstructor, CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: RING_BLOCK_CANCELLED -> CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: TEMPLATE_CLASS_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: TEMPLATE_BAND_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: MEMBER_VALIDATED -> SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: SIGNUP_REJECTED -> SignupIT.T_04_19_rejectionCancelsDuePaymentsAndCannotRepeat
+Audit coverage: SIGNUP_SUBMITTED -> SignupSecurityFixesIT.R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers, SignupSecurityFixesIT.T_04_12_readmissionKeepsTheLeftRecordUntilValidationWhichAppliesTheSubmittedValues
+Audit coverage: MEMBER_UPDATED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, NotificationPreferencesIT.T_11_20_theD10SaveIsAuditedWithTheActorAndPublishesTheChange
+Audit coverage: SIGNUP_EDITED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, SignupIT.T_04_20_pendingEditsEmitSignupEditedAndRejectStaleVersion
+Audit coverage: MEMBER_PAYMENT_METHOD_CHANGED -> CensusIT.T_03_13_paymentMethodsAreValidatedAndAlwaysMasked
+Audit coverage: MEMBER_STATUS_CHANGED -> CensusIT.T_03_06_T_03_31_memberLeaveDeactivatesDogsAndReactivationKeepsTheirStatus
+Audit coverage: MEMBER_CONSENT_CHANGED -> CensusIT.T_03_12_INC_38_aConsentChangeIsAuditedAsMemberConsentChanged
+Audit coverage: BOOKING_CREATED_BY_CLUB -> BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: BOOKING_CANCELLED_BY_CLUB -> BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: BOOKING_CANCELLED_LATE -> BookingsIT.T_08_18_cancellationInTimeLateAndRejectedWithSeatReleaseAndMinimumAlert, BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: TRAINING_BOOKED_BY_CLUB -> TrainingIT.T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+Audit coverage: TRAINING_CANCELLED_BY_CLUB -> TrainingIT.T_09_21_INC_40_aClubCancellationKeepsTheAdminTextForN47AndIsAudited, TrainingIT.T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+Audit coverage: ATTENDANCE_OVERRIDDEN -> AttendanceIT.T_10_01_anAdminMarksOutsideTheWindowAuditedAndAnInstructorIsRefused
+Audit coverage: BOOKING_BLOCK_SET -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: BOOKING_BLOCK_CLEARED -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: ACCESS_RESENT -> CensusIT.T_03_16_accessResendPublishesAndDeliversN27Once
+Audit coverage: DOG_UPDATED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval, FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken, FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+Audit coverage: DOG_LEVEL_CHANGED -> CensusIT.T_03_19_levelChangeKeepsBookingsAndEmitsNoWarnings, SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: DOG_FREE_TRAINING_CHANGED -> CensusIT.T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges
+Audit coverage: DOG_TRANSFERRED -> CensusIT.T_03_21_transferPreservesDogDataAndClearsSelections
+Audit coverage: DOG_DEACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_REACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_DOCUMENT_FILE_REMOVED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: FAMILY_GROUP_CHANGED -> CensusIT.T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic
+Audit coverage: MEMBER_ROLES_CHANGED -> TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: DATA_EXPORTED -> AccountingExportIT.T_12_19_csvContainsEveryInvoiceLineAndLocalizedAmountsWithBom, ExportEngineIT.T_14_15_localizedHeadersMaskedValuesDatesAndReadyJobs, UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+Audit coverage: CATALOG_CHANGED -> CatalogsIT.T_05_06_T_05_19_T_05_20_catalogCrudOrderVersionAuditAndOutbox, ClubPagesIT.T_05_CP_05_auditOutboxAndPageWritesCommitAndRollbackTogether, DemoSeedsIT.T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites, MessageTemplatesIT.T_11_16_aCustomTemplateIsCreatedSavedWithItsVersionAndArchived, PlansIT.T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges, TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: ANNOUNCEMENT_SENT -> AnnouncementsIT.T_11_18_n24ToTheMembersOfTheListFiltersWithTheirOwnPreferencesAuditedAndReplayedByItsKey
+Audit coverage: MIGRATION_APPLIED -> PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections
+Audit coverage: PLATFORM_ROLES_CHANGED -> PlatformRolesIT.T_17_09_globalReadReplaceAndRemovalAuditOnlyRolePathWithoutDomainEvent
+Audit coverage: ONBOARDING_COMPLETED -> OnboardingIT.T_01_26_importedAccountAcceptsOnceWithVersionTimeAndTransactionalAudit
+Audit coverage: IMPERSONATION_STARTED -> ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation
+Audit coverage: ACCOUNT_EMAIL_STATUS_CHANGED -> SendGridWebhookIT.T_11_11_T_11_22_engineMailDeliveredSoftAndHardBouncesPerContactAddressAndTheAccountMarkCoexists, SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce
+Audit coverage: PARAMETER_CHANGED -> AuditedAspectIT.T_14_12_parameterEntryCommitsAtomicallyWithAggregateAndOutboxAndCapturesMetadata, SettingsIT.T_02_03_R_02_04_theD11BlocksFollowTheCatalogAndOnlyTheClubKeysAreEditable, SettingsIT.T_02_08_parameterHistoryAuditOutboxCacheAndVersionedReset
+Audit coverage: CLUB_UPDATED -> AuditedAspectIT.T_14_12_manualWriterMasksAndFreezesMutableSnapshotsBeforeCommit, ClubDefinitionsIT.T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite, SettingsIT.R_02_02_R_02_06_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile, SettingsIT.T_02_11_clubProjectionAndAllowlistedUpdatesAuditAndRefreshBranding
+Audit coverage: CLUB_MODULES_CHANGED -> AuditedAspectIT.T_14_11_lastChangeUsesLatestTimestampAndSeparatesTenantsAndTargets, SettingsIT.T_02_09_selfServiceModulesAuditOutboxDependenciesAndBranding
+Audit coverage: CLUB_STATUS_CHANGED -> AuditedAspectIT.T_14_11_platformEntriesHaveNullClubIdAndExplicitIsolatedQuery
+Audit coverage: CLUB_CREATED -> PlatformConsoleIT.T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions
+Audit coverage: CLUB_PAYMENT_PROVIDER_CHANGED -> PlatformConsoleIT.T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions
+Audit coverage: CLUB_ADMIN_INVITED -> PlatformConsoleIT.T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions
+Audit coverage: CLUB_DOMAIN_CHANGED -> DomainRecheckIT.T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain, PlatformDomainsIT.T_17_03_R_17_03_cnameVerificationOpensCaddyAndBrandingOnlyOnceVerified
+Audit coverage: SUPPORT_ACCESS_STARTED -> SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports
+Audit coverage: SUPPORT_ACCESS_ENDED -> SupportAccessIT.T_17_09_R_17_10_theClubsAdminEndsALiveSupportAccess
+Audit coverage: PUBLIC_API_KEY_ROTATED -> PublicApiKeyIT.T_17_11_R_17_11_keyIsShownOnceStoredAsADigestAndOpensThePublicRoutes
+Audit coverage: JOB_TRIGGERED -> JobFrameworkIT.T_15_08_manualTriggerIsAuditedAndRefusedWhileRunning, JobsApiIT.T_15_08_manualTriggerRunsTheProcessEvenSwitchedOffIsAuditedAndGuarded
+Audit coverage: INVOICE_MARKED_PAID -> InvoiceActionsIT.T_12_14_fourCashInvoicesPaidInBulkAllOrNone
+Audit coverage: INVOICE_MARKED_FAILED -> InvoiceActionsIT.T_12_14_T_12_30_aBankReturnFailsACollectingInvoiceAndAPaidOneWithItsSepaCollectionAndNotifiesTheAdmins
+Audit coverage: INVOICE_CANCELLED -> InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled
+Audit coverage: INVOICE_CREATED_MANUAL -> InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled
+Audit coverage: REMITTANCE_GENERATED -> BillingCycleIT.T_12_09_T_12_29_theRunNumbersTheInvoicesAdvancesOnlyTheIncludedMembersAndAuditsOnce, BillingCycleIT.T_12_18_R_12_19_aManualSepaReceiptWithIncludeInNextRunJoinsTheNextRemittanceAndARollbackReturnsIt
+Audit coverage: REMITTANCE_ROLLED_BACK -> BillingCycleIT.T_12_13_R_12_14_aRollbackReissuesItsWholeBlockAlsoAfterTheAdminCancelledOneOfItsReceipts, BillingCycleIT.T_12_13_aRollbackGivesBackNumbersDatesAndChargesAndASecondRunReproducesTheNumbers
+Audit coverage: REMITTANCE_SUBMITTED -> RemittancesIT.T_12_30_aSubmittedRemittanceEndsTheRollbackAndTheSubmissionIsAuditedOnce
+Audit coverage: PAYMENT_REFUNDED -> CardPaymentsIT.T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund
+Audit coverage: PAYMENT_REFUND_INTERVENTION -> CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce
+Audit coverage: CARD_CHARGES_STARTED -> CardPaymentsIT.T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment
+Audit coverage: UPFRONT_PAYMENT_RECORDED -> CardPaymentsIT.T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder, LifecycleIT.T_12_07_manualPaymentOpensOnlyWhenFullyPaidAndRecordsTheWholeMovementCycle
+Audit coverage: PACK_ADJUSTED -> LifecycleIT.T_12_07_adjustWritesTheBalanceAndItsAuditInOneTransaction
+Audit coverage: MEMBER_PLAN_CHANGED -> LifecycleIT.T_13_20_packToMonthlyWritesDiscountedDueEntryAndAuditsWithoutMovingInvoiceDate
+Audit coverage: INACTIVITY_RESOLVED -> LifecycleIT.T_13_08_requestUsesDeadlineAndReplaysTheSameKey
+Audit coverage: LEAVE_RESOLVED -> LifecycleIT.T_13_15_onePendingRequestAndDisabledNps
+Audit coverage: LEAVE_CANCELLED -> LifecycleIT.T_13_18_T_13_19_directLeaveSupersedesPendingAndCancellationClearsTheDate
+Audit coverage: RING_GEOMETRY_CHANGED -> RingGeometryIT.T_16_06_aGeometryInUseCannotBeRemovedAndAFreeOneCan, RingGeometryIT.T_16_06_aValidGeometryIsVersionedAuditedPublishedAndMarksTheRingsPlacementsStale
+Audit coverage: COURSE_FORCED_PLACEMENT -> PlacementsIT.T_16_07_aCriticalWarningBlocksThePlacementUnlessAnAdminForcesIt
+Audit coverage: RING_SETUP_REGISTERED -> RingSetupsIT.T_16_08_aSecondSetupReplacesTheActiveOneOfTheRingInTheSameTransaction
+Audit coverage: MEMBER_DATA_EXPORTED -> MemberDataExportIT.T_14_17_R_14_13_theMembersPackageHoldsItsDataItsFilesAndAnnouncesItself
+Audit coverage: ERASURE_REQUESTED -> ErasureIT.T_14_18_R_14_14_aLeftMemberIsScheduledOnceThenCancelledAndN52IsSent
+Audit coverage: ERASURE_CANCELLED -> ErasureIT.R_14_14_thePlatformCancelsAnAccountRequestBlockedHalfway, ErasureIT.R_14_15_INC_74_theCancelOfARequestBlockedHalfwayDeletesItsPendingFilesAtOnce, ErasureIT.T_14_18_R_14_14_aLeftMemberIsScheduledOnceThenCancelledAndN52IsSent
+Audit coverage: MEMBER_ERASED -> ErasureIT.T_14_08_T_14_19_R_14_15_eachFieldOfTheTableIsPseudonymisedAndTheFilesLeaveTheStore
+Audit coverage: ACCOUNT_ERASED -> ErasureIT.T_14_08_T_14_19_R_14_15_eachFieldOfTheTableIsPseudonymisedAndTheFilesLeaveTheStore
+16:58:42.984 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.ListFieldsContractIT]: ListFieldsContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:58:43.209 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.ListFieldsContractIT
+16:58:43.301 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.ListFieldsContractIT]: ListFieldsContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:58:43.302 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:58:43.305 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.ListFieldsContractIT
+16:58:43.382 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:58:43.383 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:58:43.396 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+16:58:43.949 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:58:44.353 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:58:44.354 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:58:44.369 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:58:44.914 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+16:58:44.998 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:58:45.218 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 9d128e50d6ee00a3fa3d14114e0057aebb1a9c5f5e81b55e4ab0da6b3a157877
+16:58:45.518 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.604574S
+16:58:45.524 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:58:45.524 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:58:45.525 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:58:45.525 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:58:45.598 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: fdbeb0409d954f4d8fb8d9212daebebfc46297905416f92bfdd4629b6b546506
+16:58:46.295 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.769888S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-31T16:58:47.600+01:00 INFO  [main] c.a.c.configuration.ListFieldsContractIT traceId= clubId= accountId= : Starting ListFieldsContractIT using Java [redacted] with PID 26532 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-31T16:58:47.603+01:00 INFO  [main] c.a.c.configuration.ListFieldsContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-31T16:58:49.782+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-31T16:58:49.873+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 84 ms. Found 0 MongoDB repository interfaces.
+2026-10-31T16:58:50.786+01:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6d27e8ae], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2158339b, com.mongodb.Jep395RecordCodecProvider@669503af, com.mongodb.KotlinCodecProvider@742218ee, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52829], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2612fc5c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-31T16:58:50.799+01:00 INFO  [cluster-6ae6103a8a0945dbdb352ae4-localhost:52829] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52829, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=17698250, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=fdbeb0409d95:27017, hosts=[fdbeb0409d95:27017], passives=[], arbiters=[], primary='fdbeb0409d95:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ae610351abde8c645888ef0, counter=6}, lastWriteDate=Sat Oct 31 16:58:46 CET 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-31T16:58:52.869+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:52.901+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:52.943+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:54.348+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:54.381+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:54.409+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:54.563+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:58:59.277+01:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-31T16:58:59.278+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-31T16:58:59.288+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 10 ms
+2026-10-31T16:58:59.406+01:00 INFO  [main] c.a.c.configuration.ListFieldsContractIT traceId= clubId= accountId= : Started ListFieldsContractIT in 12.206 seconds (process running for 17.434)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-31T16:59:04.899+01:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=0bdc8ddd-cc5b-4c87-ba5f-48490792b086 clubId=- accountId=- : Init duration for springdoc-openapi is: 4244 ms
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+452 changes (demo seed)
+{platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+402 changes (demo planning, week start 2026-09-14)
+2026-10-31T16:59:38.802+01:00 WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+2026-10-31T16:59:54.759+01:00 WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword example - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+E5-T07 outbox backlog discarded before ListFieldsContractIT: 1001 PENDING records (more than one dispatch() batch)
+2026-10-31T16:59:55.910+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.UniversalListsIT]: UniversalListsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T16:59:56.054+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.UniversalListsIT
+2026-10-31T16:59:56.055+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.UniversalListsIT]: UniversalListsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T16:59:56.056+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T16:59:56.057+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.UniversalListsIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-31T16:59:56.137+01:00 INFO  [main] c.a.c.clubs.common.api.UniversalListsIT traceId= clubId= accountId= : Starting UniversalListsIT using Java [redacted] with PID 26532 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-31T16:59:56.137+01:00 INFO  [main] c.a.c.clubs.common.api.UniversalListsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-31T16:59:57.100+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-31T16:59:57.151+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 49 ms. Found 0 MongoDB repository interfaces.
+2026-10-31T16:59:57.361+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-31T16:59:57.374+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-31T16:59:57.374+01:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-31T16:59:57.420+01:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 1281 ms
+2026-10-31T16:59:57.462+01:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@739834c2], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2158339b, com.mongodb.Jep395RecordCodecProvider@669503af, com.mongodb.KotlinCodecProvider@742218ee, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52829], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2685af4c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-31T16:59:57.464+01:00 INFO  [cluster-6ae6107d8a0945dbdb352b18-localhost:52829] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52829, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1495042, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=fdbeb0409d95:27017, hosts=[fdbeb0409d95:27017], passives=[], arbiters=[], primary='fdbeb0409d95:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ae610351abde8c645888ef0, counter=6}, lastWriteDate=Sat Oct 31 16:59:55 CET 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-31T16:59:57.802+01:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-31T17:00:00.698+01:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-31T17:00:00.699+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-31T17:00:00.705+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 6 ms
+2026-10-31T17:00:00.770+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 52872 (http) with context path '/'
+2026-10-31T17:00:00.840+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-31T17:00:00.840+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-31T17:00:00.841+01:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-31T17:00:00.857+01:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 83 ms
+2026-10-31T17:00:00.873+01:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-31T17:00:00.926+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 52873 (http) with context path '/'
+2026-10-31T17:00:00.937+01:00 INFO  [main] c.a.c.clubs.common.api.UniversalListsIT traceId= clubId= accountId= : Started UniversalListsIT in 4.873 seconds (process running for 78.966)
+CENSUS_BENCH members  optimizedMs=14,77 originalMs=357,34
+CENSUS_BENCH members q=Duna optimizedMs=111,10 originalMs=408,68
+CENSUS_BENCH members q=Example 109 optimizedMs=139,40 originalMs=385,82
+CENSUS_BENCH members filter=status:eq:ACTIVE optimizedMs=18,07 originalMs=224,77
+CENSUS_BENCH members filter=dogLevelId:eq:level-a optimizedMs=129,54 originalMs=265,79
+CENSUS_BENCH members filter=imageRightsGranted:eq:true optimizedMs=18,14 originalMs=408,91
+CENSUS_BENCH members filter=hasPendingDocuments:eq:true optimizedMs=126,25 originalMs=361,12
+CENSUS_BENCH members filter=freeTrainingAllowed:eq:true optimizedMs=118,57 originalMs=248,21
+CENSUS_BENCH members sort=lastName,desc&page=1 optimizedMs=12,63 originalMs=331,40
+CENSUS_BENCH members filter=id:eq:other-member optimizedMs=3,06 originalMs=2,84
+CENSUS_BENCH dogs  optimizedMs=1,92 originalMs=1,83
+CENSUS_BENCH dogs q=Fictional optimizedMs=2,05 originalMs=2,10
+CENSUS_BENCH dogs filter=levelId:eq:level-a optimizedMs=4,81 originalMs=4,15
+CENSUS_BENCH dogs filter=hasPendingDocuments:eq:true optimizedMs=5,77 originalMs=4,09
+CENSUS_BENCH dogs sort=ownerLastName,desc optimizedMs=3,52 originalMs=2,52
+2026-10-31T17:00:07.970+01:00 INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-31T17:00:07.970+01:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-10-31T17:00:07.971+01:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-31T17:00:19.067+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T17:00:19.116+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+2026-10-31T17:00:19.117+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T17:00:19.117+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T17:00:19.118+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+2026-10-31T17:00:19.124+01:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-31T17:00:19.136+01:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-31T17:00:19.167+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Starting AuditQueriesIT using Java [redacted] with PID 26532 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-31T17:00:19.167+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-31T17:00:19.627+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-31T17:00:19.677+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 49 ms. Found 0 MongoDB repository interfaces.
+2026-10-31T17:00:19.766+01:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@533057be], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2158339b, com.mongodb.Jep395RecordCodecProvider@669503af, com.mongodb.KotlinCodecProvider@742218ee, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52829], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@417b88ae], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-31T17:00:19.772+01:00 INFO  [cluster-6ae610938a0945dbdb352b19-localhost:52829] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52829, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=3359084, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=fdbeb0409d95:27017, hosts=[fdbeb0409d95:27017], passives=[], arbiters=[], primary='fdbeb0409d95:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ae610351abde8c645888ef0, counter=6}, lastWriteDate=Sat Oct 31 17:00:19 CET 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-31T17:00:22.607+01:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-31T17:00:22.607+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-31T17:00:22.612+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 5 ms
+2026-10-31T17:00:22.663+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Started AuditQueriesIT in 3.524 seconds (process running for 100.692)
+2026-10-31T17:00:22.779+01:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 2 dogs

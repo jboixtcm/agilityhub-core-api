@@ -1,0 +1,23 @@
+1. Reproduce the missing-impersonation read amplification before the production fix:
+./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -DskipTests=false -Dit.test='AuditQueriesIT#T_14_13_missingImpersonationUsesTheIdIndexWithoutScanningTheCensus'
+Exit: 1, expected regression failure; 40,804 documents examined.
+Log: 01-regression-before.log
+
+2. Validate the indexed lookup (before adding deferred audit enrichment):
+./mvnw -q test-compile failsafe:integration-test failsafe:verify -Dit.test='AuditQueriesIT,ListFieldsContractIT'
+Exit: 0.
+Log: 02-regression-after.log
+
+3. Final clean targeted unit and integration run (including the existing census regression):
+./mvnw -q clean test -Dtest='Audit*Test,ListQueryTest' failsafe:integration-test failsafe:verify -Dit.test='AuditQueriesIT,ListFieldsContractIT,UniversalListsIT'
+Log: 03-final-focused.log
+Final result and per-class totals: test-summary.json.
+
+4. Whitespace validation:
+git diff --check
+Exit: 0.
+
+5. Read-only production comparison:
+python3 ops/evidence/2026-10-31-audit-performance/benchmark.py
+Run from SOFTWARE_CANIC. Exit: 0.
+Result: production-paginated-comparison.json in that evidence directory.

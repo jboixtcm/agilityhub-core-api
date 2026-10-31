@@ -22,10 +22,12 @@ public class AuditListProjection {
     }
     public List<Document> stages() {
         var result = new ArrayList<Document>();
+        // Equality on _id remains indexable when impersonatedMemberId is missing or null. An $expr
+        // comparison against a missing let variable otherwise reads the club's census for every entry.
         result.add(new Document("$lookup", new Document("from", "members")
-                .append("let", new Document("member", "$impersonatedMemberId").append("club", "$clubId"))
-                .append("pipeline", List.of(new Document("$match", new Document("$expr", new Document("$and", List.of(
-                        new Document("$eq", List.of("$_id", "$$member")), new Document("$eq", List.of("$clubId", "$$club")))))),
+                .append("localField", "impersonatedMemberId").append("foreignField", "_id")
+                .append("let", new Document("club", "$clubId"))
+                .append("pipeline", List.of(new Document("$match", new Document("$expr", new Document("$eq", List.of("$clubId", "$$club")))),
                         new Document("$project", new Document("_id", 0).append("name", new Document("$trim", new Document("input",
                                 new Document("$concat", List.of(ifNull("$firstName", ""), " ", ifNull("$lastName1", ""), " ", ifNull("$lastName2", "")))))))))
                 .append("as", "auditMember")));

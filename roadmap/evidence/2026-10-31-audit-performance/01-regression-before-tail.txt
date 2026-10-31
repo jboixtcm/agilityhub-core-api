@@ -1,0 +1,40 @@
+2026-10-31T16:56:18.189+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:56:18.311+01:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-31T16:56:22.721+01:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-31T16:56:22.721+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-31T16:56:22.730+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 9 ms
+2026-10-31T16:56:22.840+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Started AuditQueriesIT in 10.475 seconds (process running for 15.34)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 16.03 s <<< FAILURE! -- in com.agilityhub.core.platform.api.AuditQueriesIT
+[ERROR] com.agilityhub.core.platform.api.AuditQueriesIT.T_14_13_missingImpersonationUsesTheIdIndexWithoutScanningTheCensus -- Time elapsed: 0.868 s <<< FAILURE!
+java.lang.AssertionError: 
+[Only the impersonated member needs to be read] 
+Expecting actual:
+  40804L
+to be less than or equal to:
+  1L 
+	at com.agilityhub.core.platform.api.AuditQueriesIT.T_14_13_missingImpersonationUsesTheIdIndexWithoutScanningTheCensus(AuditQueriesIT.java:159)
+
+[ERROR] Failures: 
+[ERROR]   AuditQueriesIT.T_14_13_missingImpersonationUsesTheIdIndexWithoutScanningTheCensus:159 [Only the impersonated member needs to be read] 
+Expecting actual:
+  40804L
+to be less than or equal to:
+  1L 
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
