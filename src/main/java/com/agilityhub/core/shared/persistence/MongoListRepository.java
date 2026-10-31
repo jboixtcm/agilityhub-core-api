@@ -24,15 +24,19 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         items.add(new Document("$skip", (long) query.page() * query.size()));
         items.add(new Document("$limit", query.size()));
         if (selection != null) {
-            // Reload only the page from the same collection before the complete presentation pipeline.
-            // Selection, count and page enrichment remain in one tenant-scoped aggregate operation.
-            items.add(new Document("$lookup", new Document("from", data.collection()).append("localField", "_id")
-                    .append("foreignField", "_id").append("as", "__censusSource")
-                    .append("pipeline", List.of(new Document("$match", tenantQuery().getQueryObject())))));
-            items.add(new Document("$replaceWith", new Document("$arrayElemAt", List.of("$__censusSource", 0))));
-            items.addAll(data.stages());
-        }
-        items.add(project(data, query.fields()));
+            // Reload/enrich the selected ids together instead of opening a source lookup for every row.
+            // Reapply the same stable ordering after the join; count and selection stay in one aggregate.
+            var presentation = new ArrayList<Document>();
+            presentation.add(new Document("$match", tenantQuery().getQueryObject()));
+            presentation.addAll(data.stages());
+            presentation.add(new Document("$sort", sort(data, query)));
+            presentation.add(project(data, query.fields()));
+            items.add(new Document("$group", new Document("_id", null).append("ids", new Document("$push", "$_id"))));
+            items.add(new Document("$lookup", new Document("from", data.collection()).append("localField", "ids")
+                    .append("foreignField", "_id").append("as", "rows").append("pipeline", presentation)));
+            items.add(new Document("$unwind", "$rows"));
+            items.add(new Document("$replaceWith", "$rows"));
+        } else { items.add(project(data, query.fields())); }
         pipeline.add(new Document("$facet", new Document("items", items)
                 .append("total", List.of(new Document("$count", "count")))));
         var result = aggregate(data, pipeline).getFirst();

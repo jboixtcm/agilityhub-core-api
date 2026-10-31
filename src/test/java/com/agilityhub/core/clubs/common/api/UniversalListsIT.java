@@ -349,11 +349,11 @@ class UniversalListsIT extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open(CLUB); var locale = com.agilityhub.core.shared.application.LocaleContext.open(Locale.forLanguageTag("ca"))) {
             for (String key : List.of("members", "dogs")) {
                 var data = censusLists.dataset(key);
-                var scenarios = key.equals("members") ? List.of("", "q=Duna", "q=Example 109", "filter=status:eq:ACTIVE", "filter=dogLevelId:eq:level-a", "filter=imageRightsGranted:eq:true", "filter=hasPendingDocuments:eq:true", "filter=freeTrainingAllowed:eq:true", "sort=lastName,desc&page=1", "filter=id:eq:other-member")
+                var scenarios = key.equals("members") ? List.of("", "size=1000", "q=Duna", "q=Example 109", "filter=status:eq:ACTIVE", "filter=dogLevelId:eq:level-a", "filter=imageRightsGranted:eq:true", "filter=hasPendingDocuments:eq:true", "filter=freeTrainingAllowed:eq:true", "sort=lastName,desc&page=1", "filter=id:eq:other-member")
                         : List.of("", "q=Fictional", "filter=levelId:eq:level-a", "filter=hasPendingDocuments:eq:true", "sort=ownerLastName,desc");
                 for (String scenario : scenarios) {
                     var params = new org.springframework.util.LinkedMultiValueMap<String,String>(); params.add("size", "20");
-                    if (!scenario.isEmpty()) for (String part : scenario.split("&")) { var pair = part.split("=", 2); params.add(pair[0], pair[1]); }
+                    if (!scenario.isEmpty()) for (String part : scenario.split("&")) { var pair = part.split("=", 2); params.set(pair[0], pair[1]); }
                     var query = com.agilityhub.core.shared.application.lists.ListQuery.parse(data.definition(), params);
                     long start = System.nanoTime(); var optimized = listRepository.page(data, query); long optimizedNs = System.nanoTime() - start;
                     start = System.nanoTime(); var original = listRepository.page(data.withScope(ignored -> new Document()), query); long originalNs = System.nanoTime() - start;

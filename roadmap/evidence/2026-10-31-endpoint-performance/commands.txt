@@ -11,3 +11,6 @@ Final exit: 03-final-focused.exit. Log: 03-final-focused.log. Structured counts:
 
 4. git diff --check
 Exit 0.
+
+5. ./mvnw -q clean test -Dtest='Audit*Test,ListQueryTest' failsafe:integration-test failsafe:verify -Dit.test='AuditQueriesIT,ListFieldsContractIT,UniversalListsIT'
+Batched page enrichment and the 1,000-row equivalence scenario. Final exit: 04-batched-focused.exit. Log: 04-batched-focused.log.

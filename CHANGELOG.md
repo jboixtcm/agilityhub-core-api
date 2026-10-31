@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-- Census and audit filter-value queries compute only the fields needed for filtering and counting. Nested census lookups skip unused presentation data while preserving tenant predicates, derived fields, search semantics and distinct per-document facet counts.
+- Census and audit filter-value queries compute only the fields needed for filtering and counting. Nested census lookups skip unused presentation data while preserving tenant predicates, derived fields, search semantics and distinct per-document facet counts. Page enrichment reloads selected ids in one batch, including the 1,000-row option, and restores stable sorting.
 
 - Audit lists defer presentation joins until after pagination and use an indexed member-id lookup for impersonation names, avoiding a census read for every entry without impersonation. Historical names, tenant isolation, legacy metadata, filters and exports retain their existing behavior.
 
