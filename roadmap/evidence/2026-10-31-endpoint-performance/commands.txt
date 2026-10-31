@@ -1,0 +1,13 @@
+All Maven commands ran through the shared host lock (`roadmap-kit/mac/heavy.sh`).
+
+1. ./mvnw -q test-compile failsafe:integration-test failsafe:verify -Dit.test='UniversalListsIT,AuditQueriesIT,ListFieldsContractIT'
+Exit 1: duplicate fictional chip in the new fixture; corrected. Log: 01-focused.log.
+
+2. ./mvnw -q test-compile failsafe:integration-test failsafe:verify -Dit.test='UniversalListsIT#T_03_09_optimizedFacetsMatchAllFieldsWithSearchAndOtherFilters'
+Exit 0: one test, no failures/errors/skips. Log: 02-facet-equivalence.log.
+
+3. ./mvnw -q clean test -Dtest='Audit*Test,ListQueryTest' failsafe:integration-test failsafe:verify -Dit.test='AuditQueriesIT,ListFieldsContractIT,UniversalListsIT'
+Final exit: 03-final-focused.exit. Log: 03-final-focused.log. Structured counts: test-summary.json.
+
+4. git diff --check
+Exit 0.

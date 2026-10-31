@@ -307,6 +307,37 @@ class UniversalListsIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.clubs.census.application.CensusLists censusLists;
     @Autowired com.agilityhub.core.shared.persistence.MongoListRepository listRepository;
 
+    @Test void T_03_09_optimizedFacetsMatchAllFieldsWithSearchAndOtherFilters() {
+        mongo.insert(dog("duplicate-level-dog", "Fictional second dog", CLUB).append("memberId", "member-0").append("chip", "000000000000002"), "dogs");
+        var jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("fictional").header("alg", "none").subject("admin-a").build();
+        var security = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        var previous = security.getAuthentication();
+        security.setAuthentication(new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt, List.of(() -> "ROLE_ADMIN")));
+        try (var tenant = TenantContext.open(CLUB); var locale = com.agilityhub.core.shared.application.LocaleContext.open(Locale.forLanguageTag("es"))) {
+            for (String key : List.of("members", "dogs")) {
+                var data = censusLists.dataset(key);
+                for (String field : data.definition().filters().keySet()) {
+                    for (String scenario : List.of("", "q=Duna", "filter=status:eq:ACTIVE")) {
+                        var params = new org.springframework.util.LinkedMultiValueMap<String, String>();
+                        if (!scenario.isEmpty()) { var pair = scenario.split("=", 2); params.add(pair[0], pair[1]); }
+                        var query = com.agilityhub.core.shared.application.lists.ListQuery.parse(data.definition(), params).withoutField(field);
+                        assertThat(listRepository.facets(data, query, field)).as(key + " " + field + " " + scenario)
+                                .isEqualTo(listRepository.facets(data.withScope(ignored -> new Document()), query, field));
+                    }
+                }
+            }
+        } finally { security.setAuthentication(previous); }
+    }
+    @Test void T_03_09_statusFacetsReadTheMembersOnceWithoutPresentationJoins() throws Exception {
+        var reads = com.agilityhub.core.support.MongoReads.during(mongo, List.of("members"), () -> {
+            var result = json(admin(get("/api/v1/members/filter-values").param("field", "status")), 200);
+            assertThat(result.path("values")).hasSize(2);
+            assertThat(result.path("values").findValues("count")).allSatisfy(count -> assertThat(count.asInt()).isEqualTo(30));
+        });
+        assertThat(reads).hasSize(1);
+        assertThat(((Number) reads.getFirst().get("docsExamined")).longValue()).isLessThanOrEqualTo(60);
+    }
+
     @Test void Word_20261030_paginatedCensusMatchesFullProjectionForSearchFiltersAndSorting() throws Exception {
         var extra = new ArrayList<Document>();
         for (int i = 100; i < 1100; i++) extra.add(member(i));

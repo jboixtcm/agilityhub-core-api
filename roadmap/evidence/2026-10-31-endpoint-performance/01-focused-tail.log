@@ -1,0 +1,40 @@
+2026-10-31T17:11:02.424+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T17:11:02.425+01:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-31T17:11:02.426+01:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+2026-10-31T17:11:02.429+01:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-31T17:11:02.436+01:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-31T17:11:02.460+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Starting AuditQueriesIT using Java [redacted] with PID 33798 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-31T17:11:02.460+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-31T17:11:03.243+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-31T17:11:03.286+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 41 ms. Found 0 MongoDB repository interfaces.
+2026-10-31T17:11:03.366+01:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3178dbbc], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1ebb3621, com.mongodb.Jep395RecordCodecProvider@33f42a31, com.mongodb.KotlinCodecProvider@6d27e8ae, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:53515], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5472d387], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-31T17:11:03.368+01:00 INFO  [cluster-6ae61317e6201c5dd7fe8c61-localhost:53515] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:53515, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1369208, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4dbb69ec38fc:27017, hosts=[4dbb69ec38fc:27017], passives=[], arbiters=[], primary='4dbb69ec38fc:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ae612cd1971e03887258779, counter=6}, lastWriteDate=Sat Oct 31 17:11:02 CET 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-31T17:11:05.954+01:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-31T17:11:05.954+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-31T17:11:05.958+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-31T17:11:05.999+01:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Started AuditQueriesIT in 3.56 seconds (process running for 79.166)
+2026-10-31T17:11:06.056+01:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 2 dogs
+[ERROR] Errors: 
+[ERROR]   UniversalListsIT.T_03_09_optimizedFacetsMatchAllFieldsWithSearchAndOtherFilters:311 » DuplicateKey Write operation error on MongoDB server localhost:53515. Write error: WriteError{code=11000, message='E11000 duplicate key error collection: agilityhub_test.dogs index: dog_chip dup key: { clubId: "list-a", chip: "000000000000001" }', details={}}.
+[ERROR] Tests run: 55, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

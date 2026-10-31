@@ -69,7 +69,8 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
                 .map(row -> publicRow(data, row)).onClose(cursor::close);
     }
     public List<FilterValue> facets(ListDataset data, ListQuery query, String field) {
-        var pipeline = pipeline(data, query);
+        var selected = selection(data, query, new HashSet<>(Set.of(data.definition().field(field).path())));
+        var pipeline = selected == null ? pipeline(data, query) : selected;
         String path = "$" + data.definition().field(field).path();
         pipeline.add(new Document("$project", new Document("values", path)));
         pipeline.add(new Document("$unwind", "$values"));
@@ -86,13 +87,23 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
     }
     /** Defer census and audit presentation joins until after pagination; preserve computed filters and search. */
     private List<Document> pageSelection(ListDataset data, ListQuery query) {
+        return selection(data, query, new HashSet<>(sort(data, query).keySet()));
+    }
+    /** Only fields used to select, order or group rows need enrichment before pagination/faceting. */
+    private List<Document> selection(ListDataset data, ListQuery query, Set<String> needed) {
         if (!Set.of("members", "dogs", "audit-entries").contains(data.definition().key()) || data.scope() != null || data.search() != null) return null;
-        var needed = new HashSet<String>(sort(data, query).keySet());
         query.filters().forEach(filter -> needed.add(data.definition().field(filter.field()).path()));
         if (!query.q().isEmpty()) needed.addAll(data.definition().searchable());
+        var selected = selectStages(data.stages(), needed);
+        if (selected == null) return null;
+        var stages = new ArrayList<Document>();
+        stages.add(new Document("$match", tenantQuery().getQueryObject()));
+        stages.addAll(selected); match(data, query, stages); return stages;
+    }
+    private List<Document> selectStages(List<Document> source, Set<String> needed) {
         var selected = new LinkedList<Document>();
-        for (int index = data.stages().size() - 1; index >= 0; index--) {
-            var stage = data.stages().get(index);
+        for (int index = source.size() - 1; index >= 0; index--) {
+            var stage = source.get(index);
             if (stage.size() == 1 && stage.get("$set") instanceof Document fields) {
                 var required = new Document();
                 fields.forEach((field, expression) -> {
@@ -107,16 +118,33 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
             } else if (stage.size() == 1 && stage.get("$lookup") instanceof Document lookup) {
                 String target = lookup.getString("as");
                 if (needed.stream().anyMatch(path -> overlaps(path, target))) {
+                    var narrowed = selectLookup(lookup, needed);
                     needed.removeIf(path -> path.equals(target) || path.startsWith(target + "."));
                     references(lookup.get("let"), needed);
                     if (lookup.get("localField") instanceof String field) needed.add(field);
-                    selected.addFirst(stage);
+                    selected.addFirst(new Document("$lookup", narrowed));
                 }
             } else return null; // Never reorder stages that can change row membership or cardinality.
         }
-        var stages = new ArrayList<Document>();
-        stages.add(new Document("$match", tenantQuery().getQueryObject()));
-        stages.addAll(selected); match(data, query, stages); return stages;
+        return selected;
+    }
+    /** A name/level search needs the dog's relevant fields, not its documents and every presentation join. */
+    private Document selectLookup(Document lookup, Set<String> needed) {
+        String target = lookup.getString("as");
+        // Reading a whole object/array requires its complete original projection.
+        if (needed.stream().anyMatch(path -> path.equals(target) || target.startsWith(path + "."))) return lookup;
+        var pipeline = lookup.getList("pipeline", Document.class);
+        if (pipeline == null || pipeline.isEmpty()) return lookup;
+        int prefix = 0;
+        // Keep the leading tenant/reference predicates exactly as supplied. Later matches, unwind, group,
+        // project and other membership/cardinality-changing stages cause selectStages to decline the rewrite.
+        while (prefix < pipeline.size() && pipeline.get(prefix).size() == 1 && pipeline.get(prefix).containsKey("$match")) prefix++;
+        var fields = new HashSet<String>();
+        needed.stream().filter(path -> path.startsWith(target + ".")).forEach(path -> fields.add(path.substring(target.length() + 1)));
+        var selected = selectStages(pipeline.subList(prefix, pipeline.size()), fields);
+        if (selected == null) return lookup;
+        var stages = new ArrayList<>(pipeline.subList(0, prefix)); stages.addAll(selected);
+        return new Document(lookup).append("pipeline", stages);
     }
     private static boolean overlaps(String a, String b) { return a.equals(b) || a.startsWith(b + ".") || b.startsWith(a + "."); }
     private static void references(Object value, Set<String> paths) {
