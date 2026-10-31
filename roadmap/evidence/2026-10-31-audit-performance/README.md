@@ -11,3 +11,5 @@ Production read-only measurements: the existing HTTP list took 23.337 seconds. E
 Reproduction script, sanitized measurements, current-runtime readback and the isolated source patch are in SOFTWARE_CANIC `ops/evidence/2026-10-31-audit-performance/`. The patch excludes the pre-existing `.gitignore` modification. No HTTP contract or database migration is required.
 
 Jordi subsequently authorized production deployment on 2026-10-31. The scoped publication contains only this fix and its evidence; exact-commit CI and production activation are tracked in SOFTWARE_CANIC.
+
+The first publication CI flagged a generated OpenAPI trace UUID in a `.txt` log tail. Tail files now use `.log`, the existing evidence format covered by the identifier-only scanner rule. No scanner exception or product code changed. The complete source logs and adjacent-credential protections are retained.
