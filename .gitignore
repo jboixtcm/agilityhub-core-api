@@ -81,3 +81,9 @@ __pycache__/
 # User-authorized internal deployment verification evidence.
 !roadmap/evidence/2026-10-26-brevo-provider/*.log
 !roadmap/evidence/2026-10-26-volume-backup/*.log
+
+# Template coverage and team listing incident regression evidence.
+!roadmap/evidence/2026-10-29-templates-team/*.log
+
+# Validation logs for Josep feedback, 2026-11-01.
+!roadmap/evidence/2026-11-01-josep-feedback/*.log

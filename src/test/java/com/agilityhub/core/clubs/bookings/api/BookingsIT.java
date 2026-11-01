@@ -28,6 +28,24 @@ class BookingsIT extends BookingFixtures {
     @Autowired BookingCancellationService cancellations; @Autowired ClassCancellationUseCase classCancellations; @Autowired BookingActivity activity;
     @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway gateway; @Autowired com.agilityhub.core.payments.application.UpfrontPayments upfrontPayments;
 
+    @Test void T_08_14_weeklyLimitExplainsLateCancellationsWithoutAttendance() throws Exception {
+        var first = book(as("laura"), "wed", "s08-d-duna");
+        book(as("laura"), "thu", "s08-d-duna");
+        clock.setInstant(local("2026-10-07T16:00"));
+        cancel(as("laura"), first.path("id").asText(), 200);
+        clock.setInstant(local("2026-10-08T16:00"));
+        var refused = hold(as("laura"), "sat", "s08-d-duna", 409);
+        assertThat(code(refused)).isEqualTo("BOOKING_LIMIT_REACHED");
+        assertThat(refused.at("/details/notSelectable")).extracting(n -> n.path("bookingState").asText())
+                .containsExactly("CANCELLED_LATE", "ACTIVE");
+        assertThat(refused.at("/details/notSelectable")).allSatisfy(n -> {
+            assertThat(n.path("description").asText()).isNotBlank();
+            assertThat(n.path("startsAtLocal").asText()).isNotBlank();
+            assertThat(n.has("attendance")).isFalse();
+            assertThat(n.has("attendanceState")).isFalse();
+        });
+    }
+
     @Test void T_08_14_holdCreatesRefreshesAndRejectsWithTheRightDetails() throws Exception {
         var held = hold(as("laura"), "wed", "s08-d-duna", 201);
         assertThat(held.path("serverNow").asText()).isEqualTo(NOW.toString()); assertThat(held.path("holdSeconds").asInt()).isEqualTo(30);

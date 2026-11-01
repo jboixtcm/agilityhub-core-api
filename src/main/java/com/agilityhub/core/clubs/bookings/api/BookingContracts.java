@@ -98,7 +98,8 @@ public final class BookingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringName) { }
     public record NotSelectable(String bookingId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = LOCAL) String startsAtLocal,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String description, NotSelectableReason reason) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String description, NotSelectableReason reason,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Booking state, including CANCELLED_LATE; no attendance data. Lets the weekly-limit list distinguish a late cancellation from a class already started.") BookingState bookingState) { }
     public record HoldPayment(ChargeMode mode, Money price) { }
     public record PackBalance(int available, @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate expiresOn) { }
 

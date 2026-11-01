@@ -1,0 +1,23 @@
+[
+  {
+    "class": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "class": "com.agilityhub.core.clubs.bookings.domain.BookingRulesTest",
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "class": "com.agilityhub.core.clubs.bookings.api.BookingsIT",
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

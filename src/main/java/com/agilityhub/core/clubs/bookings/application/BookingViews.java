@@ -78,7 +78,7 @@ public class BookingViews {
     private List<Map<String, Object>> notSelectable(BookingLimits.Result r) {
         return r.notSelectable().stream().map(n -> {
             return map("bookingId", n.booking().bookingId(), "startsAtLocal", local(n.booking().classStartsAt()),
-                    "description", labelsOf(n.booking().classSessionId()).description(), "reason", n.reason());
+                    "description", labelsOf(n.booking().classSessionId()).description(), "reason", n.reason(), "bookingState", n.booking().state());
         }).toList();
     }
 
