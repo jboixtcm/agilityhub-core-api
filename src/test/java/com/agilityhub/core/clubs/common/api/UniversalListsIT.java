@@ -38,7 +38,7 @@ class UniversalListsIT extends AbstractIntegrationTest {
     @Autowired ClubRepository clubs; @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts;
     @BeforeEach void prepare() {
         TenantContext.clear();
-        for (String collection : List.of("members", "dogs", "plans", "prices", "levels", "dog_documents", "memberships", "saved_views", "export_jobs", "audit_entries", "domain_events")) {
+        for (String collection : List.of("members", "dogs", "plans", "prices", "levels", "dog_documents", "memberships", "saved_views", "export_jobs", "audit_entries", "domain_events", "inactivity_periods", "leave_requests")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         mongo.remove(Query.query(Criteria.where("_id").in(CLUB, OTHER)), Club.class);
@@ -338,10 +338,35 @@ class UniversalListsIT extends AbstractIntegrationTest {
         assertThat(((Number) reads.getFirst().get("docsExamined")).longValue()).isLessThanOrEqualTo(60);
     }
 
+    @Test void T_03_09_signupFacetsReadDogStatusWithoutLoadingDogPresentation() throws Exception {
+        var extra = new ArrayList<Document>();
+        for (int i = 0; i < 200; i++) extra.add(dog("pending-facet-" + i, "Pending fixture " + i, CLUB)
+                .append("chip", String.format("1%014d", i)).append("status", "PENDING"));
+        mongo.insert(extra, "dogs");
+        var reads = com.agilityhub.core.support.MongoReads.during(mongo, List.of("members"), () -> {
+            var result = json(admin(get("/api/v1/members/filter-values").param("field", "signupPending")), 200);
+            assertThat(result.path("values")).hasSize(2);
+            assertThat(result.path("values").findValuesAsText("count")).containsExactly("59", "1");
+        });
+        assertThat(reads).hasSize(1);
+        assertThat(((Number) reads.getFirst().get("docsExamined")).longValue()).isLessThanOrEqualTo(261);
+    }
+
     @Test void Word_20261030_paginatedCensusMatchesFullProjectionForSearchFiltersAndSorting() throws Exception {
         var extra = new ArrayList<Document>();
         for (int i = 100; i < 1100; i++) extra.add(member(i));
         mongo.insert(extra, "members");
+        var relatedDogs = new ArrayList<Document>();
+        for (int i = 100; i < 340; i++) relatedDogs.add(dog("batch-dog-" + i, "Batch dog " + i, CLUB)
+                .append("memberId", "member-" + (i % 20 == 0 ? 100 : i)).append("chip", String.format("2%014d", i))
+                .append("status", i % 3 == 0 ? "PENDING" : "ACTIVE"));
+        mongo.insert(relatedDogs, "dogs");
+        mongo.insert(new Document("_id", "batch-inactivity").append("clubId", CLUB).append("memberId", "member-100")
+                .append("state", "ACTIVE").append("fromMonth", "2000-01").append("toMonth", null), "inactivity_periods");
+        mongo.insert(new Document("_id", "batch-leave").append("clubId", CLUB).append("memberId", "member-101").append("state", "PENDING"), "leave_requests");
+        mongo.insert(new Document("_id", "batch-foreign-leave").append("clubId", OTHER).append("memberId", "member-102").append("state", "PENDING"), "leave_requests");
+        mongo.insert(new Document("_id", "batch-doc").append("clubId", CLUB).append("dogId", "batch-dog-102")
+                .append("type", "VACCINATION_CARD").append("state", "PENDING"), "dog_documents");
         var jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("fictional").header("alg", "none").subject("example-admin").claim("clubId", CLUB).build();
         var security = org.springframework.security.core.context.SecurityContextHolder.getContext();
         var previous = security.getAuthentication();
@@ -349,8 +374,8 @@ class UniversalListsIT extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open(CLUB); var locale = com.agilityhub.core.shared.application.LocaleContext.open(Locale.forLanguageTag("ca"))) {
             for (String key : List.of("members", "dogs")) {
                 var data = censusLists.dataset(key);
-                var scenarios = key.equals("members") ? List.of("", "size=1000", "q=Duna", "q=Example 109", "filter=status:eq:ACTIVE", "filter=dogLevelId:eq:level-a", "filter=imageRightsGranted:eq:true", "filter=hasPendingDocuments:eq:true", "filter=freeTrainingAllowed:eq:true", "sort=lastName,desc&page=1", "filter=id:eq:other-member")
-                        : List.of("", "q=Fictional", "filter=levelId:eq:level-a", "filter=hasPendingDocuments:eq:true", "sort=ownerLastName,desc");
+                var scenarios = key.equals("members") ? List.of("", "size=1000", "size=200&page=1&sort=lastName,desc", "size=200&filter=signupPending:eq:true", "size=200&fields=fullName,displayStatus,hasPendingRequest", "q=Duna", "q=Example 109", "filter=status:eq:ACTIVE", "filter=dogLevelId:eq:level-a", "filter=imageRightsGranted:eq:true", "filter=hasPendingDocuments:eq:true", "filter=freeTrainingAllowed:eq:true", "sort=lastName,desc&page=1", "filter=id:eq:other-member")
+                        : List.of("", "size=1000", "size=200&page=1&sort=ownerLastName,desc", "size=200&page=10", "q=Fictional", "filter=levelId:eq:level-a", "filter=hasPendingDocuments:eq:true", "sort=ownerLastName,desc");
                 for (String scenario : scenarios) {
                     var params = new org.springframework.util.LinkedMultiValueMap<String,String>(); params.add("size", "20");
                     if (!scenario.isEmpty()) for (String part : scenario.split("&")) { var pair = part.split("=", 2); params.set(pair[0], pair[1]); }

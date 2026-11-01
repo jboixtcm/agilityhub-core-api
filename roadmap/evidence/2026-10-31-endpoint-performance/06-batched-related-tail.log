@@ -1,0 +1,40 @@
+2026-11-01T13:52:10.384+01:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 6 ms
+2026-11-01T13:52:10.436+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 59619 (http) with context path '/'
+2026-11-01T13:52:10.466+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-11-01T13:52:10.467+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-11-01T13:52:10.467+01:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-11-01T13:52:10.476+01:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 38 ms
+2026-11-01T13:52:10.482+01:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-01T13:52:10.500+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 59620 (http) with context path '/'
+2026-11-01T13:52:10.506+01:00 INFO  [main] c.a.c.clubs.common.api.UniversalListsIT traceId= clubId= accountId= : Started UniversalListsIT in 7.198 seconds (process running for 10.129)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+CENSUS_BENCH members  optimizedMs=11,79 originalMs=238,51
+CENSUS_BENCH members size=1000 optimizedMs=53,66 originalMs=265,27
+CENSUS_BENCH members size=200&page=1&sort=lastName,desc optimizedMs=12,72 originalMs=240,72
+CENSUS_BENCH members size=200&filter=signupPending:eq:true optimizedMs=28,29 originalMs=240,06
+CENSUS_BENCH members size=200&fields=fullName,displayStatus,hasPendingRequest optimizedMs=9,57 originalMs=233,80
+CENSUS_BENCH members q=Duna optimizedMs=34,82 originalMs=215,37
+CENSUS_BENCH members q=Example 109 optimizedMs=35,27 originalMs=216,14
+CENSUS_BENCH members filter=status:eq:ACTIVE optimizedMs=9,68 originalMs=116,88
+CENSUS_BENCH members filter=dogLevelId:eq:level-a optimizedMs=25,92 originalMs=178,94
+CENSUS_BENCH members filter=imageRightsGranted:eq:true optimizedMs=11,00 originalMs=236,31
+CENSUS_BENCH members filter=hasPendingDocuments:eq:true optimizedMs=55,57 originalMs=229,21
+CENSUS_BENCH members filter=freeTrainingAllowed:eq:true optimizedMs=46,77 originalMs=186,85
+CENSUS_BENCH members sort=lastName,desc&page=1 optimizedMs=9,62 originalMs=239,03
+CENSUS_BENCH members filter=id:eq:other-member optimizedMs=3,01 originalMs=2,02
+CENSUS_BENCH dogs  optimizedMs=3,66 originalMs=15,02
+CENSUS_BENCH dogs size=1000 optimizedMs=8,10 originalMs=18,32
+CENSUS_BENCH dogs size=200&page=1&sort=ownerLastName,desc optimizedMs=8,65 originalMs=16,15
+CENSUS_BENCH dogs size=200&page=10 optimizedMs=1,33 originalMs=15,58
+CENSUS_BENCH dogs q=Fictional optimizedMs=9,60 originalMs=15,51
+CENSUS_BENCH dogs filter=levelId:eq:level-a optimizedMs=2,85 originalMs=14,54
+CENSUS_BENCH dogs filter=hasPendingDocuments:eq:true optimizedMs=6,25 originalMs=14,74
+CENSUS_BENCH dogs sort=ownerLastName,desc optimizedMs=8,96 originalMs=14,87
+2026-11-01T13:52:16.791+01:00 INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-01T13:52:16.792+01:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-11-01T13:52:16.793+01:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms

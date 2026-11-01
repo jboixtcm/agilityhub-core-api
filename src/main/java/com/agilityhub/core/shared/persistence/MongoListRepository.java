@@ -28,7 +28,8 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
             // Reapply the same stable ordering after the join; count and selection stay in one aggregate.
             var presentation = new ArrayList<Document>();
             presentation.add(new Document("$match", tenantQuery().getQueryObject()));
-            presentation.addAll(data.stages());
+            presentation.addAll(query.size() >= 200 && Set.of("members", "dogs").contains(data.definition().key())
+                    ? batchCensusJoins(data.stages()) : data.stages());
             presentation.add(new Document("$sort", sort(data, query)));
             presentation.add(project(data, query.fields()));
             items.add(new Document("$group", new Document("_id", null).append("ids", new Document("$push", "$_id"))));
@@ -115,8 +116,10 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
                 });
                 if (!required.isEmpty()) {
                     // All expressions in a $set read the document before that stage.
+                    var inputs = new HashSet<String>();
+                    required.forEach((field, expression) -> setReferences(field, expression, needed, inputs));
                     needed.removeIf(path -> required.keySet().stream().anyMatch(field -> path.equals(field) || path.startsWith(field + ".")));
-                    references(required, needed);
+                    needed.addAll(inputs);
                     selected.addFirst(new Document("$set", required));
                 }
             } else if (stage.size() == 1 && stage.get("$lookup") instanceof Document lookup) {
@@ -150,7 +153,94 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         var stages = new ArrayList<>(pipeline.subList(0, prefix)); stages.addAll(selected);
         return new Document(lookup).append("pipeline", stages);
     }
+    /** A filtered array's selected children also need its predicate fields, not every presentation field. */
+    private static void setReferences(String field, Object expression, Set<String> needed, Set<String> inputs) {
+        if (expression instanceof Document outer && outer.size() == 1 && outer.get("$filter") instanceof Document filter
+                && filter.get("input") instanceof String input && input.startsWith("$") && !input.startsWith("$$")
+                && needed.stream().filter(path -> overlaps(path, field)).allMatch(path -> path.startsWith(field + "."))) {
+            String source = input.substring(1), alias = "$$" + filter.getString("as");
+            var predicate = new Document(filter); predicate.remove("input"); predicate.remove("as");
+            // Only rewrite the simple field-equality predicate used by pendingDogs. Other expressions keep the full input.
+            if (predicate.size() == 1 && predicate.get("cond") instanceof Document condition && condition.size() == 1
+                    && condition.get("$eq") instanceof List<?> values && values.size() == 2
+                    && values.getFirst() instanceof String value && value.startsWith(alias + ".")
+                    && values.getLast() instanceof String literal && !literal.startsWith("$")) {
+                needed.stream().filter(path -> path.startsWith(field + "."))
+                        .forEach(path -> inputs.add(source + path.substring(field.length())));
+                inputs.add(source + value.substring(alias.length()));
+                return;
+            }
+        }
+        references(expression, inputs);
+    }
     private static boolean overlaps(String a, String b) { return a.equals(b) || a.startsWith(b + ".") || b.startsWith(a + "."); }
+    /** Large pages share related-row reads across their selected ids instead of executing every join per row. */
+    private List<Document> batchCensusJoins(List<Document> stages) {
+        var result = new ArrayList<Document>();
+        for (var stage : stages) {
+            if (!(stage.get("$lookup") instanceof Document lookup) || !(lookup.get("let") instanceof Document variables)
+                    || variables.size() != 1 || !(variables.get("reference") instanceof Document reference) || reference.size() != 1
+                    || !(reference.get("$ifNull") instanceof List<?> source) || source.size() != 2
+                    || !"".equals(source.getLast())
+                    || !(source.getFirst() instanceof String local) || !local.startsWith("$") || local.startsWith("$$")) {
+                result.add(stage); continue;
+            }
+            var pipeline = lookup.getList("pipeline", Document.class);
+            if (pipeline == null || pipeline.isEmpty() || !(pipeline.getFirst().get("$match") instanceof Document match)
+                    || match.size() != 2 || !Objects.equals(match.get("clubId"), tenantQuery().getQueryObject().get("clubId"))
+                    || !(match.get("$expr") instanceof Document expression) || expression.size() != 1
+                    || !(expression.get("$eq") instanceof List<?> equality) || equality.size() != 2
+                    || !(equality.getFirst() instanceof String field) || !field.startsWith("$") || field.startsWith("$$")
+                    || !"$$reference".equals(equality.getLast())) {
+                result.add(stage); continue;
+            }
+            String foreign = field.substring(1);
+            var rest = pipeline.subList(1, pipeline.size());
+            if (rest.stream().anyMatch(s -> !batchJoinStageSafe(s, foreign) || usesReferenceVariable(s))) {
+                result.add(stage); continue;
+            }
+            var related = new ArrayList<Document>();
+            related.add(new Document("$match", new Document("clubId", match.get("clubId"))));
+            related.addAll(batchCensusJoins(rest));
+            related.add(new Document("$group", new Document("_id", field).append("rows", new Document("$push", "$$ROOT"))));
+            result.add(new Document("$group", new Document("_id", null).append("__batchRows", new Document("$push", "$$ROOT"))));
+            result.add(new Document("$set", new Document("__batchRefs", new Document("$map", new Document("input", "$__batchRows")
+                    .append("as", "row").append("in", prefixReferences(reference, "$$row."))))));
+            result.add(new Document("$lookup", new Document("from", lookup.getString("from")).append("localField", "__batchRefs")
+                    .append("foreignField", foreign).append("as", "__batchJoined").append("pipeline", related)));
+            result.add(new Document("$unwind", "$__batchRows"));
+            var index = new Document("$indexOfArray", List.of("$__batchJoined._id", prefixReferences(reference, "$__batchRows.")));
+            var rows = new Document("$let", new Document("vars", new Document("index", index)).append("in", new Document("$cond", List.of(
+                    new Document("$gte", List.of("$$index", 0)), new Document("$arrayElemAt", List.of("$__batchJoined.rows", "$$index")), List.of()))));
+            result.add(new Document("$set", new Document("__batchRows." + lookup.getString("as"), rows)));
+            result.add(new Document("$replaceWith", "$__batchRows"));
+        }
+        return result;
+    }
+    private static boolean batchJoinStageSafe(Document stage, String foreign) {
+        if (stage.size() != 1) return false;
+        if (stage.get("$match") instanceof Document) return true;
+        if (stage.get("$set") instanceof Document fields) return fields.keySet().stream().noneMatch(path -> overlaps(path, foreign));
+        return stage.get("$lookup") instanceof Document lookup && !overlaps(lookup.getString("as"), foreign);
+    }
+    private static boolean usesReferenceVariable(Object value) {
+        if (value instanceof String text) return text.equals("$$reference") || text.startsWith("$$reference.");
+        if (value instanceof Document stage && stage.get("$lookup") instanceof Document lookup
+                && lookup.get("let") instanceof Document variables && variables.containsKey("reference")) {
+            var outer = new Document(lookup); outer.remove("pipeline"); // This lookup's pipeline binds its own reference.
+            return usesReferenceVariable(outer);
+        }
+        if (value instanceof Map<?, ?> map) return map.values().stream().anyMatch(MongoListRepository::usesReferenceVariable);
+        return value instanceof Iterable<?> items && java.util.stream.StreamSupport.stream(items.spliterator(), false).anyMatch(MongoListRepository::usesReferenceVariable);
+    }
+    private static Object prefixReferences(Object value, String prefix) {
+        if (value instanceof String text && text.startsWith("$") && !text.startsWith("$$")) return prefix + text.substring(1);
+        if (value instanceof Document document) {
+            var copy = new Document(); document.forEach((key, item) -> copy.put(key, prefixReferences(item, prefix))); return copy;
+        }
+        if (value instanceof List<?> values) return values.stream().map(item -> prefixReferences(item, prefix)).toList();
+        return value;
+    }
     private static void references(Object value, Set<String> paths) {
         if (value instanceof String text && text.startsWith("$") && !text.startsWith("$$")) paths.add(text.substring(1));
         else if (value instanceof Map<?, ?> map) map.values().forEach(item -> references(item, paths));

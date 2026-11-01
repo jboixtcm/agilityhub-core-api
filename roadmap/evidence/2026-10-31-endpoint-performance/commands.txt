@@ -14,3 +14,9 @@ Exit 0.
 
 5. ./mvnw -q clean test -Dtest='Audit*Test,ListQueryTest' failsafe:integration-test failsafe:verify -Dit.test='AuditQueriesIT,ListFieldsContractIT,UniversalListsIT'
 Batched page enrichment and the 1,000-row equivalence scenario. Final exit: 04-batched-focused.exit. Log: 04-batched-focused.log.
+
+6. ./mvnw -q test-compile failsafe:integration-test failsafe:verify -Dit.test='UniversalListsIT'
+Exit 0 for the remaining facets (05-remaining-facets.log) and batched related rows (06-batched-related.log).
+
+7. ./mvnw -q clean test -Dtest='Audit*Test,ListQueryTest' failsafe:integration-test failsafe:verify -Dit.test='AuditQueriesIT,ListFieldsContractIT,UniversalListsIT,CensusIT,LifecycleIT,SignupCensusCorrectionsIT'
+Final follow-up: exit and log in 07-final-followup.*, per-suite results in followup-test-summary.json.

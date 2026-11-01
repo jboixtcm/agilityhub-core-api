@@ -85,7 +85,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         stages.add(new Document("$set",new Document("signup",new Document("$cond",List.of(expr("$and",expr("$eq","$status","ACTIVE"),expr("$gt",expr("$size","$pendingDogs"),0)),
                 fallback(oldestPending,"$signup"),"$signup")))));
         stages.add(join("upfront_payments","$_id","memberId","signupPayments",List.of()));
-        stages.add(new Document("$set",new Document("signupPending",expr("$gt",expr("$size","$pendingDogs"),0))));
+        stages.add(new Document("$set",new Document("signupPending",expr("$in","PENDING","$dogs.status"))));
         var warnings=new ArrayList<Object>();
         warnings.add(new Document("$cond",List.of(expr("$ne",fallback("$consents.imageRights.granted",false),true),List.of("NO_IMAGE_CONSENT"),List.of())));
         warnings.add(new Document("$cond",List.of(expr("$in",true,"$pendingDogs.hasPendingDocuments"),List.of("DOCUMENT_PENDING"),List.of())));

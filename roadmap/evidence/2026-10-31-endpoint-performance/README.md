@@ -15,3 +15,13 @@ The expanded survey also found the 1,000-member page at 5.6 seconds (three furth
 The existing original-vs-optimized census regression now includes the 1,000-row page. Final validation of this additional batching change: `04-batched-focused.log`, `04-batched-focused.exit`, `04-batched-focused-tail.log` and `batched-test-summary.json`.
 
 The final clean batching run passes all 61 unit and 55 integration tests, including the 1,000-row equality case and the audit document-read bound. No failures, errors or skips.
+
+## Production follow-up, 2026-11-01
+
+Release `20261101T122819Z-performance` passed backup, restore, escrow and public HTTPS checks. Its API was retained by the later member-PWA release. Audit list HTTP improved from 19,507 ms immediately before activation to 352 ms with an identical response; audit facets improved from about 15,000 ms to 328–379 ms. All 144 readback requests succeeded, but pending-signup and warning facets plus the 1,000-member page still exceeded five seconds. The original October 31 survey also predates ordinary data changes; only the immediately adjacent snapshot/critical-response comparison establishes data preservation.
+
+Follow-up: derive `signupPending` from `dogs.status`; narrow the known pending-dog `$filter` dependency to its selected children and equality predicate. Large census pages (200/1,000 rows) group selected source rows while fetching their related rows in batches, preserve tenant predicates and restore the original rows and stable ordering. Unsupported/correlated shapes retain the existing path. An equivalent production read-only aggregate returned the identical 1,000 rows/count in 4,263 ms versus 13,443 ms. Other exploratory rewrites did not improve consistently and were not implemented.
+
+The census comparison now includes 240 dogs, multiple dogs per owner, pending documents, current lifecycle rows and a foreign-club leave referencing an own member. It compares full, sparse, searched, filtered, ordered and empty 200/1,000-row pages with the original projection. A profiler regression limits signup-facet reads to member and dog records, excluding dog presentation joins. The focused facet and batched-page runs pass; final expanded clean results are in `07-final-followup.log`, `07-final-followup.exit`, `07-final-followup-tail.log` and `followup-test-summary.json`.
+
+The final expanded clean run passes 61 unit tests and 192 integration tests with no failures, errors or skips.

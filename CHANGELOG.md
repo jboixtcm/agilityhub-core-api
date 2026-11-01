@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Large census pages batch related-row lookups across the selected page. Pending-signup facets read dog status directly, and filtered-array selection retains only required child fields and predicate dependencies. Preserve tenant predicates, related-array contents, stable ordering and full/sparse page contracts.
+
 - Weekly booking-limit details expose the booking state, including late cancellation, without attendance data (Josep feedback, 2026-11-01).
 
 - Census and audit filter-value queries compute only the fields needed for filtering and counting. Nested census lookups skip unused presentation data while preserving tenant predicates, derived fields, search semantics and distinct per-document facet counts. Page enrichment reloads selected ids in one batch, including the 1,000-row option, and restores stable sorting.
