@@ -206,8 +206,7 @@ class BackOfficeContractIT extends BookingFixtures {
      * and keep answering a non-blank one with 400 INVALID_FILTER, never a 500; a blank `q` is no search.
      */
     @Test void CONVENCIONS_API_4_theListsWithoutSearchRefuseANonBlankQ() throws Exception {
-        for (String path : List.of("/bookings", "/bookings/filter-values?field=state", "/class-sessions", "/weeks", "/attendances", "/jobs/cleanup/runs",
-                "/notifications", "/notifications/filter-values?field=code", "/notifications/export?format=xlsx")) {
+        for (String path : List.of("/bookings", "/bookings/filter-values?field=state", "/class-sessions", "/weeks", "/attendances", "/jobs/cleanup/runs")) {
             String separator = path.contains("?") ? "&" : "?";
             assertThat(code(call(GET, path + separator + "q=Duna", null, as("admin"), 400))).as(path).isEqualTo("INVALID_FILTER");
             call(GET, path + separator + "q=", null, as("admin"), 200);

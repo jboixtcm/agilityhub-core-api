@@ -34,9 +34,9 @@ public class MessagingContractAccess {
             Map.of("code", new Field("code", Type.TEXT), "category", new Field("category", Type.TEXT), "channel", new Field("deliveries.channel", Type.TEXT),
                     "status", new Field("deliveries.status", Type.TEXT), "memberId", new Field("recipient.memberId", Type.TEXT),
                     "createdAt", new Field("createdAt", Type.INSTANT)),
-            Map.of("createdAt", "createdAt"), List.of(),
+            Map.of("createdAt", "createdAt"), List.of("code", "title", "recipient.displayName", "recipient.email", "recipientEmail"),
             List.of("createdAt", "code", "recipient", "channels", "readAt"), List.of("createdAt", "code", "recipient", "channels"),
-            List.of("createdAt,desc"), Set.of("id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId"));
+            List.of("createdAt,desc"), Set.of("id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId", "title"));
 
     private final MessageTemplateRepository templates; private final NotificationRepository notifications; private final PushSubscriptionRepository subscriptions;
     private final TeamMemberAccess members; private final MemberIdentityAccess identities;

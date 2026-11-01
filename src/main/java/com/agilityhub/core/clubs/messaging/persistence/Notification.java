@@ -64,7 +64,11 @@ public record Notification(@Id String id, String clubId, String code, Notificati
      * provider's answer, removed by the settlement; a delivery that carries it is never sent again, only settled.
      */
     public record Delivery(NotificationChannel channel, String target, DeliveryStatus status, int attempts, Instant nextAttemptAt, String providerRef,
-            String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt, String claimToken, Instant claimedUntil, Instant acceptedAt) {
+            String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt, String claimToken, Instant claimedUntil, Instant acceptedAt, Instant temporaryFailureAt, String temporaryFailureReason) {
+        public Delivery(NotificationChannel channel, String target, DeliveryStatus status, int attempts, Instant nextAttemptAt, String providerRef,
+                String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt, String claimToken, Instant claimedUntil, Instant acceptedAt) {
+            this(channel, target, status, attempts, nextAttemptAt, providerRef, lastError, sentAt, deliveredAt, failedAt, claimToken, claimedUntil, acceptedAt, null, null);
+        }
         public Delivery(NotificationChannel channel, String target, DeliveryStatus status, int attempts, Instant nextAttemptAt, String providerRef,
                 String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt) {
             this(channel, target, status, attempts, nextAttemptAt, providerRef, lastError, sentAt, deliveredAt, failedAt, null, null, null);

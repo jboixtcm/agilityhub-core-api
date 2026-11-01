@@ -72,7 +72,7 @@ class E7ResponseContractTest {
         assertThat(Arrays.stream(MessagingContracts.NotificationDetail.class.getRecordComponents()).map(RecordComponent::getName))
                 .contains("deliveries", "subject", "templateId", "templateVersion", "eventType", "locale");
         assertThat(Arrays.stream(MessagingContracts.DeliveryView.class.getRecordComponents()).map(RecordComponent::getName))
-                .containsExactly("channel", "target", "status", "attempts", "nextAttemptAt", "providerRef", "lastError", "sentAt", "deliveredAt", "failedAt");
+                .containsExactly("channel", "target", "status", "attempts", "nextAttemptAt", "providerRef", "lastError", "sentAt", "deliveredAt", "failedAt", "temporaryFailureAt", "temporaryFailureReason");
     }
 
     @Test void WP_11_A_eventsHaveExactlyTheS11PayloadFieldsAndEnvelope() throws Exception {

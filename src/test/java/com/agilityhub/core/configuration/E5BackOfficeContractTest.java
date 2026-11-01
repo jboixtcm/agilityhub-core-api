@@ -64,8 +64,7 @@ class E5BackOfficeContractTest {
     /**
      * Round 2 (ruling E75, CONVENCIONS_API §4 as amended 30-09): `q` is declared exactly on the operations whose list searches (each
      * list's searchable paths, read in its `ListDefinition` or its catalog query). The lists without search do not declare it:
-     * the bookings and their filter values, the class sessions, the weeks, the attendances, a process's runs, and the notification
-     * log with its filter values and export. `BackOfficeContractIT` checks that they answer a non-blank `q` with 400 INVALID_FILTER,
+     * the bookings and their filter values, the class sessions, the weeks, the attendances and a process's runs. The admin notification log searches recipient identity and safe subjects. `BackOfficeContractIT` checks that they answer a non-blank `q` with 400 INVALID_FILTER,
      * and `TrainingRegisterContractIT` that the register and the blocks search.
      */
     @Test void CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch() {
@@ -79,6 +78,7 @@ class E5BackOfficeContractTest {
                 "GET /api/v1/dogs", "GET /api/v1/dogs/export", "POST /api/v1/dogs/export", "GET /api/v1/dogs/filter-values",
                 "GET /api/v1/audit-entries", "GET /api/v1/audit-entries/export", "POST /api/v1/audit-entries/export", "GET /api/v1/audit-entries/filter-values",
                 "GET /api/v1/members/{id}/audit-entries",
+                "GET /api/v1/notifications", "GET /api/v1/notifications/filter-values", "GET /api/v1/notifications/export",
                 "GET /api/v1/activities", "GET /api/v1/activities/export", "GET /api/v1/activities/filter-values", "GET /api/v1/activities/{id}/registrations",
                 "GET /api/v1/activity-registrations/export",
                 "GET /api/v1/training-bookings", "GET /api/v1/training-bookings/export", "GET /api/v1/training-bookings/filter-values",
@@ -94,8 +94,7 @@ class E5BackOfficeContractTest {
                 // Contract-only routes: their implementation (and search) is deferred. E11-T01's console list of erasure requests
                 // has ids, states and dates only: it does not search.
                 "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/security-events");
-        for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs",
-                "/notifications", "/notifications/filter-values", "/notifications/export")) {
+        for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs")) {
             assertThat(document.path("paths").has("/api/v1" + without)).as(without).isTrue();
             assertThat(declared).as(without).doesNotContain("GET /api/v1" + without);
         }

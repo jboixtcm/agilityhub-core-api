@@ -77,6 +77,40 @@ class NotificationLogIT extends AbstractIntegrationTest {
         mongo.insert(row("log-other", OTHER, "N-08a", "log-m-other", now.minusSeconds(10), new Notification.Delivery(NotificationChannel.APP, "log-other",
                 DeliveryStatus.DELIVERED, 0, null, null, null, null, null, null)));
     }
+    @Test void systemAccessEmailsAreSearchableOnlyInsideTheirClubAndShowTemporaryHistory() throws Exception {
+        for (String club : java.util.Arrays.asList(CLUB, OTHER, null)) {
+            mongo.insert(new Notification("log-reset-" + club, club, "reset-account", "N-25", "EMAIL", Notification.Status.SENT,
+                    "brevo:example", now, null, "reset-person@example.test", "ca", now, null));
+        }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("log-reset-" + CLUB)), new org.springframework.data.mongodb.core.query.Update()
+                .set("deliveries.0.temporaryFailureAt", now).set("deliveries.0.temporaryFailureReason", "SENDING_IP_BLOCKED_SPAMCOP"), Notification.class);
+        var result = call(as(get("/api/v1/notifications").param("q", "RESET-person@example.test"), "ADMIN", CLUB), 200);
+        assertThat(result.path("items")).singleElement().satisfies(item -> {
+            assertThat(item.path("id").asText()).isEqualTo("log-reset-" + CLUB);
+            assertThat(item.at("/recipient/email").asText()).isEqualTo("reset-person@example.test");
+            assertThat(item.at("/channels/0/status").asText()).isEqualTo("SENT");
+            assertThat(item.at("/channels/0/temporaryFailure").asBoolean()).isTrue();
+            assertThat(item.path("title").asText()).isEmpty();
+        });
+        var detail = call(as(get("/api/v1/notifications/log-reset-" + CLUB), "ADMIN", CLUB), 200);
+        assertThat(detail.path("body").asText()).isEmpty();
+        assertThat(detail.at("/deliveries/0/temporaryFailureReason").asText()).isEqualTo("SENDING_IP_BLOCKED_SPAMCOP");
+        call(as(get("/api/v1/notifications/log-reset-null"), "ADMIN", CLUB), 404);
+        call(as(get("/api/v1/notifications/log-reset-" + OTHER), "ADMIN", CLUB), 404);
+        var facets = call(as(get("/api/v1/notifications/filter-values").param("q", "reset-person").param("field", "code"), "ADMIN", CLUB), 200);
+        assertThat(facets.path("values")).singleElement().satisfies(v -> assertThat(v.path("value").asText()).isEqualTo("N-25"));
+        var export = mvc.perform(as(get("/api/v1/notifications/export").param("format", "xlsx").param("q", "reset-person").param("columns", "code"), "ADMIN", CLUB)).andReturn().getResponse();
+        assertThat(export.getStatus()).isEqualTo(200);
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(export.getContentAsByteArray()))) {
+            assertThat(workbook.getSheetAt(0).getLastRowNum()).isEqualTo(1);
+            assertThat(workbook.getSheetAt(0).getRow(1).getCell(0).toString()).isEqualTo("N-25");
+        }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("log-reset-" + CLUB)), new org.springframework.data.mongodb.core.query.Update()
+                .set("deliveries.0.status", "DELIVERED"), Notification.class);
+        var recovered = call(as(get("/api/v1/notifications").param("q", "reset-person"), "ADMIN", CLUB), 200).at("/items/0/channels/0");
+        assertThat(recovered.path("status").asText()).isEqualTo("DELIVERED");
+        assertThat(recovered.has("temporaryFailure")).isFalse();
+    }
     static Notification row(String id, String club, String code, String member, Instant at, Notification.Delivery... deliveries) {
         var n = NotificationFeedIT.notice(id, club, "log-account-" + member, code, NotificationAudience.MEMBER, at,
                 code.equals("N-08a") ? new Notification.Action(NotificationActionType.CHANGE_CLASS, Map.of("dogId", "log-duna")) : null, deliveries);

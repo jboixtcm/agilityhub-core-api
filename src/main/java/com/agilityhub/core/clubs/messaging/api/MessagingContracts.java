@@ -118,9 +118,15 @@ public final class MessagingContracts {
     // ---- The notification log (ADMIN, R-11-10)
     public record NotificationRecipient(String displayName, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String memberId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "APPLICANT rows: the only recipient data") String email) { }
-    public record ChannelState(NotificationChannel channel, DeliveryStatus status) { }
+    public record ChannelState(NotificationChannel channel, DeliveryStatus status,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "A temporary provider rejection is awaiting delivery; never a permanent bounce") Boolean temporaryFailure) {
+        public ChannelState(NotificationChannel channel, DeliveryStatus status) { this(channel, status, null); }
+    }
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record NotificationListItem(String id, Instant createdAt, String code, NotificationCategory category,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            @Schema(requiredMode = NOT_REQUIRED, description = "Safe stored title; empty for credential emails, whose type is identified by code") String title,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on a row written before E7-T02 that does not tell it") NotificationAudience audience,
             NotificationRecipient recipient, @Schema(description = "One per delivery") List<ChannelState> channels,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt,
@@ -141,7 +147,11 @@ public final class MessagingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The provider's message id") String providerRef,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The provider's last error") String lastError,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant sentAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant deliveredAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "When a temporary rejection was received; retained if delivery later succeeds") Instant temporaryFailureAt,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Safe classification: SENDING_IP_BLOCKED_SPAMCOP, SENDING_IP_BLOCKED, MAILBOX_FULL, RATE_LIMITED or TEMPORARY_REJECTION; never raw provider text") String temporaryFailureReason) { }
     public record NotificationDetail(String id, Instant createdAt, String code, NotificationCategory category,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on a row written before E7-T02 that does not tell it") NotificationAudience audience,
             NotificationRecipient recipient, List<ChannelState> channels, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt,

@@ -219,6 +219,13 @@ public class NotificationRepository extends TenantRepository<Notification> {
         else { update.set("deliveries.$.failedAt", change.at()).set("deliveries.$.lastError", change.error()); }
         return mongo.updateFirst(query, update, Notification.class).getModifiedCount() == 1;
     }
+    /** A temporary provider failure is evidence, not a terminal failure or a command to retry. */
+    public boolean temporaryEmailFailure(String id, String target, String reason, Instant at) {
+        var query = scoped(id).addCriteria(Criteria.where("deliveries").elemMatch(Criteria.where("channel").is("EMAIL")
+                .and("target").is(target).and("status").in("QUEUED", "SENT")));
+        return mongo.updateFirst(query, new Update().set("deliveries.$.temporaryFailureAt", at)
+                .set("deliveries.$.temporaryFailureReason", reason), Notification.class).getModifiedCount() == 1;
+    }
     public record DeliveryStatusChange(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus status, String error, Instant at) { }
     public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at) {
         var query = scoped(id).addCriteria(Criteria.where("status").is(Notification.Status.QUEUED));

@@ -422,3 +422,9 @@ Ordre: A → B0 (E1) → (B ∥ C ∥ D/E) → F. Tres fils: **B** (motor + prov
 - 17-10-2026 · E11-T02 (INC-53, decisió E89): §6, el `name` de D9 d'una plantilla del catàleg és el nom de producte («Nom» de `CATALEG_NOTIFICACIONS`, i les traduccions `es`/`en` al seed, `name`), no el títol; el d'una `CUSTOM`, el seu títol.
 - 17-10-2026 · E11-T02 (INC-53, decisió E89): §6, les files del log d'un comunicat porten el `batchId` del lot.
 - 18-10-2026 · E11-T10 (INC-40, decisió E109): R-11-09 i E13, el sondeig de 5 s i els enviaments just després de la confirmació corren al planificador de notificacions, d'un sol fil i separat del de l'outbox i del tic de S15: un proveïdor lent (SendGrid) ja no atura l'outbox; un enviament que no arriba a córrer deixa els lliuraments `QUEUED` per al sondeig (com a mínim una vegada).
+
+### Ajust operatiu del registre d’enviaments (2026-11-01)
+
+Administració accedeix directament al registre existent `/notificacions`. La cerca, els filtres, els valors de filtre i l’exportació comparteixen l’àmbit del club; es pot cercar per codi, assumpte emmagatzemat, nom o correu del destinatari. Els correus N-25 del club s’identifiquen com a accés i recuperació de contrasenya, sense emmagatzemar ni mostrar credencials o enllaços d’accés. Els correus SYSTEM sense club continuen fora del registre de qualsevol club.
+
+`SENT` vol dir acceptat pel proveïdor, no lliurament confirmat. Els esdeveniments Brevo `soft_bounce` i `deferred` guarden una incidència temporal amb una classificació segura del motiu i l’hora de recepció, sense supressió permanent ni reenviament. Una confirmació posterior pot passar a `DELIVERED`; el detall conserva la incidència anterior. Els intents mostrats són els de la plataforma. L’exportació conserva l’estat tècnic; l’historial temporal es consulta al detall del registre. Accés exclusiu ADMIN del club, també per al detall, els filtres i l’exportació.

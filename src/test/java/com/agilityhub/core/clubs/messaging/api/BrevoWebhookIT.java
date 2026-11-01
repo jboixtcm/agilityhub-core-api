@@ -87,10 +87,68 @@ class BrevoWebhookIT extends AbstractIntegrationTest {
     }
     @Test void T_11_22_temporaryFailuresAndTrackingEventsNeverSuppressOrRegressDelivery() throws Exception {
         for (String kind : List.of("request", "deferred", "soft_bounce", "opened", "click", "proxy_open")) { send(event(kind)); }
-        assertThat(mongo.count(new Query(), BrevoWebhookReceipt.class)).isZero();
+        assertThat(mongo.count(new Query(), BrevoWebhookReceipt.class)).isEqualTo(2);
         assertThat(receipts.suppressed("recipient@example.test")).isFalse();
+        assertThat(notifications.findSystem("brevo-notification").orElseThrow().delivery().temporaryFailureAt()).isEqualTo(clock.instant());
+        assertThat(notifications.findSystem("brevo-notification").orElseThrow().status()).isEqualTo(Notification.Status.SENT);
         send(event("delivered"));
         assertThat(notifications.findSystem("brevo-notification").orElseThrow().status()).isEqualTo(Notification.Status.DELIVERED);
+    }
+    @Test void temporaryFailureIsSafeRecoverableAndDoesNotScheduleAnotherSend() throws Exception {
+        var payload = event("soft_bounce");
+        payload.put("reason", "554 SpamCop https://private.example/reset?token=secret credential");
+        send(payload); send(payload);
+        var before = notifications.findSystem("brevo-notification").orElseThrow().delivery();
+        assertThat(before.status()).isEqualTo(DeliveryStatus.SENT);
+        assertThat(before.temporaryFailureReason()).isEqualTo("SENDING_IP_BLOCKED_SPAMCOP");
+        assertThat(before.nextAttemptAt()).isNull();
+        assertThat(before.attempts()).isZero();
+        assertThat(accounts.findById("brevo-account").orElseThrow().emailStatus()).isNull();
+        assertThat(receipts.suppressed("recipient@example.test")).isFalse();
+        assertThat(mongo.getCollection("notifications").find().first().toJson()).doesNotContain("secret", "private.example", "credential");
+        send(event("delivered"));
+        clock.setInstant(clock.instant().plusSeconds(60));
+        send(event("deferred"));
+        var after = notifications.findSystem("brevo-notification").orElseThrow().delivery();
+        assertThat(after.status()).isEqualTo(DeliveryStatus.DELIVERED);
+        assertThat(after.temporaryFailureAt()).isEqualTo(before.temporaryFailureAt());
+        assertThat(after.temporaryFailureReason()).isEqualTo(before.temporaryFailureReason());
+    }
+    @Test void temporaryFailureBeforeAcceptancePreservesHistoryAndTargetIsolation() throws Exception {
+        mongo.updateFirst(new Query(), new org.springframework.data.mongodb.core.query.Update()
+                .unset("providerMessageId").set("status", "QUEUED").set("deliveries.0.status", "QUEUED"), Notification.class);
+        send(event("soft_bounce", "brevo-notification", "other-club", "recipient@example.test"));
+        send(event("soft_bounce", "brevo-notification", null, "other@example.test"));
+        assertThat(mongo.count(new Query(), BrevoWebhookReceipt.class)).isZero();
+        send(event("soft_bounce"));
+        notifications.finish("brevo-notification", Notification.Status.SENT, "brevo:provider@example.test", null, clock.instant());
+        var row = notifications.findSystem("brevo-notification").orElseThrow();
+        assertThat(row.delivery().temporaryFailureReason()).isEqualTo("TEMPORARY_REJECTION");
+        assertThat(row.delivery().status()).isEqualTo(DeliveryStatus.SENT);
+        send(event("delivered"));
+        assertThat(notifications.findSystem("brevo-notification").orElseThrow().status()).isEqualTo(Notification.Status.DELIVERED);
+    }
+    @Test void temporaryEngineFailureIsTenantAndTargetScopedAndCanRecover() throws Exception {
+        var first = new org.bson.Document("channel", "EMAIL").append("target", "recipient@example.test").append("status", "SENT")
+                .append("attempts", 1).append("providerRef", "brevo:provider@example.test");
+        var second = new org.bson.Document("channel", "EMAIL").append("target", "other@example.test").append("status", "SENT")
+                .append("attempts", 1).append("providerRef", "brevo:other@example.test");
+        mongo.insert(new org.bson.Document("_id", "temporary-engine").append("clubId", "club-a").append("code", "N-09")
+                .append("category", "PERSONAL").append("dedupKey", "temporary-engine").append("deliveries", List.of(first, second)), "notifications");
+        send(event("soft_bounce", "temporary-engine", "club-b", "recipient@example.test"));
+        assertThat(mongo.count(new Query(), BrevoWebhookReceipt.class)).isZero();
+        send(event("soft_bounce", "temporary-engine", "club-a", "recipient@example.test"));
+        try (var scope = TenantContext.open("club-a")) {
+            var row = notifications.findById("temporary-engine").orElseThrow();
+            assertThat(row.deliveries().getFirst().temporaryFailureAt()).isEqualTo(clock.instant());
+            assertThat(row.deliveries().getFirst().status()).isEqualTo(DeliveryStatus.SENT);
+            assertThat(row.deliveries().get(1).temporaryFailureAt()).isNull();
+        }
+        send(event("delivered", "temporary-engine", "club-a", "recipient@example.test"));
+        try (var scope = TenantContext.open("club-a")) {
+            assertThat(notifications.findById("temporary-engine").orElseThrow().deliveries().getFirst().status()).isEqualTo(DeliveryStatus.DELIVERED);
+        }
+        assertThat(receipts.suppressed("recipient@example.test")).isFalse();
     }
     @Test void T_11_22_errorFailsOnlyThisDeliveryWithoutPermanentSuppression() throws Exception {
         send(event("error"));

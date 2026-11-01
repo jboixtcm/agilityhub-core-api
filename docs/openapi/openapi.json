@@ -2832,9 +2832,12 @@
           },
           "message-id" : {
             "type" : "string"
+          },
+          "reason" : {
+            "type" : "string"
           }
         },
-        "required" : [ "X-Mailin-custom", "email", "event", "message-id" ],
+        "required" : [ "X-Mailin-custom", "email", "event", "message-id", "reason" ],
         "type" : "object"
       },
       "BuildJoinRequest" : {
@@ -4770,6 +4773,10 @@
           },
           "status" : {
             "$ref" : "#/components/schemas/DeliveryStatus"
+          },
+          "temporaryFailure" : {
+            "description" : "A temporary provider rejection is awaiting delivery; never a permanent bounce",
+            "type" : [ "boolean", "null" ]
           }
         },
         "required" : [ "channel", "status" ],
@@ -8433,6 +8440,15 @@
           },
           "target" : {
             "description" : "The address, phone (E.164) or push subscription id; null for APP",
+            "type" : [ "string", "null" ]
+          },
+          "temporaryFailureAt" : {
+            "description" : "When a temporary rejection was received; retained if delivery later succeeds",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "temporaryFailureReason" : {
+            "description" : "Safe classification: SENDING_IP_BLOCKED_SPAMCOP, SENDING_IP_BLOCKED, MAILBOX_FULL, RATE_LIMITED or TEMPORARY_REJECTION; never raw provider text",
             "type" : [ "string", "null" ]
           }
         },
@@ -15864,6 +15880,10 @@
           },
           "recipient" : {
             "$ref" : "#/components/schemas/NotificationRecipient"
+          },
+          "title" : {
+            "description" : "Safe stored title; empty for credential emails, whose type is identified by code",
+            "type" : "string"
           }
         },
         "required" : [ "id" ],
@@ -68478,7 +68498,7 @@
     },
     "/api/v1/notifications" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. The log has no free-text search: it declares no q, and a non-blank one is INVALID_FILTER (CONVENCIONS_API §4, E75). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. Search matches code, stored title, recipient name or email within the tenant. Tenant comes from the JWT.",
         "operationId" : "notifications",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -68512,6 +68532,13 @@
             "type" : "array"
           },
           "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
@@ -68682,7 +68709,7 @@
           "key" : "readAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId" ],
+        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId", "title" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
         "x-sortable" : [ "createdAt" ]
@@ -68690,7 +68717,7 @@
     },
     "/api/v1/notifications/export" : {
       "get" : {
-        "description" : "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T03): the same filter/sort, fields and selected columns, the same rows of the club; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked.",
+        "description" : "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T03): the same q/filter/sort, fields and selected columns, the same rows of the club; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked.",
         "operationId" : "exportNotifications",
         "parameters" : [ {
           "in" : "query",
@@ -68739,6 +68766,13 @@
             "type" : "array"
           },
           "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
@@ -68934,7 +68968,7 @@
           "key" : "readAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId" ],
+        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId", "title" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
         "x-sortable" : [ "createdAt" ]
@@ -68942,7 +68976,7 @@
     },
     "/api/v1/notifications/filter-values" : {
       "get" : {
-        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → INVALID_FILTER. No q: the log has no free-text search, and a non-blank q is INVALID_FILTER (E75). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → INVALID_FILTER. Search matches code, stored title, recipient name or email. Tenant comes from the JWT.",
         "operationId" : "notificationFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -68960,6 +68994,13 @@
               "type" : "string"
             },
             "type" : "array"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
           }
         } ],
         "responses" : {

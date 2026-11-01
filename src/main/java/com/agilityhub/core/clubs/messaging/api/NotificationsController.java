@@ -43,14 +43,13 @@ public class NotificationsController {
     @GetMapping("/api/v1/notifications")
     @PreAuthorize(ADMIN)
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},
-            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, searchable = false, exportable = true,
-            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId"})
+            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, searchable = true, exportable = true,
+            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId", "title"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "notifications", description = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log "
             + "(R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel "
             + "sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An "
-            + "undeclared filter, sort or fields key is 400 INVALID_FILTER. The log has no free-text search: it declares no q, and a non-blank one is "
-            + "INVALID_FILTER (CONVENCIONS_API §4, E75)." + TENANT,
+            + "undeclared filter, sort or fields key is 400 INVALID_FILTER. Search matches code, stored title, recipient name or email within the tenant." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "NotificationPage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = NotificationPage.class))))
     public ListPage<Map<String, Object>> notifications(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
@@ -60,13 +59,14 @@ public class NotificationsController {
 
     @GetMapping("/api/v1/notifications/filter-values")
     @PreAuthorize(ADMIN)
-    @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {}, columns = {}, paged = false, exportable = false)
+    @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {}, columns = {}, paged = false, searchable = true, exportable = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "notificationFilterValues", description = "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their "
             + "counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → "
-            + "INVALID_FILTER. No q: the log has no free-text search, and a non-blank q is INVALID_FILTER (E75)." + TENANT,
+            + "INVALID_FILTER. Search matches code, stored title, recipient name or email." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
     public FilterValues notificationFilterValues(@RequestParam String field, @RequestParam(required = false) List<String> filter,
+            @RequestParam(required = false) String q,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
         access.tenant();
         access.filterValues(field, params);
@@ -141,9 +141,9 @@ public class NotificationsController {
                 : new NotificationSubject(s.dogId(), s.bookingId(), s.classSessionId(), s.waitlistEntryId(), s.trainingBookingId(), s.invoiceId(), s.activityId(), s.taskId(),
                         s.memberId());
         return new NotificationDetail(n.id(), n.createdAt(), n.code(), n.category(), n.audience(), recipient,
-                deliveries.stream().map(d -> new ChannelState(d.channel(), d.status())).toList(), n.readAt(), Objects.toString(n.title(), ""),
+                deliveries.stream().map(d -> new ChannelState(d.channel(), d.status(), d.temporaryFailureAt() != null && (d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.SENT || d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.QUEUED) ? true : null)).toList(), n.readAt(), Objects.toString(n.title(), ""),
                 Objects.toString(n.body(), ""), n.smsBody(), Objects.toString(n.locale(), ""), n.templateId(), n.templateVersion(), n.eventType(), subject,
                 deliveries.stream().map(d -> new DeliveryView(d.channel(), d.target(), d.status(), d.attempts(), d.nextAttemptAt(), d.providerRef(), d.lastError(),
-                        d.sentAt(), d.deliveredAt(), d.failedAt())).toList());
+                        d.sentAt(), d.deliveredAt(), d.failedAt(), d.temporaryFailureAt(), d.temporaryFailureReason())).toList());
     }
 }

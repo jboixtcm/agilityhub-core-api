@@ -42,10 +42,10 @@ public class BrevoWebhookController {
             if (root == null || !root.isObject() && !root.isArray() || root.isArray() && root.size() > 1000) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
             var items = root.isArray() ? root : mapper.createArrayNode().add(root);
             for (var item : items) { if (!item.isObject()) { throw new ApiException(ErrorCode.VALIDATION_ERROR); } }
-            for (var item : items) { service.accept(text(item, "event"), text(item, "message-id"), text(item, "email"), text(item, "X-Mailin-custom")); }
+            for (var item : items) { service.accept(text(item, "event"), text(item, "message-id"), text(item, "email"), text(item, "X-Mailin-custom"), text(item, "reason")); }
         } catch (IOException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
     }
     public record BrevoEvent(String event, @JsonProperty("message-id") String messageId, String email,
-            @JsonProperty("X-Mailin-custom") String custom) { }
+            @JsonProperty("X-Mailin-custom") String custom, String reason) { }
     private static String text(com.fasterxml.jackson.databind.JsonNode node, String key) { return node.path(key).isTextual() ? node.path(key).asText() : null; }
 }

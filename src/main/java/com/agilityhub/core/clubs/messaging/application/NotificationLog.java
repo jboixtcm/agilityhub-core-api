@@ -24,7 +24,7 @@ import org.springframework.util.MultiValueMap;
  * `notifications` with the allowlist {@link MessagingContractAccess#NOTIFICATIONS} (`code`, `category`, `channel` and `status`
  * of any delivery, `memberId` of the recipient, `createdAt`; `createdAt desc` by default), every row of the tenant only — also
  * those without an APP delivery or with nothing sent. The same dataset serves the export (S14 R-14-12) and `filter-values`,
- * whose labels are the localized enum names and the member's name. `SYSTEM` rows have no club and never appear; a row written
+ * whose labels are the localized enum names and the member's name. Unscoped SYSTEM rows never appear; club-scoped credential emails are included without bodies or tokens; a row written
  * before E7-T02 that does not tell its audience reads `audience: null`.
  */
 @Service
@@ -37,12 +37,17 @@ public class NotificationLog implements ListProvider {
     @Override public Set<String> keys() { return Set.of(KEY); }
     @Override public ListDataset dataset(String key) {
         var projection = new LinkedHashMap<String, Object>();
+        projection.put("title", new Document("$ifNull", List.of("$title", "")));
         projection.put("createdAt", "$createdAt"); projection.put("code", "$code"); projection.put("category", "$category");
         projection.put("audience", orNull("$audience"));
         projection.put("recipient", new Document("displayName", new Document("$ifNull", List.of("$recipient.displayName", "")))
                 .append("memberId", orNull("$recipient.memberId")).append("email", orNull("$recipient.email")));
         projection.put("channels", new Document("$map", new Document("input", new Document("$ifNull", List.of("$deliveries", List.of())))
-                .append("as", "d").append("in", new Document("channel", "$$d.channel").append("status", "$$d.status"))));
+                .append("as", "d").append("in", new Document("$mergeObjects", List.of(new Document("channel", "$$d.channel").append("status", "$$d.status"),
+                        new Document("$cond", List.of(new Document("$and", List.of(
+                                new Document("$ne", Arrays.asList(new Document("$ifNull", Arrays.asList("$$d.temporaryFailureAt", null)), null)),
+                                new Document("$in", List.of("$$d.status", List.of("SENT", "QUEUED"))))),
+                                new Document("temporaryFailure", true), new Document())))))));
         projection.put("readAt", orNull("$readAt"));
         // INC-53 (E11-T02): an announcement's rows carry their batch, the first part of their `dedupKey` `{batchId}:{memberId}`.
         projection.put("batchId", new Document("$cond", Arrays.asList(new Document("$eq", Arrays.asList("$eventType", "AnnouncementSent")),

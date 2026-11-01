@@ -22,7 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /** Authenticated provider events are correlated to a stored target before any privileged state change. */
 @Service
 public class BrevoWebhookService {
-    private static final Set<String> EVENTS = Set.of("delivered", "hard_bounce", "invalid_email", "blocked", "spam", "unsubscribed", "error");
+    private static final Set<String> EVENTS = Set.of("delivered", "hard_bounce", "invalid_email", "blocked", "spam", "unsubscribed", "error", "soft_bounce", "deferred");
     private static final Set<String> PERMANENT = Set.of("hard_bounce", "invalid_email", "blocked", "spam", "unsubscribed");
     private final NotificationRepository notifications;
     private final BrevoWebhookRepository receipts;
@@ -40,7 +40,8 @@ public class BrevoWebhookService {
         this.notifications = notifications; this.receipts = receipts; this.accounts = accounts; this.events = events;
         this.members = members; this.writer = writer; this.transactions = new TransactionTemplate(manager); this.clock = clock; this.mapper = mapper;
     }
-    public void accept(String event, String messageId, String email, String custom) {
+    public void accept(String event, String messageId, String email, String custom) { accept(event, messageId, email, custom, null); }
+    public void accept(String event, String messageId, String email, String custom, String reason) {
         // Brevo's `id` identifies the webhook subscription, not an event. Temporary deferrals/soft bounces may recover.
         if (!EVENTS.contains(event == null ? "" : event) || messageId == null || messageId.isBlank() || messageId.length() > 512
                 || email == null || email.isBlank() || email.length() > 320 || custom == null || custom.length() > 4096) { return; }
@@ -69,6 +70,10 @@ public class BrevoWebhookService {
                     String storedReference = row.channel() == null ? delivery == null ? null : delivery.providerRef() : row.providerMessageId();
                     if (target == null || !target.equalsIgnoreCase(email) || storedReference != null && !reference.equals(storedReference)) { return; }
                     receipts.insert(new BrevoWebhookReceipt(receipt, clubId, notificationId, clock.instant()));
+                    if (event.equals("soft_bounce") || event.equals("deferred")) {
+                        notifications.temporaryEmailFailure(row.id(), target, temporaryReason(reason), clock.instant());
+                        return;
+                    }
                     if (PERMANENT.contains(event)) { receipts.suppress(target, event, clock.instant()); }
                     if (!event.equals("unsubscribed")) { outcome(row, target, event); }
                     suppress(row, target, event);
@@ -77,6 +82,15 @@ public class BrevoWebhookService {
                 if (receipts.findById(receipt).isEmpty()) { throw replay; }
             }
         }
+    }
+    /** Persist only a bounded classification. Provider text can contain addresses, URLs or credentials. */
+    static String temporaryReason(String reason) {
+        String text = reason == null ? "" : reason.substring(0, Math.min(reason.length(), 4096)).toLowerCase(Locale.ROOT);
+        if (text.contains("spamcop")) { return "SENDING_IP_BLOCKED_SPAMCOP"; }
+        if (text.contains("blacklist") || text.contains("blocklist") || text.contains("client host") && text.contains("blocked")) { return "SENDING_IP_BLOCKED"; }
+        if (text.contains("mailbox full") || text.contains("quota exceeded") || text.contains("5.2.2") || text.contains("4.2.2")) { return "MAILBOX_FULL"; }
+        if (text.contains("rate limit") || text.contains("too many")) { return "RATE_LIMITED"; }
+        return "TEMPORARY_REJECTION";
     }
     private void outcome(Notification row, String target, String event) {
         boolean failed = !event.equals("delivered");
