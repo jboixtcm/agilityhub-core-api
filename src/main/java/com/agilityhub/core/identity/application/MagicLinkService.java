@@ -159,7 +159,9 @@ public class MagicLinkService {
             String link = base + "?t=" + value + (purpose == MagicLinkToken.Purpose.RESET ? "&purpose=reset" : "");
             if (purpose == MagicLinkToken.Purpose.RESET) { notifications.sendPasswordRecovery(accountId, link); }
             else if (deliveryId == null) { notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", link)); }
-            else { notifications.sendOnce(deliveryId, "N-27", accountId, Map.of("link", base + "?t=" + value)); }
+            else if (purpose == MagicLinkToken.Purpose.ACCESS_RESEND) {
+                notifications.sendAdminWelcomeOnce(deliveryId, accountId, link, settings.integer("auth.welcomeLinkDays") * 1440);
+            } else { notifications.sendOnce(deliveryId, "N-27", accountId, Map.of("link", link)); }
         }
     }
 }

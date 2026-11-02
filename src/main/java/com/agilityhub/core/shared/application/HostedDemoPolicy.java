@@ -50,9 +50,12 @@ public record HostedDemoPolicy(boolean enabled, Set<String> emailAllowlist) {
     public static String signupEmailClubId(Environment environment) {
         return environment.getProperty("email.signup-applicant-club-id", "").strip();
     }
+    public static String adminWelcomeClubId(Environment environment) {
+        return environment.getProperty("email.admin-welcome-club-id", "").strip();
+    }
     public static boolean emailTransportEnabled(Environment environment) {
         boolean recovery = emailRecoveryEnabled(environment);
-        return emailDeliveryEnabled(environment) || recovery || !signupEmailClubId(environment).isEmpty();
+        return emailDeliveryEnabled(environment) || recovery || !signupEmailClubId(environment).isEmpty() || !adminWelcomeClubId(environment).isEmpty();
     }
     public boolean permitsEmail(String recipient) {
         return recipient != null && emailAllowlist.contains(recipient.strip().toLowerCase(Locale.ROOT));

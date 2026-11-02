@@ -15,6 +15,10 @@ public class WeekRepository extends TenantRepository<Week> {
         mongo.indexOps(Week.class).createIndex(new Index().on("clubId", ASC).on("startDate", ASC).unique().named("week_club_start"));
     }
 
+    public boolean hasGeneratedWeekAfter(java.time.LocalDate start) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("startDate").gt(start).and("generatedAt").ne(null)), Week.class);
+    }
+
     public Week update(Week next, long expectedVersion) {
         var query = tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(expectedVersion));
         var result = mongo.findAndReplace(query, next, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());

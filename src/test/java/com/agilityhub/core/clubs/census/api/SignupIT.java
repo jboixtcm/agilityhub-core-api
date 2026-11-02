@@ -63,6 +63,18 @@ class SignupIT extends AbstractIntegrationTest {
         return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());
     }
     Map<String,Object> validation(String member,String dog,long version) {return Map.of("version",version,"dogs",List.of(Map.of("dogId",dog,"levelId",level)),"nextInvoiceDate","2026-02-01","upfrontAmountPaid",Map.of("amountMinor",16000,"currency","EUR"));}
+    @Test void T_04_17_dogsWithoutChipsKeepTheirExactBirthDates() throws Exception {
+        for (int i = 0; i < 2; i++) {
+            var body = request();
+            var dog = (ObjectNode) body.get("dog");
+            dog.remove(List.of("birthMonth", "chip"));
+            dog.put("birthDate", "2024-02-29");
+            var id = submit(body).path("memberId").asText();
+            var review = result(admin(get("/api/v1/members/" + id + "/signup").header("Host", host)), 200);
+            assertThat(review.at("/dogs/0/birthDate").asText()).isEqualTo("2024-02-29");
+            assertThat(review.at("/dogs/0/chip").isMissingNode()).isTrue();
+        }
+    }
     @com.agilityhub.core.support.AuditCovers({com.agilityhub.core.platform.application.audit.AuditAction.MEMBER_VALIDATED,com.agilityhub.core.platform.application.audit.AuditAction.DOG_LEVEL_CHANGED})
     @Test void T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities() throws Exception {
         var config=result(get("/api/v1/signup").header("Host",host),200);assertThat(config.path("steps").size()).isEqualTo(4);

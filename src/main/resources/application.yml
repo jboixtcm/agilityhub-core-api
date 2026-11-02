@@ -27,6 +27,7 @@ exports:
 
 email:
   delivery-enabled: ${EMAIL_DELIVERY_ENABLED:true}
+  admin-welcome-club-id: ${EMAIL_ADMIN_WELCOME_CLUB_ID:}
   signup-applicant-club-id: ${EMAIL_SIGNUP_APPLICANT_CLUB_ID:}
   recovery-enabled: ${EMAIL_RECOVERY_ENABLED:false}
   provider: ${EMAIL_PROVIDER:sendgrid}
@@ -45,6 +46,7 @@ email:
 notifications:
   unsubscribe-key: ${EMAIL_UNSUBSCRIBE_KEY:}
   sms:
+    club-id: ${SMS_CLUB_ID:}
     delivery-enabled: ${SMS_DELIVERY_ENABLED:true}
     provider: ${SMS_PROVIDER:twilio}
     twilio-account-sid: ${TWILIO_ACCOUNT_SID:}

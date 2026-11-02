@@ -32,8 +32,9 @@ public final class SignupRequests {
             @NotNull @Size(max = 10) List<@Valid SignupFile> files) { }
     public record SignupDog(@NotBlank @Size(max = 40) String name, @NotNull Sex sex,
             @NotBlank @Size(max = 60) String breed,
-            @NotBlank @Pattern(regexp = "\\d{4}-(0[1-9]|1[0-2])") @Schema(example = "2024-04") String birthMonth,
-            @NotBlank String chip,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
+            @Pattern(regexp = "\\d{4}-(0[1-9]|1[0-2])") @Schema(requiredMode = NOT_REQUIRED, deprecated = true, example = "2024-04") String birthMonth,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) String chip,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 1000) String notesToInstructors,
             @Schema(requiredMode = NOT_REQUIRED, description = "Public signup documents; add-dog uses its top-level documents array")
             @Size(max = 10) List<@Valid SignupDocument> documents) { }

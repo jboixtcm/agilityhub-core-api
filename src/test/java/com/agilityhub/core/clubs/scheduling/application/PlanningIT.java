@@ -424,7 +424,7 @@ class PlanningIT extends AbstractIntegrationTest {
         var view = band(id); String band = view.at("/bands/0/id").asText();
         error("POST", path + "/bands", Map.of("startTime", "18:30", "endTime", "19:30"), ErrorCode.BAND_OVERLAP);
         error("POST", path + "/bands", Map.of("startTime", "25:00", "endTime", "26:00"), ErrorCode.INVALID_TIME_RANGE);
-        error("POST", path + "/bands", Map.of("startTime", "18:05", "endTime", "19:00"), ErrorCode.INVALID_SLOT_GRANULARITY);
+        error("POST", path + "/bands", Map.of("startTime", "18:04", "endTime", "19:00"), ErrorCode.INVALID_SLOT_GRANULARITY);
         error("POST", path + "/bands", Map.of("startTime", "06:00", "endTime", "07:00"), ErrorCode.OUTSIDE_OPENING_HOURS);
         view = ok("PATCH", path, Map.of("version", view.path("version").asLong(), "notes", "Planning notes", "name", "Renamed"));
         assertThat(view.path("notes").asText()).isEqualTo("Planning notes");
@@ -443,6 +443,25 @@ class PlanningIT extends AbstractIntegrationTest {
         error("PATCH", path, Map.of("name", " ", "version", ok("GET", path, null).path("version").asLong()), ErrorCode.VALIDATION_ERROR);
         error("GET", "/coverage?templateId=" + template("Saturday", "SATURDAY"), null, ErrorCode.TEMPLATE_KIND_MISMATCH);
         error("GET", "/weeks?filter=unknown:eq:value", null, ErrorCode.INVALID_FILTER);
+    }
+    @Test void T_06_31_onlyLatestGeneratedDraftWeekCanBeUndoneAndRegenerated() throws Exception {
+        sourceTemplates();
+        String first = week("2026-08-24"), second = week("2026-08-31");
+        for (String id : List.of(first, second)) generation(id, "plan-weekdays", null, UUID.randomUUID().toString()).andExpect(status().isOk());
+        String undoFirst = "/weeks/" + first + "/generation?generatedAt=" + ok("GET", "/weeks/" + first, null).path("generatedAt").asText();
+        String undoSecond = "/weeks/" + second + "/generation?generatedAt=" + ok("GET", "/weeks/" + second, null).path("generatedAt").asText();
+        mvc.perform(request(HttpMethod.DELETE, "/api/v1" + undoSecond).header("Host", HOST)
+                .with(jwt().jwt(j -> j.subject("planning-instructor").claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
+                .andExpect(status().isForbidden());
+        mvc.perform(request(HttpMethod.DELETE, "/api/v1" + undoSecond).header("Host", "other.planning.example.test")
+                .with(jwt().jwt(j -> j.subject("other-admin").claim("clubId", OTHER)).authorities(() -> "ROLE_ADMIN")))
+                .andExpect(status().isNotFound());
+        error("DELETE", undoFirst, null, ErrorCode.INVALID_STATE);
+        ok("DELETE", undoSecond, null);
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(sessions.forWeek(second)).isEmpty(); }
+        error("DELETE", undoSecond, null, ErrorCode.STALE_VERSION);
+        ok("DELETE", undoFirst, null);
+        generation(first, "plan-weekdays", null, UUID.randomUUID().toString()).andExpect(status().isOk());
     }
     @Test void T_06_11_failedGenerationRollsBackWeekClassesEventAndIdempotencyClaim() throws Exception {
         sourceTemplates(); String id = week("2026-08-24"); String key = UUID.randomUUID().toString();

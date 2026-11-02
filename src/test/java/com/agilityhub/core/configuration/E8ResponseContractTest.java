@@ -339,7 +339,7 @@ class E8ResponseContractTest {
         }
         assertThat(new TreeSet<>(family)).isEqualTo(documented);
         Map<String, Object> defaults = new LinkedHashMap<>();
-        defaults.put("billing.cashInvoicing", "SEMESTER"); defaults.put("billing.sepa.collectionDayOfMonth", 1); defaults.put("billing.sepa.useFrst", false);
+        defaults.put("billing.cashInvoicing", "QUARTERLY"); defaults.put("billing.sepa.collectionDayOfMonth", 1); defaults.put("billing.sepa.useFrst", false);
         defaults.put("billing.sepa.schema", "pain.008.001.02"); defaults.put("billing.invoiceSeriesPattern", "{YYYY}"); defaults.put("billing.invoiceResetYearly", true);
         defaults.put("billing.taxIncluded", true); defaults.put("billing.stripeMaxAttempts", 3); defaults.put("billing.remittanceReminderDay", 22);
         defaults.put("billing.packLowBalanceSessions", 1); defaults.put("billing.packExpiryWarningDays", 14); defaults.put("billing.singleClassCancelPolicy", "REFUND");
@@ -348,7 +348,7 @@ class E8ResponseContractTest {
         defaults.put("leave.npsEnabled", true); defaults.put("leave.fullMonthIfLater", true); defaults.put("leave.packExpiryGraceDays", 30);
         defaults.forEach((name, value) -> assertThat(catalog.defaultValue(name)).as(name).isEqualTo(value));
         assertThat(catalog.get("billing.sepa.collectionDayOfMonth").constraints()).containsEntry("min", 0).containsEntry("max", 28);
-        assertThat(catalog.get("billing.cashInvoicing").constraints().get("enum")).asList().containsExactly("MONTHLY", "SEMESTER");
+        assertThat(catalog.get("billing.cashInvoicing").constraints().get("enum")).asList().containsExactly("MONTHLY", "QUARTERLY", "SEMESTER");
         @SuppressWarnings("unchecked") var reasons = (List<Map<String, Object>>) catalog.defaultValue("leave.reasons");
         assertThat(catalog.get("leave.reasons").type()).isEqualTo("json");
         assertThat(reasons).extracting(reason -> reason.get("key")).containsExactly("LEARNED_ENOUGH", "NO_TIME", "NOT_EXPECTED", "EXTERNAL", "OTHER", "CLUB_DECISION", "PACK_EXPIRED");

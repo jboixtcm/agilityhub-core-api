@@ -474,15 +474,22 @@ public class SignupService implements SignupPaymentAccess {
     /** Validates and resolves the submitted dog without writing it, so the quote can be frozen before the member is stored. */
     private PreparedDog prepareDog(Member member,Map<String,Object> raw,boolean readmission) {
         // M21: the chip is normalised and checked per country profile before the uniqueness check and the readmission match.
-        String chip=policy.chip(text(raw.get("chip"),"dog.chip",40,true),"dog.chip");var matches=access.dogs.matching(Criteria.where("chip").is(chip));Dog dog=null;
+        String rawChip = text(raw.get("chip"), "dog.chip", 40, false);
+        String chip = rawChip == null || rawChip.isEmpty() ? null : policy.chip(rawChip, "dog.chip");
+        List<Dog> matches = chip == null ? List.of() : access.dogs.matching(Criteria.where("chip").is(chip));
+        Dog dog = null;
         if(!matches.isEmpty()) { dog=matches.getFirst();if(!readmission || !member.id.equals(dog.memberId) || !"INACTIVE".equals(dog.status)) throw new ApiException(ErrorCode.DOG_CHIP_ALREADY_REGISTERED); }
         boolean fresh=dog==null;if(fresh) { dog=new Dog();dog.id=UUID.randomUUID().toString();dog.clubId=TenantContext.require();dog.memberId=member.id; }
         var before=fresh?null:CensusAudit.view(dog,mapper);
         // R-04-06 (E38, E3-T17): the reused dog of a readmission keeps its own values; the submitted ones wait in its request,
         // with what a rejection restores.
         var values=fresh?dog:new Dog();
-        values.name=text(raw.get("name"),"dog.name",40,true);values.sex=string(raw.get("sex"));values.breed=text(raw.get("breed"),"dog.breed",60,true);values.birthDate=YearMonth.parse(string(raw.get("birthMonth"))).atDay(1);
-        if(values.birthDate.isAfter(policy.today())) throw invalid("dog.birthMonth","INVALID_VALUE");
+        values.name=text(raw.get("name"),"dog.name",40,true);values.sex=string(raw.get("sex"));values.breed=text(raw.get("breed"),"dog.breed",60,true);values.birthDate = date(raw.get("birthDate"));
+        if (values.birthDate == null) {
+            if (raw.get("birthMonth") == null) throw invalid("dog.birthDate", "REQUIRED");
+            values.birthDate = YearMonth.parse(string(raw.get("birthMonth"))).atDay(1);
+        }
+        if (values.birthDate.isAfter(policy.today())) throw invalid(raw.get("birthDate") == null ? "dog.birthMonth" : "dog.birthDate", "INVALID_VALUE");
         values.instructorNote=object("text",text(raw.get("notesToInstructors"),"dog.notesToInstructors",1000,false),"updatedAt",clock.instant());
         if(!fresh) dog.readmissionRequest=object("submitted",object("name",values.name,"sex",values.sex,"breed",values.breed,"birthDate",values.birthDate.toString(),"instructorNote",values.instructorNote),
                 "previous",object("status",dog.status,"deactivatedAt",dog.deactivatedAt,"deactivationReason",dog.deactivationReason,"signup",dog.signup));
@@ -924,6 +931,7 @@ public class SignupService implements SignupPaymentAccess {
     /** The D2 values of a dog (§3 fields of step 17), with its documents as {@link #documentRows} gives them. */
     private Map<String,Object> dogValues(Dog values,List<Map<String,Object>> rows) {
         var result=new LinkedHashMap<String,Object>();
+        result.put("birthDate", values.birthDate == null ? null : values.birthDate.toString());
         result.put("name",values.name);result.put("sex",values.sex);result.put("breed",values.breed);result.put("birthMonth",values.birthDate==null?null:YearMonth.from(values.birthDate).toString());
         result.put("notesToInstructors",map(values.instructorNote).get("text"));
         // E5-T19 (R-04-19): each file's key, which a D2 PATCH sends back to keep the file.
@@ -959,6 +967,7 @@ public class SignupService implements SignupPaymentAccess {
         // without a card is no change of theirs (D2 shows it as «Document pendent»).
         var sent=replaced(own,withFiles(rows(submitted(dog).get("documents"))));
         var changed=DOG_READMISSION_FIELDS.stream().filter(field -> field.equals("documents")?!documentKeys(own).equals(documentKeys(sent))
+                :field.equals("birthMonth") ? !Objects.equals(current.get("birthDate"), submittedValues.get("birthDate"))
                 :!Objects.equals(current.get(field),submittedValues.get(field))).toList();
         var previous=map(map(dog.readmissionRequest).get("previous"));
         return object("current",current,"changedFields",changed,"previousDeactivatedAt",instant(previous.get("deactivatedAt")),"previousDeactivationReason",previous.get("deactivationReason"));

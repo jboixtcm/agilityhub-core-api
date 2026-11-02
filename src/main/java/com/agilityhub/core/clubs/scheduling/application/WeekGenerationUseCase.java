@@ -110,6 +110,30 @@ public class WeekGenerationUseCase {
         return new PlanningViews.GenerationResult(id, count, skipped.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().date()))
                 .map(e -> new PlanningViews.SkippedClasses(e.getKey().date(), e.getKey().reason(), e.getValue())).toList());
     }
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void undoGeneration(String id, Instant generatedAt) {
+        context.lockReferences();
+        var week = require(id);
+        if (week.state() != WeekState.GENERATED || !generatedAt.equals(week.generatedAt())) {
+            throw new ApiException(ErrorCode.STALE_VERSION);
+        }
+        if (weeks.hasGeneratedWeekAfter(week.startDate())) {
+            throw new ApiException(ErrorCode.INVALID_STATE);
+        }
+        var generated = classes.forWeek(id).stream().filter(c -> c.origin() != null).toList();
+        if (generated.stream().anyMatch(c -> c.state() != ClassState.DRAFT || c.counters().booked() != 0
+                || c.counters().waiting() != 0 || c.attendanceSummary().marked() != 0)) {
+            throw new ApiException(ErrorCode.INVALID_STATE);
+        }
+        for (var session : generated) {
+            if (!classes.deleteById(session.id())) throw new ApiException(ErrorCode.STALE_VERSION);
+        }
+        weeks.update(new Week(week.id(), week.clubId(), week.isoYear(), week.isoWeek(), week.startDate(), week.endDate(),
+                WeekState.PENDING, null, null, null, null, null, null, week.version() + 1, week.createdAt(),
+                week.createdByAccountId(), clock.instant(), actors.current().accountId(), week.openedAt(), week.openingNotifiedAt()), week.version());
+    }
+
     private WeekTemplate template(String id, TemplateKind kind) {
         var template = templates.require(id);
         if (template.kind() != kind) { throw new ApiException(ErrorCode.TEMPLATE_KIND_MISMATCH); }

@@ -38,6 +38,21 @@ class SystemEmailBrandingTest {
         assertThat(mail.text()).contains("Sign in to Example Club", "your Example Club account").doesNotContain("AgilityHub", "{brand}");
     }
 
+    @Test void manualWelcomeUsesTheClubsIdentityAndActualLinkInAllLanguages() throws Exception {
+        var club = new ClubEmailSettings.Settings("Example Club", "/api/v1/public/example/theme/logo", "#123456", "#ffffff",
+                "mail@example.test", "Default platform", null, "ca", 15);
+        var link = "https://app.example.test/activacio?t=fictional";
+        var variables = Map.of("link", link, "variant", "ADMIN_WELCOME", "expires_minutes", 4320);
+        for (var locale : new Locale[]{Locale.forLanguageTag("ca"), Locale.forLanguageTag("es"), Locale.ENGLISH}) {
+            var message = renderer("Default platform").render("N-27", "member@example.test", locale, variables, club, Map.of());
+            assertThat(message.subject()).contains("Example Club");
+            assertThat(message.html()).contains("https://app.example.test/api/v1/public/example/theme/logo", "#123456", link);
+            assertThat(message.text()).contains(link, "Example Club").doesNotContain("Default platform", "{brand}");
+            assertThat(message.from().name()).isEqualTo("Example Club");
+            assertThat(message.tags()).containsEntry("variant", "ADMIN_WELCOME");
+        }
+    }
+
     private SystemEmailRenderer renderer(String brand) throws java.io.IOException {
         var resolver = new ClassLoaderTemplateResolver();
         resolver.setPrefix("templates/"); resolver.setSuffix(".html"); resolver.setTemplateMode(TemplateMode.HTML);

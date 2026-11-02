@@ -118,7 +118,7 @@ public final class SignupResponses {
     public record SignupDocumentView(String type, DocumentState state, List<SignupDocumentFile> files) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupDogView(@Schema(format = "uuid") String id, String name, Sex sex, String breed,
-            @Schema(pattern = "\\d{4}-(0[1-9]|1[0-2])") String birthMonth, String chip,
+            @Schema(pattern = "\\d{4}-(0[1-9]|1[0-2])") String birthMonth, @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate, @Schema(requiredMode = NOT_REQUIRED) String chip,
             @Schema(requiredMode = NOT_REQUIRED) String notesToInstructors,
             DogStatus status, @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId,
             List<SignupDocumentView> documents,
@@ -133,7 +133,7 @@ public final class SignupResponses {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     @Schema(description = "The values and documents of the dog record")
     public record SignupDogValues(String name, @Schema(requiredMode = NOT_REQUIRED) Sex sex, @Schema(requiredMode = NOT_REQUIRED) String breed,
-            @Schema(requiredMode = NOT_REQUIRED, pattern = "\\d{4}-(0[1-9]|1[0-2])") String birthMonth,
+            @Schema(requiredMode = NOT_REQUIRED, pattern = "\\d{4}-(0[1-9]|1[0-2])") String birthMonth, @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = NOT_REQUIRED) String notesToInstructors, List<SignupDocumentView> documents) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupSubmission(Instant submittedAt, int pendingDays, boolean readmission, SignupSource source,

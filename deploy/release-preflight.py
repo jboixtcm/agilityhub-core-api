@@ -67,7 +67,7 @@ def check_configuration(config):
     recovery_enabled = str(environment.get('EMAIL_RECOVERY_ENABLED', 'false')).lower()
     require(recovery_enabled in ('true', 'false'), 'EMAIL_RECOVERY_ENABLED must be true or false')
     signup_club_id = str(environment.get('EMAIL_SIGNUP_APPLICANT_CLUB_ID') or '').strip()
-    transport_enabled = email_enabled == 'true' or recovery_enabled == 'true' or bool(signup_club_id)
+    transport_enabled = email_enabled == 'true' or recovery_enabled == 'true' or bool(signup_club_id) or bool(str(environment.get('EMAIL_ADMIN_WELCOME_CLUB_ID') or '').strip())
     require(email_enabled == 'true' or demo == 'true', 'EMAIL_DELIVERY_ENABLED=false requires HOSTED_DEMO_ENABLED=true')
     if demo == 'true' and email_enabled == 'true':
         recipients = str(environment.get('HOSTED_DEMO_EMAIL_ALLOWLIST', '')).split(',')
@@ -77,6 +77,8 @@ def check_configuration(config):
     require(sms_provider in ('twilio', 'brevo'), 'SMS_PROVIDER must be twilio or brevo')
     sms_enabled = str(environment.get('SMS_DELIVERY_ENABLED', 'true')).lower()
     require(sms_enabled in ('true', 'false'), 'SMS_DELIVERY_ENABLED must be true or false')
+    if demo == 'true' and sms_enabled == 'true' and str(environment.get('SMS_CLUB_ID') or '').strip():
+        require(sms_provider == 'brevo' and bool(str(environment.get('BREVO_API_KEY') or '').strip()), 'Hosted club SMS requires Brevo and BREVO_API_KEY')
     if demo != 'true':
         sms_keys = ('BREVO_API_KEY',) if sms_provider == 'brevo' else ('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN')
         for key in (*(sms_keys if sms_enabled == 'true' else ()), 'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):

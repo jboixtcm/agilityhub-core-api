@@ -68,6 +68,8 @@ public abstract class BillingItSupport extends AbstractIntegrationTest {
         club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), providers(true, true, false));
         club(OTHER, OTHER_HOST, "Europe/Madrid", List.of(Module.values()), providers(true, true, false));
         hosts.invalidate();
+        // The golden census exercises a club collecting cash by semester.
+        parameter(CLUB, "billing.cashInvoicing", "SEMESTER");
         plan("abonat", OfferTerms.PlanType.MONTHLY, null, "Abonat", 1); price("abonat", OfferTerms.PriceConcept.MONTHLY_FEE, 6000, "EUR");
         plan("abonat2", OfferTerms.PlanType.MONTHLY, null, "Abonat 2 gossos", 2); price("abonat2", OfferTerms.PriceConcept.MONTHLY_FEE, 9000, "EUR");
         plan("terapia", OfferTerms.PlanType.MONTHLY, OfferTerms.BillingMode.MAINTENANCE, "Teràpia", 1);

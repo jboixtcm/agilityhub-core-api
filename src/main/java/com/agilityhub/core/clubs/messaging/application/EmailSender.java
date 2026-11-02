@@ -8,6 +8,8 @@ public interface EmailSender {
     default EmailSender forPasswordRecovery() { return this; }
     /** Receipt and rejection of an applicant’s own signup, selected by the event dispatcher. */
     default EmailSender forSignupApplicant(String clubId) { return this; }
+    /** An administrator explicitly selected this member for a welcome and access email. */
+    default EmailSender forAdminWelcome(String clubId) { return this; }
     record SendResult(boolean sent, String providerMessageId, String error) {
         public static SendResult sent(String id) { return new SendResult(true, id, null); }
         public static SendResult failed(String error) { return new SendResult(false, null, error); }

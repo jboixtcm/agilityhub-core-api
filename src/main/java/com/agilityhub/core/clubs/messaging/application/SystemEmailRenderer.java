@@ -32,6 +32,7 @@ public final class SystemEmailRenderer {
     public EmailMessage render(String code, String to, Locale locale, Map<String, ?> variables,
                                ClubEmailSettings.Settings settings, Map<String, String> tags) {
         if (!CODES.contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
+        boolean welcome = code.equals("N-27") && "ADMIN_WELCOME".equals(variables.get("variant"));
         String link = null;
         String expiry = null;
         if (Set.of("N-02","N-25","N-27","N-39","N-53").contains(code)) {
@@ -46,13 +47,14 @@ public final class SystemEmailRenderer {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "link"));
             }
             expiry = messages.format("email.layout.expiry", Map.of("duration",
-                    formats.formatDuration(Duration.ofMinutes(Set.of("N-02","N-39").contains(code) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
+                    formats.formatDuration(Duration.ofMinutes((welcome || Set.of("N-02","N-39").contains(code)) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
         }
-        String brand = brandOverride.isBlank() ? settings.brand() : brandOverride;
+        String brand = welcome || brandOverride.isBlank() ? settings.brand() : brandOverride;
         var copy = new java.util.HashMap<String, Object>(variables);
         copy.put("brand", brand);
         String key = "notif." + code;
         if (code.equals("N-02") && "MIGRATED".equals(variables.get("variant"))) { key += ".migrated"; }
+        if (welcome) { key += ".welcome"; }
         String title = messages.format(key + ".title", copy, locale);
         String body = messages.format(key + ".body", copy, locale);
         String action = messages.format("email.layout.signIn", copy, locale);
@@ -61,14 +63,20 @@ public final class SystemEmailRenderer {
         var values = new java.util.HashMap<String, Object>();
         values.put("title", title); values.put("body", body); values.put("action", action); values.put("footer", footer);
         values.put("link", link); values.put("expiry", expiry); values.put("brand", brand);
-        values.put("logo", safeLogo(settings.logoUrl())); values.put("primary", color(settings.primary(), "#2563eb"));
+        String logo = settings.logoUrl();
+        if (welcome && logo != null && logo.startsWith("/api/v1/public/") && link != null) {
+            logo = URI.create(link).resolve(logo).toASCIIString();
+        }
+        values.put("logo", safeLogo(logo)); values.put("primary", color(settings.primary(), "#2563eb"));
         values.put("onPrimary", color(settings.onPrimary(), "#ffffff")); values.put("language", locale.toLanguageTag());
         context.setVariables(values);
         String html = templates.process("email/system", context);
         String text = title + "\n\n" + body + (link == null ? "" : "\n\n" + action + ": " + link + "\n" + expiry)
                 + "\n\n" + brand + "\n" + footer;
-        return new EmailMessage(to, title, html, text, new EmailMessage.Address(settings.fromAddress(), settings.fromName()),
-                settings.replyTo(), locale, tags);
+        var deliveryTags = new java.util.HashMap<>(tags);
+        if (welcome) { deliveryTags.put("variant", "ADMIN_WELCOME"); }
+        return new EmailMessage(to, title, html, text, new EmailMessage.Address(settings.fromAddress(), welcome ? brand : settings.fromName()),
+                settings.replyTo(), locale, deliveryTags);
     }
     private String color(String color, String fallback) { return color != null && color.matches("#[0-9a-fA-F]{6}") ? color : fallback; }
     private String safeLogo(String logo) {

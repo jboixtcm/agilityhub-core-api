@@ -8,7 +8,7 @@ import java.util.*;
 
 /**
  * S12 R-12-01…06 as pure rules (E8-T02): who enters the month `M`, the lines of each member by `Plan.type`, the family
- * group's single payer, the cash half-years and the next invoice date. No Spring, no Mongo: what the rules read beyond the
+ * group's single payer, the cash billing periods and the next invoice date. No Spring, no Mongo: what the rules read beyond the
  * member comes through {@link Sources}, and the frozen line texts through {@link Describer} (R-12-30).
  *
  * <ul>
@@ -26,9 +26,9 @@ import java.util.*;
  * separate lines on the holder's invoice, and its date advances with the holder's. A holder past its last billed month pays for
  * nobody: the members are billed on their own (E11-T15). A holder without a payment method keeps its group and is the incident
  * `NO_PAYMENT_METHOD`; nobody's date moves, so its catch-up bills those months once the method returns (round 2, E156).</li>
- * <li>R-12-05: a `MANUAL` member of a `MONTHLY` plan with `billing.cashInvoicing = SEMESTER` gets one invoice with a line per
- * month from `month(nextInvoiceDate)` (never before the start of `M`'s natural period) to the end of `M`'s natural period of
- * `billing.cashPeriodMonths` (January–June, July–December), capped at the last month a leaving member is billed; its date
+ * <li>R-12-05: a `MANUAL` member of a `MONTHLY` plan with quarterly or semester cash collection gets one invoice with a line per
+ * month from `month(nextInvoiceDate)` (never before the start of `M`'s natural period) to the end of `M`'s natural period (three months for quarterly collection,
+ * `billing.cashPeriodMonths` for semester collection), capped at the last month a leaving member is billed; its date
  * goes to the first month of the next period. `MONTHLY` cash is one line a month, like any other method.</li>
  * <li>R-12-06: the date advances to `billing.nextInvoiceDayOfMonth` of `M + 1` (clamped to the month's length).</li>
  * <li>R-12-07, R-12-28: a member whose provider is not enabled (`PROVIDER_DISABLED`), a `SEPA_DD` without an account
@@ -40,7 +40,7 @@ public final class InvoicingRules {
     private InvoicingRules() { }
 
     public enum PlanType { MONTHLY, PACK, SINGLE_CLASS }
-    public enum CashInvoicing { MONTHLY, SEMESTER }
+    public enum CashInvoicing { MONTHLY, QUARTERLY, SEMESTER }
     /** Why a member is not part of the month (R-12-01, R-12-04). */
     public enum Exclusion { NOT_ACTIVE, NOT_DUE, NO_PAYMENT_METHOD, AFTER_LEAVE, BILLED_VIA_HOLDER }
 
@@ -241,11 +241,16 @@ public final class InvoicingRules {
         // R-12-25: due only for pending charges → their lines, and the date stays as it is (none stays none).
         LocalDate next = periodic ? invoiceDay(period.plusMonths(1), settings.nextInvoiceDayOfMonth()) : member.nextInvoiceDate();
         if (periodic && plan.type() == PlanType.MONTHLY) {
-            boolean semester = settings.cashInvoicing() == CashInvoicing.SEMESTER && member.method() == PaymentMethodType.MANUAL && settings.cashPeriodMonths() > 1;
+            int cashMonths = switch (settings.cashInvoicing()) {
+                case MONTHLY -> 1;
+                case QUARTERLY -> 3;
+                case SEMESTER -> settings.cashPeriodMonths();
+            };
+            boolean grouped = member.method() == PaymentMethodType.MANUAL && cashMonths > 1;
             // E11-T15 step 4 (R-12-01/02): any other method catches up from month(nextInvoiceDate) too — a month skipped with an
             // incident is billed with the current one, each line with its own month's fee and text.
-            var months = semester ? cashMonths(period, member.nextInvoiceDate(), settings.cashPeriodMonths()) : unbilledMonths(period, member.nextInvoiceDate());
-            if (semester) { next = invoiceDay(periodEnd(period, settings.cashPeriodMonths()).plusMonths(1), settings.nextInvoiceDayOfMonth()); }
+            var months = grouped ? cashMonths(period, member.nextInvoiceDate(), cashMonths) : unbilledMonths(period, member.nextInvoiceDate());
+            if (grouped) { next = invoiceDay(periodEnd(period, cashMonths).plusMonths(1), settings.nextInvoiceDayOfMonth()); }
             var concept = plan.maintenance() ? InvoiceLineOrigin.MAINTENANCE_FEE : InvoiceLineOrigin.MONTHLY_FEE;
             Price price = null; boolean priced = false;
             for (var month : months) {

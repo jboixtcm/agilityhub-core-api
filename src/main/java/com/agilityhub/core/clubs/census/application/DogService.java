@@ -69,12 +69,13 @@ public class DogService {
             if (target.birthDate.isAfter(clubClock.today(TenantContext.require()))) { throw invalid("birthDate", "INVALID_VALUE"); }
         }
         if (request.containsKey("chip") && "PENDING".equals(dog.status)) {
-            // D2 (S04 §3, M21): a pending dog's chip is required, normalised and checked per country profile; the `dog_chip`
+            // D2 (S04 §3, M21): a supplied chip is normalised and checked per country profile; the `dog_chip`
             // index keeps it unique (CHIP_ALREADY_EXISTS, as for any dog PATCH).
-            String chip = signups.getObject().chip(text(request.get("chip"), "chip", 40, true), "chip");
+            String rawChip = text(request.get("chip"), "chip", 40, false);
+            String chip = rawChip == null || rawChip.isBlank() ? null : signups.getObject().chip(rawChip, "chip");
             // E3-T17 (R-04-06 b, as the identity document): the readmission matched the reused dog on its chip, so the chip
             // cannot change while it is pending; a wrong one is resolved by rejecting it. Sending the chip it has is no edit.
-            if (readmission && !chip.equals(dog.chip)) { throw CensusAccess.readmissionFrozen(); }
+            if (readmission && !Objects.equals(chip, dog.chip)) { throw CensusAccess.readmissionFrozen(); }
             dog.chip = chip;
         } else if (request.containsKey("chip")) {
             // R-04-07 (E5-T28, A2-08): an ACTIVE dog's chip is normalised and checked per country profile like the signup's, so

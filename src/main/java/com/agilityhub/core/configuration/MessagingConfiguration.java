@@ -93,7 +93,8 @@ public class MessagingConfiguration {
             @Value("${notifications.sms.twilio-auth-token:}") String token, @Value("${notifications.sms.twilio-messaging-service-sid:}") String service,
             @Value("${notifications.sms.allowed-numbers:}") String allowed) {
         var demo = com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment);
-        if (demo.enabled() || !environment.getProperty("notifications.sms.delivery-enabled", Boolean.class, true)) {
+        String club = environment.getProperty("notifications.sms.club-id", "").strip();
+        if (!environment.getProperty("notifications.sms.delivery-enabled", Boolean.class, true) || (demo.enabled() && club.isEmpty())) {
             return message -> SendResult.notAllowed();
         }
         if (environment.acceptsProfiles(Profiles.of("test")) && !environment.acceptsProfiles(STRICT)) { return new FakeSmsSender(); }
@@ -114,7 +115,9 @@ public class MessagingConfiguration {
             }
             default -> throw new IllegalStateException("SMS_PROVIDER must be twilio or brevo");
         }
-        return environment.acceptsProfiles(Profiles.of("prod")) ? sender : new AllowListSmsSender(sender, AllowListSmsSender.parse(allowed));
+        SmsSender transport = environment.acceptsProfiles(Profiles.of("prod")) ? sender : new AllowListSmsSender(sender, AllowListSmsSender.parse(allowed));
+        if (demo.enabled() && !provider.equals("brevo")) { throw new IllegalStateException("Hosted club SMS requires Brevo"); }
+        return club.isEmpty() ? transport : message -> club.equals(message.tags().get("clubId")) ? transport.send(message) : SendResult.notAllowed();
     }
 
     @Bean PushSender pushSender(Environment environment, ObjectMapper mapper, Clock clock, ClubConfigService configs,

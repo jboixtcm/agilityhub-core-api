@@ -199,7 +199,7 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema, "SignupRequest", "locale,website,person,dog,planId,familyGroupClaim,payment,consents");
         properties(schema, "SignupPerson", "idDocument,firstName,lastName1,lastName2,birthDate,gender,emails,phones,address");
         properties(schema, "SignupIdDocument", "type,value"); properties(schema, "SignupAddress", "street,postalCode,town");
-        properties(schema, "SignupDog", "name,sex,breed,birthMonth,chip,notesToInstructors,documents");
+        properties(schema, "SignupDog", "name,sex,breed,birthMonth,birthDate,chip,notesToInstructors,documents");
         properties(schema, "SignupPayment", "type,iban,holderName,holderTaxId,firstMonthOption");
         properties(schema, "SignupConsents", "privacyPolicy,imageUse");
         properties(schema,"AddDogSignupRequest","dog,documents,planIdRequested,consents,additionalDogOption");
@@ -219,12 +219,12 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema, "SignupReadmission", "current,submitted,changedFields,consents,previousLeftAt,previousLeftReason");
         properties(schema, "ReadmissionValues", "firstName,lastName1,lastName2,gender,birthDate,contactEmails,phones,address,paymentMethod");
         // E3-T17: the reused dog of a readmission (E38) adds an optional block to its D2 dog; the rest of the dog is unchanged.
-        properties(schema, "SignupDogView", "id,name,sex,breed,birthMonth,chip,notesToInstructors,status,levelId,documents,version,readmission");
+        properties(schema, "SignupDogView", "id,name,sex,breed,birthMonth,birthDate,chip,notesToInstructors,status,levelId,documents,version,readmission");
         assertThat(strings(schema.at("/SignupDogView/required"))).doesNotContain("readmission");
         assertThat(schema.at("/SignupDogView/properties/readmission/$ref").asText()).isEqualTo("#/components/schemas/SignupDogReadmission");
         properties(schema, "SignupDogReadmission", "current,changedFields,previousDeactivatedAt,previousDeactivationReason");
         assertThat(strings(schema.at("/SignupDogReadmission/required"))).containsExactlyInAnyOrder("current", "changedFields");
-        properties(schema, "SignupDogValues", "name,sex,breed,birthMonth,notesToInstructors,documents");
+        properties(schema, "SignupDogValues", "name,sex,breed,birthMonth,birthDate,notesToInstructors,documents");
         assertThat(strings(schema.at("/SignupDogValues/required"))).containsExactlyInAnyOrder("name", "documents");
         properties(schema, "UploadUrl", "uploadUrl,fileKey,expiresAt,headers");
         assertThat(schema.at("/UploadUrl/required").toString()).contains("headers");

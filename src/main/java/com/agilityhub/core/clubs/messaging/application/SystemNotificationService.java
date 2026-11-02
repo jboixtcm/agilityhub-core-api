@@ -57,6 +57,14 @@ public class SystemNotificationService {
                 accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), Map.of("link", link),
                 sender.forPasswordRecovery());
     }
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendAdminWelcomeOnce(String id, String accountId, String link, int expiryMinutes) {
+        if (completed(id)) { return id; }
+        var account = accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return deliverTo(id, "N-27", account, Map.of("link", link, "variant", "ADMIN_WELCOME", "expires_minutes", expiryMinutes),
+                sender.forAdminWelcome(TenantContext.require()));
+    }
+
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }

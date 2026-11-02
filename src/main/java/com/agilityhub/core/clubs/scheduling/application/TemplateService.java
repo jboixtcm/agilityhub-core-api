@@ -141,7 +141,7 @@ public class TemplateService {
         var config = context.config();
         WeekTemplateRules.band(new WeekTemplateRules.Band(band.id(), WeekTemplateRules.time(band.startTime()), WeekTemplateRules.time(band.endTime())),
                 template.timeBands().stream().map(b -> new WeekTemplateRules.Band(b.id(), WeekTemplateRules.time(b.startTime()), WeekTemplateRules.time(b.endTime()))).toList(),
-                template.kind(), config.get("classes.slotMinutes", Integer.class), context.opening(config));
+                template.kind(), 5, context.opening(config));
     }
     private WeekTemplate.TemplateClass buildClass(WeekTemplate template, String id, String bandId, DayOfWeek day, List<String> instructors,
             String ringId, List<String> levels, Integer capacity, String description, String placementId, TemplateClassRules.Kept kept) {

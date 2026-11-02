@@ -198,6 +198,16 @@ public class SchedulingController {
         return view(planning.generate(id, request.weekdayTemplateId(), request.saturdayTemplateId()), GenerationResult.class);
     }
 
+    @DeleteMapping("/api/v1/weeks/{id}/generation")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, STALE_VERSION})
+    @Operation(summary = "undoWeekGeneration", description = "Roles: ADMIN. Remove template drafts from the latest generated week. The observed generation timestamp protects retries.", responses = @ApiResponse(responseCode = "204", description = "Week reset to pending"))
+    public void undoWeekGeneration(@PathVariable String id, @RequestParam java.time.Instant generatedAt) {
+        access.tenant();
+        planning.undoGeneration(id, generatedAt);
+    }
+
     @PostMapping("/api/v1/weeks/{id}/validation")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, WEEK_INCONSISTENT, NOTHING_TO_VALIDATE})

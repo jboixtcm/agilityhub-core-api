@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Admins can request a single club-branded welcome email for an active member while automatic messages are disabled. Add a club-scoped Brevo SMS switch, draft-week reset and updated signup and billing defaults.
+
 - The admin notification log searches safe stored subjects and recipient identity within the club. Brevo temporary rejections retain a sanitized diagnostic and receipt time without permanent suppression, resending or changing provider acceptance into delivery; subsequent delivery remains possible.
 
 - Large census pages batch related-row lookups across the selected page. Pending-signup facets read dog status directly, and filtered-array selection retains only required child fields and predicate dependencies. Preserve tenant predicates, related-array contents, stable ordering and full/sparse page contracts.

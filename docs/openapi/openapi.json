@@ -21926,9 +21926,13 @@
       },
       "SignupDog" : {
         "properties" : {
+          "birthDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
           "birthMonth" : {
+            "deprecated" : true,
             "example" : "2024-04",
-            "minLength" : 1,
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
             "type" : "string"
           },
@@ -21938,7 +21942,8 @@
             "type" : "string"
           },
           "chip" : {
-            "minLength" : 1,
+            "maxLength" : 40,
+            "minLength" : 0,
             "type" : "string"
           },
           "documents" : {
@@ -21965,7 +21970,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "birthMonth", "breed", "chip", "name", "sex" ],
+        "required" : [ "breed", "name", "sex" ],
         "type" : "object"
       },
       "SignupDogReadmission" : {
@@ -21995,6 +22000,10 @@
       "SignupDogValues" : {
         "description" : "The values and documents of the dog record",
         "properties" : {
+          "birthDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
           "birthMonth" : {
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
             "type" : "string"
@@ -22024,6 +22033,10 @@
       },
       "SignupDogView" : {
         "properties" : {
+          "birthDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
           "birthMonth" : {
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
             "type" : "string"
@@ -22072,7 +22085,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "birthMonth", "breed", "chip", "documents", "id", "name", "sex", "status", "version" ],
+        "required" : [ "birthMonth", "breed", "documents", "id", "name", "sex", "status", "version" ],
         "type" : "object"
       },
       "SignupFamilyGroupClaim" : {
@@ -93546,6 +93559,152 @@
       }
     },
     "/api/v1/weeks/{id}/generation" : {
+      "delete" : {
+        "description" : "Roles: ADMIN. Remove template drafts from the latest generated week. The observed generation timestamp protects retries.",
+        "operationId" : "undoWeekGeneration",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "generatedAt",
+          "required" : true,
+          "schema" : {
+            "format" : "date-time",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Week reset to pending"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_STATE, STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "undoWeekGeneration",
+        "tags" : [ "clubs.scheduling" ]
+      },
       "post" : {
         "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "generate",

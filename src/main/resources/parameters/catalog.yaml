@@ -133,7 +133,7 @@ parameters:
     documentDefault: "`{\"ca\": \"Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia {deadlineDay} per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.\", \"es\": \"Cuando ya no quieras seguir haciendo actividades en el club o quieras estar un tiempo sin venir, indícanoslo antes del día {deadlineDay} para modificar la emisión de recibos del mes siguiente. Puedes hacerlo desde tu ficha o contactando con nosotros directamente.\", \"en\": \"When you no longer want to train at the club, or you want to take a break, let us know before day {deadlineDay} so we can change the following month's billing. You can do it from your profile or by contacting us.\"}`"
   - key: "signup.text.cashConditions"
     type: "localizedText"
-    default: {"ca": "Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.", "es": "Pago en efectivo: la cuota se paga por semestres naturales completos en el club. Ponte en contacto con el club para coordinarlo.", "en": "Cash payment: the fee is paid at the club in full calendar half-years. Contact the club to arrange this."}
+    default: {"ca": "Per pagar la quota en efectiu, posa’t en contacte amb el club.", "es": "Para pagar la cuota en efectivo, ponte en contacto con el club.", "en": "Contact the club to arrange payment in cash."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.cashConditions.label"
     helpKey: "admin-settings:param.signup.text.cashConditions.help"
@@ -143,7 +143,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "`{\"ca\": \"Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.\", \"es\": \"Pago en efectivo: la cuota se paga por semestres naturales completos en el club. Ponte en contacto con el club para coordinarlo.\", \"en\": \"Cash payment: the fee is paid at the club in full calendar half-years. Contact the club to arrange this.\"}`"
+    documentDefault: "`{\"ca\": \"Per pagar la quota en efectiu, posa’t en contacte amb el club.\", \"es\": \"Para pagar la cuota en efectivo, ponte en contacto con el club.\", \"en\": \"Contact the club to arrange payment in cash.\"}`"
   - key: "signup.text.freeTrainingConditions"
     type: "localizedText"
     default: {"ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.", "es": "Las clases son siempre con instructor y se pueden hacer hasta dos por semana. Además, existe la posibilidad de entrenamiento libre fuera del horario de clases a partir del nivel D con licencia deportiva.", "en": "Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence."}
@@ -1173,7 +1173,7 @@ parameters:
     documentDefault: "`{\"ca\": \"La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.\", \"es\": \"La cuota mensual para abonados se cobrará normalmente el día 1. En el caso de packs no se genera ningún cargo.\", \"en\": \"The monthly membership fee is normally collected on the 1st. Packs do not generate a monthly charge.\"}`"
   - key: "signup.text.therapyIntro"
     type: "localizedText"
-    default: {"ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.", "es": "También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.", "en": "Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy."}
+    default: {"ca": "Si abans de fer classes en grup farem alguna sessió de teràpia individual selecciona l’opció teràpia.", "es": "Si antes de empezar las clases en grupo haremos alguna sesión de terapia individual selecciona la opción terapia.", "en": "If you will have individual therapy sessions before starting group classes, select Therapy."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.therapyIntro.label"
     helpKey: "admin-settings:param.signup.text.therapyIntro.help"
@@ -1183,7 +1183,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "`{\"ca\": \"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.\", \"es\": \"También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.\", \"en\": \"Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy.\"}`"
+    documentDefault: "`{\"ca\": \"Si abans de fer classes en grup farem alguna sessió de teràpia individual selecciona l’opció teràpia.\", \"es\": \"Si antes de empezar las clases en grupo haremos alguna sesión de terapia individual selecciona la opción terapia.\", \"en\": \"If you will have individual therapy sessions before starting group classes, select Therapy.\"}`"
   - key: "signup.text.familyGroupIntro"
     type: "localizedText"
     default: {"ca": "Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de {twoDogsMonthlyFee}. L'entrada sí que és per cada gos.", "es": "Si en casa ya hay alguien abonado, podéis formar un grupo familiar con un único responsable del pago: la cuota mensual se reduce a partir del segundo perro. Así, para dos perros la cuota mensual sería de {twoDogsMonthlyFee}. La matrícula sí es por cada perro.", "en": "If someone in your household is already a member, you can form a family group with one person responsible for payment: the monthly fee is reduced from the second dog. For two dogs, the monthly fee would be {twoDogsMonthlyFee}. The joining fee still applies to each dog."}
@@ -1342,17 +1342,17 @@ parameters:
     documentDefault: "true"
   - key: "billing.cashInvoicing"
     type: "enum"
-    default: "SEMESTER"
+    default: "QUARTERLY"
     block: "billing"
     labelKey: "admin-settings:param.billing.cashInvoicing.label"
     helpKey: "admin-settings:param.billing.cashInvoicing.help"
-    constraints: {"enum": ["MONTHLY", "SEMESTER"]}
+    constraints: {"enum": ["MONTHLY", "QUARTERLY", "SEMESTER"]}
     modules: ["BILLING"]
     scope: "club"
     editableBy: "CLUB"
     restartRequired: false
-    documentType: "enum `MONTHLY · SEMESTER`"
-    documentDefault: "**SEMESTER** (Josep 08-09: en efectiu no hi ha quota mensual; primera fracció en mesos fins a final de semestre natural i després semestres complets). `MONTHLY` és igualment de producte: la clau **s'edita des de D11** i les dues branques estan provades (Jordi 09-09, A29); en canviar-la, repassa `signup.text.cashConditions`"
+    documentType: "enum `MONTHLY · QUARTERLY · SEMESTER`"
+    documentDefault: "**QUARTERLY** (trimestres naturals)"
 
   - key: "billing.upfrontCutoffDay"
     type: "int"

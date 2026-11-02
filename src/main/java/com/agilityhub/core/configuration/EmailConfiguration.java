@@ -47,7 +47,8 @@ public class EmailConfiguration {
                         from, environment.getProperty("email.platform-from-name", ""), brevoState::suppressed)
                 : new SendGridEmailSender(client, mapper, URI.create("https://api.sendgrid.com/v3/mail/send"), key, Duration.ofSeconds(10));
         if (!HostedDemoPolicy.emailDeliveryEnabled(environment)) {
-            return new RestrictedEmailSender(sender, HostedDemoPolicy.emailRecoveryEnabled(environment), HostedDemoPolicy.signupEmailClubId(environment));
+            return new RestrictedEmailSender(sender, HostedDemoPolicy.emailRecoveryEnabled(environment), HostedDemoPolicy.signupEmailClubId(environment),
+                    HostedDemoPolicy.adminWelcomeClubId(environment));
         }
         return demo.enabled() ? new AllowListEmailSender(sender, demo) : sender;
     }

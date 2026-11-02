@@ -26,7 +26,7 @@ class DisabledEmailDeliveryIT extends EngineFixtures {
         };
     }
     @Test void onlyApplicantSignupEmailsReachTheProviderAndOldSkipsAreNeverReplayed() {
-        var sender = new com.agilityhub.core.clubs.messaging.application.RestrictedEmailSender(mail, true, CLUB);
+        var sender = new com.agilityhub.core.clubs.messaging.application.RestrictedEmailSender(mail, true, CLUB, "");
         var scoped = new NotificationDispatcher(notifications, subscriptions, sender, sms, push, configs, emailSettings, usage, emails, unsubscribes,
                 ports, accounts, events, new TransactionTemplate(transactions), owners, clock, "no-reply@example.test");
         ports.applicants.put("member-new", new com.agilityhub.core.clubs.messaging.application.ports.SignupContactPort.ApplicantContact("new@example.test", "ca", "Applicant"));

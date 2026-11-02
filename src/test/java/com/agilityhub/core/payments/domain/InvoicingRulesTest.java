@@ -475,8 +475,8 @@ class InvoicingRulesTest {
         assertThat(vila.lines()).singleElement().satisfies(line -> assertThat(line.month()).isEqualTo(SEPTEMBER));
         assertThat(vila.nextInvoiceDate()).isEqualTo(LocalDate.of(2026, 10, 1));
         assertThat(billed(lines(sepa("laura", "abonat", LocalDate.of(2026, 9, 1)), SEPTEMBER)).lines()).hasSize(1);
-        // billing.cashPeriodMonths = 3 → natural quarters.
-        var quarters = new Settings("EUR", 1, CashInvoicing.SEMESTER, 3, true, true, true, true, CANIC.enabledMethods());
+        // Explicit quarterly collection ignores the configured semester period.
+        var quarters = new Settings("EUR", 1, CashInvoicing.QUARTERLY, 6, true, true, true, true, CANIC.enabledMethods());
         assertThat(billed(InvoicingRules.linesFor(cash("vila", "abonat", LocalDate.of(2026, 8, 1)), YearMonth.of(2026, 8), RUN_DAY, quarters, sources, TEXT)).lines())
                 .extracting(Line::month).containsExactly(YearMonth.of(2026, 8), YearMonth.of(2026, 9));
     }

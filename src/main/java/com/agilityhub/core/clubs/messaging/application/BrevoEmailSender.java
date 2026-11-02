@@ -35,7 +35,7 @@ public final class BrevoEmailSender implements EmailSender {
         if (suppressed.test(message.to())) { return SendResult.failed(SUPPRESSED); }
         try {
             var body = new LinkedHashMap<String, Object>();
-            body.put("sender", Map.of("email", from, "name", name.isBlank() ? message.from().name() : name));
+            body.put("sender", Map.of("email", from, "name", name.isBlank() || "ADMIN_WELCOME".equals(message.tags().get("variant")) ? message.from().name() : name));
             body.put("to", List.of(Map.of("email", message.to())));
             body.put("subject", message.subject()); body.put("htmlContent", message.html()); body.put("textContent", message.text());
             var headers = new LinkedHashMap<>(message.headers());
