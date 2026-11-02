@@ -561,7 +561,8 @@ and URIs are included because they must remain consistent across recovery.
 | `OIDC_AR_APP_REDIRECT_URI`, `OIDC_AR_APP_LOGOUT_URI` | Exact AR callback/logout URI from its client configuration; keep the existing defaults until that deployment is ready. |
 | `OIDC_LEARN_REDIRECT_URI`, `OIDC_LEARN_LOGOUT_URI` | Exact Learn callback/logout URI; activate only when A30 permits the connection. |
 | `CORS_PLATFORM_HOSTS` | Comma-separated exact platform hosts from DNS/client inventory; no wildcard. Front SPAs use same-origin proxies. |
-| `EMAIL_DELIVERY_ENABLED` | Defaults `true`. Set `false` only with `HOSTED_DEMO_ENABLED=true` for internal review: no provider clients or mailbox sink, no credentials or email allowlist required, and emails become terminal `SKIPPED_NOT_ALLOWED` records. Re-enabling is a separate deployment decision. |
+| `EMAIL_DELIVERY_ENABLED` | Defaults `true`. Set `false` only with `HOSTED_DEMO_ENABLED=true` for internal review: ordinary email stays disabled. Without any explicit email exception no provider credentials are required. Skipped emails become terminal `SKIPPED_NOT_ALLOWED` records. Re-enabling is a separate deployment decision. |
+| `EMAIL_SIGNUP_APPLICANT_CLUB_ID` | Optional club ID. In restricted delivery mode, sends only SignupSubmitted (N-01) and SignupRejected (N-03) to that club’s applicant. Requires the configured email provider and webhook authentication. Existing skipped deliveries remain terminal. |
 | `EMAIL_RECOVERY_ENABLED` | Defaults `false`. With general delivery disabled, explicitly enables only account-bound password RESET emails through the real provider. Provider credentials, verified sender and webhook authentication are mandatory. LOGIN, welcome, resend, password-change notices and every engine email remain terminal skips. Recovery recipients are the existing active accounts/memberships validated by the identity service; the general hosted-demo recipient allowlist does not limit this separately authorized recovery flow. |
 | `EMAIL_PROVIDER` | `sendgrid` (default) or `brevo`. When email delivery is enabled, selected provider credentials and webhook authentication are mandatory in staging/prod, including hosted demo. Leave the unused provider credentials blank. |
 | `BREVO_API_KEY` | Brevo API key (not SMTP key). Required for Brevo; rotate by proving the replacement before revocation. |
@@ -572,6 +573,8 @@ and URIs are included because they must remain consistent across recovery.
 | `MAIL_FROM_PLATFORM` | Platform address verified by the selected provider; change only after sender-domain verification. Brevo always sends from this address. |
 | `SENDGRID_WEBHOOK_PUBLIC_KEY` | Required only for SendGrid: Event Webhook verification public key (base64 DER/PEM); coordinate with provider signing-key change and verify a signed event. |
 | `EMAIL_UNSUBSCRIBE_KEY` | Base64 32 random bytes; HMAC for 30-day unsubscribe links. Rotation invalidates outstanding links. |
+| `SMS_PROVIDER` | SMS transport, `twilio` (default) or `brevo`. Brevo uses the existing `BREVO_API_KEY` and the club’s registered SMS sender ID. |
+| `SMS_DELIVERY_ENABLED` | Defaults to `true`. Set to `false` to block SMS regardless of credentials. Hosted demo always blocks SMS. |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio account/auth credentials from its console; validate replacement before revoking the old token. |
 | `TWILIO_MESSAGING_SERVICE_SID` | Optional Twilio service ID; blank uses the club sender. Change with provider configuration. |
 | `SMS_ALLOWED_NUMBERS` | Outside prod, allowed tester numbers only; empty means no real sends. Never populate with demo numbers. Not a prod recipient filter. |
