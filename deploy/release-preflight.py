@@ -66,14 +66,20 @@ def check_configuration(config):
     require(email_enabled in ('true', 'false'), 'EMAIL_DELIVERY_ENABLED must be true or false')
     recovery_enabled = str(environment.get('EMAIL_RECOVERY_ENABLED', 'false')).lower()
     require(recovery_enabled in ('true', 'false'), 'EMAIL_RECOVERY_ENABLED must be true or false')
-    transport_enabled = email_enabled == 'true' or recovery_enabled == 'true'
+    signup_club_id = str(environment.get('EMAIL_SIGNUP_APPLICANT_CLUB_ID') or '').strip()
+    transport_enabled = email_enabled == 'true' or recovery_enabled == 'true' or bool(signup_club_id)
     require(email_enabled == 'true' or demo == 'true', 'EMAIL_DELIVERY_ENABLED=false requires HOSTED_DEMO_ENABLED=true')
     if demo == 'true' and email_enabled == 'true':
         recipients = str(environment.get('HOSTED_DEMO_EMAIL_ALLOWLIST', '')).split(',')
         require(all(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._%+\-]*@[A-Za-z0-9](?:[A-Za-z0-9.\-]*[A-Za-z0-9])?\.[A-Za-z]{2,}', address.strip()) for address in recipients),
                 'HOSTED_DEMO_EMAIL_ALLOWLIST requires nonempty exact email addresses, without wildcards')
+    sms_provider = environment.get('SMS_PROVIDER', 'twilio')
+    require(sms_provider in ('twilio', 'brevo'), 'SMS_PROVIDER must be twilio or brevo')
+    sms_enabled = str(environment.get('SMS_DELIVERY_ENABLED', 'true')).lower()
+    require(sms_enabled in ('true', 'false'), 'SMS_DELIVERY_ENABLED must be true or false')
     if demo != 'true':
-        for key in ('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):
+        sms_keys = ('BREVO_API_KEY',) if sms_provider == 'brevo' else ('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN')
+        for key in (*(sms_keys if sms_enabled == 'true' else ()), 'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):
             require(bool(str(environment.get(key) or '').strip()), f'{key} is required outside hosted demo')
     provider = environment.get('EMAIL_PROVIDER', 'sendgrid')
     require(provider in ('sendgrid', 'brevo'), 'EMAIL_PROVIDER must be sendgrid or brevo')

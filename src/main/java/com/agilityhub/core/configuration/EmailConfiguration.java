@@ -46,7 +46,9 @@ public class EmailConfiguration {
                 ? new BrevoEmailSender(client, mapper, URI.create("https://api.brevo.com/v3/smtp/email"), selectedKey, Duration.ofSeconds(10),
                         from, environment.getProperty("email.platform-from-name", ""), brevoState::suppressed)
                 : new SendGridEmailSender(client, mapper, URI.create("https://api.sendgrid.com/v3/mail/send"), key, Duration.ofSeconds(10));
-        if (!HostedDemoPolicy.emailDeliveryEnabled(environment)) { return new RecoveryOnlyEmailSender(sender); }
+        if (!HostedDemoPolicy.emailDeliveryEnabled(environment)) {
+            return new RestrictedEmailSender(sender, HostedDemoPolicy.emailRecoveryEnabled(environment), HostedDemoPolicy.signupEmailClubId(environment));
+        }
         return demo.enabled() ? new AllowListEmailSender(sender, demo) : sender;
     }
     @Bean SendGridSignatureVerifier sendGridSignatures(Environment environment, @Value("${email.sendgrid.webhook-public-key:}") String key) {

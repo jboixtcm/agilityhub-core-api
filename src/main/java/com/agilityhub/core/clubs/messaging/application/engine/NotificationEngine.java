@@ -440,7 +440,7 @@ public class NotificationEngine {
     }
     /** Persist internal-review email skips at creation, including direct/template-test sends; no future email backlog. */
     private Notification applyEmailPolicy(Notification n) {
-        if (!dispatcher.emailDeliveryDisabled() || n.deliveries() == null) { return n; }
+        if (!dispatcher.emailDeliveryDisabled(n) || n.deliveries() == null) { return n; }
         var deliveries = n.deliveries().stream().map(d -> d.channel() == NotificationChannel.EMAIL && d.status() == DeliveryStatus.QUEUED
                 ? new Notification.Delivery(d.channel(), d.target(), DeliveryStatus.SKIPPED_NOT_ALLOWED, 0, null, null,
                         com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED, null, null, null) : d).toList();

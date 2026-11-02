@@ -25,6 +25,31 @@ class DisabledEmailDeliveryIT extends EngineFixtures {
             @Override public int dispatch(java.util.Collection<String> ids) { return idle ? 0 : super.dispatch(ids); }
         };
     }
+    @Test void onlyApplicantSignupEmailsReachTheProviderAndOldSkipsAreNeverReplayed() {
+        var sender = new com.agilityhub.core.clubs.messaging.application.RestrictedEmailSender(mail, true, CLUB);
+        var scoped = new NotificationDispatcher(notifications, subscriptions, sender, sms, push, configs, emailSettings, usage, emails, unsubscribes,
+                ports, accounts, events, new TransactionTemplate(transactions), owners, clock, "no-reply@example.test");
+        ports.applicants.put("member-new", new com.agilityhub.core.clubs.messaging.application.ports.SignupContactPort.ApplicantContact("new@example.test", "ca", "Applicant"));
+        var submitted = Map.<String, Object>of("memberId", "member-new");
+        engine = engine(disabledDispatcher(true));
+        String prior = deliver(CLUB, "SignupSubmitted", submitted);
+        engine = engine(scoped);
+        deliver(prior, CLUB, "SignupSubmitted", submitted);
+        assertThat(mail.sent).isEmpty();
+
+        deliver(CLUB, "SignupSubmitted", submitted);
+        deliver(CLUB, "SignupRejected", Map.of("memberId", "member-new", "reason", "Duplicate"));
+        assertThat(mail.to("new@example.test")).hasSize(2);
+        assertThat(mail.sent).hasSize(2);
+        assertThat(stored(CLUB, "N-01")).anySatisfy(n -> {
+            assertThat(n.audience()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.NotificationAudience.ADMINS);
+            assertThat(n.deliveries()).allSatisfy(d -> assertThat(d.channel() != NotificationChannel.EMAIL
+                    || d.status() == DeliveryStatus.SKIPPED_NOT_ALLOWED).isTrue());
+        });
+        notificationEvent();
+        assertThat(mail.sent).hasSize(2);
+    }
+
     private String notificationEvent() {
         classSession(CLUB, "e7t02-class-a", "2026-10-08T18:50", List.of("instructor-marta"));
         return deliver(CLUB, "ClassAutoCancelled", Map.of("classId", "e7t02-class-a", "dogsCount", 1));

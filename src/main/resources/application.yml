@@ -27,6 +27,7 @@ exports:
 
 email:
   delivery-enabled: ${EMAIL_DELIVERY_ENABLED:true}
+  signup-applicant-club-id: ${EMAIL_SIGNUP_APPLICANT_CLUB_ID:}
   recovery-enabled: ${EMAIL_RECOVERY_ENABLED:false}
   provider: ${EMAIL_PROVIDER:sendgrid}
   local-mailbox-directory: ${MAIL_LOCAL_DIRECTORY:}
@@ -40,10 +41,12 @@ email:
     api-key: ${SENDGRID_API_KEY:}
     webhook-public-key: ${SENDGRID_WEBHOOK_PUBLIC_KEY:}
 
-# S11 notification engine (E7-T02): SMS (Twilio), web push (VAPID) and the signed CLUB_NEWS unsubscribe links.
+# S11 notification engine (E7-T02): SMS (Twilio or Brevo), web push (VAPID) and the signed CLUB_NEWS unsubscribe links.
 notifications:
   unsubscribe-key: ${EMAIL_UNSUBSCRIBE_KEY:}
   sms:
+    delivery-enabled: ${SMS_DELIVERY_ENABLED:true}
+    provider: ${SMS_PROVIDER:twilio}
     twilio-account-sid: ${TWILIO_ACCOUNT_SID:}
     twilio-auth-token: ${TWILIO_AUTH_TOKEN:}
     twilio-messaging-service-sid: ${TWILIO_MESSAGING_SERVICE_SID:}

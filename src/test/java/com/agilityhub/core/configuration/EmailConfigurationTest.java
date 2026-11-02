@@ -124,7 +124,7 @@ class EmailConfigurationTest {
         recovery.withPropertyValues("email.brevo.api-key=fictional").run(context -> {
             assertThat(context).hasNotFailed();
             var sender = context.getBean(EmailSender.class);
-            assertThat(sender).isInstanceOf(RecoveryOnlyEmailSender.class);
+            assertThat(sender).isInstanceOf(RestrictedEmailSender.class);
             assertThat(sender.deliveryDisabled()).isTrue();
             assertThat(sender.send(null).sent()).isFalse();
             assertThat(sender.forPasswordRecovery()).isInstanceOf(BrevoEmailSender.class);

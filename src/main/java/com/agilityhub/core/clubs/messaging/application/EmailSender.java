@@ -6,6 +6,8 @@ public interface EmailSender {
     default boolean deliveryDisabled() { return false; }
     /** Only the identity RESET flow may select the separately enabled recovery transport. */
     default EmailSender forPasswordRecovery() { return this; }
+    /** Receipt and rejection of an applicant’s own signup, selected by the event dispatcher. */
+    default EmailSender forSignupApplicant(String clubId) { return this; }
     record SendResult(boolean sent, String providerMessageId, String error) {
         public static SendResult sent(String id) { return new SendResult(true, id, null); }
         public static SendResult failed(String error) { return new SendResult(false, null, error); }

@@ -145,6 +145,19 @@ class ReleasePreflightTest(unittest.TestCase):
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_configuration(self.config)
 
+    def test_scoped_applicant_email_and_disabled_brevo_sms(self):
+        env = self.config['services']['core']['environment']
+        env.update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false', EMAIL_RECOVERY_ENABLED='false',
+                   EMAIL_SIGNUP_APPLICANT_CLUB_ID='example-club', EMAIL_PROVIDER='brevo', BREVO_API_KEY='fictional-api-key',
+                   BREVO_WEBHOOK_TOKEN='r' * 32, SMS_PROVIDER='brevo', SMS_DELIVERY_ENABLED='false')
+        PREFLIGHT.check_configuration(self.config)
+        del env['BREVO_API_KEY']
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'BREVO_API_KEY'):
+            PREFLIGHT.check_configuration(self.config)
+        env.update(EMAIL_SIGNUP_APPLICANT_CLUB_ID='', BREVO_WEBHOOK_TOKEN='', SMS_PROVIDER='unknown')
+        with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'SMS_PROVIDER'):
+            PREFLIGHT.check_configuration(self.config)
+
     def test_invalid_hosted_demo_toggle_is_not_silently_accepted(self):
         self.config['services']['core']['environment']['HOSTED_DEMO_ENABLED'] = 'yes'
         with self.assertRaises(PREFLIGHT.PreflightError):

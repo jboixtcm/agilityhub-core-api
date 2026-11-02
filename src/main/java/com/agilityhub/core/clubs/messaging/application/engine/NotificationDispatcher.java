@@ -13,6 +13,7 @@ import com.agilityhub.core.clubs.messaging.application.ports.NotificationFactsPo
 import com.agilityhub.core.clubs.messaging.domain.ChannelResolver;
 import com.agilityhub.core.clubs.messaging.domain.DeliveryStatus;
 import com.agilityhub.core.clubs.messaging.domain.MessagingEvent;
+import com.agilityhub.core.clubs.messaging.domain.NotificationAudience;
 import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.domain.NotificationEvent;
 import com.agilityhub.core.clubs.messaging.domain.RetryPolicy;
@@ -181,10 +182,19 @@ public class NotificationDispatcher {
         settle(new Settling(notification, delivery, token, outcome));
     }
 
-    boolean emailDeliveryDisabled() { return email.deliveryDisabled(); }
+    boolean emailDeliveryDisabled(Notification notification) { return emailSender(notification).deliveryDisabled(); }
+
+    private EmailSender emailSender(Notification notification) {
+        if (notification.audience() == NotificationAudience.APPLICANT
+                && (("N-01".equals(notification.code()) && "SignupSubmitted".equals(notification.eventType()))
+                || ("N-03".equals(notification.code()) && "SignupRejected".equals(notification.eventType())))) {
+            return email.forSignupApplicant(notification.clubId());
+        }
+        return email;
+    }
 
     private Outcome attempt(Notification notification, Notification.Delivery delivery) {
-        if (delivery.channel() == NotificationChannel.EMAIL && email.deliveryDisabled()) {
+        if (delivery.channel() == NotificationChannel.EMAIL && emailSender(notification).deliveryDisabled()) {
             return Outcome.status(DeliveryStatus.SKIPPED_NOT_ALLOWED, com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED);
         }
         if (!deliverable(notification, delivery)) { return Outcome.status(DeliveryStatus.SKIPPED_STALE, STALE); }
@@ -221,7 +231,7 @@ public class NotificationDispatcher {
                     message.locale(), message.tags(), message.headers());
         }
         if (!leaseCoversCall(delivery)) { return Outcome.ABANDONED; }
-        var result = email.send(message);
+        var result = emailSender(notification).send(message);
         if (result.sent()) { return Outcome.of(SendResult.accepted(result.providerMessageId())); }
         return Outcome.of(emailRetryable(result.error()) ? SendResult.retryable(result.error()) : SendResult.failed(result.error()));
     }

@@ -1,4 +1,5 @@
 # Changelog
+- Allow a selected club to email applicants on signup submission and rejection while general email is disabled. Add Brevo transactional SMS with a separate delivery switch.
 - Render security email subjects, actions and footers with the configured installation or tenant brand in Catalan, Spanish and English.
 
 All notable changes to this project will be documented in this file.

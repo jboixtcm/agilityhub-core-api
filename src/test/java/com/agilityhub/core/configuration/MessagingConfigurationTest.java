@@ -51,6 +51,19 @@ class MessagingConfigurationTest {
         assertThat(configuration.smsSender(profiles("local"), mapper, "AC-example", "token-example", "", "")).isInstanceOf(AllowListSmsSender.class);
     }
 
+    @Test void brevoSmsIsSelectableWithoutTwilioAndHostedDemoStillCannotSend() {
+        var environment = profiles("prod").withProperty("notifications.sms.provider", "brevo");
+        assertThatThrownBy(() -> configuration.smsSender(environment, mapper, "", "", "", "")).hasMessageContaining("BREVO_API_KEY");
+        environment.setProperty("email.brevo.api-key", "test-key");
+        assertThat(configuration.smsSender(environment, mapper, "", "", "", "")).isInstanceOf(com.agilityhub.core.clubs.messaging.application.integrations.BrevoSmsSender.class);
+        environment.setProperty("notifications.sms.delivery-enabled", "false");
+        assertThat(configuration.smsSender(environment, mapper, "", "", "", "").send(null).refusedByGuard()).isTrue();
+        environment.setProperty("notifications.sms.delivery-enabled", "true");
+        environment.setProperty("core.hosted-demo.enabled", "true");
+        environment.setProperty("email.delivery-enabled", "false");
+        assertThat(configuration.smsSender(environment, mapper, "", "", "", "").send(null).refusedByGuard()).isTrue();
+    }
+
     @Test void T_11_10_thePushSenderPerProfileAndTheVapidKeys() throws Exception {
         var clubs = mock(ClubConfigService.class);
         assertThat(configuration.pushSender(profiles("test"), mapper, Clock.systemUTC(), clubs, "", "", "")).isInstanceOf(FakePushSender.class);

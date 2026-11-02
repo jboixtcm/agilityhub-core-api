@@ -19,6 +19,7 @@ import com.agilityhub.core.clubs.messaging.application.integrations.PushResult;
 import com.agilityhub.core.clubs.messaging.application.integrations.SendResult;
 import com.agilityhub.core.clubs.messaging.application.integrations.SmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.TwilioSmsSender;
+import com.agilityhub.core.clubs.messaging.application.integrations.BrevoSmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.WebPushSender;
 import com.agilityhub.core.clubs.messaging.application.ports.BookingRelevancePort;
 import com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort;
@@ -91,15 +92,29 @@ public class MessagingConfiguration {
     @Bean SmsSender smsSender(Environment environment, ObjectMapper mapper, @Value("${notifications.sms.twilio-account-sid:}") String sid,
             @Value("${notifications.sms.twilio-auth-token:}") String token, @Value("${notifications.sms.twilio-messaging-service-sid:}") String service,
             @Value("${notifications.sms.allowed-numbers:}") String allowed) {
-        if (com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled()) { return message -> SendResult.notAllowed(); }
-        if (environment.acceptsProfiles(STRICT)) {
-            if (sid.isBlank() || token.isBlank()) { throw new IllegalStateException("TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are required in staging/prod"); }
-        } else if (environment.acceptsProfiles(Profiles.of("test"))) { return new FakeSmsSender(); }
-        else if (sid.isBlank() && environment.acceptsProfiles(Profiles.of("local"))) { return new LogSmsSender(); }
-        if (sid.isBlank() || token.isBlank()) { throw new IllegalStateException("TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are required outside local/test"); }
-        var twilio = new TwilioSmsSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper, URI.create("https://api.twilio.com"),
-                sid, token, service, Duration.ofSeconds(10));
-        return environment.acceptsProfiles(Profiles.of("prod")) ? twilio : new AllowListSmsSender(twilio, AllowListSmsSender.parse(allowed));
+        var demo = com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment);
+        if (demo.enabled() || !environment.getProperty("notifications.sms.delivery-enabled", Boolean.class, true)) {
+            return message -> SendResult.notAllowed();
+        }
+        if (environment.acceptsProfiles(Profiles.of("test")) && !environment.acceptsProfiles(STRICT)) { return new FakeSmsSender(); }
+        String provider = environment.getProperty("notifications.sms.provider", "twilio");
+        var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+        SmsSender sender;
+        switch (provider) {
+            case "brevo" -> {
+                String key = environment.getProperty("email.brevo.api-key", "");
+                if (key.isBlank() && environment.acceptsProfiles(Profiles.of("local")) && !environment.acceptsProfiles(STRICT)) { return new LogSmsSender(); }
+                if (key.isBlank()) { throw new IllegalStateException("BREVO_API_KEY is required for Brevo SMS"); }
+                sender = new BrevoSmsSender(client, mapper, URI.create("https://api.brevo.com/v3/transactionalSMS/send"), key, Duration.ofSeconds(10));
+            }
+            case "twilio" -> {
+                if (sid.isBlank() && environment.acceptsProfiles(Profiles.of("local")) && !environment.acceptsProfiles(STRICT)) { return new LogSmsSender(); }
+                if (sid.isBlank() || token.isBlank()) { throw new IllegalStateException("TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are required"); }
+                sender = new TwilioSmsSender(client, mapper, URI.create("https://api.twilio.com"), sid, token, service, Duration.ofSeconds(10));
+            }
+            default -> throw new IllegalStateException("SMS_PROVIDER must be twilio or brevo");
+        }
+        return environment.acceptsProfiles(Profiles.of("prod")) ? sender : new AllowListSmsSender(sender, AllowListSmsSender.parse(allowed));
     }
 
     @Bean PushSender pushSender(Environment environment, ObjectMapper mapper, Clock clock, ClubConfigService configs,
