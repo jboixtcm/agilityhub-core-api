@@ -53,7 +53,7 @@ public class TrainingController {
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, DOG_NOT_ACCESSIBLE})
-    @Operation(summary = "memberTrainingSlots", description = "Member booking grid for an accessible dog, clipped to the club booking window. Accounts with additional staff roles see the same member projection.",
+    @Operation(summary = "memberTrainingSlots", description = "Roles: MEMBER. Booking grid for an accessible dog, clipped to the club booking window. Accounts with additional staff roles see the same member projection.",
             responses = @ApiResponse(responseCode = "200", description = "TrainingSlots", useReturnTypeSchema = true))
     public TrainingSlots memberTrainingSlots(@RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam String dogId, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();

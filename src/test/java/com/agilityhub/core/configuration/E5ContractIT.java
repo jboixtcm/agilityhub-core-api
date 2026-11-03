@@ -65,7 +65,7 @@ class E5ContractIT extends AbstractIntegrationTest {
             "POST /api/v1/waitlist-entries", "GET /api/v1/waitlist-entries/{id}", "POST /api/v1/waitlist-entries/{id}/cancellation",
             "POST /api/v1/waitlist-entries/{id}/claim", "GET /api/v1/class-sessions/{id}/waitlist-entries",
             // E5-T04 serves every S09 route.
-            "GET /api/v1/training-slots", "GET /api/v1/me/training-summary", "GET /api/v1/me/training-bookings", "POST /api/v1/training-bookings",
+            "GET /api/v1/training-slots", "GET /api/v1/me/training-slots", "GET /api/v1/me/training-summary", "GET /api/v1/me/training-bookings", "POST /api/v1/training-bookings",
             "GET /api/v1/training-bookings/{id}", "POST /api/v1/training-bookings/{id}/cancellation", "GET /api/v1/training-bookings",
             "GET /api/v1/training-bookings/export",
             // E5-T05 serves every S15 route.
@@ -280,10 +280,10 @@ class E5ContractIT extends AbstractIntegrationTest {
 
     @Test void T_08_47_T_09_24_T_15_29_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(34);
+        assertThat(routes().count()).isEqualTo(35);
         var s15 = routes().filter(r -> r.path().startsWith("/api/v1/jobs") || r.path().startsWith("/api/v1/platform") || r.path().equals("/api/v1/risk-review")).count();
         var s09 = routes().filter(r -> "FREE_TRAINING".equals(r.module())).count();
-        assertThat(List.of(34 - s15 - s09, s09, s15)).containsExactly(17L, 9L, 8L);
+        assertThat(List.of(35 - s15 - s09, s09, s15)).containsExactly(17L, 10L, 8L);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();
