@@ -81,7 +81,7 @@ public class SeatHoldService {
         boolean heldByOther = live.stream().anyMatch(h -> h.dogId().equals(dogId) && !Objects.equals(h.accountId(), actor.accountId()));
         if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now, full); }
         var limit = checks.limit(subject, now);
-        if (limit.done()) {
+        if (limit.done() && !actor.adminDelegation()) {
             throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(now)));
         }
         if (full || heldByOther) {
@@ -96,7 +96,7 @@ public class SeatHoldService {
         if (existing == null) { return; }
         transactions.write(List.of(existing.classSessionId()), () -> {
             var hold = holds.findById(seatHoldId).orElse(null);
-            if (hold == null || !Objects.equals(hold.accountId(), actor.accountId())) { return null; }
+            if (hold == null || !Objects.equals(hold.accountId(), actor.accountId()) || (actor.impersonated() && !actor.adminDelegation() && !checks.reachable(actor.memberId(), hold.dogId()))) { return null; }
             holds.deleteById(hold.id());
             events.publish(BookingEvent.Kind.SeatHoldReleased, hold.id(), payload(hold), actor);
             return null;

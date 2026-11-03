@@ -52,14 +52,22 @@ public class ImpersonationService {
     @Transactional
     @Audited(action = AuditAction.IMPERSONATION_STARTED, entityType = "'ImpersonationGrant'", member = "#memberId", reason = "#reason")
     public Issued create(String actorAccountId, String memberId, String reason) {
+        return createGrant(actorAccountId, memberId, reason, false);
+    }
+    @Transactional
+    @Audited(action = AuditAction.IMPERSONATION_STARTED, entityType = "'ImpersonationGrant'", member = "#memberId", reason = "#reason")
+    public Issued createForBookings(String actorAccountId, String memberId, String reason) {
+        return createGrant(actorAccountId, memberId, reason, true);
+    }
+    private Issued createGrant(String actorAccountId, String memberId, String reason, boolean bookingsOnly) {
         var actor = identities.current(actorAccountId);
-        if (actor.membership() == null || !actor.membership().roles().contains(Role.ADMIN)) { throw new ApiException(ErrorCode.IMPERSONATION_DENIED); }
+        if (actor.membership() == null || !actor.membership().roles().contains(bookingsOnly ? Role.INSTRUCTOR : Role.ADMIN)) { throw new ApiException(ErrorCode.IMPERSONATION_DENIED); }
         var target = identities.current(members.impersonationAccount(memberId));
-        if (!memberId.equals(target.membership().memberId()) || !target.membership().roles().contains(Role.MEMBER)) { throw new ApiException(ErrorCode.IMPERSONATION_DENIED); }
+        if (target.membership() == null || !memberId.equals(target.membership().memberId()) || !target.membership().roles().contains(Role.MEMBER)) { throw new ApiException(ErrorCode.IMPERSONATION_DENIED); }
         Instant now = clock.instant();
         var grant = grants.insert(new ImpersonationGrant(UUID.randomUUID().toString(), TenantContext.require(), actorAccountId,
                 memberId, target.account().id(), reason, now.plusSeconds(settings.integer("auth.impersonationMinutes") * 60L), null,
-                ImpersonationGrant.Type.IMPERSONATION, now));
+                bookingsOnly ? ImpersonationGrant.Type.INSTRUCTOR_BOOKINGS : ImpersonationGrant.Type.IMPERSONATION, now));
         var jwt = token(grant, target.account(), now);
         publish(ImpersonationEvent.Kind.ImpersonationStarted, grant);
         return new Issued(grant.id(), grant.expiresAt(), jwt, launchUrl(grant, actor.account().familyVersion(), now));
@@ -70,7 +78,8 @@ public class ImpersonationService {
                 .issuedAt(now).expiresAt(grant.expiresAt()).id(grant.id()).claim("azp", "clubs-app")
                 .claim("clubId", grant.clubId()).claim("roles", List.of("MEMBER")).claim("activeProfile", "MEMBER")
                 .claim("memberId", grant.impersonatedMemberId()).claim("imp", true).claim("actorAccountId", grant.actorAccountId())
-                .claim("impersonatedMemberId", grant.impersonatedMemberId()).claim("name", account.name()).claim("email", account.email()).claim("locale", account.locale());
+                .claim("impersonatedMemberId", grant.impersonatedMemberId()).claim("locale", account.locale());
+        if (!grant.bookingsOnly()) { claims.claim("name", account.name()).claim("email", account.email()); }
         return encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), claims.build()));
     }
     /**
@@ -90,7 +99,7 @@ public class ImpersonationService {
     }
     /**
      * Redeems an impersonation handoff code inside the caller's transaction: the grant must still be live (not ended, not
-     * expired), its actor still an ADMIN whose sessions were not revoked since, and its target still the member; then the code
+     * expired), its actor still authorised for that grant with sessions not revoked since, and its target still the member; then the code
      * is consumed once and the grant's JWT issued. Empty when any of it fails (the caller answers `HANDOFF_INVALID`).
      */
     java.util.Optional<Jwt> redeem(HandoffCode code) {
@@ -102,7 +111,7 @@ public class ImpersonationService {
         try {
             actor = identities.current(grant.actorAccountId());
             target = identities.current(grant.impersonatedAccountId());
-            if (actor.account().familyVersion() != code.tokenFamilyVersion() || actor.membership() == null || !actor.membership().roles().contains(Role.ADMIN)
+            if (actor.account().familyVersion() != code.tokenFamilyVersion() || actor.membership() == null || !actor.membership().roles().contains(grant.bookingsOnly() ? Role.INSTRUCTOR : Role.ADMIN)
                     || target.membership() == null || !target.membership().roles().contains(Role.MEMBER)
                     || !Objects.equals(target.membership().memberId(), grant.impersonatedMemberId())
                     || !grant.impersonatedAccountId().equals(members.impersonationAccount(grant.impersonatedMemberId()))) { return java.util.Optional.empty(); }
@@ -122,12 +131,12 @@ public class ImpersonationService {
         }
         var actor = identities.current(grant.actorAccountId());
         var target = identities.current(grant.impersonatedAccountId());
-        if (!actor.membership().roles().contains(Role.ADMIN) || !target.membership().roles().contains(Role.MEMBER)
+        if (actor.membership() == null || target.membership() == null || !actor.membership().roles().contains(grant.bookingsOnly() ? Role.INSTRUCTOR : Role.ADMIN) || !target.membership().roles().contains(Role.MEMBER)
                 || !Objects.equals(target.membership().memberId(), grant.impersonatedMemberId())
                 || !grant.impersonatedAccountId().equals(members.impersonationAccount(grant.impersonatedMemberId()))) {
             throw new ApiException(ErrorCode.IMPERSONATION_DENIED);
         }
-        return new CurrentUser.Impersonation(grant.actorAccountId(), actor.account().name(), grant.impersonatedMemberId());
+        return new CurrentUser.Impersonation(grant.actorAccountId(), actor.account().name(), grant.impersonatedMemberId(), grant.bookingsOnly());
     }
     @Transactional
     public boolean revoke(String requester, String value) {

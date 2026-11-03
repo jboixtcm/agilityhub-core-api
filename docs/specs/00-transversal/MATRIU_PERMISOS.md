@@ -18,9 +18,9 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | Plantilles setmanals, setmanes, generació, validació | — | — | R | RW + X | — |
 | Classes `/class-sessions` | — | R (actives del seu nivell/tots els quadres) | R totes · W assistència | RW + X (anul·lar, eliminar→anul·lada, exempció de risc) | — |
 | Bloquejos de pista `/ring-blocks` | — | R (com «Ocupada», sense qui) | RW (propis i de tothom: 24) | RW | — |
-| Reserves de classe `/bookings` | — | RW propi (límits) | R totes · X «ha avisat» en nom de l'alumne (21) | R totes · via impersonació per reservar/anul·lar | — |
-| Llista d'espera | — | RW propi (claim) | R | R + X cancel·lar | — |
-| Entrenaments (slots i reserves) | — | R slots · RW propi | R totes · W reserva/bloqueig sense alumne (24) | RW | — |
+| Reserves de classe `/bookings` | — | RW propi (límits) | R totes · X «ha avisat» (21) · RW en sessió de reserves de l’alumne | R totes · via impersonació per reservar/anul·lar | — |
+| Llista d'espera | — | RW propi (claim) | RW en sessió de reserves de l’alumne | R + X cancel·lar | — |
+| Entrenaments (slots i reserves) | — | R slots · RW propi | R totes · W reserva/bloqueig sense alumne (24) · RW en sessió de reserves de l’alumne | RW | — |
 | Activitats i inscripcions | — | R publicades · RW inscripció pròpia | R | RW + X (publicar, cancel·lar) | — |
 | Assistència `/attendances` | — | R pròpia (25) | RW de les seves classes i de qualsevol (visió global) | RW | — |
 | Tasques, observacions, seguiment D14 | — | R tasques pròpies · X marcar feta · W adjunts propis | RW tasques i observacions de qualsevol alumne · R D14 | RW · R D14 | — |

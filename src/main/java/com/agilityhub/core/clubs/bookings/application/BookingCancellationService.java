@@ -44,8 +44,9 @@ public class BookingCancellationService {
     /** `POST /bookings/{id}/cancellation` (member, impersonating admin) and the S10 «ha avisat» call (instructor). */
     public Booking cancel(String bookingId, BookingActor actor, String message) {
         var initial = bookings.require(bookingId);
-        if (actor.role() == ActorRole.INSTRUCTOR && !context.flag("bookings.instructorLastMinuteNotice")) { throw new ApiException(ErrorCode.FORBIDDEN); }
-        var reason = actor.role() == ActorRole.INSTRUCTOR ? BookingCancelReason.INSTRUCTOR_NOTICE : BookingCancelReason.MEMBER;
+        boolean attendanceNotice = actor.role() == ActorRole.INSTRUCTOR && !actor.impersonated();
+        if (attendanceNotice && !context.flag("bookings.instructorLastMinuteNotice")) { throw new ApiException(ErrorCode.FORBIDDEN); }
+        var reason = attendanceNotice ? BookingCancelReason.INSTRUCTOR_NOTICE : BookingCancelReason.MEMBER;
         return transactions.write(List.of(initial.classSessionId()), () -> {
             locks.lock(initial.classSessionId());
             return cancelLocked(bookings.require(bookingId), actor, reason, message, null);

@@ -195,6 +195,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 return;
             }
         }
+        if (com.agilityhub.core.shared.application.CurrentUser.bookingsOnly()) {
+            accountId = "booking-grant:" + ((org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken) authentication).getToken().getId();
+        }
         keyed(request, response, chain, path, body, anonymous, clubId, accountId, authentication, new Rows(records, clubId, false));
     }
 

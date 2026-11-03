@@ -49,6 +49,17 @@ public class TrainingController {
     }
     private <T> T view(Object value, Class<T> type) { return mapper.convertValue(value, type); }
 
+    @GetMapping("/api/v1/me/training-slots")
+    @PreAuthorize(MEMBER)
+    @AllowsImpersonation
+    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, DOG_NOT_ACCESSIBLE})
+    @Operation(summary = "memberTrainingSlots", description = "Member booking grid for an accessible dog, clipped to the club booking window. Accounts with additional staff roles see the same member projection.",
+            responses = @ApiResponse(responseCode = "200", description = "TrainingSlots", useReturnTypeSchema = true))
+    public TrainingSlots memberTrainingSlots(@RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam String dogId, @AuthenticationPrincipal Jwt jwt) {
+        access.tenant();
+        return view(slots.grid(from, to, dogId, null, new TrainingSlotService.Viewer(memberId(jwt), false)), TrainingSlots.class);
+    }
+
     static String memberId(Jwt jwt) {
         var user = CurrentUser.current();
         return user != null && user.impersonation() != null ? user.impersonation().memberId() : jwt.getClaimAsString("memberId");

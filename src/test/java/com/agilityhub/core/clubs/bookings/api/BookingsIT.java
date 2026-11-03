@@ -44,19 +44,24 @@ class BookingsIT extends BookingFixtures {
             assertThat(n.has("attendance")).isFalse();
             assertThat(n.has("attendanceState")).isFalse();
         });
+        var admin = impersonating("admin", "s08-m-laura");
+        var held = hold(admin, "sat", "s08-d-duna", 201);
+        assertThat(held.at("/limit/reached").asBoolean()).isTrue();
+        assertThat(held.at("/limit/swappable")).isEmpty();
+        call(POST, "/bookings", Map.of("seatHoldId", held.path("id").asText(), "overrideWeeklyLimit", true), admin, 201, UUID.randomUUID().toString());
     }
 
     @Test void T_08_14_holdCreatesRefreshesAndRejectsWithTheRightDetails() throws Exception {
         var held = hold(as("laura"), "wed", "s08-d-duna", 201);
-        assertThat(held.path("serverNow").asText()).isEqualTo(NOW.toString()); assertThat(held.path("holdSeconds").asInt()).isEqualTo(30);
-        assertThat(held.path("expiresAt").asText()).isEqualTo(NOW.plusSeconds(30).toString());
+        assertThat(held.path("serverNow").asText()).isEqualTo(NOW.toString()); assertThat(held.path("holdSeconds").asInt()).isEqualTo(60);
+        assertThat(held.path("expiresAt").asText()).isEqualTo(NOW.plusSeconds(60).toString());
         assertThat(held.at("/classSession/startsAtLocal").asText()).isEqualTo("2026-10-07T18:50"); assertThat(held.at("/classSession/ringName").asText()).isEqualTo("Central");
         assertThat(held.at("/dog/name").asText()).isEqualTo("Duna"); assertThat(held.at("/limit/reached").asBoolean()).isFalse();
         assertThat(held.at("/limit/unit").asText()).isEqualTo("DOG"); assertThat(held.at("/limit/week").asText()).isEqualTo("CURRENT"); assertThat(held.at("/limit/max").asInt()).isEqualTo(2);
         clock.advance(Duration.ofSeconds(10));
         var again = hold(as("laura"), "wed", "s08-d-duna", 201);
         assertThat(again.path("id").asText()).isEqualTo(held.path("id").asText());
-        assertThat(again.path("expiresAt").asText()).isEqualTo(NOW.plusSeconds(40).toString());
+        assertThat(again.path("expiresAt").asText()).isEqualTo(NOW.plusSeconds(70).toString());
         assertThat(count("seat_holds", Criteria.where("classSessionId").is("s08-wed"))).isEqualTo(1); assertThat(events("SeatHeld")).isEqualTo(2);
         assertThat(eventsOf("SeatHeld").getFirst().get("payload", Document.class)).containsKeys("classId", "memberId", "dogId", "expiresAt");
         // The last seat held by another dog → CLASS_FULL{heldOnly: true}; once booked → heldOnly false.
@@ -122,7 +127,7 @@ class BookingsIT extends BookingFixtures {
         mvc.perform(get(path.replaceAll("token=[^&]+", "token=1.forged")).header("Host", HOST)).andExpect(status().isNotFound());
         mvc.perform(get(path).header("Host", OTHER_HOST)).andExpect(status().isNotFound());
         // Expired hold, and a hold of another account → SEAT_HOLD_EXPIRED.
-        var expiring = hold(as("laura"), "thu", "s08-d-duna", 201); clock.advance(Duration.ofSeconds(31));
+        var expiring = hold(as("laura"), "thu", "s08-d-duna", 201); clock.advance(Duration.ofSeconds(61));
         assertThat(code(confirm(as("laura"), expiring.path("id").asText(), null, 409))).isEqualTo("SEAT_HOLD_EXPIRED");
         var peres = hold(as("pere"), "thu", "s08-d-nit", 201);
         assertThat(code(confirm(as("laura"), peres.path("id").asText(), null, 409))).isEqualTo("SEAT_HOLD_EXPIRED");
@@ -156,7 +161,7 @@ class BookingsIT extends BookingFixtures {
         assertThat(mongo.findById(lauras.path("id").asText(), Document.class, "seat_holds")).containsEntry("accountId", "s08-laura");
         assertThat(confirm(as("laura"), lauras.path("id").asText(), null, 201).at("/bookedBy/displayName").asText()).isEqualTo("Laura");
         // An expired hold (the TTL has not run yet) guarantees nothing: Joan may hold the dog, and Laura's old hold no longer confirms.
-        var expired = hold(as("laura"), "thu", "s08-d-duna", 201); clock.advance(Duration.ofSeconds(31));
+        var expired = hold(as("laura"), "thu", "s08-d-duna", 201); clock.advance(Duration.ofSeconds(61));
         var joans = hold(as("joan"), "thu", "s08-d-duna", 201);
         assertThat(mongo.findById(joans.path("id").asText(), Document.class, "seat_holds")).containsEntry("accountId", "s08-joan");
         assertThat(code(confirm(as("laura"), expired.path("id").asText(), null, 409))).isEqualTo("SEAT_HOLD_EXPIRED");
@@ -201,13 +206,60 @@ class BookingsIT extends BookingFixtures {
         assertThat(call(POST, "/bookings", body, as("laura"), 201, key)).isEqualTo(first);
         assertThat(count("bookings", Criteria.where("classSessionId").is("s08-wed"))).isEqualTo(1);
         var late = hold(as("laura"), "thu", "s08-d-duna", 201); String other = UUID.randomUUID().toString();
-        clock.advance(Duration.ofSeconds(31));
+        clock.advance(Duration.ofSeconds(61));
         var rejected = call(POST, "/bookings", Map.of("seatHoldId", late.path("id").asText()), as("laura"), 409, other);
         assertThat(code(rejected)).isEqualTo("SEAT_HOLD_EXPIRED");
-        clock.advance(Duration.ofSeconds(-31)); // the hold would be valid again: the stored 409 is replayed, nothing re-executes
+        clock.advance(Duration.ofSeconds(-61)); // the hold would be valid again: the stored 409 is replayed, nothing re-executes
         assertThat(call(POST, "/bookings", Map.of("seatHoldId", late.path("id").asText()), as("laura"), 409, other)).isEqualTo(rejected);
         assertThat(count("bookings", Criteria.where("classSessionId").is("s08-thu"))).isZero();
         assertThat(code(call(POST, "/bookings", Map.of("seatHoldId", held.path("id").asText()), as("laura"), 409, other))).isEqualTo("IDEMPOTENCY_KEY_REUSED");
+    }
+
+    @Test void instructorCanReserveAndCancelOnlyAsTheSelectedMember() throws Exception {
+        com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
+        try (var tenant = TenantContext.open(CLUB)) { issued = impersonations.createForBookings("s08-inst", "s08-m-laura", null); }
+        var instructor = jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER");
+        assertThat(code(hold(instructor, "wed", "s08-d-nit", 404))).isEqualTo("DOG_NOT_ACCESSIBLE");
+        // Joan is in Laura's family: Laura can manage his dog, but her instructor has opened only her record.
+        var familyBooking = book(as("joan"), "mon", "s08-d-toby");
+        String familyDetail = "/bookings/" + familyBooking.path("id").asText();
+        call(GET, familyDetail, null, as("laura"), 200);
+        call(GET, familyDetail, null, instructor, 404);
+        assertThat(code(hold(instructor, "wed", "s08-d-toby", 404))).isEqualTo("DOG_NOT_ACCESSIBLE");
+        var held = hold(instructor, "wed", "s08-d-duna", 201);
+        assertThat(code(call(POST, "/bookings", Map.of("seatHoldId", held.path("id").asText(), "overrideWeeklyLimit", true), instructor, 403, UUID.randomUUID().toString()))).isEqualTo("OVERRIDE_NOT_ALLOWED");
+        var booking = confirm(instructor, held.path("id").asText(), null, 201);
+        assertThat(booking.path("origin").asText()).isEqualTo("INSTRUCTOR");
+        assertThat(booking(booking.path("id").asText()).get("bookedBy", Document.class)).containsEntry("accountId", "s08-inst").containsEntry("impersonatedMemberId", "s08-m-laura");
+        var cancelled = cancel(instructor, booking.path("id").asText(), 200);
+        assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED");
+        payToBook();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")),
+                new Update().set("paymentMethod", new Document("type", "CARD").append("card", new Document("last4", "1111"))), "members");
+        var paidHold = hold(instructor, "thu", "s08-d-duna", 201);
+        var pending = confirm(instructor, paidHold.path("id").asText(), null, 201);
+        assertThat(pending.path("state").asText()).isEqualTo("PAYMENT_PENDING");
+        assertThat(pending.path("checkoutUrl").isNull()).isTrue();
+        String detail = "/bookings/" + pending.path("id").asText();
+        assertThat(call(GET, detail, null, instructor, 200).path("checkoutUrl").isNull()).isTrue();
+        assertThat(call(GET, detail, null, as("inst"), 200).path("checkoutUrl").isNull()).isTrue();
+        assertThat(call(GET, detail, null, as("laura"), 200).path("checkoutUrl").asText()).startsWith("https://checkout.test/");
+        assertThat(code(call(GET, "/me/profile", null, instructor, 403))).isEqualTo("IMPERSONATION_DENIED");
+    }
+
+    @Test void T_08_17_onlyAnExplicitDelegatedConfirmationCanKeepBothBookings() throws Exception {
+        var original = book(as("laura"), "mon", "s08-d-duna");
+        var ordinary = hold(as("laura"), "mon2", "s08-d-duna", 201);
+        var body = Map.of("seatHoldId", ordinary.path("id").asText(), "overrideWeeklyLimit", true);
+        assertThat(code(call(POST, "/bookings", body, as("laura"), 403, UUID.randomUUID().toString()))).isEqualTo("OVERRIDE_NOT_ALLOWED");
+        clock.advance(Duration.ofSeconds(61));
+        var admin = impersonating("admin", "s08-m-laura");
+        var held = hold(admin, "mon2", "s08-d-duna", 201);
+        assertThat(held.at("/limit/reached").asBoolean()).isTrue();
+        confirm(admin, held.path("id").asText(), null, 422);
+        var result = call(POST, "/bookings", Map.of("seatHoldId", held.path("id").asText(), "overrideWeeklyLimit", true), admin, 201, UUID.randomUUID().toString());
+        assertThat(result.path("origin").asText()).isEqualTo("BACKOFFICE");
+        assertThat(booking(original.path("id").asText())).containsEntry("state", "ACTIVE");
     }
 
     @Test void T_08_17_swapCancelsTheOldBookingAndCreatesTheNewOneAtomically() throws Exception {

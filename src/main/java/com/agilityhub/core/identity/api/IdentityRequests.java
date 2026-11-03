@@ -35,7 +35,10 @@ public final class IdentityRequests {
             @NotBlank @JsonProperty("new") @Schema(format = "password", accessMode = Schema.AccessMode.WRITE_ONLY) String newPassword,
             @NotBlank @Schema(format = "password", accessMode = Schema.AccessMode.WRITE_ONLY) String repeat) { }
     public record ProfileRequest(@NotNull IdentityResponses.Profile activeProfile, @NotNull Boolean remember) { }
-    public record ImpersonationRequest(@Schema(requiredMode = NOT_REQUIRED) String reason) { }
+    public record ImpersonationRequest(@Schema(requiredMode = NOT_REQUIRED) String reason,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Request an instructor booking-only session for this member") Boolean bookingsOnly) {
+        public ImpersonationRequest(String reason) { this(reason, null); }
+    }
     public record PlatformAccountRequest(@NotBlank @Email String email, @NotBlank String name,
             @NotBlank @Schema(allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale,
             @Schema(requiredMode = NOT_REQUIRED, description = "Existing Learn bcrypt hash, preserved on import", accessMode = Schema.AccessMode.WRITE_ONLY)

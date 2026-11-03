@@ -26,6 +26,39 @@ class TrainingIT extends TrainingFixtures {
     @Autowired com.agilityhub.core.clubs.census.application.ports.TrainingCancellationPort lifecycleCancellations;
     @Autowired TrainingBookingService service; @Autowired TrainingEligibilityService eligibility;
 
+    @Test void instructorBooksTrainingWithMemberLimitsAndCannotCancelLate() throws Exception {
+        com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            issued = impersonations.createForBookings("s09-estel", "s09-m-maria", null);
+        }
+        var instructor = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER");
+        assertThat(code(book(instructor, "s09-d-kira", "2026-10-05T10:00", MUN, 404))).isEqualTo("DOG_NOT_ACCESSIBLE");
+        var booked = book(instructor, "s09-d-rock", "2026-10-05T10:00", MUN, 201);
+        assertThat(booked.path("origin").asText()).isEqualTo("INSTRUCTOR");
+        var override = Map.of("dogId","s09-d-rock","startsAt",local("2026-10-06T10:00").toString(),"override",Map.of("limit",true,"reason","test"));
+        assertThat(code(call(POST, "/training-bookings", override, instructor, 403, UUID.randomUUID().toString()))).isEqualTo("OVERRIDE_NOT_ALLOWED");
+        clock.setInstant(local("2026-10-05T09:30"));
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            issued = impersonations.createForBookings("s09-estel", "s09-m-maria", null);
+        }
+        var late = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER");
+        assertThat(code(cancel(late, booked.path("id").asText(), "test", 422))).isEqualTo("TRAINING_CANCEL_TOO_LATE");
+    }
+
+    @Test void T_09_04_memberGridIsScopedEvenWithStaffRoles() throws Exception {
+        var mixed = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(j -> j.subject("s09-maria").claim("clubId", CLUB).claim("memberId", "s09-m-maria"))
+                .authorities(() -> "ROLE_MEMBER", () -> "ROLE_ADMIN", () -> "ROLE_INSTRUCTOR");
+        String dates = "?from=2026-10-05&to=2026-11-05&dogId=";
+        call(GET, "/training-slots" + dates + "s09-d-rock", null, mixed, 400);
+        var grid = call(GET, "/me/training-slots" + dates + "s09-d-rock", null, mixed, 200);
+        assertThat(grid).isEqualTo(call(GET, "/training-slots" + dates + "s09-d-rock", null, as("maria"), 200));
+        call(GET, "/me/training-slots" + dates + "s09-d-thai", null, mixed, 404);
+        call(GET, "/me/training-slots" + dates + "s09-d-rock", null, as("admin"), 403);
+        modules(Arrays.stream(Module.values()).filter(m -> m != Module.FREE_TRAINING).toArray(Module[]::new));
+        call(GET, "/me/training-slots" + dates + "s09-d-rock", null, mixed, 404);
+    }
+
     @Test void T_09_02_eligibleDogsFollowTheFamilyGroupAndTheLevels() throws Exception {
         var summary = call(GET, "/me/training-summary", null, as("maria"), 200);
         var dogs = summary.path("eligibleDogs");

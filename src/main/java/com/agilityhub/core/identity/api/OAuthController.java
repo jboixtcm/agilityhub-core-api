@@ -166,6 +166,7 @@ public class OAuthController {
             throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
         }
         if (!impersonations.revoke(jwt.getSubject(), request.token())) { tokens.revoke(jwt.getSubject(), request.token()); }
+        if (com.agilityhub.core.shared.application.CurrentUser.bookingsOnly()) { return ResponseEntity.ok().build(); }
         return ResponseEntity.ok().header("Set-Cookie", refreshCookies.clearHeader(servletRequest)).build();
     }
 

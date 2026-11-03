@@ -52,7 +52,7 @@ public class TrainingBookingService {
     }
 
     public Booked book(TrainingActor actor, String dogId, Instant startsAt, String ringId, Override override, String idempotencyKey) {
-        if (override != null && !actor.impersonated()) { throw new ApiException(ErrorCode.OVERRIDE_NOT_ALLOWED); }
+        if (override != null && !actor.adminDelegation()) { throw new ApiException(ErrorCode.OVERRIDE_NOT_ALLOWED); }
         return transactions.write(lanes(dogId, actor.memberId(), startsAt), () -> bookInTransaction(actor, dogId, startsAt, ringId, override, idempotencyKey));
     }
     private Booked bookInTransaction(TrainingActor actor, String dogId, Instant startsAt, String ringId, Override override, String idempotencyKey) {
@@ -166,7 +166,7 @@ public class TrainingBookingService {
             boolean late = !TrainingRules.inTime(b.startsAt(), now, threshold);
             var cancelReason = TrainingCancelReason.MEMBER_REQUEST; var by = TrainingCancelledBy.MEMBER;
             if (late) {
-                if (!actor.impersonated()) {
+                if (!actor.adminDelegation()) {
                     throw new ApiException(ErrorCode.TRAINING_CANCEL_TOO_LATE, Map.of("thresholdMinutes", threshold, "minutesBefore", TrainingRules.minutesBefore(b.startsAt(), now)));
                 }
                 if (reason == null || reason.isBlank()) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "reason")); }

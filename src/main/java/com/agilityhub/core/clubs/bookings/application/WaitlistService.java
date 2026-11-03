@@ -118,7 +118,7 @@ public class WaitlistService {
      * runs in this transaction and consolidates the entry; in ALL_AT_ONCE the last seat demotes the other NOTIFIED ones. No seat
      * left answers SEAT_TAKEN (E11-T10 review: the confirmation's CLASS_FULL is not a claim's answer).
      */
-    public BookingConfirmationService.Confirmed claim(BookingActor actor, String entryId, String seatHoldId, String swapBookingId) {
+    public BookingConfirmationService.Confirmed claim(BookingActor actor, String entryId, String seatHoldId, String swapBookingId, boolean overrideWeeklyLimit) {
         var initial = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         return events.loggingBlocked("claim", initial.classSessionId(), () -> transactions.write(classes(entryId, swapBookingId), () -> {
             var now = context.now();
@@ -134,7 +134,7 @@ public class WaitlistService {
                     .orElseThrow(() -> new ApiException(ErrorCode.SEAT_HOLD_EXPIRED));
             if (!entryId.equals(hold.waitlistEntryId())) { throw new ApiException(ErrorCode.WAITLIST_NOT_NOTIFIED); }
             // R-08-15: a claim without a seat (a booking, another dog's hold or an offer ahead) is SEAT_TAKEN, never the booking's CLASS_FULL.
-            try { return confirmations.confirm(actor, seatHoldId, swapBookingId); }
+            try { return confirmations.confirm(actor, seatHoldId, swapBookingId, overrideWeeklyLimit); }
             catch (ApiException rejected) { if (rejected.code() == ErrorCode.CLASS_FULL) { throw new ApiException(ErrorCode.SEAT_TAKEN); } throw rejected; }
         }));
     }

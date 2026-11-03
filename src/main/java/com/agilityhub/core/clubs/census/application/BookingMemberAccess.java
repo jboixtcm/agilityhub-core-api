@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.census.application;
 
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.shared.application.CurrentUser;
 import com.agilityhub.core.shared.domain.Money;
 import java.time.LocalDate;
 import java.util.*;
@@ -60,6 +61,11 @@ public class BookingMemberAccess {
     }
     /** The actor's own members plus, with FAMILY_GROUP and an ACTIVE group holding both, the other group members (R-08-02). */
     public Set<String> reachableMembers(String actorMemberId) {
+        // An instructor opens one student record; the student's household never extends this grant.
+        if (CurrentUser.bookingsOnly()) {
+            String selected = CurrentUser.current().impersonation().memberId();
+            return selected.equals(actorMemberId) ? Set.of(selected) : Set.of();
+        }
         var result = new LinkedHashSet<String>(); result.add(actorMemberId);
         if (!access.enabled(Module.FAMILY_GROUP)) { return result; }
         var actor = access.members.findById(actorMemberId).orElse(null);

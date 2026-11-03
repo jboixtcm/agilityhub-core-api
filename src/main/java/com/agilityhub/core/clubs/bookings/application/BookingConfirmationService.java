@@ -48,9 +48,15 @@ public class BookingConfirmationService {
     }
 
     public Confirmed confirm(BookingActor actor, String seatHoldId, String swapBookingId) {
-        return events.loggingBlocked("confirm", holds.findById(seatHoldId).map(SeatHold::classSessionId).orElse(null), () -> confirmInTransaction(actor, seatHoldId, swapBookingId));
+        return confirm(actor, seatHoldId, swapBookingId, false);
     }
-    private Confirmed confirmInTransaction(BookingActor actor, String seatHoldId, String swapBookingId) {
+
+    public Confirmed confirm(BookingActor actor, String seatHoldId, String swapBookingId, boolean overrideWeeklyLimit) {
+        if (overrideWeeklyLimit && !actor.adminDelegation()) { throw new ApiException(ErrorCode.OVERRIDE_NOT_ALLOWED); }
+        if (overrideWeeklyLimit && swapBookingId != null) { throw new ApiException(ErrorCode.SWAP_NOT_ALLOWED); }
+        return events.loggingBlocked("confirm", holds.findById(seatHoldId).map(SeatHold::classSessionId).orElse(null), () -> confirmInTransaction(actor, seatHoldId, swapBookingId, overrideWeeklyLimit));
+    }
+    private Confirmed confirmInTransaction(BookingActor actor, String seatHoldId, String swapBookingId, boolean overrideWeeklyLimit) {
         return transactions.write(classes(seatHoldId, swapBookingId), () -> {
             var now = context.now();
             var hold = holds.findById(seatHoldId).filter(h -> Objects.equals(h.accountId(), actor.accountId()) && h.expiresAt().isAfter(now))
@@ -63,7 +69,7 @@ public class BookingConfirmationService {
             checks.notBookedYet(subject);
             var limit = checks.limit(subject, now);
             Booking swapped = null;
-            if (swapBookingId != null || limit.reached()) {
+            if (swapBookingId != null || (limit.reached() && !overrideWeeklyLimit)) {
                 if (swapBookingId == null && limit.done()) {
                     throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(now)));
                 }

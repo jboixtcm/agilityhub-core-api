@@ -52,5 +52,8 @@ public record MeResponse(@Schema(requiredMode = REQUIRED) MeAccount account,
     public enum Gender { MALE, FEMALE, OTHER }
     public record Impersonation(@Schema(requiredMode = REQUIRED) String actorName,
             @Schema(requiredMode = REQUIRED, description = "The impersonated member's display name as D10 shows it, first name and last names, for the banner "
-                    + "«Estàs veient l'app com {nom}»; not the account's name, which in a family group is another person's (E5-T29)") String memberName) { }
+                    + "«Estàs veient l'app com {nom}»; not the account's name, which in a family group is another person's (E5-T29)") String memberName,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only booking operations are permitted") @JsonInclude(JsonInclude.Include.NON_NULL) Boolean bookingsOnly) {
+        public Impersonation(String actorName, String memberName) { this(actorName, memberName, null); }
+    }
 }

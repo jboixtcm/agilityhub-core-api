@@ -11,9 +11,11 @@ public final class BookingRequests {
     public record SeatHoldRequest(@NotBlank String classSessionId, @NotBlank String dogId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "[AGAFA LA PLAÇA] of N-15; requires WAITLIST") String waitlistEntryId) { }
     public record BookingRequest(@NotBlank String seatHoldId,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Booking to cancel in the same transaction (R-08-09)") String swapBookingId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Booking to cancel in the same transaction (R-08-09)") String swapBookingId,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Explicit confirmation of a weekly-limit exception by an administrator acting for the member") Boolean overrideWeeklyLimit) { }
     public record BookingCancellationRequest(@Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Text of the club (25)") @Size(max = 500) String message) { }
     public record WaitlistEntryRequest(@NotBlank String classSessionId, @NotBlank String dogId) { }
     public record ClaimRequest(@NotBlank String seatHoldId,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String swapBookingId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String swapBookingId,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Explicit confirmation of a weekly-limit exception by an administrator acting for the member") Boolean overrideWeeklyLimit) { }
 }

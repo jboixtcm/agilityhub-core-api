@@ -11,6 +11,7 @@ import com.agilityhub.core.shared.application.CurrentUser;
  * (`cancelBookings: true`, or the impersonating admin's late cancellation), SYSTEM for S13/S15/S03 paths.
  */
 public record TrainingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, TrainingOrigin origin, TrainingCancelledBy by) {
+    public boolean adminDelegation() { return impersonated() && origin == TrainingOrigin.BACKOFFICE; }
     public boolean impersonated() { return impersonatedMemberId != null; }
     public static TrainingActor system() { return new TrainingActor(null, null, null, null, TrainingOrigin.BACKOFFICE, TrainingCancelledBy.SYSTEM); }
     /** The member route caller: the JWT's member, or the impersonated one with the admin as actor. */
@@ -18,7 +19,7 @@ public record TrainingActor(String accountId, String memberId, String displayNam
         var user = CurrentUser.current();
         if (user != null && user.impersonation() != null) {
             var imp = user.impersonation();
-            return new TrainingActor(imp.actorAccountId(), imp.memberId(), imp.actorName(), imp.memberId(), TrainingOrigin.BACKOFFICE, TrainingCancelledBy.MEMBER);
+            return new TrainingActor(imp.actorAccountId(), imp.memberId(), imp.actorName(), imp.memberId(), imp.bookingsOnly() ? TrainingOrigin.INSTRUCTOR : TrainingOrigin.BACKOFFICE, TrainingCancelledBy.MEMBER);
         }
         return new TrainingActor(user == null ? null : user.accountId(), jwtMemberId, user == null ? null : user.name(), null, TrainingOrigin.APP, TrainingCancelledBy.MEMBER);
     }

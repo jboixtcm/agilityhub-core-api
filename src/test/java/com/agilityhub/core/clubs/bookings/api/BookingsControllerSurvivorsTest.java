@@ -85,7 +85,7 @@ class BookingsControllerSurvivorsTest {
             assertCode(() -> controller.bookableClasses(null, jwt));
             assertCode(() -> controller.holdSeat(new BookingRequests.SeatHoldRequest("class-1", "dog-1", null), jwt));
             assertCode(() -> controller.releaseSeat("hold-1", jwt));
-            assertCode(() -> controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null), UUID.randomUUID(), jwt));
+            assertCode(() -> controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null), UUID.randomUUID(), jwt));
             assertCode(() -> controller.memberBookings(null, null, null, null, jwt));
             assertCode(() -> controller.booking("booking-1", jwt));
             assertCode(() -> controller.cancelBooking("booking-1", null, jwt));
@@ -94,7 +94,7 @@ class BookingsControllerSurvivorsTest {
             assertCode(() -> controller.joinWaitlist(new BookingRequests.WaitlistEntryRequest("class-1", "dog-1"), null, jwt));
             assertCode(() -> controller.waitlistEntry("entry-1", jwt));
             assertCode(() -> controller.leaveWaitlist("entry-1", jwt));
-            assertCode(() -> controller.claimSeat("entry-1", new BookingRequests.ClaimRequest("hold-1", null), UUID.randomUUID(), jwt));
+            assertCode(() -> controller.claimSeat("entry-1", new BookingRequests.ClaimRequest("hold-1", null, null), UUID.randomUUID(), jwt));
             assertCode(() -> controller.classBookings("class-1"));
             assertCode(() -> controller.classWaitlist("class-1"));
         }
@@ -232,14 +232,14 @@ class BookingsControllerSurvivorsTest {
         var actor = BookingActor.member("account-a", "member-a", "Laura Serra");
         when(actors.member("member-a")).thenReturn(actor);
         when(confirmations.classes("hold-1", null)).thenReturn(List.of("class-1"));
-        when(confirmations.confirm(actor, "hold-1", null)).thenAnswer(call -> {
+        when(confirmations.confirm(actor, "hold-1", null, false)).thenAnswer(call -> {
             events.add("confirm");
             return new BookingConfirmationService.Confirmed(mock(Booking.class), null, null);
         });
 
         try (var user = signedIn(DomainEvent.Origin.APP);
              var scope = IdempotentOperation.open(() -> events.add("lock"), (status, body) -> events.add("complete:" + status))) {
-            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null), UUID.randomUUID(), jwt);
+            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null), UUID.randomUUID(), jwt);
         }
 
         assertThat(events).containsExactly("lock", "confirm", "complete:201");
@@ -252,7 +252,7 @@ class BookingsControllerSurvivorsTest {
         when(actors.member("member-a")).thenReturn(actor);
         var booking = mock(Booking.class);
         var pending = new SingleClassChargePort.Pending("session-1", "payment-1", "member-a", "booking-1", new Money(1200, "EUR"), "Class", NOW);
-        when(confirmations.confirm(actor, "hold-1", null)).thenAnswer(call -> {
+        when(confirmations.confirm(actor, "hold-1", null, false)).thenAnswer(call -> {
             events.add("confirm");
             return new BookingConfirmationService.Confirmed(booking, null, pending);
         });
@@ -263,7 +263,7 @@ class BookingsControllerSurvivorsTest {
 
         try (var user = signedIn(DomainEvent.Origin.APP);
              var scope = IdempotentOperation.open(() -> events.add("lock"), (status, body) -> events.add("complete:" + status))) {
-            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null), UUID.randomUUID(), jwt);
+            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null), UUID.randomUUID(), jwt);
         }
 
         assertThat(events).containsExactly("lock", "confirm", "checkout", "lock", "complete:201");

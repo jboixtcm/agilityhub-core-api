@@ -229,7 +229,7 @@ class MemberAggregatesIT extends BookingFixtures {
         // The base cache serves the class counters for 30 s; the per-dog state is always live.
         book(as("c0"), "thu", "s08-d-c0");
         assertThat(row(bookable("laura", "s08-d-duna", 200), "thu").path("freeSeats").asInt()).as("base cached").isEqualTo(3);
-        clock.advance(Duration.ofSeconds(31));
+        clock.advance(Duration.ofSeconds(61));
         assertThat(row(bookable("laura", "s08-d-duna", 200), "thu").path("freeSeats").asInt()).as("base reloaded").isEqualTo(2);
         clock.setInstant(NOW); cache.invalidate(CLUB);
         // WAITLIST_FULL at waitlist.maxPerClass, FULL without WAITLIST.

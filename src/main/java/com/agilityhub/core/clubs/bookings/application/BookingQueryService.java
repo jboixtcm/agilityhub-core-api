@@ -40,7 +40,16 @@ public class BookingQueryService implements ListProvider {
         if (!staff && (actorMemberId == null || !census.reachableMembers(actorMemberId).contains(booking.memberId()))) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return booking;
     }
-    public Map<String, Object> detail(String id, String actorMemberId, boolean staff) { return views.booking(visible(id, actorMemberId, staff), staff, null); }
+    public Map<String, Object> detail(String id, String actorMemberId, boolean staff) {
+        var booking = visible(id, actorMemberId, staff);
+        var detail = views.booking(booking, staff, null);
+        var reader = com.agilityhub.core.shared.application.CurrentUser.current();
+        if (detail.get("checkoutUrl") != null && staff && reader != null && reader.origin() == com.agilityhub.core.shared.domain.DomainEvent.Origin.INSTRUCTOR
+                && (actorMemberId == null || !census.reachableMembers(actorMemberId).contains(booking.memberId()))) {
+            detail.put("checkoutUrl", null);
+        }
+        return detail;
+    }
     /**
      * S01 R-01-07 (E5-T27, ruling E41): whether the booking is the member's own or their family group's, so that an account with
      * MEMBER and a staff role acts on it as a member. `NOT_FOUND` for an unknown booking.

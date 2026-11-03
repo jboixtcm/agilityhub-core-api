@@ -324,7 +324,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 java.util.Map.entry("AccountPatchRequest", List.of("locale", "name")),
                 java.util.Map.entry("RevokeRequest", List.of("token")),
                 java.util.Map.entry("HandoffRequest", List.of("targetClientId")),
-                java.util.Map.entry("ImpersonationRequest", List.of("reason")),
+                java.util.Map.entry("ImpersonationRequest", List.of("reason", "bookingsOnly")),
                 java.util.Map.entry("PlatformAccountRequest", List.of("email", "name", "locale", "passwordHash")),
                 java.util.Map.entry("AccountPasswordRequest", List.of("passwordHash")),
                 java.util.Map.entry("OnboardingRequest", List.of("consentAccepted", "consentVersion", "fields", "imageConsent")),

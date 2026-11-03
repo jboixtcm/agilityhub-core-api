@@ -48,6 +48,16 @@ public class MeController {
         var session = identities.current(jwt.getSubject());
         var account = session.account();
         var membership = session.membership();
+        if (current != null && current.impersonation() != null && current.impersonation().bookingsOnly()) {
+            var imp = current.impersonation();
+            var actor = identities.current(imp.actorAccountId()).account();
+            var name = census.displayName(imp.memberId()).orElse(account.name());
+            return new MeResponse(new MeResponse.MeAccount(actor.id(), actor.email(), actor.name(), actor.locale(), java.util.Set.of(),
+                    actor.passwordHash() != null, actor.emailVerifiedAt(), false),
+                    new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.of(Profile.MEMBER), Profile.MEMBER, List.of(Profile.MEMBER),
+                            imp.memberId(), null, null, false, null, null, null), new MeResponse.Impersonation(imp.actorName(), name, true),
+                    clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
+        }
         var publicAccount = new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(),
                 account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet()),
                 account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending());

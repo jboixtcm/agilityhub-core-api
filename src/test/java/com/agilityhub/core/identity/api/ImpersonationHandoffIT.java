@@ -94,6 +94,31 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
                 .content(mapper.writeValueAsString(Map.of("token", value)))).andExpect(status().isOk());
     }
 
+    @Test void instructorBookingHandoffIsLimitedBeforeAndAfterRedemption() throws Exception {
+        membership("club-a", Set.of(Role.INSTRUCTOR), Role.INSTRUCTOR, "member-a");
+        String actor = bearer(login());
+        create(actor, "member-target", HOST).andExpect(status().isForbidden());
+        var response = mvc.perform(post("/api/v1/members/member-target/impersonation-token").header("Host", HOST).header("Authorization", actor)
+                .contentType("application/json").content("{\"bookingsOnly\":true}")).andExpect(status().isCreated()).andReturn().getResponse();
+        var issued = mapper.readTree(response.getContentAsString());
+        String code = java.net.URI.create(issued.path("launchUrl").asText()).getQuery().substring("handoff=".length());
+        var tokens = mapper.readTree(exchange(code, "clubs-app", HOST).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        String imp = "Bearer " + tokens.path("access_token").asText();
+        assertThat(tokens.has("refresh_token")).isFalse();
+        assertThat(SignedJWT.parse(tokens.path("access_token").asText()).getJWTClaimsSet().getClaim("email")).isNull();
+        mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", imp)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.impersonation.bookingsOnly").value(true)).andExpect(jsonPath("$.account.id").value("account-a"))
+                .andExpect(jsonPath("$.paymentMethod").doesNotExist());
+        for (var path : List.of("/api/v1/me/profile", "/api/v1/me/invoices", "/api/v1/notifications", "/api/v1/me/sessions",
+                "/api/v1/members", "/api/v1/training-bookings/export", "/api/v1/bookings/filter-values")) {
+            mvc.perform(get(path).header("Host", HOST).header("Authorization", imp)).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("IMPERSONATION_DENIED"));
+        }
+        requestHandoff(imp, "clubs-admin", HOST).andExpect(status().isForbidden());
+        exchange(code, "clubs-app", HOST).andExpect(status().isBadRequest());
+        membership("club-a", Set.of(Role.MEMBER), Role.MEMBER, "member-a");
+        mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", imp)).andExpect(status().isForbidden());
+    }
+
     @Test @AuditCovers(AuditAction.IMPERSONATION_STARTED)
     void T_01_11_claimsMemberViewAuditedMutationAndRevocation() throws Exception {
         String admin = bearer(login());
@@ -288,7 +313,8 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         assertThat(me.at("/account/name").asText()).isEqualTo("Example Member");
         assertThat(me.at("/impersonation/actorName").asText()).isEqualTo("Example Admin");
         assertThat(me.at("/impersonation/memberName").asText()).isEqualTo("Joan Antoni Serra Pujol");
-        com.agilityhub.core.support.SnapshotSchemas.assertConforms(me.path("impersonation"), "Impersonation");
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(me.path("impersonation"), "Impersonation")).isEmpty();
+        assertThat(me.path("impersonation").has("bookingsOnly")).isFalse();
         // Without a second last name, and outside an impersonation.
         mongo.updateFirst(Query.query(Criteria.where("_id").is("member-target")), new Update().unset("lastName2"), "members");
         mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", imp)).andExpect(status().isOk())

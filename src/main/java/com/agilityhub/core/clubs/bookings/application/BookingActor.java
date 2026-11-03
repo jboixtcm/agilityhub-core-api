@@ -11,6 +11,7 @@ import com.agilityhub.core.shared.application.CurrentUser;
  */
 public record BookingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, BookingOrigin origin, ActorRole role) {
     public boolean impersonated() { return impersonatedMemberId != null; }
+    public boolean adminDelegation() { return impersonated() && role == ActorRole.ADMIN; }
     public boolean isSystem() { return role == ActorRole.SYSTEM; }
     public static BookingActor system() { return new BookingActor(null, null, null, null, BookingOrigin.SYSTEM, ActorRole.SYSTEM); }
     /** The member route caller: the JWT's member, or the impersonated one with the admin as actor. */
@@ -18,7 +19,7 @@ public record BookingActor(String accountId, String memberId, String displayName
         var user = CurrentUser.current();
         if (user != null && user.impersonation() != null) {
             var imp = user.impersonation();
-            return new BookingActor(imp.actorAccountId(), imp.memberId(), imp.actorName(), imp.memberId(), BookingOrigin.BACKOFFICE, ActorRole.ADMIN);
+            return new BookingActor(imp.actorAccountId(), imp.memberId(), imp.actorName(), imp.memberId(), imp.bookingsOnly() ? BookingOrigin.INSTRUCTOR : BookingOrigin.BACKOFFICE, imp.bookingsOnly() ? ActorRole.INSTRUCTOR : ActorRole.ADMIN);
         }
         return new BookingActor(accountId, memberId, displayName, null, BookingOrigin.APP, ActorRole.MEMBER);
     }

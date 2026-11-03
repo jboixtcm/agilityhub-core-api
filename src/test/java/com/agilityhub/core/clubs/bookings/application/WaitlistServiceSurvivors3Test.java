@@ -75,7 +75,7 @@ class WaitlistServiceSurvivors3Test {
     @Test void T_08_22_claimingAnUnknownEntryIsNotFoundAndConfirmsNothing() {
         when(waitlist.findById("entry-9")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.claim(laura, "entry-9", "hold-1", null))
+        assertThatThrownBy(() -> service.claim(laura, "entry-9", "hold-1", null, false))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.NOT_FOUND));
         verifyNoInteractions(locks, holds, confirmations);
     }
@@ -85,7 +85,7 @@ class WaitlistServiceSurvivors3Test {
         var offer = entry("entry-1", "dog-duna", "member-laura", WaitlistState.NOTIFIED, NOW.minusSeconds(600), NOW.plusSeconds(1200), 1L);
         when(waitlist.findById("entry-1")).thenReturn(Optional.of(offer), Optional.of(offer), Optional.empty());
 
-        assertThatThrownBy(() -> service.claim(laura, "entry-1", "hold-1", null))
+        assertThatThrownBy(() -> service.claim(laura, "entry-1", "hold-1", null, false))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.NOT_FOUND));
         verify(locks).lock("class-a");
         verify(waitlist, times(3)).findById("entry-1");

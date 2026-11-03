@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public record ImpersonationGrant(@Id String id, String clubId, String actorAccountId,
         String impersonatedMemberId, String impersonatedAccountId, String reason,
         Instant expiresAt, Instant revokedAt, Type type, Instant createdAt, EndReason endReason) implements TenantEntity {
-    public enum Type { IMPERSONATION, SUPPORT }
+    public enum Type { IMPERSONATION, SUPPORT, INSTRUCTOR_BOOKINGS }
     /** S01 §7: `ImpersonationEnded{grantId, reason: LOGOUT·EXPIRED}`. */
     public enum EndReason { LOGOUT, EXPIRED }
     public ImpersonationGrant(String id, String clubId, String actorAccountId, String impersonatedMemberId, String impersonatedAccountId,
@@ -31,5 +31,6 @@ public record ImpersonationGrant(@Id String id, String clubId, String actorAccou
             String reason, Instant expiresAt, Instant revokedAt) {
         this(id, clubId, actorAccountId, impersonatedMemberId, impersonatedAccountId, reason, expiresAt, revokedAt, Type.IMPERSONATION);
     }
+    public boolean bookingsOnly() { return type == Type.INSTRUCTOR_BOOKINGS; }
     public boolean support() { return type == Type.SUPPORT; }
 }

@@ -2726,6 +2726,10 @@
       },
       "BookingRequest" : {
         "properties" : {
+          "overrideWeeklyLimit" : {
+            "description" : "Explicit confirmation of a weekly-limit exception by an administrator acting for the member",
+            "type" : "boolean"
+          },
           "seatHoldId" : {
             "minLength" : 1,
             "type" : "string"
@@ -4852,6 +4856,10 @@
       },
       "ClaimRequest" : {
         "properties" : {
+          "overrideWeeklyLimit" : {
+            "description" : "Explicit confirmation of a weekly-limit exception by an administrator acting for the member",
+            "type" : "boolean"
+          },
           "seatHoldId" : {
             "minLength" : 1,
             "type" : "string"
@@ -10318,6 +10326,10 @@
           "actorName" : {
             "type" : "string"
           },
+          "bookingsOnly" : {
+            "description" : "Only booking operations are permitted",
+            "type" : "boolean"
+          },
           "memberName" : {
             "description" : "The impersonated member's display name as D10 shows it, first name and last names, for the banner «Estàs veient l'app com {nom}»; not the account's name, which in a family group is another person's (E5-T29)",
             "type" : "string"
@@ -10328,6 +10340,10 @@
       },
       "ImpersonationRequest" : {
         "properties" : {
+          "bookingsOnly" : {
+            "description" : "Request an instructor booking-only session for this member",
+            "type" : "boolean"
+          },
           "reason" : {
             "type" : "string"
           }
@@ -23925,7 +23941,7 @@
             "type" : "string"
           },
           "origin" : {
-            "enum" : [ "APP", "BACKOFFICE" ],
+            "enum" : [ "APP", "BACKOFFICE", "INSTRUCTOR" ],
             "type" : "string"
           },
           "ringId" : {
@@ -24003,7 +24019,7 @@
             "type" : [ "integer", "null" ]
           },
           "origin" : {
-            "enum" : [ "APP", "BACKOFFICE" ],
+            "enum" : [ "APP", "BACKOFFICE", "INSTRUCTOR" ],
             "type" : "string"
           },
           "ringId" : {
@@ -33606,7 +33622,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "OVERRIDE_NOT_ALLOWED"
           },
           "404" : {
             "content" : {
@@ -61336,6 +61352,169 @@
         "tags" : [ "clubs.training" ]
       }
     },
+    "/api/v1/me/training-slots" : {
+      "get" : {
+        "description" : "Member booking grid for an accessible dog, clipped to the club booking window. Accounts with additional staff roles see the same member projection.",
+        "operationId" : "memberTrainingSlots",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : true,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : true,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "dogId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TrainingSlots"
+                }
+              }
+            },
+            "description" : "TrainingSlots"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED, DOG_NOT_ACCESSIBLE"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "memberTrainingSlots",
+        "tags" : [ "clubs.training" ]
+      }
+    },
     "/api/v1/me/training-summary" : {
       "get" : {
         "description" : "Roles: MEMBER (also the impersonation token). Eligible dogs (R-09-01), default dog (R-09-09) and the counter of the training week of date (R-09-05; default today, counted by session date). Requires FREE_TRAINING. Tenant comes from the JWT.",
@@ -64668,7 +64847,7 @@
     },
     "/api/v1/members/{id}/impersonation-token" : {
       "post" : {
-        "description" : "ADMIN of the same club, never an impersonated token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued. launchUrl = https://{club app host}/entrar?handoff=<code>: a one-shot handoff code valid 60 s, bound to this grant; the club app redeems it once with POST /oauth2/token grant_type=urn:agilityhub:grant:handoff, client_id=clubs-app, into this grant's JWT (no refresh token, no cookie). The JWT never travels in a URL (rulings E17/E47). token and expiresAt stay for API clients.",
+        "description" : "ADMIN of the same club, or INSTRUCTOR with bookingsOnly=true for a reservations-only session. Never a borrowed token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued. launchUrl = https://{club app host}/entrar?handoff=<code>: a one-shot handoff code valid 60 s, bound to this grant; the club app redeems it once with POST /oauth2/token grant_type=urn:agilityhub:grant:handoff, client_id=clubs-app, into this grant's JWT (no refresh token, no cookie). The JWT never travels in a URL (rulings E17/E47). token and expiresAt stay for API clients.",
         "operationId" : "impersonation",
         "parameters" : [ {
           "in" : "path",
@@ -91136,7 +91315,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "OVERRIDE_NOT_ALLOWED"
           },
           "404" : {
             "content" : {

@@ -37,7 +37,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `bookings.limitUnit` | enum `DOG`/`MEMBER` | DOG | ADR-012 |
 | `bookings.weekOpensAt` | json `{dayOfWeek, time}` | `{SUNDAY, 20:00}` | PAR-04; obre la setmana vinent **i** reinicia el comptador d'entrenaments (Q-03); hora local del club |
 | `bookings.lateCancelThresholdMinutes` | duration | 240 | «llindar d'anul·lació tardana 4 h» (PAR-05; **Jordi 05-09: 4 h, editable a D11** — tanca el (*) del Josep a 06) |
-| `bookings.seatHoldSeconds` | int | 30 | BLOQUEIG_TEMPORAL a 06/29 |
+| `bookings.seatHoldSeconds` | int | 60 | BLOQUEIG_TEMPORAL a 06/29 |
 | `bookings.showInstructorHoursBefore` | int | 24 | PAR-24 «el dia abans»; `0` = sempre |
 | `bookings.instructorLastMinuteNotice` | bool | true | l'instructor pot marcar «ha avisat» en nom de l'alumne |
 | `classes.defaultCapacity` | int | 5 | PAR-21; l'aforament real = min(aforament dels nivells) |

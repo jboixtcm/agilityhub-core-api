@@ -91,7 +91,7 @@ public class BookingViews {
         // Every booking is created with `bookedBy` (R-08-19); only the display name may be empty. `self` compares accounts,
         // never names (E5-T25): while impersonating, the reader is the member and the booker of a club booking the admin.
         var reader = CurrentUser.current();
-        out.put("bookedBy", map("displayName", Objects.toString(b.bookedBy().displayName(), ""), "viaClub", b.origin() == BookingOrigin.BACKOFFICE,
+        out.put("bookedBy", map("displayName", Objects.toString(b.bookedBy().displayName(), ""), "viaClub", b.origin() == BookingOrigin.BACKOFFICE || b.origin() == BookingOrigin.INSTRUCTOR,
                 "self", reader != null && reader.accountId() != null && reader.accountId().equals(b.bookedBy().accountId())));
         // R-08-10 for 07: a MEMBER cannot read /parameters, and the client does no date arithmetic.
         out.put("lateCancelThresholdMinutes", threshold); out.put("cancellableInTimeUntil", CancellationPolicy.inTimeUntil(b.classStartsAt(), threshold));
@@ -100,7 +100,7 @@ public class BookingViews {
         out.put("charge", b.charge() == null || !context.enabled(Module.SINGLE_CLASS) ? null : map("mode", b.charge().mode(), "price", b.charge().price(), "paidAt", b.charge().paidAt()));
         // S08 §6: kept on the booking while PAYMENT_PENDING, so every read shows it again (E5-T10).
         String kept = checkoutUrl != null ? checkoutUrl : b.charge() == null ? null : b.charge().checkoutUrl();
-        out.put("checkoutUrl", b.state() == BookingState.PAYMENT_PENDING ? kept : null);
+        out.put("checkoutUrl", b.state() == BookingState.PAYMENT_PENDING && !CurrentUser.bookingsOnly() ? kept : null);
         out.put("calendarLinks", calendarLinks(b, labels));
         // A cancellation always records `cancelledBy`, `late` and `minutesBefore` together with `cancelledAt`.
         out.put("cancellation", b.cancelledAt() == null ? null : map("at", b.cancelledAt(), "byDisplayName", Objects.toString(b.cancelledBy().displayName(), ""),

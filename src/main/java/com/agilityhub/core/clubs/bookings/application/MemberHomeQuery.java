@@ -60,7 +60,7 @@ public class MemberHomeQuery {
                         views.local(t.startsAt()), views.local(t.endsAt()), t.ringName(), t.ringColor(), null, null, null)));
             }
         }
-        if (context.enabled(Module.ACTIVITIES)) {
+        if (!CurrentUser.bookingsOnly() && context.enabled(Module.ACTIVITIES)) {
             // S07 §2: an ACTIVITY row carries its activity; the row `id` is the registration's. An activity has no single ring colour.
             for (var a : activities.live(memberId)) {
                 rows.add(new Entry(a.startsAt(), row("ACTIVITY", a.id(), a.state(), null, null, a.title(), a.startsAt(), a.startsAtLocal(), a.endsAtLocal(),
@@ -70,7 +70,7 @@ public class MemberHomeQuery {
         rows.sort(Comparator.comparing(Entry::startsAt).thenComparing(e -> e.row().get("type").toString()).thenComparing(e -> e.row().get("id").toString()));
         out.put("reservations", rows.stream().map(Entry::row).toList());
         out.put("history", Map.of("monthsVisible", context.integer("history.monthsVisible")));
-        out.put("notifications", Map.of("unreadCount", feed.unreadApp(member.accountId())));
+        out.put("notifications", Map.of("unreadCount", CurrentUser.bookingsOnly() ? 0 : feed.unreadApp(member.accountId())));
         var user = CurrentUser.current();
         out.put("impersonation", user != null && user.impersonation() != null ? Map.of("actorName", Objects.toString(user.impersonation().actorName(), "")) : null);
         return out;

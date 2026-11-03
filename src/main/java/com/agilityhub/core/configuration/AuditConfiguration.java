@@ -48,7 +48,7 @@ public class AuditConfiguration {
                     if (current != null && current.impersonation() != null) {
                         accountId = current.impersonation().actorAccountId();
                         name = current.impersonation().actorName();
-                        role = "ADMIN";
+                        role = current.impersonation().bookingsOnly() ? "INSTRUCTOR" : "ADMIN";
                         impersonated = current.impersonation().memberId();
                     }
                     // S17 R-17-10, S14 §3 (E10-T04 round 2, E123): an action taken with a validated support access is the

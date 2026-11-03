@@ -250,7 +250,7 @@ parameters:
     documentDefault: "240"
   - key: "bookings.seatHoldSeconds"
     type: "int"
-    default: 30
+    default: 60
     block: "classes"
     labelKey: "admin-settings:param.bookings.seatHoldSeconds.label"
     helpKey: "admin-settings:param.bookings.seatHoldSeconds.help"
@@ -260,7 +260,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "int"
-    documentDefault: "30"
+    documentDefault: "60"
   - key: "bookings.showInstructorHoursBefore"
     type: "int"
     default: 24

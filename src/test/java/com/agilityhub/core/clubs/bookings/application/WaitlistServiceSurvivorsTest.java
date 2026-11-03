@@ -112,12 +112,12 @@ class WaitlistServiceSurvivorsTest {
         when(waitlist.findById("entry-1")).thenReturn(Optional.of(offer));
         when(holds.findById("hold-1")).thenReturn(Optional.of(hold("hold-1", "dog-duna", "account-laura", "entry-1", NOW.plusSeconds(240))));
 
-        service.claim(laura, "entry-1", "hold-1", null);
+        service.claim(laura, "entry-1", "hold-1", null, false);
 
         var order = inOrder(locks, waitlist, confirmations);
         order.verify(locks).lock("class-a");
         order.verify(waitlist).findById("entry-1");
-        order.verify(confirmations).confirm(laura, "hold-1", null);
+        order.verify(confirmations).confirm(laura, "hold-1", null, false);
     }
 
     // --- claim: lanes (lines 106-107), the hold filter (line 127) and SEAT_TAKEN (line 141) --------------------------------
@@ -138,9 +138,9 @@ class WaitlistServiceSurvivorsTest {
         // The TTL monitor removes expired holds up to 60 s late: the document is still there, 5 s past expiresAt.
         when(holds.findById("hold-1")).thenReturn(Optional.of(hold("hold-1", "dog-duna", "account-laura", "entry-1", NOW.minusSeconds(5))));
 
-        assertThatThrownBy(() -> service.claim(laura, "entry-1", "hold-1", null))
+        assertThatThrownBy(() -> service.claim(laura, "entry-1", "hold-1", null, false))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.SEAT_HOLD_EXPIRED));
-        verify(confirmations, never()).confirm(any(), any(), any());
+        verify(confirmations, never()).confirm(any(), any(), any(), org.mockito.ArgumentMatchers.anyBoolean());
     }
 
     @Test void T_08_20_aTakenOfferIsNotSeatTakenWhenOnlyItsOwnDogsHoldFillsTheClass() {
@@ -153,7 +153,7 @@ class WaitlistServiceSurvivorsTest {
         when(bookings.forClass("class-a", BookingRepository.LIVE)).thenReturn(List.of(booking("booking-1", "class-a", "dog-nala", "member-pau")));
         when(holds.live("class-a", NOW)).thenReturn(List.of(hold("hold-1", "dog-duna", "account-laura", null, NOW.plusSeconds(240))));
 
-        assertThatThrownBy(() -> service.claim(laura, "entry-1", "hold-1", null))
+        assertThatThrownBy(() -> service.claim(laura, "entry-1", "hold-1", null, false))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.WAITLIST_NOT_NOTIFIED));
     }
 

@@ -37,6 +37,7 @@ public class TrainingEvents {
     }
     static DomainEvent.Origin origin(TrainingActor actor) {
         if (actor.by() == TrainingCancelledBy.SYSTEM) { return DomainEvent.Origin.SYSTEM; }
+        if (actor.origin() == TrainingOrigin.INSTRUCTOR) { return DomainEvent.Origin.INSTRUCTOR; }
         return actor.origin() == TrainingOrigin.BACKOFFICE ? DomainEvent.Origin.BACKOFFICE : DomainEvent.Origin.APP;
     }
 }

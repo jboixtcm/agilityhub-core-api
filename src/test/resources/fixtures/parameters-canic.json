@@ -41,7 +41,7 @@
     "time": "20:00"
   },
   "bookings.lateCancelThresholdMinutes": 240,
-  "bookings.seatHoldSeconds": 30,
+  "bookings.seatHoldSeconds": 60,
   "bookings.showInstructorHoursBefore": 24,
   "bookings.instructorLastMinuteNotice": true,
   "classes.defaultCapacity": 5,

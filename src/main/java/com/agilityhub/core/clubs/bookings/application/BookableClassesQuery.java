@@ -61,7 +61,7 @@ public class BookableClassesQuery {
         var blocked = member.blocked() ? member : owner.blocked() ? owner : null;
         out.put("bookingBlock", blocked == null ? null : Map.of("reason", Objects.toString(blocked.blockReason(), "")));
         // S08 §9: with ACTIVITIES off screen 04 has no «Activitats» block at all, so it is absent like `pack` and `singleClass`.
-        out.put("activities", !context.enabled(Module.ACTIVITIES) ? null : activities.bookable(memberId, dog.id()).stream()
+        out.put("activities", com.agilityhub.core.shared.application.CurrentUser.bookingsOnly() || !context.enabled(Module.ACTIVITIES) ? null : activities.bookable(memberId, dog.id()).stream()
                 .map(a -> BookingViews.map("id", a.id(), "title", a.title(), "startsAtLocal", a.startsAtLocal(), "freeSeats", a.freeSeats())).toList());
         out.put("classes", classes(dog, owner, blocked != null, pack, terms, now));
         return out;
@@ -83,6 +83,8 @@ public class BookableClassesQuery {
         boolean levelsEnabled = context.flag("levels.enabled"), waitlistOn = context.enabled(Module.WAITLIST), inactivityOn = context.enabled(Module.INACTIVITY);
         int waitlistMax = context.integer("waitlist.maxPerClass");
         var limits = new HashMap<String, BookingLimits.Result>();
+        var user = com.agilityhub.core.shared.application.CurrentUser.current();
+        boolean delegated = user != null && user.impersonation() != null && !user.impersonation().bookingsOnly();
         // R-08-14 (INC-40, E11-T10): read live, one query; a seat on an open FIFO offer of another dog is not free on 04.
         var offers = WaitlistTransitions.offeredDogs(context, waitlist, cached.classes().stream().map(ClassSessionBookingAccess.Session::id).toList(), now);
         var result = new ArrayList<Map<String, Object>>();
@@ -92,7 +94,7 @@ public class BookableClassesQuery {
             BookableRow.NotBookable reason = blocked ? BookableRow.NotBookable.BLOCKED
                     : inactivityOn && inactivity.covering(owner.id(), date).isPresent() ? BookableRow.NotBookable.INACTIVITY
                     : BookingEligibility.leaving(owner.leaveDate(), s.startsAt(), zone) ? BookableRow.NotBookable.LEAVING : null;
-            boolean limitDone = relative != RelativeWeek.LATER
+            boolean limitDone = !delegated && relative != RelativeWeek.LATER
                     && limits.computeIfAbsent(week.key(), key -> checks.limit(key, relative, dog.id(), owner.id(), now)).done();
             var sessionPack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), date) : Optional.<PackBalancePort.Balance>empty();
             int occupied = s.booked() + WaitlistTransitions.others(offers.getOrDefault(s.id(), Set.of()), dog.id()).size();

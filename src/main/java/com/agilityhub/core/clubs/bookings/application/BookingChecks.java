@@ -28,6 +28,9 @@ public class BookingChecks {
         this.context = context; this.classes = classes; this.census = census; this.bookings = bookings; this.inactivity = inactivity; this.packs = packs;
     }
 
+    boolean reachable(String memberId, String dogId) {
+        return census.dog(dogId).filter(dog -> census.canAccess(memberId, dog)).isPresent();
+    }
     public Subject subject(BookingActor actor, String classSessionId, String dogId, Instant now) {
         var session = classes.find(classSessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var dog = census.dog(dogId).filter(d -> actor.memberId() != null && census.canAccess(actor.memberId(), d))
