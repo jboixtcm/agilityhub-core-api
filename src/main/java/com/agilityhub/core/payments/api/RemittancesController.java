@@ -23,19 +23,34 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
  * S12 §6 SEPA remittances (D6 «Remeses», R-12-12, R-12-14, R-12-15), ADMIN only, module `BILLING` (E8-T03). The screen has no
- * mockup (S12 §13-12): the web builds it with the design system. No response carries the creditor's or a debtor's IBAN.
+ * mockup (S12 §13-12): the web builds it with the design system. Lists and JSON details do not carry IBANs; the restricted bank exports contain the debit instructions.
  */
 @RestController
 @RequiresModule(Module.BILLING)
 @PreAuthorize(BillingController.ADMIN)
 public class RemittancesController {
+    private final org.springframework.context.MessageSource messages;
     static final String ROLES = BillingController.ROLES;
     static final String SERVED = BillingController.SERVED;
     private final BillingContractAccess access; private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final RemittanceService remittances; private final BillingTransactions transactions; private final com.fasterxml.jackson.databind.ObjectMapper mapper;
     public RemittancesController(BillingContractAccess access, com.agilityhub.core.shared.application.lists.ListEngine lists, RemittanceService remittances,
-            BillingTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper) {
+            BillingTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper, org.springframework.context.MessageSource messages) {
+        this.messages = messages;
         this.access = access; this.lists = lists; this.remittances = remittances; this.transactions = transactions; this.mapper = mapper;
+    }
+
+    @GetMapping(value="/api/v1/remittances/{id}/spreadsheet", produces="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @com.agilityhub.core.shared.application.SupportRestricted
+    @ContractErrors({NOT_FOUND, MODULE_DISABLED})
+    @Operation(summary="downloadRemittanceSpreadsheet", description=ROLES + "Excel file with one row per bank debit, from the stored remittance.",
+            responses=@ApiResponse(responseCode="200", description="Remittance workbook", content=@Content(
+                    mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema=@Schema(type="string",format="binary"))))
+    public org.springframework.http.ResponseEntity<byte[]> spreadsheet(@PathVariable String id, java.util.Locale locale) {
+        var remittance = remittances.get(id);
+        return org.springframework.http.ResponseEntity.ok().header("Cache-Control", "no-store")
+                .header("Content-Disposition", "attachment; filename=\"remesa-" + remittance.period() + ".xlsx\"")
+                .body(remittances.workbook(remittance, messages, locale));
     }
 
     @GetMapping("/api/v1/remittances")

@@ -85,7 +85,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
      * (`BillingTransactions`), storing their answer there: the run, the rollback, a manual invoice, the payments, the failure
      * and the cancellation of an invoice.
      */
-    static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(simulations|runs|runs/[^/]+/(rollback|card-charges))"
+    static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(concepts|simulations|runs|runs/[^/]+/(rollback|card-charges))"
             + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation|retry|refund)"
             + "|POST /api/v1/pack-balances(/[^/]+/adjustments)?|POST /api/v1/upfront-payments|POST /api/v1/members/[^/]+/plan-change|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
 

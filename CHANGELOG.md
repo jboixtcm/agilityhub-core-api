@@ -1,4 +1,8 @@
 # Changelog
+
+## 2026-11-04 — Invoice adjustments and remittance Excel
+
+- Schedule signed, one-off or monthly adjustments for selected members or the entire club. Preview and issue the same totals, including family billing. Download a remittance as one Excel row per bank debit.
 - Allow a selected club to email applicants on signup submission and rejection while general email is disabled. Add Brevo transactional SMS with a separate delivery switch.
 - Render security email subjects, actions and footers with the configured installation or tenant brand in Catalan, Spanish and English.
 

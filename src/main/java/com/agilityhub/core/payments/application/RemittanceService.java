@@ -60,6 +60,16 @@ public class RemittanceService {
         return new FileLink(url, name, expires);
     }
 
+    public byte[] workbook(Remittance remittance, org.springframework.context.MessageSource messages, java.util.Locale locale) {
+        if (remittance.fileKey() == null) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        try (var xml = files.open(remittance.fileKey())) {
+            byte[] bytes = com.agilityhub.core.payments.application.sepa.RemittanceWorkbook.render(xml, messages, locale);
+            audit.write(new AuditCommand(AuditAction.DATA_EXPORTED, "Remittance", remittance.id(), null, null, null, null),
+                    Map.of("format", "xlsx", "messageId", remittance.messageId(), "period", remittance.period()));
+            return bytes;
+        } catch (java.io.IOException failure) { throw new java.io.UncheckedIOException(failure); }
+    }
+
     public Download download(String club, String id, long expires, String signature) {
         files.verifyLocal(club, localPath(club, id), expires, signature);
         try (var tenant = TenantContext.open(club)) {

@@ -20,7 +20,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Document("billing_simulations")
 public record BillingSimulation(@Id String id, String clubId, String period, Instant at, List<Incident> incidents, List<CashMember> cashMembers,
-        List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds) implements TenantEntity {
+        List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds, List<String> conceptIds) implements TenantEntity {
+    public BillingSimulation(String id, String clubId, String period, Instant at, List<Incident> incidents, List<CashMember> cashMembers,
+            List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds) {
+        this(id, clubId, period, at, incidents, cashMembers, invoicesPreview, kpis, createdByAccountId, chargeIds, waitingInvoiceIds, null);
+    }
     /** The simulation as E8-T01 declared it (no charge or receipt sets). */
     public BillingSimulation(String id, String clubId, String period, Instant at, List<Incident> incidents, List<CashMember> cashMembers,
             List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId) {

@@ -57,7 +57,7 @@ public class BillingSimulationService {
     }
 
     /** R-12-11: the club's billing lock around {@code work}, taken outside its transaction (`409 BILLING_BUSY` while held). */
-    <T> T locked(String kind, Supplier<T> work) {
+    public <T> T locked(String kind, Supplier<T> work) {
         String holder = kind + ":" + UUID.randomUUID();
         if (!locks.acquire(holder, clock.instant())) { throw new ApiException(ErrorCode.BILLING_BUSY); }
         try { return work.get(); }
@@ -79,7 +79,7 @@ public class BillingSimulationService {
                 && !providers.sepaCreditor().map(BillingProviderSettings.SepaCreditor::configured).orElse(false);
         for (var draft : plan.month().invoices()) {
             var payer = plan.member(draft.payerId());
-            var method = InvoicingService.member(payer).method();
+            var method = InvoicingService.collectionMethod(payer, draft, currency);
             if (sepaUnusable && method == PaymentMethodType.SEPA_DD) {
                 incidents.add(new BillingSimulation.Incident(payer.id(), name(payer), BillingIncidentCode.PROVIDER_DISABLED));
                 continue;
@@ -113,7 +113,7 @@ public class BillingSimulationService {
                 new BillingSimulation.InactivityFees(inactive, fee(context, "billing.inactivityFeeFirstMonth"), fee(context, "billing.inactivityFeeFollowingMonths")),
                 collectionDate(plan).toString());
         return new BillingSimulation(UUID.randomUUID().toString(), context.clubId(), plan.period().toString(), clock.instant(), incidents, cash, preview, kpis,
-                BillingEvents.actor(), chargeIds(plan), waitingInvoiceIds(plan));
+                BillingEvents.actor(), chargeIds(plan), waitingInvoiceIds(plan), plan.conceptIds());
     }
     /** R-12-12: the billed month's collection date, shared with run generation (club-local calendar date). */
     static java.time.LocalDate collectionDate(InvoicingService.MonthPlan plan) {

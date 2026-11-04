@@ -57,7 +57,7 @@ class InvoicingServiceSurvivorsTest {
     final BillingProviderSettings providers = mock(BillingProviderSettings.class);
     final ClubClock clock = mock(ClubClock.class);
     final InvoicingService service = new InvoicingService(census, catalog, inactivity, mock(LeaveBillingPort.class), charges, invoices, configs, providers,
-            mock(BillingTexts.class), clock);
+            mock(BillingTexts.class), clock, mock(com.agilityhub.core.payments.persistence.InvoiceConceptRepository.class));
 
     @BeforeEach void stubs() {
         when(clock.today(CLUB)).thenReturn(ISSUE);

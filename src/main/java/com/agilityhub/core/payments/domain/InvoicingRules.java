@@ -77,6 +77,7 @@ public final class InvoicingRules {
         /** S13 R-13-11 (`LeaveBillingPort`): the last month a leaving member is billed; empty = not leaving. */
         Optional<YearMonth> lastInvoicedMonth(String memberId);
         List<Charge> charges(String memberId);
+        default List<Line> additionalLines(String memberId) { return List.of(); }
     }
     /** The frozen text of a periodic line, in the club's `defaultLocale` (R-12-30). */
     public interface Describer { String line(InvoiceLineOrigin origin, String planName, YearMonth month); }
@@ -156,10 +157,10 @@ public final class InvoicingRules {
             if (payerOf.containsKey(member.id())) { excluded.put(member.id(), Exclusion.BILLED_VIA_HOLDER); continue; }
             var family = covered.getOrDefault(member.id(), List.of());
             // R-12-25: a family member's unbilled charges are due on the holder's invoice, whatever the holder's date.
-            boolean familyCharges = family.stream().anyMatch(other -> "ACTIVE".equals(other.status()) && hasCharges(other, settings, sources));
+            boolean familyCharges = family.stream().anyMatch(other -> "ACTIVE".equals(other.status()) && (hasCharges(other, settings, sources) || !sources.additionalLines(other.id()).isEmpty()));
             var own = own(member, period, issueDate, settings, sources, describer, familyCharges);
             // E156: a holder without a payment method is D6's incident, not silently out of the month with its family.
-            if (own instanceof Excluded out && out.reason() == Exclusion.NO_PAYMENT_METHOD && !family.isEmpty()) {
+            if (own instanceof Excluded out && out.reason() == Exclusion.NO_PAYMENT_METHOD && (!family.isEmpty() || !sources.additionalLines(member.id()).isEmpty())) {
                 skipped.add(new Incident(member.id(), BillingIncidentCode.NO_PAYMENT_METHOD)); continue;
             }
             if (own instanceof Excluded out) { excluded.put(member.id(), out.reason()); continue; }
@@ -182,10 +183,18 @@ public final class InvoicingRules {
             }
             var incident = familyIncident != null ? familyIncident : methodIncident(member, lines, settings);
             if (incident != null) { skipped.add(new Incident(member.id(), incident)); continue; }
-            boolean issue = !lines.isEmpty() && InvoiceAmounts.sum(lines.stream().map(line -> line.amounts().total()).toList(), settings.currency()).amountMinor() > 0;
+            boolean issue = hasAdjustment(lines) || !lines.isEmpty() && total(lines, settings.currency()) > 0;
             if (issue) { invoices.add(new Draft(member.id(), lines, advances)); } else { without.addAll(advances); }
         }
         return new Month(invoices, without, skipped, excluded);
+    }
+
+    private static boolean hasAdjustment(List<Line> lines) {
+        return lines.stream().anyMatch(line -> line.origin() == InvoiceLineOrigin.ADJUSTMENT);
+    }
+
+    private static long total(List<Line> lines, String currency) {
+        return InvoiceAmounts.sum(lines.stream().map(line -> line.amounts().total()).toList(), currency).amountMinor();
     }
 
     /** The months a cash `SEMESTER` invoice covers (R-12-05): T-12-03. */
@@ -229,7 +238,8 @@ public final class InvoicingRules {
     private static Outcome own(Member member, YearMonth period, LocalDate issueDate, Settings settings, Sources sources, Describer describer,
             boolean familyCharges) {
         boolean periodic = due(member, period);
-        var gate = gate(member, period, periodic || familyCharges || hasCharges(member, settings, sources), sources);
+        var adjustments = sources.additionalLines(member.id());
+        var gate = gate(member, period, periodic || familyCharges || !adjustments.isEmpty() || hasCharges(member, settings, sources), sources);
         // R-12-01, R-12-07 (E11-T15 steps 1 and 3): a monthly member without a date is D6's incident, never silently out of the month,
         // and the run never invents its date (the admin sets it: PUT /members/{id}/next-invoice-date, E146).
         if (gate == Exclusion.NOT_DUE && dateless(member, period, sources)) { return new Skipped(BillingIncidentCode.NO_NEXT_INVOICE_DATE); }
@@ -269,6 +279,7 @@ public final class InvoicingRules {
         var charges = charges(member, settings, sources, null);
         if (charges == null) { return new Skipped(BillingIncidentCode.CURRENCY_MISMATCH); }
         lines.addAll(charges);
+        lines.addAll(adjustments);
         return new Billed(lines, next);
     }
     /**
@@ -277,7 +288,8 @@ public final class InvoicingRules {
      */
     private static Outcome familyShare(Member member, YearMonth period, Settings settings, Sources sources, Describer describer) {
         boolean periodic = due(member, period);
-        if (!"ACTIVE".equals(member.status()) || !periodic && !hasCharges(member, settings, sources)) { return null; }
+        var adjustments = sources.additionalLines(member.id());
+        if (!"ACTIVE".equals(member.status()) || !periodic && adjustments.isEmpty() && !hasCharges(member, settings, sources)) { return null; }
         var lastBilled = sources.lastInvoicedMonth(member.id()).orElse(null);
         if (lastBilled != null && period.isAfter(lastBilled)) { return null; }
         var lines = new ArrayList<Line>();
@@ -292,6 +304,7 @@ public final class InvoicingRules {
         var charges = charges(member, settings, sources, member.id());
         if (charges == null) { return new Skipped(BillingIncidentCode.CURRENCY_MISMATCH); }
         lines.addAll(charges);
+        lines.addAll(adjustments);
         return new Billed(lines, null);
     }
     private static List<Line> charges(Member member, Settings settings, Sources sources, String forMemberId) {
@@ -339,7 +352,7 @@ public final class InvoicingRules {
      * (`NO_BANK_ACCOUNT`, `CARD_INVALID`: D10 fixes it), then the club's provider (`PROVIDER_DISABLED`: D11 fixes it).
      */
     private static BillingIncidentCode methodIncident(Member member, List<Line> lines, Settings settings) {
-        if (lines.isEmpty()) { return null; }
+        if (lines.isEmpty() || hasAdjustment(lines) && total(lines, settings.currency()) <= 0) { return null; }
         if (member.method() == PaymentMethodType.SEPA_DD && !member.bankAccount()) { return BillingIncidentCode.NO_BANK_ACCOUNT; }
         // E156 (N4): a debit the file cannot carry is skipped here, never left to refuse the whole remittance (422 {memberIds}).
         if (member.method() == PaymentMethodType.SEPA_DD && !member.mandate()) { return BillingIncidentCode.MANDATE_PENDING; }

@@ -10,6 +10,9 @@ import com.agilityhub.core.payments.domain.PaymentMethodType;
 import com.agilityhub.core.payments.persistence.BillingDocuments.InvoiceRepository;
 import com.agilityhub.core.payments.persistence.BillingDocuments.PendingChargeRepository;
 import com.agilityhub.core.payments.persistence.Invoice;
+import com.agilityhub.core.payments.persistence.InvoiceConcept;
+import com.agilityhub.core.payments.persistence.InvoiceConceptRepository;
+import com.agilityhub.core.payments.domain.InvoiceAmounts;
 import com.agilityhub.core.payments.persistence.PendingCharge;
 import com.agilityhub.core.platform.application.BillingProviderSettings;
 import com.agilityhub.core.platform.application.ClubConfig;
@@ -50,7 +53,11 @@ public class InvoicingService {
      * waiting for «the next remittance» (R-12-19), in their numbers' order, each with its incident or none (E8-T07 step 3).
      */
     public record MonthPlan(Context context, YearMonth period, InvoicingRules.Month month, Map<String, BillingMember> members,
-            Map<String, PendingCharge> charges, List<WaitingReceipt> waiting) {
+            Map<String, PendingCharge> charges, List<WaitingReceipt> waiting, List<String> conceptIds) {
+        public MonthPlan(Context context, YearMonth period, InvoicingRules.Month month, Map<String, BillingMember> members,
+                Map<String, PendingCharge> charges, List<WaitingReceipt> waiting) {
+            this(context, period, month, members, charges, waiting, List.of());
+        }
         public BillingMember member(String id) { return members.get(id); }
         /** The waiting receipts the run remits (no incident). */
         public List<Invoice> remitted() { return waiting.stream().filter(receipt -> receipt.incident() == null).map(WaitingReceipt::invoice).toList(); }
@@ -60,10 +67,12 @@ public class InvoicingService {
 
     private final BillingCensusAccess census; private final BillingCatalogAccess catalog; private final InactivityFeePort inactivity;
     private final LeaveBillingPort leave; private final PendingChargeRepository charges; private final InvoiceRepository invoices; private final ClubConfigService configs;
+    private final InvoiceConceptRepository concepts;
     private final BillingProviderSettings providers; private final BillingTexts texts; private final ClubClock clock;
     public InvoicingService(BillingCensusAccess census, BillingCatalogAccess catalog, InactivityFeePort inactivity, LeaveBillingPort leave,
             PendingChargeRepository charges, InvoiceRepository invoices, ClubConfigService configs, BillingProviderSettings providers, BillingTexts texts,
-            ClubClock clock) {
+            ClubClock clock, InvoiceConceptRepository concepts) {
+        this.concepts = concepts;
         this.census = census; this.catalog = catalog; this.inactivity = inactivity; this.leave = leave; this.charges = charges; this.invoices = invoices;
         this.configs = configs; this.providers = providers; this.texts = texts; this.clock = clock;
     }
@@ -85,7 +94,7 @@ public class InvoicingService {
     public InvoicingRules.Outcome linesFor(BillingMember member, YearMonth period) {
         var context = context();
         var pending = unbilled(List.of(member.id()));
-        return InvoicingRules.linesFor(member(member), period, context.issueDate(), context.settings(), sources(context, pending), describer(context));
+        return InvoicingRules.linesFor(member(member), period, context.issueDate(), context.settings(), sources(context, pending, concepts.forPeriod(period.toString())), describer(context));
     }
 
     /** The club's month: every `ACTIVE` member and the family groups, in the numbering order (R-12-08). */
@@ -97,11 +106,12 @@ public class InvoicingService {
         members.forEach(member -> byId.put(member.id(), member));
         var pending = unbilled(byId.keySet());
         var groups = census.activeFamilyGroups().stream().map(group -> new InvoicingRules.Group(group.holderMemberId(), group.memberIds())).toList();
+        var scheduled = concepts.forPeriod(period.toString());
         var month = InvoicingRules.month(members.stream().map(InvoicingService::member).toList(), groups, period, context.issueDate(), context.settings(),
-                sources(context, pending), describer(context));
+                sources(context, pending, scheduled), describer(context));
         var chargesById = new LinkedHashMap<String, PendingCharge>();
         pending.values().forEach(list -> list.forEach(charge -> chargesById.put(charge.id(), charge)));
-        return new MonthPlan(context, period, month, byId, chargesById, waiting(context));
+        return new MonthPlan(context, period, month, byId, chargesById, waiting(context), scheduled.stream().map(InvoiceConcept::id).sorted().toList());
     }
 
     /**
@@ -146,7 +156,12 @@ public class InvoicingService {
     private Map<String, List<PendingCharge>> unbilled(Collection<String> memberIds) {
         return charges.unbilled(memberIds).stream().collect(Collectors.groupingBy(PendingCharge::memberId, LinkedHashMap::new, Collectors.toList()));
     }
-    private InvoicingRules.Sources sources(Context context, Map<String, List<PendingCharge>> pending) {
+    static PaymentMethodType collectionMethod(BillingMember payer, InvoicingRules.Draft draft, String currency) {
+        // A zero balance or a credit is settled manually, never sent as a debit to a bank or card.
+        return BillingSimulationService.total(draft, currency).amountMinor() <= 0 ? PaymentMethodType.MANUAL : member(payer).method();
+    }
+
+    private InvoicingRules.Sources sources(Context context, Map<String, List<PendingCharge>> pending, List<InvoiceConcept> scheduled) {
         var taxes = new HashMap<String, BigDecimal>();
         return new InvoicingRules.Sources() {
             @Override public Optional<InvoicingRules.Plan> plan(String planId) {
@@ -158,6 +173,11 @@ public class InvoicingService {
             }
             @Override public Optional<Money> inactivityFee(String memberId, YearMonth month) { return inactivity.feeFor(memberId, month); }
             @Override public Optional<YearMonth> lastInvoicedMonth(String memberId) { return leave.lastInvoicedMonth(memberId); }
+            @Override public List<InvoicingRules.Line> additionalLines(String memberId) {
+                return scheduled.stream().filter(rule -> rule.allMembers() || rule.memberIds().contains(memberId))
+                        .map(rule -> new InvoicingRules.Line(InvoiceLineOrigin.ADJUSTMENT, null, null, null, null,
+                                rule.description(), InvoiceAmounts.fromPrice(rule.amount(), rule.taxPercent(), true), memberId)).toList();
+            }
             @Override public List<InvoicingRules.Charge> charges(String memberId) {
                 return pending.getOrDefault(memberId, List.of()).stream().map(charge -> new InvoicingRules.Charge(charge.id(), charge.bookingId(), charge.priceId(),
                         charge.amount(), taxes.computeIfAbsent(String.valueOf(charge.priceId()), id -> catalog.price(charge.priceId())

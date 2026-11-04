@@ -40,7 +40,7 @@ class RemittancesControllerSurvivorsTest {
     final RemittanceService remittances = mock(RemittanceService.class);
     final BillingTransactions transactions = mock(BillingTransactions.class);
     final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    final RemittancesController controller = new RemittancesController(access, lists, remittances, transactions, mapper);
+    final RemittancesController controller = new RemittancesController(access, lists, remittances, transactions, mapper, mock(org.springframework.context.MessageSource.class));
 
     @Test void T_12_21_anotherClubsRemittanceIsNotFoundBeforeItIsReadLinkedOrSubmitted() {
         doThrow(new ApiException(ErrorCode.NOT_FOUND)).when(access).remittance("remittance-b");

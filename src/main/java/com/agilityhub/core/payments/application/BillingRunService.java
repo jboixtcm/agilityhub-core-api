@@ -312,6 +312,7 @@ public class BillingRunService {
         counters.parametersChangedAt("billing.").ifPresent(changes::add);
         counters.clubChangedAt().ifPresent(changes::add);
         return changes.stream().anyMatch(change -> change.isAfter(simulation.at()))
+                || !plan.conceptIds().equals(Objects.requireNonNullElse(simulation.conceptIds(), List.of()))
                 || !BillingSimulationService.chargeIds(plan).equals(Objects.requireNonNullElse(simulation.chargeIds(), List.of()))
                 || !BillingSimulationService.waitingInvoiceIds(plan).equals(Objects.requireNonNullElse(simulation.waitingInvoiceIds(), List.of()));
     }
@@ -383,7 +384,7 @@ public class BillingRunService {
                 remittanceId, attempt, null, null, List.of(), now, null, member.paymentMethod().mandateRef(), receipt.displayNumber(), null, null, member.paymentMethod().mandateSignedAt());
     }
     private static PaymentMethodType method(InvoicingService.MonthPlan plan, InvoicingRules.Draft draft) {
-        return InvoicingService.member(plan.member(draft.payerId())).method();
+        return InvoicingService.collectionMethod(plan.member(draft.payerId()), draft, plan.context().currency());
     }
     private static BillingRun.ByProvider byProvider(Map<PaymentMethodType, List<Money>> byMethod, InvoicingService.Context context, String remittanceId) {
         var enabled = context.settings().enabledMethods(); String currency = context.currency();
