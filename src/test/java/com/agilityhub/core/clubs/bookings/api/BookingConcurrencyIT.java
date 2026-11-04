@@ -2,6 +2,7 @@ package com.agilityhub.core.clubs.bookings.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import org.bson.Document;
@@ -192,7 +193,8 @@ class BookingConcurrencyIT extends BookingFixtures {
 
     @Test void T_08_33_anExpiredHoldNotYetRemovedByTheTtlNeitherCountsNorConfirms() throws Exception {
         var pere = hold(as("pere"), "last", "s08-d-nit", 201);
-        clock.advance(Duration.ofSeconds(31));
+        var expiry = Instant.parse(pere.path("expiresAt").asText());
+        clock.advance(Duration.between(clock.instant(), expiry).plusSeconds(1));
         assertThat(count("seat_holds", Criteria.where("_id").is(pere.path("id").asText()))).as("the TTL has not run").isEqualTo(1);
         var laura = hold(as("laura"), "last", "s08-d-duna", 201);
         assertThat(code(confirm(as("pere"), pere.path("id").asText(), null, 409))).isEqualTo("SEAT_HOLD_EXPIRED");
