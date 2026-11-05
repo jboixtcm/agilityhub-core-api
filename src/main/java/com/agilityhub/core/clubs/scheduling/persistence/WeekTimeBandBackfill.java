@@ -6,6 +6,8 @@ import org.bson.Document;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 /** Freeze the currently referenced bands once for weeks generated before band snapshots existed. */
@@ -27,9 +29,10 @@ public class WeekTimeBandBackfill implements ApplicationRunner {
                 daily.put(day.name(), template == null ? List.of() : template.getList("timeBands", Document.class, List.of()));
             }
             // A concurrent generation or edit wins; a subsequent start can retry an unchanged legacy week.
-            var guard = new Document(filter).append("_id", week.get("_id")).append("version", week.get("version"));
-            weeks.updateOne(guard, new Document("$set", new Document("dailyTimeBands", daily))
-                    .append("$inc", new Document("version", 1L)));
+            var guard = new Document(filter).append("clubId", week.getString("clubId"))
+                    .append("_id", week.get("_id")).append("version", week.get("version"));
+            // MongoTemplate keeps this startup write inside the tenant reset/write-tracking fence.
+            mongo.updateFirst(new BasicQuery(guard), new Update().set("dailyTimeBands", daily).inc("version", 1L), "weeks");
         }
     }
 }
