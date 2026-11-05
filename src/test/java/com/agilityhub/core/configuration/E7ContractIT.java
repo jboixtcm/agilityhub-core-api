@@ -94,6 +94,8 @@ class E7ContractIT extends AbstractIntegrationTest {
                     "iPhone · Safari", "UA", PushSubscription.Status.ACTIVE, 0, null, null, 0L, now, "e7-" + owner, now, "e7-" + owner));
         }
         mongo.insert(new Notification("e7-own-imp", CLUB, "e7-imp-member", "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("e7-own-imp")),
+                new org.springframework.data.mongodb.core.query.Update().set("recipient.memberId", "e7-member-a"), "notifications");
     }
     private void club(String clubId, List<Module> modules) {
         mongo.remove(Query.query(Criteria.where("_id").is(clubId)), Club.class);

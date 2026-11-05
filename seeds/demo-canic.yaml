@@ -39,7 +39,7 @@ planning:
   templates:
     - name: Setmana A
       kind: WEEKDAYS
-      bands: ['08:30-09:30', '09:30-10:30', '16:30-17:30', '17:40-18:40', '18:50-19:50', '20:00-21:00']
+      bands: ['08:30-09:30', '09:30-10:30', '11:00-12:00', '16:30-17:30', '17:40-18:40', '18:50-19:50', '20:00-21:00']
       classes:
         - {day: MONDAY, start: '08:30', ring: CEN, levels: [A, B], instructor: 0}
         - {day: MONDAY, start: '08:30', ring: MUN, levels: [C, D, E], instructor: 1}
@@ -82,7 +82,7 @@ planning:
     # Template bands cannot overlap: R-06-01's Saturday 17:40 band is left out so 18:30 holds the tournament conflict.
     - name: Dissabtes
       kind: SATURDAY
-      bands: ['08:30-09:30', '09:30-10:30', '16:30-17:30', '18:30-19:30']
+      bands: ['08:30-09:30', '09:30-10:30', '11:00-12:00', '16:30-17:30', '18:30-19:30']
       classes:
         - {day: SATURDAY, start: '08:30', ring: MUN, levels: [A], instructor: 0}
         - {day: SATURDAY, start: '08:30', ring: CEN, levels: [B, C], instructor: 1}
