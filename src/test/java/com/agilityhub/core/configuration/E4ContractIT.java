@@ -303,7 +303,7 @@ class E4ContractIT extends AbstractIntegrationTest {
         }
         // E5-T22 step 5: D7's lists publish the `id` filter they accept. E5-T24 step 8: so do /weeks, /class-sessions and /ring-blocks.
         for (var entry : Map.of("weeks", "id,startDate,state", "class-sessions", "id,date,state,ringId,instructorId,levelId,weekId",
-                "ring-blocks", "id,ringId,kind,reason,state,from,to", "activities", "state,type,date,ringId,levelId,deleted,registrationOpen,id",
+                "ring-blocks", "id,ringId,kind,reason,state,from,to", "activities", "state,type,date,ringId,levelId,deleted,registrationOpen,upcoming,id",
                 "activity-registrations/export", "activityId,state,origin,registeredAt,memberId,id").entrySet()) {
             assertThat(strings(api.path("paths").path("/api/v1/" + entry.getKey()).at("/get/x-filterable"))).containsExactly(entry.getValue().split(","));
         }
