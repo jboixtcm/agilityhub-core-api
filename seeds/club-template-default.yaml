@@ -129,7 +129,8 @@ catalogs:
       billingMode: "MONTHLY_FEE"
       dogsIncluded: 1
       entryFee: {mode: "STANDARD"}
-      showOnSignup: true
+      # Add the club's conditions before offering this plan at signup.
+      showOnSignup: false
       showOnWeb: true
       order: 0
       active: true
@@ -153,7 +154,8 @@ catalogs:
       dogsIncluded: 1
       entryFee: {mode: "NONE"}
       pack: {sessions: 10, validityMonths: 5}
-      showOnSignup: true
+      # Add the club's conditions before offering this plan at signup.
+      showOnSignup: false
       showOnWeb: true
       order: 20
       active: true
@@ -163,7 +165,8 @@ catalogs:
       dogsIncluded: 1
       entryFee: {mode: "NONE"}
       singleClass: {chargeMode: "CHARGE_ON_ATTENDANCE", cancelPolicy: "REFUND"}
-      showOnSignup: true
+      # Add the club's conditions before offering this plan at signup.
+      showOnSignup: false
       showOnWeb: true
       order: 30
       active: true

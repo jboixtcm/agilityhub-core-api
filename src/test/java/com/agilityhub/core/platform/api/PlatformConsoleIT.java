@@ -248,7 +248,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
             var input=mapper.readTree("""
                 {"levels":[{"code":"BEGINNER","name":{"ca":"Iniciació","es":"Inicio"},"order":10}],
                  "rings":[{"name":"Example ring","shortName":"R1","color":"#3155A4","allowsFreeTraining":false}],
-                 "plans":[{"code":"MONTHLY","name":{"ca":"Mensual","es":"Mensual"},"type":"MONTHLY"}],
+                 "plans":[{"code":"MONTHLY","name":{"ca":"Mensual","es":"Mensual"},"type":"MONTHLY","conditions":{"ca":"Condicions de prova","es":"Condiciones de prueba"}}],
                  "prices":[{"planCode":"MONTHLY","concept":"MONTHLY_FEE","amount":{"amountMinor":3000,"currency":"EUR"},"taxPercent":21,"validFrom":"2020-01-01"}],
                  "faq":[{"code":"ARRIVAL","category":{"ca":"General"},"question":{"ca":"Quan arribar?"},"answer":{"ca":"Deu minuts abans."}}]}
                 """);

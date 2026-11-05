@@ -115,6 +115,11 @@ class TemplateClubCatalogsIT extends AbstractIntegrationTest {
         var offered = admin(template, "/plans");
         assertThat(offered.findValuesAsText("code")).containsExactly("MONTHLY", "MONTHLY_FAMILY", "PACK10", "SINGLE_CLASS", "THERAPY");
         offered.forEach(plan -> assertThat(keys(plan.path("nameI18n"))).as(plan.path("code").asText()).containsExactly("ca", "en", "es"));
+        offered.forEach(plan -> {
+            if (Set.of("MONTHLY", "PACK10", "SINGLE_CLASS").contains(plan.path("code").asText())) {
+                assertThat(plan.path("showOnSignup").asBoolean()).as("starter plans need the club's conditions before signup").isFalse();
+            }
+        });
         assertThat(currentPrices(template)).isEqualTo(PRICES);
         var faq = admin(template, "/faq-entries");
         assertThat(faq).hasSize(3);

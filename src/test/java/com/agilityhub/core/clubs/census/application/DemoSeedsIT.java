@@ -257,6 +257,7 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         ((com.fasterxml.jackson.databind.node.ArrayNode) input.path("modules")).add("SINGLE_CLASS");
         var single = ((com.fasterxml.jackson.databind.node.ArrayNode) input.at("/catalogs/plans")).addObject();
         single.put("code", "SINGLE").set("name", mapper.valueToTree(Map.of("ca", "Single example")));
+        single.set("conditions", mapper.valueToTree(Map.of("ca", "Condicions de prova")));
         single.put("type", "SINGLE_CLASS").put("dogsIncluded", 1).put("order", 50).put("active", true).put("showOnSignup", true).put("showOnWeb", true);
         single.putObject("entryFee").put("mode", "NONE");
         single.putObject("singleClass").put("chargeMode", "PAY_TO_BOOK").put("cancelPolicy", "REFUND");
