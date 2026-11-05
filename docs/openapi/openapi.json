@@ -1995,6 +1995,18 @@
         "required" : [ "action", "actorRole", "at", "id" ],
         "type" : "object"
       },
+      "Band" : {
+        "properties" : {
+          "endTime" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "endTime", "startTime" ],
+        "type" : "object"
+      },
       "BillingIncident" : {
         "description" : "R-12-07: a member-level or waiting-receipt incident; skipped[] only contains members not billed by the run",
         "properties" : {
@@ -8180,6 +8192,25 @@
           }
         },
         "required" : [ "deliverToMember" ],
+        "type" : "object"
+      },
+      "Day" : {
+        "properties" : {
+          "bands" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Band"
+            },
+            "type" : "array"
+          },
+          "configured" : {
+            "type" : "boolean"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        },
+        "required" : [ "bands", "configured", "date" ],
         "type" : "object"
       },
       "DayAttendance" : {
@@ -26291,7 +26322,7 @@
         "x-exportable" : true,
         "x-fields" : [ "id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
+        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
       },
       "post" : {
@@ -26698,7 +26729,7 @@
         "x-exportable" : false,
         "x-fields" : [ "id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
+        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
       }
     },
@@ -26925,7 +26956,7 @@
         } ],
         "x-exportable" : true,
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
+        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
       }
     },
@@ -36034,6 +36065,154 @@
         },
         "summary" : "patchBuildObstacle",
         "tags" : [ "courses" ]
+      }
+    },
+    "/api/v1/calendar/time-bands" : {
+      "get" : {
+        "description" : "The generated week's frozen time bands for a club-local date. configured=false before generation. Tenant comes from the JWT.",
+        "operationId" : "timeBands",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "date",
+          "required" : true,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Day"
+                }
+              }
+            },
+            "description" : "Daily time bands"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "dailyTimeBands",
+        "tags" : [ "clubs.scheduling" ]
       }
     },
     "/api/v1/challenges" : {

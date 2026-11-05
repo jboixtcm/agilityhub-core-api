@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WeekGenerationUseCase {
+    private final DailyTimeBands dailyTimeBands;
     private final WeekRepository weeks;
     private final ClassSessionRepository classes;
     private final TemplateQuery templates;
@@ -23,10 +24,12 @@ public class WeekGenerationUseCase {
     private final AuditActorProvider actors;
     private final EventPublisher events;
     public WeekGenerationUseCase(WeekRepository weeks, ClassSessionRepository classes, TemplateQuery templates, PlanningContext context,
-            ClubClock clubClock, Clock clock, AuditActorProvider actors, EventPublisher events) {
+            ClubClock clubClock, Clock clock, AuditActorProvider actors, EventPublisher events, DailyTimeBands dailyTimeBands) {
+        this.dailyTimeBands=dailyTimeBands;
         this.weeks = weeks; this.classes = classes; this.templates = templates; this.context = context;
         this.clubClock = clubClock; this.clock = clock; this.actors = actors; this.events = events;
     }
+    public DailyTimeBands.Day timeBands(LocalDate date) { return dailyTimeBands.get(date); }
     public record Created(PlanningViews.Week week, boolean created) { }
     @PreAuthorize("hasRole('ADMIN')")
     public Created create(LocalDate start) {
@@ -60,7 +63,7 @@ public class WeekGenerationUseCase {
         catch (DataAccessException failure) {
             for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
                 if (cause instanceof com.mongodb.MongoException mongo && (mongo.getCode() == 112 || mongo.getCode() == 11000)) {
-                    throw new ApiException(ErrorCode.STALE_VERSION);
+                    throw new ApiException(mongo.getCode()==112?ErrorCode.WEEK_ALREADY_GENERATED:ErrorCode.STALE_VERSION);
                 }
             }
             throw failure;
@@ -72,19 +75,25 @@ public class WeekGenerationUseCase {
         var today = clubClock.today(TenantContext.require());
         if (before.endDate().isBefore(today)) { throw new ApiException(ErrorCode.WEEK_IN_PAST); }
         var now = clock.instant(); var actor = actors.current();
+        context.lockReferences();
+        var sources = new ArrayList<WeekTemplate>(); sources.add(template(weekdayTemplateId, TemplateKind.WEEKDAYS));
+        if (saturdayTemplateId != null) { sources.add(template(saturdayTemplateId, TemplateKind.SATURDAY)); }
+        var dailyBands = new LinkedHashMap<String,List<WeekTemplate.TimeBand>>();
+        for (var day : DayOfWeek.values()) dailyBands.put(day.name(), List.of());
+        for (var source : sources) for (var day : DayOfWeek.values()) {
+            if (source.kind()==TemplateKind.WEEKDAYS && day.getValue()<=5 || source.kind()==TemplateKind.SATURDAY && day==DayOfWeek.SATURDAY)
+                dailyBands.put(day.name(), List.copyOf(source.timeBands()));
+        }
         try {
         weeks.update(new Week(before.id(), before.clubId(), before.isoYear(), before.isoWeek(), before.startDate(), before.endDate(), WeekState.GENERATED,
                 now, actor.accountId(), weekdayTemplateId, saturdayTemplateId, before.validatedAt(), before.validatedByAccountId(), before.version() + 1,
-                before.createdAt(), before.createdByAccountId(), now, actor.accountId(), before.openedAt(), before.openingNotifiedAt()), before.version());
+                before.createdAt(), before.createdByAccountId(), now, actor.accountId(), before.openedAt(), before.openingNotifiedAt(), dailyBands), before.version());
         } catch (DataAccessException conflict) {
             for (Throwable cause = conflict; cause != null; cause = cause.getCause()) {
                 if (cause instanceof com.mongodb.MongoException mongo && mongo.getCode() == 112) { throw new ApiException(ErrorCode.WEEK_ALREADY_GENERATED); }
             }
             throw conflict;
         }
-        context.lockReferences();
-        var sources = new ArrayList<WeekTemplate>(); sources.add(template(weekdayTemplateId, TemplateKind.WEEKDAYS));
-        if (saturdayTemplateId != null) { sources.add(template(saturdayTemplateId, TemplateKind.SATURDAY)); }
         var catalog = context.catalog(); var inconsistencies = sources.stream().flatMap(t -> templates.inconsistencies(t, catalog).stream()).toList();
         if (!inconsistencies.isEmpty()) { throw new ApiException(ErrorCode.TEMPLATE_INCONSISTENT, Map.of("inconsistencies", inconsistencies)); }
         var config = context.config(); var zone = ZoneId.of(config.club().timeZone());

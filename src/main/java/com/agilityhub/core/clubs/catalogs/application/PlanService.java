@@ -90,7 +90,7 @@ public class PlanService {
         return new Plan(old == null ? UUID.randomUUID().toString() : old.id(), TenantContext.require(), code, name, type, mode, dogs,
                 validator.entryFee(values.get("entryFee"), config()), type == PlanType.PACK ? validator.pack(values.get("pack")) : null,
                 type == PlanType.SINGLE_CLASS ? validator.single(values.get("singleClass"), config()) : null,
-                validator.text(values.get("conditions"), "conditions", 200, false, config()), validator.texts(texts, config()),
+                validator.text(values.get("conditions"), "conditions", 200, Boolean.TRUE.equals(values.getOrDefault("showOnSignup", true)), config()), validator.texts(texts, config()),
                 (Boolean) values.getOrDefault("showOnSignup", true), (Boolean) values.getOrDefault("showOnWeb", true), order,
                 (Boolean) values.getOrDefault("active", true), old == null ? 0 : old.version() + 1,
                 old == null ? now : old.createdAt(), now, old == null ? actor : old.createdByAccountId(), actor);

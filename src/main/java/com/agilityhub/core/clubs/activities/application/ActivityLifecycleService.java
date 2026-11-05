@@ -36,7 +36,15 @@ public class ActivityLifecycleService {
     public Activity cancel(String id,ActivityCancellationReason reason,String adminText) {
         service.context.require();
         return service.transactions.write(List.of(id),() -> {
-            var before=service.activities.lock(id); ActivityTransitions.activity(before.state(),ActivityState.CANCELLED);
+            var before=service.activities.lock(id);
+            if (before.state()==ActivityState.CANCELLED && reason==ActivityCancellationReason.DELETED) {
+                if (before.cancellation()!=null && before.cancellation().reason()==ActivityCancellationReason.DELETED) return before;
+                var edit=new ActivityEdit(before);
+                edit.cancellation=new Activity.Cancellation(reason,adminText,service.context.clock.instant(),service.context.actor(),
+                        before.cancellation()==null?0:before.cancellation().affectedCount());
+                var saved=service.save(edit,before.version()); service.audit.cancelled(before,saved); return saved;
+            }
+            ActivityTransitions.activity(before.state(),ActivityState.CANCELLED);
             var live=registrations.registrations.live(id);
             if(!live.isEmpty() && (adminText==null || adminText.isBlank())) throw new ApiException(ErrorCode.ADMIN_TEXT_REQUIRED);
             var affected=new ArrayList<Map<String,Object>>();

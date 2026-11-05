@@ -18,6 +18,18 @@ class TrainingRulesTest {
         var start = madrid(dateTime); return new TrainingGrid.Slot(LocalDate.parse(dateTime.substring(0, 10)), start, start.plusSeconds(1800));
     }
 
+    @Test void T_09_feedback_bandStartsKeepThirtyMinuteDuration() {
+        var date=java.time.LocalDate.parse("2026-11-05"); var zone=java.time.ZoneId.of("Europe/Paris");
+        var hours=new TrainingGrid.Hours(java.time.LocalTime.of(8,0),java.time.LocalTime.of(22,0));
+        var starts=java.util.List.of(java.time.LocalTime.of(17,40),java.time.LocalTime.of(18,50),java.time.LocalTime.of(20,0));
+        var slots=TrainingGrid.slots(date,hours,false,zone,30,starts);
+        assertThat(slots).hasSize(3);
+        assertThat(slots).allSatisfy(s -> assertThat(java.time.Duration.between(s.startsAt(),s.endsAt()).toMinutes()).isEqualTo(30));
+        assertThat(TrainingGrid.placement(date.atTime(18,0).atZone(zone).toInstant(),hours,false,zone,30,starts)).isEqualTo(TrainingGrid.Placement.OFF_GRID);
+        assertThat(TrainingGrid.placement(slots.getFirst().startsAt(),hours,false,zone,30,starts)).isEqualTo(TrainingGrid.Placement.ON_GRID);
+        assertThat(TrainingGrid.slots(date,hours,true,zone,30,starts)).isEmpty();
+        assertThat(TrainingGrid.slots(date,hours,false,zone,30,java.util.List.of())).isEmpty();
+    }
     @Test void T_09_01_theRightFollowsTheOverrideThenTheLevelAndOnlyTheOverrideWithoutLevels() {
         // Rock (D grants, no override), Kira (B, override true), Toby (B, no override), Nala (E grants, override false).
         assertThat(TrainingRules.canFreeTrain(true, null, true, true)).isTrue();

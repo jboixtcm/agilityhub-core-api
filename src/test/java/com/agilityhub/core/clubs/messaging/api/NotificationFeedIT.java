@@ -133,6 +133,24 @@ class NotificationFeedIT extends AbstractIntegrationTest {
         return call(as(get("/api/v1/me/home"), LAURA, "MEMBER"), 200).at("/notifications/unreadCount").asLong();
     }
 
+    @Autowired com.agilityhub.core.clubs.messaging.persistence.NotificationRepository notifications;
+    @Test void T_11_feedback_impersonationExcludesStaffAndOtherMemberAndReadAllKeepsThemUnread() {
+        mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("recipient.accountId").is(LAURA)),new org.springframework.data.mongodb.core.query.Update().set("recipient.memberId","feed-m-laura"),"notifications");
+        insert(notice("staff-same-account",CLUB,LAURA,"N-21",NotificationAudience.INSTRUCTORS,now,null,delivery(NotificationChannel.APP,LAURA,DeliveryStatus.DELIVERED)));
+        insert(notice("other-member-same-account",CLUB,LAURA,"N-04",NotificationAudience.MEMBER,now,null,delivery(NotificationChannel.APP,LAURA,DeliveryStatus.DELIVERED)));
+        var user=new com.agilityhub.core.shared.application.CurrentUser(LAURA,"Example",new com.agilityhub.core.shared.application.CurrentUser.Impersonation("admin","Admin","feed-m-laura"),com.agilityhub.core.shared.domain.DomainEvent.Origin.APP);
+        try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(CLUB);var actor=com.agilityhub.core.shared.application.CurrentUser.open(user)) {
+            assertThat(notifications.feedCount(LAURA,null)).isEqualTo(4);
+            assertThat(notifications.unreadApp(LAURA)).isEqualTo(4);
+            assertThat(notifications.feed(LAURA,NotificationAudience.INSTRUCTORS,0,20)).isEmpty();
+            assertThat(notifications.findForAccount("staff-same-account",LAURA)).isEmpty();
+            notifications.markRead("staff-same-account",LAURA,now);
+            notifications.markAllRead(LAURA,now,now);
+            assertThat(notifications.unreadApp(LAURA)).isZero();
+        }
+        for(String id:List.of("staff-same-account","other-member-same-account"))
+            assertThat(mongo.findById(id,Notification.class).readAt()).isNull();
+    }
     @Test void T_11_19_theFeedHoldsTheCallersAppNoticesNewestFirstWithChannelsAndActions() throws Exception {
         var page = call(as(get("/api/v1/me/notifications"), LAURA, "MEMBER"), 200);
         assertThat(ids(page)).containsExactly("feed-n08a", "feed-n15", "feed-n15-old", "feed-n16-rock");

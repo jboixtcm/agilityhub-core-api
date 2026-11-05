@@ -101,6 +101,32 @@ class PlanningIT extends AbstractIntegrationTest {
      * on the field (only more than the maximum is TOO_MANY_INSTRUCTORS); an inactive level, instructor or ring cannot be chosen
      * for a template class, while a class that already has one keeps it and stays editable.
      */
+    @Test void T_06_feedback_generationFreezesEveryDailyBand() throws Exception {
+        sourceTemplates(); String id=week("2026-08-24");
+        generation(id,"plan-weekdays","plan-saturday",UUID.randomUUID().toString()).andExpect(status().isOk());
+        var original=ok("GET","/calendar/time-bands?date=2026-08-26",null);
+        assertThat(original.path("configured").asBoolean()).isTrue();
+        assertThat(original.path("bands")).hasSize(9); // Wednesday has only five classes, but all nine bands apply.
+        var training=ok("GET","/training-slots?from=2026-08-26&to=2026-08-26",null);
+        assertThat(training.path("days").get(0).path("slots")).hasSize(9);
+        for (var slot: training.path("days").get(0).path("slots")) {
+            assertThat(java.time.Duration.between(LocalTime.parse(slot.path("startsAtLocal").asText()),LocalTime.parse(slot.path("endsAtLocal").asText())).toMinutes()).isEqualTo(30);
+        }
+        var stored=mongo.getCollection("weeks").find(new Document("_id",id)).first();
+        assertThat(stored.get("dailyTimeBands",Document.class).getList("WEDNESDAY",Document.class)).hasSize(9);
+        mongo.getCollection("weeks").updateOne(new Document("_id",id),new Document("$unset",new Document("dailyTimeBands","")));
+        new WeekTimeBandBackfill(mongo).run(null);
+        assertThat(ok("GET","/calendar/time-bands?date=2026-08-26",null)).isEqualTo(original);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-weekdays")),new Update().set("timeBands",List.of()),"week_templates");
+        new WeekTimeBandBackfill(mongo).run(null); // Idempotent: later template changes cannot overwrite the frozen bands.
+        assertThat(ok("GET","/calendar/time-bands?date=2026-08-26",null)).isEqualTo(original);
+        assertThat(ok("GET","/calendar/time-bands?date=2026-08-29",null).path("bands")).hasSize(9);
+        assertThat(ok("GET","/calendar/time-bands?date=2026-08-30",null).path("bands")).isEmpty();
+        assertThat(ok("GET","/calendar/time-bands?date=2026-08-31",null).path("configured").asBoolean()).isFalse();
+        mvc.perform(get("/api/v1/calendar/time-bands?date=2026-08-26").header("Host",HOST)
+            .with(jwt().jwt(j -> j.subject("member").claim("clubId",CLUB)).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isForbidden());
+        try(var tenant=TenantContext.open(OTHER)) { assertThat(sessions.findAll()).isEmpty(); }
+    }
     @Test void T_06_09_INC_40_instructorListsAndInactiveReferencesOfTemplateClasses() throws Exception {
         String id = template("Week A", "WEEKDAYS"); String path = "/week-templates/" + id; String band = band(id).at("/bands/0/id").asText();
         // The POST's Bean Validation already answers an empty list (NotEmpty); the PATCH below answers it with the same field code.

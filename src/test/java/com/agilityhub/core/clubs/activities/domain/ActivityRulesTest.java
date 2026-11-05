@@ -40,7 +40,7 @@ class ActivityRulesTest {
         error(ErrorCode.INVALID_TIME_RANGE,() -> ActivityRules.validate(input(date,"20:30","18:30",date,date.plusDays(1),true,List.of()),10,Set.of(),Set.of("level")));
         error(ErrorCode.INVALID_TIME_RANGE,() -> ActivityRules.validate(input(date,null,null,date,date.plusDays(1),true,List.of()),10,Set.of(),Set.of("level")));
         error(ErrorCode.INVALID_TIME_RANGE,() -> ActivityRules.validate(input(date,null,null,date,date.minusDays(1),true,List.of()),10,Set.of(),Set.of("level")));
-        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.validate(input(date,"18:37","20:30",null,null,true,List.of("ring")),10,Set.of("ring"),Set.of("level")));
+        ActivityRules.validate(input(date,"18:37","20:30",null,null,true,List.of("ring")),10,Set.of("ring"),Set.of("level"));
         error(ErrorCode.VALIDATION_ERROR,() -> ActivityRules.validate(valid,10,Set.of(),Set.of("level")));
         error(ErrorCode.VALIDATION_ERROR,() -> ActivityRules.validate(valid,10,Set.of("ring"),Set.of()));
         assertThat(ActivityRules.text(Map.of("ca","Hello"),"title","ca",List.of("ca","en"),80,true).resolve("en").value()).isEqualTo("Hello");
@@ -64,9 +64,9 @@ class ActivityRulesTest {
     /** S07 §3 and R-07-05 (R-06-11), INC-40 (E11-T10): the ring-block window's hours are multiples of classes.slotMinutes when rings are blocked. */
     @Test void T_07_04_INC_40_theRingBlockWindowIsAlignedToTheClassSlots() {
         ActivityRules.window("17:40","20:10",true,10); ActivityRules.window(null,null,true,10); ActivityRules.window("17:45","20:00",false,10);
-        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.window("17:45","20:00",true,10));
-        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.window("17:40","20:05",true,10));
-        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.window(null,"20:00:30",true,10));
+        ActivityRules.window("17:45","20:00",true,10);
+        ActivityRules.window("17:40","20:05",true,10);
+        error(ErrorCode.INVALID_TIME_RANGE,() -> ActivityRules.window(null,"20:00:30",true,10));
         ActivityRules.window("17:45","20:15",true,15);
         error(ErrorCode.INVALID_TIME_RANGE,() -> ActivityRules.window("25:00",null,true,10));
     }

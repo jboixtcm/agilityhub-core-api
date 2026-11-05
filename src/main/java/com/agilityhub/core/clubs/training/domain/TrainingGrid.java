@@ -62,6 +62,21 @@ public final class TrainingGrid {
         return result;
     }
 
+    /** Generated calendars provide the exact starts; duration remains the configured training duration. */
+    public static List<Slot> slots(LocalDate date, Hours hours, boolean holiday, ZoneId zone, int slotMinutes, List<LocalTime> starts) {
+        if (starts==null) return slots(date,hours,holiday,zone,slotMinutes);
+        if (holiday || hours==null || slotMinutes<=0) return List.of();
+        return starts.stream().distinct().sorted().filter(t -> !t.isBefore(hours.open()) && t.toSecondOfDay()+slotMinutes*60<=hours.close().toSecondOfDay())
+                .flatMap(t -> zone.getRules().getValidOffsets(date.atTime(t)).stream().map(offset -> date.atTime(t).toInstant(offset))).distinct().sorted()
+                .map(t -> new Slot(date,t,t.plus(Duration.ofMinutes(slotMinutes)))).toList();
+    }
+    public static Placement placement(Instant startsAt, Hours hours, boolean holiday, ZoneId zone, int slotMinutes, List<LocalTime> starts) {
+        if (starts==null) return placement(startsAt,hours,holiday,zone,slotMinutes);
+        var slots=slots(startsAt.atZone(zone).toLocalDate(),hours,holiday,zone,slotMinutes,starts);
+        if (slots.isEmpty()) return Placement.CLOSED;
+        return slots.stream().anyMatch(s -> s.startsAt().equals(startsAt))?Placement.ON_GRID:Placement.OFF_GRID;
+    }
+
     /** Step 4 for one `(ring, slot)`; `dogId` marks the queried dog's own booking as OWN_TRAINING. */
     public static Cell cell(Ring ring, Slot slot, Collection<Busy> classes, Collection<Busy> blocks, Collection<Seat> seats, String dogId) {
         var c = classes.stream().filter(b -> b.ringId().equals(ring.id()) && b.overlaps(slot.startsAt(), slot.endsAt())).toList();

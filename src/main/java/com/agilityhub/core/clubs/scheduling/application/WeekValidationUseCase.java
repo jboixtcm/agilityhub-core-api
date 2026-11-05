@@ -48,7 +48,7 @@ public class WeekValidationUseCase {
             for(var draft:drafts) { var edit=new SessionEdit(draft); edit.state=ClassState.ACTIVE; classes.update(edit.snapshot(now,actor),draft.version()); }
             var after=new Week(before.id(),before.clubId(),before.isoYear(),before.isoWeek(),before.startDate(),before.endDate(),WeekState.VALIDATED,
                     before.generatedAt(),before.generatedByAccountId(),before.weekdayTemplateId(),before.saturdayTemplateId(),again?before.validatedAt():now,
-                    again?before.validatedByAccountId():actor,before.version()+1,before.createdAt(),before.createdByAccountId(),now,actor,before.openedAt(),before.openingNotifiedAt());
+                    again?before.validatedByAccountId():actor,before.version()+1,before.createdAt(),before.createdByAccountId(),now,actor,before.openedAt(),before.openingNotifiedAt(),before.dailyTimeBands());
             weeks.update(after,before.version());
             audit.validated(before,after);
             var ids=drafts.stream().map(ClassSession::id).toList();

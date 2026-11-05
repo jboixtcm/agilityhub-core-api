@@ -73,7 +73,7 @@ public class TrainingBookingService {
         if (booker.blocked()) { throw new ApiException(ErrorCode.BOOKING_BLOCKED, Map.of("reason", Objects.toString(booker.blockReason(), ""))); }
         var date = startsAt.atZone(zone).toLocalDate();
         census.checkBooking(actor.memberId(), dog.id(), date);
-        switch (TrainingGrid.placement(startsAt, context.openingHours().get(date.getDayOfWeek()), context.holidays().contains(date), zone, slotMinutes)) {
+        switch (TrainingGrid.placement(startsAt, context.openingHours().get(date.getDayOfWeek()), context.holidays().contains(date), zone, slotMinutes, schedule.trainingStarts(date).orElse(null))) {
             case CLOSED -> throw new ApiException(ErrorCode.CLUB_CLOSED);
             case OFF_GRID -> throw new ApiException(ErrorCode.SLOT_NOT_ON_GRID);
             case ON_GRID -> { }

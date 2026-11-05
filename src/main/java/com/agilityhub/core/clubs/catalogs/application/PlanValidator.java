@@ -16,7 +16,7 @@ public class PlanValidator {
         catch (IllegalArgumentException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
     }
     public LocalizedText text(Object raw, String field, int max, boolean required, ClubConfig config) {
-        if (!required && (raw == null || raw instanceof Map<?, ?> map && map.isEmpty())) { return null; }
+        if (!required && (raw == null || raw instanceof Map<?, ?> map && map.values().stream().allMatch(v -> v == null || v instanceof String text && text.isBlank()))) { return null; }
         if (!(raw instanceof Map<?, ?> map) || !map.containsKey(config.club().defaultLocale())) { throw invalid(field, "VALIDATION_ERROR"); }
         Map<String, String> texts = new LinkedHashMap<>();
         map.forEach((locale, value) -> {

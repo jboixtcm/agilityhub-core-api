@@ -15,7 +15,7 @@ public class ActivityLists implements ListProvider {
     public Set<String> keys() { return Set.of("activities","activity-registrations"); }
     public static MultiValueMap<String,String> params(MultiValueMap<String,String> original) {
         var result=new LinkedMultiValueMap<>(original);
-        if(original.getOrDefault("filter",List.of()).stream().noneMatch(f -> f.startsWith("deleted:"))) result.add("filter","deleted:eq:false");
+        if(original.getOrDefault("filter",List.of()).stream().noneMatch(f -> f.startsWith("deleted:") || f.startsWith("upcoming:"))) result.add("filter","deleted:eq:false");
         return result;
     }
     public ListDataset dataset(String key) {
@@ -26,8 +26,8 @@ public class ActivityLists implements ListProvider {
                 :List.of("registrationId","member","state","position","waitlistRank","origin","registeredAt","cancelledAt","cancelReason");
         var filters=new LinkedHashMap<String,ListDefinition.Field>(); filters.put("id",new ListDefinition.Field("_id",ListDefinition.Type.TEXT));
         if(activity) {
-            for(String f:List.of("state","type","date","ringId","levelId","deleted","registrationOpen")) filters.put(f,new ListDefinition.Field(
-                    f.equals("ringId")?"ringIds":f.equals("levelId")?"levelIds":f,f.equals("date")?ListDefinition.Type.DATE:Set.of("deleted","registrationOpen").contains(f)?ListDefinition.Type.BOOLEAN:ListDefinition.Type.TEXT));
+            for(String f:List.of("state","type","date","ringId","levelId","deleted","registrationOpen","upcoming")) filters.put(f,new ListDefinition.Field(
+                    f.equals("ringId")?"ringIds":f.equals("levelId")?"levelIds":f,f.equals("date")?ListDefinition.Type.DATE:Set.of("deleted","registrationOpen","upcoming").contains(f)?ListDefinition.Type.BOOLEAN:ListDefinition.Type.TEXT));
         } else for(String f:List.of("activityId","state","origin","registeredAt","memberId")) filters.put(f,new ListDefinition.Field(f,f.equals("registeredAt")?ListDefinition.Type.INSTANT:ListDefinition.Type.TEXT));
         var sorts=activity?Map.of("date","date","title","title","state","state","createdAt","createdAt"):Map.of("registeredAt","registeredAt","position","position","memberLastName","memberLastName");
         var columns=activity?List.of("title","date","rings","registrations","state","type","slug","registrationTo"):List.of("member","state","position","origin","registeredAt","cancelledAt","cancelReason");
@@ -40,6 +40,9 @@ public class ActivityLists implements ListProvider {
             stages.add(new Document("$set",new Document("title",title).append("registrations","$counters")
                     .append("deleted",new Document("$and",List.of(new Document("$eq",List.of("$state","CANCELLED")),new Document("$eq",List.of("$cancellation.reason","DELETED")))))
                     .append("registrationOpen",new Document("$and",List.of(new Document("$eq",List.of("$state","PUBLISHED")),new Document("$lte",List.of(localDate("$registrationFrom",false),Date.from(context.clock.instant()))),new Document("$gt",List.of(localDate("$registrationTo",true),Date.from(context.clock.instant()))))))));
+            var activityStart = new Document("$dateFromString",new Document("dateString",new Document("$concat",List.of("$date","T",new Document("$ifNull",List.of("$startTime","00:00"))))).append("timezone",context.zone().getId()).append("onNull",null).append("onError",null));
+            stages.add(new Document("$set",new Document("upcoming",new Document("$and",List.of(
+                    new Document("$ne",List.of("$state","CANCELLED")),new Document("$gt",List.of(activityStart,Date.from(context.clock.instant()))))))));
             stages.add(lookup("rings",new Document("$in",List.of("$_id","$$refs")),new Document("refs","$ringIds"),"ringRows"));
             stages.add(new Document("$set",new Document("rings",new Document("$map",new Document("input","$ringRows").append("as","ring")
                     .append("in",new Document("id","$$ring._id").append("name","$$ring.name").append("color","$$ring.color"))))));

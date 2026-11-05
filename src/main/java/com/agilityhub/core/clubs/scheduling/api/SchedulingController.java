@@ -42,6 +42,14 @@ public class SchedulingController {
     private <T> T view(Object source, Class<T> type) { return mapper.convertValue(source, type); }
 
 
+    @GetMapping("/api/v1/calendar/time-bands")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    @ContractErrors({VALIDATION_ERROR, IMPERSONATION_DENIED})
+    @Operation(summary = "dailyTimeBands", description = "The generated week's frozen time bands for a club-local date. configured=false before generation. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "Daily time bands", useReturnTypeSchema = true))
+    public DailyTimeBands.Day timeBands(@RequestParam java.time.LocalDate date) {
+        access.tenant(); return planning.timeBands(date);
+    }
+
     @GetMapping("/api/v1/week-templates")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})

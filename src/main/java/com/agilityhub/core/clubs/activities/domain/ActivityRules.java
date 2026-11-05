@@ -26,22 +26,20 @@ public final class ActivityRules {
         if (!activeLevels.containsAll(a.levelIds())) invalid("levelIds");
         LocalTime start = time(a.startTime()), end = time(a.endTime());
         if (start != null && end != null && !start.isBefore(end)) throw new ApiException(ErrorCode.INVALID_TIME_RANGE);
-        if (!a.ringIds().isEmpty()) for (LocalTime value : new LocalTime[]{start,end})
-            if (value != null && (value.toSecondOfDay() % (slotMinutes * 60) != 0)) throw new ApiException(ErrorCode.INVALID_SLOT_GRANULARITY);
         if (a.registrationFrom() != null && a.registrationTo() != null && a.registrationFrom().isAfter(a.registrationTo())
                 || a.registrationTo() != null && a.date() != null && a.registrationTo().isAfter(a.date())) throw new ApiException(ErrorCode.INVALID_TIME_RANGE);
         if (a.minPlaces() != null && a.minPlaces() < 1 || a.maxPlaces() != null && a.maxPlaces() < 1
                 || a.minPlaces() != null && a.maxPlaces() != null && a.minPlaces() > a.maxPlaces()) invalid("minPlaces");
     }
     /**
-     * S07 §3 and R-07-05 (R-06-11), INC-40 (E11-T10): with rings, the ring-block window's hours are aligned to
-     * `classes.slotMinutes` like `startTime`/`endTime` (400 INVALID_SLOT_GRANULARITY); RingBlockWindow checks the rest at sync.
+     * Activity ring blocks accept minute precision, independently of the class-slot grid.
+     * RingBlockWindow still validates the interval and opening hours when it is synchronized.
      */
     public static void window(String fromTime, String toTime, boolean rings, int slotMinutes) {
         if (!rings) return;
         for (String value : new String[]{fromTime,toTime}) {
             LocalTime at = time(value);
-            if (at != null && at.toSecondOfDay() % (slotMinutes * 60) != 0) throw new ApiException(ErrorCode.INVALID_SLOT_GRANULARITY);
+            if (at != null && at.getSecond() != 0) throw new ApiException(ErrorCode.INVALID_TIME_RANGE);
         }
     }
     public static void publish(Input a, LocalDate today) {

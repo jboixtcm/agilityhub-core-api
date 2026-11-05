@@ -88,6 +88,7 @@ class PlansIT extends AbstractIntegrationTest {
     }
     Map<String, Object> planInput(String code, String type) {
         Map<String, Object> data = new LinkedHashMap<>(Map.of("code", code, "type", type, "name", Map.of("ca", "Abonat " + code, "es", "Abonado " + code, "en", "Member " + code)));
+        data.put("conditions", Map.of("ca", "Example signup terms"));
         if (type.equals("PACK")) { data.put("pack", Map.of("sessions", 10, "validityMonths", 3)); }
         if (type.equals("SINGLE_CLASS")) { data.put("singleClass", Map.of("chargeMode", "PAY_TO_BOOK")); }
         return data;
@@ -107,6 +108,18 @@ class PlansIT extends AbstractIntegrationTest {
     }
     void error(ResultActions result, int status, String code) throws Exception { result.andExpect(status().is(status)).andExpect(jsonPath("$.code").value(code)); }
 
+    @Test void T_05_feedback_optionalTermsAndEqualPricesOnDifferentPlans() throws Exception {
+        var input=planInput("TERMS", "MONTHLY"); input.put("showOnSignup",false); input.put("conditions",Map.of("ca",""));
+        var created=json(admin(body(post("/api/v1/plans"),input)),201); String id=created.path("id").asText();
+        var failure=json(admin(body(patch("/api/v1/plans/"+id),Map.of("version",0,"showOnSignup",true))),400);
+        assertThat(failure.at("/details/fieldErrors/0/field").asText()).isEqualTo("conditions");
+        String other=plan("EQUAL","MONTHLY");
+        price(id,5000,"2026-02-01",null); price(other,5000,"2026-02-01",null);
+        var detail=json(admin(get("/api/v1/plans/"+id)),200);
+        assertThat(detail.path("prices")).hasSize(1);
+        assertThat(detail.at("/prices/0/amount/amountMinor").asInt()).isEqualTo(5000);
+        assertThat(detail.at("/prices/0/status").asText()).isEqualTo("SCHEDULED");
+    }
     @Test @AuditCovers(AuditAction.CATALOG_CHANGED)
     void T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges() throws Exception {
         String plan = plan("MONTHLY", "MONTHLY");

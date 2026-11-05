@@ -40,7 +40,7 @@ public class TrainingSlotLocks {
         var zone = context.zone(); var hours = context.openingHours(); var holidays = context.holidays(); int minutes = context.slotMinutes();
         var result = new ArrayList<Instant>();
         for (var date = from.atZone(zone).toLocalDate(); date.atStartOfDay(zone).toInstant().isBefore(to); date = date.plusDays(1)) {
-            for (var slot : TrainingGrid.slots(date, hours.get(date.getDayOfWeek()), holidays.contains(date), zone, minutes)) {
+            for (var slot : TrainingGrid.slots(date, hours.get(date.getDayOfWeek()), holidays.contains(date), zone, minutes, schedule.trainingStarts(date).orElse(null))) {
                 if (slot.startsAt().isBefore(to) && slot.endsAt().isAfter(from)) { result.add(slot.startsAt()); }
             }
         }

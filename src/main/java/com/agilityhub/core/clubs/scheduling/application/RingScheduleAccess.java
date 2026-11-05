@@ -15,9 +15,16 @@ public class RingScheduleAccess {
     public record ClassInterval(String id, String ringId, Instant from, Instant to, String description) { }
     public record BlockInterval(String id, String ringId, Instant from, Instant to, String kind, String reason, String note, String createdByName, String activityId) { }
     private final ClassSessionRepository classes; private final RingBlockRepository blocks; private final SessionProjection projection;
+    private final DailyTimeBands dailyTimeBands;
     private final RingSlotLockRepository ringSlots;
-    public RingScheduleAccess(ClassSessionRepository classes, RingBlockRepository blocks, SessionProjection projection, RingSlotLockRepository ringSlots) {
+    public RingScheduleAccess(ClassSessionRepository classes, RingBlockRepository blocks, SessionProjection projection, RingSlotLockRepository ringSlots, DailyTimeBands dailyTimeBands) {
+        this.dailyTimeBands=dailyTimeBands;
         this.classes = classes; this.blocks = blocks; this.projection = projection; this.ringSlots = ringSlots;
+    }
+    /** Absent before generation; an empty list means a generated day without training starts. */
+    public Optional<List<java.time.LocalTime>> trainingStarts(java.time.LocalDate date) {
+        var day=dailyTimeBands.get(date);
+        return day.configured()?Optional.of(day.bands().stream().map(b -> java.time.LocalTime.parse(b.startTime())).toList()):Optional.empty();
     }
     /**
      * R-09-13: `$inc` of the ring-slot sequences inside the caller's transaction, in instant order. A training booking

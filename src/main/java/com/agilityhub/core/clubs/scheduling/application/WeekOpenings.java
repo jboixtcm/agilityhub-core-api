@@ -56,6 +56,6 @@ public class WeekOpenings {
     private static Week copy(Week w, Instant openedAt, Instant notifiedAt, Instant now) {
         return new Week(w.id(), w.clubId(), w.isoYear(), w.isoWeek(), w.startDate(), w.endDate(), w.state(), w.generatedAt(), w.generatedByAccountId(),
                 w.weekdayTemplateId(), w.saturdayTemplateId(), w.validatedAt(), w.validatedByAccountId(), version(w) + 1, w.createdAt(), w.createdByAccountId(),
-                now, w.updatedByAccountId(), openedAt, notifiedAt);
+                now, w.updatedByAccountId(), openedAt, notifiedAt, w.dailyTimeBands());
     }
 }

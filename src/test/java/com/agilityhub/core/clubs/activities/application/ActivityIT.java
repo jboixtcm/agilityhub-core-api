@@ -97,20 +97,16 @@ class ActivityIT extends ActivityFixtures {
         assertThat(erased).singleElement().satisfies(r -> { assertThat(r.path("channels")).isEmpty(); assertThat(r.path("phoneCount").asInt()).isZero(); assertThat(r.path("state").asText()).isEqualTo("ACTIVE"); });
         assertThat(preview.path("registrations").toString()).contains("Example m0");
     }
-    /** S07 §3 (`ringBlockWindow`), R-07-05 and R-06-11, INC-40 (E11-T10): the ring-block window is aligned to classes.slotMinutes like the activity's hours. */
-    @Test void T_07_04_INC_40_theRingBlockWindowIsAlignedToTheClassSlots() throws Exception {
-        var a=ready(5,true); String id=a.path("id").asText();
-        var unaligned=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"ringBlockWindow",Map.of("fromTime","17:45","toTime","20:00")),"admin","ADMIN",400);
-        assertThat(unaligned.path("code").asText()).isEqualTo("INVALID_SLOT_GRANULARITY");
-        assertThat(call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"ringBlockWindow",Map.of("fromTime","17:40","toTime","20:05")),"admin","ADMIN",400).path("code").asText())
-                .isEqualTo("INVALID_SLOT_GRANULARITY");
-        var aligned=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"ringBlockWindow",Map.of("fromTime","17:40","toTime","20:10")),"admin","ADMIN",200);
-        var published=call("POST","/activities/"+id+"/publication",Map.of(),"admin","ADMIN",200);
-        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("activityId").is(id).and("state").is("ACTIVE")),Document.class,"ring_blocks"))
-                .hasSize(5).allSatisfy(b -> assertThat(b.get("from",Date.class).toInstant()).isEqualTo(Instant.parse("2026-09-15T15:40:00Z")));
-        assertThat(call("PATCH","/activities/"+id,Map.of("version",published.path("version").asLong(),"ringBlockWindow",Map.of("fromTime","17:35","toTime","20:10")),"admin","ADMIN",400).path("code").asText())
-                .isEqualTo("INVALID_SLOT_GRANULARITY");
-        assertThat(aligned.path("ringBlockWindow").path("fromTime").asText()).isEqualTo("17:40");
+    @Test void T_07_feedback_manualMinuteTimesAndCancelledDeletion() throws Exception {
+        var a=ready(5,true);String id=a.path("id").asText();
+        var edited=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"startTime","18:15","endTime","19:15","ringBlockWindow",Map.of("fromTime","17:45","toTime","20:05")),"admin","ADMIN",200);
+        call("POST","/activities/"+id+"/publication",Map.of(),"admin","ADMIN",200);
+        assertThat(count("ring_blocks","state","ACTIVE")).isEqualTo(5);
+        call("POST","/activities/"+id+"/cancellation",Map.of("reason","CLUB_MANUAL","adminText","Example"),"admin","ADMIN",200);
+        var deleted=call("POST","/activities/"+id+"/cancellation",Map.of("reason","DELETED"),"admin","ADMIN",200);
+        assertThat(deleted.at("/cancellation/reason").asText()).isEqualTo("DELETED");
+        assertThat(call("GET","/activities?filter=upcoming:eq:true",null,"admin","ADMIN",200).path("items")).isEmpty();
+        assertThat(call("GET","/activities?filter=deleted:in:true,false",null,"admin","ADMIN",200).path("items")).hasSize(1);
     }
     @Test void T_07_14_registrationIsPerPersonWithExplicitWaitlistAndReplay() throws Exception {
         String id=published(1,false).path("id").asText(); String key=UUID.randomUUID().toString();

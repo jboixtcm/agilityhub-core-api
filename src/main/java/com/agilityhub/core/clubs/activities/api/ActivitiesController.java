@@ -57,7 +57,7 @@ public class ActivitiesController {
 
     @GetMapping("/api/v1/activities")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true,
+    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true,
             fields = {"id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER})
     @Operation(summary = "activities", description = "Roles: ADMIN, INSTRUCTOR. Default sort date desc; default filter deleted:eq:false. q searches title. Without fields every item property is sent (null where it does not apply); with fields an item has id and the requested keys only. Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "ListPage<ActivityListItem>", useReturnTypeSchema = true))
@@ -68,7 +68,7 @@ public class ActivitiesController {
     @GetMapping("/api/v1/activities/filter-values")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     // CONVENCIONS_API §4 (E5-T24): filter-values takes no `fields`.
-    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true, acceptsFields = false)
+    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true, acceptsFields = false)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER})
     @Operation(summary = "filterValues", description = "Roles: ADMIN, INSTRUCTOR.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
     public FilterValues filterValues(@RequestParam String field, @io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
@@ -78,7 +78,7 @@ public class ActivitiesController {
     @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/activities/export")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = false,
+    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = false,
             fields = {"id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "export", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = {@ApiResponse(responseCode = "200", description = "Export file", content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")), @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema = @Schema(type = "string", format = "binary"))}), @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})

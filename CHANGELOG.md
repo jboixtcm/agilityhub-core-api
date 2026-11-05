@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — Daily schedule bands and administration feedback
+
+- Freeze all daily template bands when generating a week, including unused bands, and backfill existing generated weeks once. New classes and 30-minute trainings use their day’s starts.
+- Allow minute-precision activities, upcoming/all filters, and deletion after cancellation without repeating notifications.
+- Restrict impersonated notification feeds and read operations to the selected member. Require plan conditions only for plans offered at signup.
+
 ## 2026-11-04 — Invoice adjustments and remittance Excel
 
 - Schedule signed, one-off or monthly adjustments for selected members or the entire club. Preview and issue the same totals, including family billing. Download a remittance as one Excel row per bank debit.

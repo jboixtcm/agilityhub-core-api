@@ -63,17 +63,25 @@ public class NotificationRepository extends TenantRepository<Notification> {
     public Optional<Notification> findScoped(String id) {
         return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
     }
+    private Query memberFeedScope(Query query) {
+        var user = com.agilityhub.core.shared.application.CurrentUser.current();
+        if (user != null && user.impersonation() != null) {
+            query.addCriteria(new Criteria().andOperator(Criteria.where("audience").is("MEMBER"),
+                    Criteria.where("recipient.memberId").is(user.impersonation().memberId())));
+        }
+        return query;
+    }
     /** A notification of the tenant addressed to the account (the feed's `read`, R-11-10): another account's or club's is absent. */
     public Optional<Notification> findForAccount(String id, String accountId) {
-        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("recipient.accountId").is(accountId)), Notification.class));
+        return Optional.ofNullable(mongo.findOne(memberFeedScope(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("recipient.accountId").is(accountId))), Notification.class));
     }
     /**
      * In-app notifications of the account in the tenant without `readAt` (the S08 03 bell): a delivered `APP` delivery (a
      * stale reminder's skipped APP delivery is no notice, R-11-16), never read.
      */
     public long unreadApp(String accountId) {
-        return mongo.count(tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId).and("readAt").is(null)
-                .and("deliveries").elemMatch(Criteria.where("channel").is("APP").and("status").in("DELIVERED", "SENT"))), Notification.class);
+        return mongo.count(memberFeedScope(tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId).and("readAt").is(null)
+                .and("deliveries").elemMatch(Criteria.where("channel").is("APP").and("status").in("DELIVERED", "SENT")))), Notification.class);
     }
 
     // ---- Feed 11 (E7-T03, R-11-10): the account's notices with a delivered APP delivery, the same rows as the bell counts.
@@ -82,7 +90,7 @@ public class NotificationRepository extends TenantRepository<Notification> {
         var query = tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId)
                 .and("deliveries").elemMatch(Criteria.where("channel").is("APP").and("status").in("DELIVERED", "SENT")));
         if (audience != null) { query.addCriteria(Criteria.where("audience").is(audience)); }
-        return query;
+        return memberFeedScope(query);
     }
     /** One page of the feed, `createdAt desc` (then id, stable across pages). */
     public java.util.List<Notification> feed(String accountId, com.agilityhub.core.clubs.messaging.domain.NotificationAudience audience, int page, int size) {
@@ -95,12 +103,12 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     /** `POST /me/notifications/{id}/read`: `readAt` once (idempotent: a read notice keeps its first `readAt`). */
     public void markRead(String id, String accountId, Instant at) {
-        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("recipient.accountId").is(accountId).and("readAt").is(null)),
+        mongo.updateFirst(memberFeedScope(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("recipient.accountId").is(accountId).and("readAt").is(null))),
                 new Update().set("readAt", at), Notification.class);
     }
     /** `POST /me/notifications/read-all`: every unread notice of the account created until `upTo`. */
     public long markAllRead(String accountId, Instant upTo, Instant at) {
-        return mongo.updateMulti(tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId).and("readAt").is(null).and("createdAt").lte(upTo)),
+        return mongo.updateMulti(memberFeedScope(tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId).and("readAt").is(null).and("createdAt").lte(upTo))),
                 new Update().set("readAt", at), Notification.class).getModifiedCount();
     }
 
