@@ -194,7 +194,7 @@ public class SignupController {
     @PostMapping("/api/v1/me/dogs/signup")
     @PreAuthorize("hasRole('MEMBER')")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, MEMBER_ERASED, MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, CHIP_ALREADY_EXISTS,
+    @ContractErrors({VALIDATION_ERROR, PAYMENT_METHOD_NOT_AVAILABLE, MEMBER_ERASED, MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, CHIP_ALREADY_EXISTS,
             DOG_DOCUMENT_REQUIRED, DOCUMENT_TYPE_UNKNOWN, CONSENT_VERSION_OUTDATED, FILE_NOT_FOUND, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE,
             IDEMPOTENCY_KEY_REUSED, STALE_VERSION, PRICE_OVERLAP})
     @Operation(summary = "Submit an additional dog", description = "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status. "

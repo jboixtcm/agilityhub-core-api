@@ -397,3 +397,13 @@ Fils en paral·lel: **A** = WP-1 → WP-2 → WP-3 · **B** = WP-4 (des que WP-1
 - 22-10-2026 · ronda 2 d'E11-T13 (decisió E138, E109): cap import que vegi l'abonat no surt d'un bessó de preu. R-04-09: `texts.familyGroupIntro` a `null` amb la tarifa familiar bessona; en mode afegir gos, el pla propi bessó compta com un pla que ja no es pot assignar, i no hi ha opcions ni pressupostos que llegeixin un bessó; §6, `POST /me/dogs/signup` → `409 PRICE_OVERLAP` sense escriure res, i la validació de D2 respon aquest 409 abans de comparar el `priceId`; §2, files 18 i 13 → 17/19.
 - 22-10-2026 · ronda 2 d'E11-T19 (decisions E138, E161 i E109): R-04-09, `POST /me/dogs/signup` sense pla amb l'oferta buida i el pla propi bessó → `409 PRICE_OVERLAP`; §6, la validació de D2 (`dryRun` inclòs) comprova els bessons avui i al dia de la sol·licitud de cada gos.
 - 22-10-2026 · E11-T15 ronda 2 (decisió E156, E109): §3 i R-04-15, quan la validació cobra el primer mes la data del proper rebut és com a mínim l'1 del mes següent al seu `startDate` (`400 VALIDATION_ERROR` si no).
+
+### Ajust del 06-11-2026 — feedback d’alta
+
+- El pagament dels rebuts mensuals ofereix domiciliació (`SEPA_DD`) i efectiu (`MANUAL`) segons els proveïdors habilitats. El pagament inicial és independent: `CARD`, `BANK_TRANSFER` o `CASH`, exposats a `SignupConfig.initialPaymentMethods` i desats a `SignupSubmission.initialPaymentMethod`.
+- L’alta pública envia `payment.initialMethod`; l’alta d’un altre gos envia `initialPaymentMethod`. Els clients antics que no enviïn el camp mantenen el comportament anterior.
+- Només `CARD` amb import pendent inicia checkout. Transferència i efectiu mantenen els càrrecs `DUE` i mostren «Pagament pendent» en groc; «Pagament rebut» continua requerint confirmació real del proveïdor. La mensualitat no canvia en seleccionar el mètode inicial.
+- La transferència mostra les instruccions localitzades del proveïdor `MANUAL`; les dades bancàries no s’inclouen al codi de producte. Efectiu mostra «Coordini amb el club el pagament».
+- Els dos blocs de pagament tenen el mateix nivell visual. L’avís de vacunes queda sota el camp de cartilla i abans d’afegir un altre full.
+- La previsualització de la tarifa resol nom, condicions i etiqueta de preu en l’idioma seleccionat, amb retorn a l’idioma del club quan falta un text. No repeteix l’entrada al final de les condicions; això no altera l’import configurat.
+- `?lang=es` selecciona explícitament el castellà del formulari i la petició de configuració. Privacitat i autorització d’imatge es mantenen desmarcades inicialment.

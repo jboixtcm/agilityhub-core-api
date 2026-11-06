@@ -45,7 +45,7 @@ public class TrainingSlotService {
     /** The static layer of one day (cached). */
     TrainingGridCache.Day day(LocalDate date) {
         return cache.day(context.clubId(), date, () -> {
-            var slots = TrainingGrid.slots(date, context.openingHours().get(date.getDayOfWeek()), context.holidays().contains(date), context.zone(), context.slotMinutes(), schedule.trainingStarts(date).orElse(null));
+            var slots = TrainingGrid.slots(date, context.openingHours().get(date.getDayOfWeek()), context.holidays().contains(date), context.zone(), context.slotMinutes(), schedule.trainingBands(date).map(bands -> bands.stream().map(b -> new TrainingGrid.Hours(b.start(), b.end())).toList()).orElse(null));
             if (slots.isEmpty()) { return new TrainingGridCache.Day(date, true, List.of(), List.of(), List.of()); }
             var from = slots.getFirst().startsAt(); var to = slots.getLast().endsAt();
             return new TrainingGridCache.Day(date, false, slots, schedule.classes(from, to, null), schedule.blocks(from, to, false));

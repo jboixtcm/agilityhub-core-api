@@ -26,6 +26,7 @@ public final class SignupResponses {
     public record SignupConfig(boolean enabled, @Schema(requiredMode = NOT_REQUIRED) String closedText,
             @Schema(requiredMode = NOT_REQUIRED, description = "Present when signup is enabled") List<SignupStep> steps, @Schema(requiredMode = NOT_REQUIRED) List<SignupPlan> plans,
             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") List<SignupPaymentMethod> paymentMethods,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Available initial-payment methods, separate from recurring receipts; omitted without BILLING") List<SignupRequests.SignupInitialPaymentMethod> initialPaymentMethods,
             @Schema(requiredMode = NOT_REQUIRED) SignupTexts texts, @Schema(requiredMode = NOT_REQUIRED) SignupLegal legal, @Schema(requiredMode = NOT_REQUIRED) SignupCountryProfile countryProfile,
             @Schema(requiredMode = NOT_REQUIRED, description = "BILLING first-month choices from S04 §6") SignupUpfrontConfig upfront,
             @Schema(requiredMode = NOT_REQUIRED, description = "Only present for an authenticated MEMBER adding a dog") SignupMember member,
@@ -137,6 +138,7 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) String notesToInstructors, List<SignupDocumentView> documents) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupSubmission(Instant submittedAt, int pendingDays, boolean readmission, SignupSource source,
+            @Schema(requiredMode = NOT_REQUIRED) SignupRequests.SignupInitialPaymentMethod initialPaymentMethod,
             String locale, @Schema(requiredMode = NOT_REQUIRED,format = "uuid") String planIdRequested) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupFamilyGroupView(FamilyGroupClaimStatus status,

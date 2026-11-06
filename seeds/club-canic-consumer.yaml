@@ -59,9 +59,10 @@ paymentProviders:
     enabled: true
   MANUAL:
     enabled: true
+    # Public transfer instructions confirmed in the November 6 signup feedback.
     instructions:
-      ca: "El pagament de l'entrada i el mes en curs (o el proper) és necessari per a la validació de l'alta. Pot fer-se per transferència al compte ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o per Bizum al 607 475 945."
-      es: "El pago de la entrada y del mes en curso (o del siguiente) es necesario para la validación del alta. Puede hacerse por transferencia a la cuenta ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o por Bizum al 607 475 945."
+      ca: "Pot fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el seu nom i el del gos"
+      es: "Puede hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto su nombre y el del perro"
 parameters:
   signup.enabled: true
   signup.pendingExpiryDays: 30

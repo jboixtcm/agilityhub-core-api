@@ -15,6 +15,7 @@ public final class SignupRequests {
 
     public enum SignupIdDocumentType { DNI, NIE, PASSPORT, OTHER }
     public enum FirstMonthOption { TODAY, ALTERNATIVE }
+    public enum SignupInitialPaymentMethod { CARD, BANK_TRANSFER, CASH }
     /** R-04-20 (E3-T09): the anonymous inputs are bounded, so a lookup never works on an unbounded value. */
     public record SignupIdDocument(@NotNull SignupIdDocumentType type, @NotBlank @Size(min = 1, max = 30) String value) { }
     public record SignupAddress(@NotBlank String street, @NotBlank String postalCode, @NotBlank String town) { }
@@ -43,7 +44,8 @@ public final class SignupRequests {
             @Schema(requiredMode = NOT_REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY, example = "ES0000000000000000000000") @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY) String iban,
             @Schema(requiredMode = NOT_REQUIRED) String holderName,
             @Schema(requiredMode = NOT_REQUIRED) String holderTaxId,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Required for a monthly plan with BILLING") FirstMonthOption firstMonthOption) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Required for a monthly plan with BILLING") FirstMonthOption firstMonthOption,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Initial payment, independent of the recurring payment type. Omitted by legacy clients.") SignupInitialPaymentMethod initialMethod) { }
     public record SignupPrivacyConsent(@NotNull Boolean accepted, @NotBlank String version) { }
     public record SignupImageConsent(@NotNull Boolean granted, @NotBlank String version) { }
     public record SignupConsents(@NotNull @Valid SignupPrivacyConsent privacyPolicy, @NotNull @Valid SignupImageConsent imageUse) { }
@@ -62,7 +64,8 @@ public final class SignupRequests {
             @NotNull @Size(max = 10) List<@Valid SignupDocument> documents,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid", description = "R-04-09: omitted, the member's own plan. A member without a plan, or whose plan is no longer assignable (inactive or its module off; GET /signup then marks no plan current), must send one of the offered plans (400 VALIDATION_ERROR, fieldErrors planIdRequested REQUIRED), unless GET /signup offers none") String planIdRequested,
             @Schema(requiredMode = NOT_REQUIRED) @Valid SignupConsents consents,
-            @Schema(requiredMode = NOT_REQUIRED, defaultValue = "TODAY") FirstMonthOption additionalDogOption) { }
+            @Schema(requiredMode = NOT_REQUIRED, defaultValue = "TODAY") FirstMonthOption additionalDogOption,
+            @Schema(requiredMode = NOT_REQUIRED) SignupInitialPaymentMethod initialPaymentMethod) { }
     public record ValidationDog(@NotBlank @Schema(format = "uuid") String dogId,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId) { }
     public record ValidationRequest(@NotNull @PositiveOrZero Long version,

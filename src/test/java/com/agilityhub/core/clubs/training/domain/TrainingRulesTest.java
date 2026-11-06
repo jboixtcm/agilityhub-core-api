@@ -18,17 +18,31 @@ class TrainingRulesTest {
         var start = madrid(dateTime); return new TrainingGrid.Slot(LocalDate.parse(dateTime.substring(0, 10)), start, start.plusSeconds(1800));
     }
 
-    @Test void T_09_feedback_bandStartsKeepThirtyMinuteDuration() {
-        var date=java.time.LocalDate.parse("2026-11-05"); var zone=java.time.ZoneId.of("Europe/Paris");
-        var hours=new TrainingGrid.Hours(java.time.LocalTime.of(8,0),java.time.LocalTime.of(22,0));
-        var starts=java.util.List.of(java.time.LocalTime.of(17,40),java.time.LocalTime.of(18,50),java.time.LocalTime.of(20,0));
-        var slots=TrainingGrid.slots(date,hours,false,zone,30,starts);
-        assertThat(slots).hasSize(3);
-        assertThat(slots).allSatisfy(s -> assertThat(java.time.Duration.between(s.startsAt(),s.endsAt()).toMinutes()).isEqualTo(30));
-        assertThat(TrainingGrid.placement(date.atTime(18,0).atZone(zone).toInstant(),hours,false,zone,30,starts)).isEqualTo(TrainingGrid.Placement.OFF_GRID);
-        assertThat(TrainingGrid.placement(slots.getFirst().startsAt(),hours,false,zone,30,starts)).isEqualTo(TrainingGrid.Placement.ON_GRID);
-        assertThat(TrainingGrid.slots(date,hours,true,zone,30,starts)).isEmpty();
-        assertThat(TrainingGrid.slots(date,hours,false,zone,30,java.util.List.of())).isEmpty();
+    @Test void T_09_feedback_splitBandsAndFillOnlyUncoveredOpeningHours() {
+        var date = LocalDate.parse("2026-11-05");
+        var bands = List.of(new TrainingGrid.Hours(LocalTime.of(17,40), LocalTime.of(18,40)),
+                new TrainingGrid.Hours(LocalTime.of(18,50), LocalTime.of(19,50)));
+        var slots = TrainingGrid.slots(date, HOURS, false, MADRID, 30, bands);
+        assertThat(slots.stream().map(s -> s.startsAt().atZone(MADRID).toLocalTime().toString()))
+                .contains("07:00", "07:30", "17:00", "17:40", "18:10", "18:50", "19:20", "20:00", "21:30")
+                .doesNotContain("17:30", "18:00", "18:30", "19:00", "19:30");
+        assertThat(slots).allSatisfy(s -> assertThat(Duration.between(s.startsAt(),s.endsAt()).toMinutes()).isEqualTo(30));
+        for (int i = 1; i < slots.size(); i++) assertThat(slots.get(i).startsAt()).isAfterOrEqualTo(slots.get(i-1).endsAt());
+        for (var slot : slots) assertThat(TrainingGrid.placement(slot.startsAt(),HOURS,false,MADRID,30,bands)).isEqualTo(TrainingGrid.Placement.ON_GRID);
+        assertThat(TrainingGrid.placement(madrid("2026-11-05T18:00"),HOURS,false,MADRID,30,bands)).isEqualTo(TrainingGrid.Placement.OFF_GRID);
+        assertThat(TrainingGrid.placement(madrid("2026-11-05T22:00"),HOURS,false,MADRID,30,bands)).isEqualTo(TrainingGrid.Placement.CLOSED);
+        assertThat(TrainingGrid.slots(date,HOURS,true,MADRID,30,bands)).isEmpty();
+        assertThat(TrainingGrid.slots(date,HOURS,false,MADRID,30,List.of())).hasSize(30);
+    }
+    @Test void T_09_feedback_preservesBandsAtOpeningBoundaryAndConfiguredDuration() {
+        var date = LocalDate.parse("2026-11-05");
+        var hours = new TrainingGrid.Hours(LocalTime.of(7,10), LocalTime.of(10,10));
+        var bands = List.of(new TrainingGrid.Hours(LocalTime.of(8,45),LocalTime.of(9,45)));
+        assertThat(TrainingGrid.slots(date,hours,false,MADRID,30,bands).stream().map(s -> s.startsAt().atZone(MADRID).toLocalTime().toString()))
+                .containsExactly("07:30", "08:00", "08:45", "09:15");
+        assertThat(TrainingGrid.slots(date,hours,false,MADRID,15,bands)).allSatisfy(s -> assertThat(Duration.between(s.startsAt(),s.endsAt()).toMinutes()).isEqualTo(15));
+        assertThat(TrainingGrid.slots(date,null,false,MADRID,30,bands)).isEmpty();
+        assertThat(TrainingGrid.slots(date,hours,false,MADRID,0,bands)).isEmpty();
     }
     @Test void T_09_01_theRightFollowsTheOverrideThenTheLevelAndOnlyTheOverrideWithoutLevels() {
         // Rock (D grants, no override), Kira (B, override true), Toby (B, no override), Nala (E grants, override false).

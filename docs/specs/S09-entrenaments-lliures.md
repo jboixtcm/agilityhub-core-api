@@ -362,3 +362,7 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. Tres fils: back-B, back-C, front-D+E.
 - 18-10-2026 · E11-T10 (INC-40, decisió E109): R-09-13, l'anul·lació pel club escriu `TRAINING_CANCELLED_BY_CLUB` (S14 R-14-09) a la mateixa transacció i guarda l'`adminText` del bloqueig d'activitat (S07) a `cancelNote`, l'`admin_text` de N-47.
 - 21-10-2026 · E11-T17 (INC-40.10, decisió E150): §8, una reserva feta pel club (`origin = BACKOFFICE`) envia només N-47, ja no N-06 també; la fila de N-07 diu el que fa el codi (llevat `MEMBER_LEFT` i les anul·lacions del club). R-09-13 i R-09-16: l'entrada d'auditoria del club enllaça el seu propi esdeveniment (`TrainingBooked`/`TrainingCancelled`, publicat abans), mai el d'una altra reserva del mateix lot (S14 R-14-10).
 - 03-11-2026 · La pantalla d’entrenaments de l’abonat consulta `GET /me/training-slots` també quan el compte té rols d’instructor o administrador.
+
+### Ajust del 06-11-2026 — partició completa dels trams
+
+Cada tram desat del dia es divideix en intervals complets de `training.slotMinutes`, ancorats a l’inici del tram. Amb 30 minuts: 17:40–18:40 produeix 17:40 i 18:10; 18:50–19:50 produeix 18:50 i 19:20. Les franges no cobertes pels trams, abans, entre i després, s’omplen a :00/:30 dins l’horari d’obertura, sense solapar cap tram. No s’ofereixen intervals incomplets. Llistat, validació de reserva i bloqueig comparteixen la mateixa graella. Sense una setmana generada es conserva la graella anterior basada en l’hora d’obertura.

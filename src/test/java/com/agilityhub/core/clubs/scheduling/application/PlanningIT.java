@@ -108,8 +108,13 @@ class PlanningIT extends AbstractIntegrationTest {
         assertThat(original.path("configured").asBoolean()).isTrue();
         assertThat(original.path("bands")).hasSize(9); // Wednesday has only five classes, but all nine bands apply.
         var training=ok("GET","/training-slots?from=2026-08-26&to=2026-08-26",null);
-        assertThat(training.path("days").get(0).path("slots")).hasSize(9);
-        for (var slot: training.path("days").get(0).path("slots")) {
+        var trainingSlots=training.path("days").get(0).path("slots");
+        // S09 feedback: split the nine bands and fill every uncovered half hour through closing at 22:00.
+        assertThat(trainingSlots).hasSize(30);
+        assertThat(trainingSlots.get(0).path("startsAtLocal").asText()).isEqualTo("07:00");
+        assertThat(trainingSlots.get(1).path("startsAtLocal").asText()).isEqualTo("07:30");
+        assertThat(trainingSlots.get(29).path("endsAtLocal").asText()).isEqualTo("22:00");
+        for (var slot: trainingSlots) {
             assertThat(java.time.Duration.between(LocalTime.parse(slot.path("startsAtLocal").asText()),LocalTime.parse(slot.path("endsAtLocal").asText())).toMinutes()).isEqualTo(30);
         }
         var stored=mongo.getCollection("weeks").find(new Document("_id",id)).first();

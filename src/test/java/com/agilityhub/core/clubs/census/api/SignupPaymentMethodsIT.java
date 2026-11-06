@@ -105,6 +105,35 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 1 (R-04-10): one rule for the offer — enabled providers only ----
+    @Test void T_04_feedback_initialPaymentIsIndependentAndManualChargesRemainDue() throws Exception {
+        providers(new Document("SEPA_XML",enabled(true)).append("MANUAL",enabled(true)).append("STRIPE",enabled(true)));
+        var config=result(get("/api/v1/signup").header("Host",host),200);
+        assertThat(config.path("initialPaymentMethods").toString()).isEqualTo("[\"CARD\",\"BANK_TRANSFER\",\"CASH\"]");
+        for (String recurring : List.of("SEPA_DD","MANUAL")) {
+            for (String initial : List.of("CARD","BANK_TRANSFER","CASH")) {
+                var body=request(recurring);((ObjectNode)body.get("payment")).put("initialMethod",initial);
+                var created=submit(body,201);String id=created.path("memberId").asText();
+                assertThat(created.at("/checkout/required").asBoolean()).isEqualTo(initial.equals("CARD"));
+                assertThat(member(id).get("paymentMethod",Document.class).getString("type")).isEqualTo(recurring);
+                assertThat(member(id).get("signup",Document.class).getString("initialPaymentMethod")).isEqualTo(initial);
+                assertThat(review(id,"ca").at("/signup/initialPaymentMethod").asText()).isEqualTo(initial);
+                var charges=mongo.getCollection("upfront_payments").find(new Document("clubId",club).append("memberId",id)).into(new ArrayList<>());
+                assertThat(charges).isNotEmpty().allSatisfy(charge -> assertThat(charge.getString("status")).isEqualTo("DUE"));
+            }
+        }
+    }
+    @Test void T_04_feedback_initialMethodsRespectTheCurrentClubsEnabledProviders() throws Exception {
+        var body=request("SEPA_DD");((ObjectNode)body.get("payment")).put("initialMethod","CARD");
+        assertThat(submit(body,422).path("code").asText()).isEqualTo("PAYMENT_METHOD_NOT_AVAILABLE");
+        assertThat(members()).isZero();
+        providers(new Document("SEPA_XML",enabled(true)).append("MANUAL",enabled(false)).append("STRIPE",enabled(true)));
+        ((ObjectNode)body.get("payment")).put("initialMethod","BANK_TRANSFER");
+        assertThat(submit(body,422).path("code").asText()).isEqualTo("PAYMENT_METHOD_NOT_AVAILABLE");
+        ((ObjectNode)body.get("payment")).put("initialMethod","CASH");
+        assertThat(submit(body,422).path("code").asText()).isEqualTo("PAYMENT_METHOD_NOT_AVAILABLE");
+        assertThat(members()).isZero();
+    }
+
     @Test void R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags() throws Exception {
         // The seed's shape before E3-T14 (a listed provider without `enabled`) and a configured provider that is not enabled.
         providers(new Document("SEPA_XML",enabled(true)).append("STRIPE",new Document("secretKeyEnc","fictional-encrypted")).append("MANUAL",new Document()));

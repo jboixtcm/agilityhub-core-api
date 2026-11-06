@@ -200,13 +200,19 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema, "SignupPerson", "idDocument,firstName,lastName1,lastName2,birthDate,gender,emails,phones,address");
         properties(schema, "SignupIdDocument", "type,value"); properties(schema, "SignupAddress", "street,postalCode,town");
         properties(schema, "SignupDog", "name,sex,breed,birthMonth,birthDate,chip,notesToInstructors,documents");
-        properties(schema, "SignupPayment", "type,iban,holderName,holderTaxId,firstMonthOption");
+        properties(schema, "SignupPayment", "type,iban,holderName,holderTaxId,firstMonthOption,initialMethod");
         properties(schema, "SignupConsents", "privacyPolicy,imageUse");
-        properties(schema,"AddDogSignupRequest","dog,documents,planIdRequested,consents,additionalDogOption");
+        properties(schema,"AddDogSignupRequest","dog,documents,planIdRequested,consents,additionalDogOption,initialPaymentMethod");
         properties(schema,"AddDogCheckout","required,memberId");
         properties(schema,"SignupUpfront","lines,totalDue,additionalDog");
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("additionalDogOptions")).isTrue();
-        properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,texts,legal,countryProfile,upfront,member,allowFamilyGroupPending,requireDogDocumentAtSignup");
+        properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,initialPaymentMethods,texts,legal,countryProfile,upfront,member,allowFamilyGroupPending,requireDogDocumentAtSignup");
+        // S04 feedback: initial payment choices are independent; older clients may omit the new request fields.
+        assertThat(strings(schema.at("/SignupPayment/required"))).doesNotContain("initialMethod");
+        assertThat(strings(schema.at("/AddDogSignupRequest/required"))).doesNotContain("initialPaymentMethod");
+        for (String path : List.of("/SignupPayment/properties/initialMethod", "/AddDogSignupRequest/properties/initialPaymentMethod",
+                "/SignupSubmission/properties/initialPaymentMethod", "/SignupConfig/properties/initialPaymentMethods/items"))
+            assertThat(strings(schema.at(path + "/enum"))).containsExactly("CARD", "BANK_TRANSFER", "CASH");
         properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,planOptions,paymentMethods,warnDays,version,readmission");
         // E3-T14 (web E3-W07 round 2, R-04-10): the methods D2 may assign, shaped like planOptions, plus the applicant's current one.
         assertThat(strings(schema.at("/MemberSignupView/required"))).contains("planOptions", "paymentMethods");

@@ -62,19 +62,38 @@ public final class TrainingGrid {
         return result;
     }
 
-    /** Generated calendars provide the exact starts; duration remains the configured training duration. */
-    public static List<Slot> slots(LocalDate date, Hours hours, boolean holiday, ZoneId zone, int slotMinutes, List<LocalTime> starts) {
-        if (starts==null) return slots(date,hours,holiday,zone,slotMinutes);
-        if (holiday || hours==null || slotMinutes<=0) return List.of();
-        return starts.stream().distinct().sorted().filter(t -> !t.isBefore(hours.open()) && t.toSecondOfDay()+slotMinutes*60<=hours.close().toSecondOfDay())
-                .flatMap(t -> zone.getRules().getValidOffsets(date.atTime(t)).stream().map(offset -> date.atTime(t).toInstant(offset))).distinct().sorted()
-                .map(t -> new Slot(date,t,t.plus(Duration.ofMinutes(slotMinutes)))).toList();
+    /** Split every saved band into full training intervals; fill the gaps on the wall-clock grid. */
+    public static List<Slot> slots(LocalDate date, Hours hours, boolean holiday, ZoneId zone, int slotMinutes, List<Hours> bands) {
+        if (bands == null) return slots(date, hours, holiday, zone, slotMinutes);
+        if (holiday || hours == null || slotMinutes <= 0) return List.of();
+        int open = minutes(hours.open()), close = minutes(hours.close());
+        var starts = new TreeSet<Integer>();
+        for (var band : bands) {
+            for (int start = minutes(band.open()); start + slotMinutes <= minutes(band.close()); start += slotMinutes) {
+                if (start >= open && start + slotMinutes <= close) starts.add(start);
+            }
+        }
+        // Midnight alignment preserves :00/:30 for thirty-minute training, even with an irregular opening time.
+        for (int start = ((open + slotMinutes - 1) / slotMinutes) * slotMinutes; start + slotMinutes <= close; start += slotMinutes) {
+            int from = start, to = start + slotMinutes;
+            if (bands.stream().noneMatch(b -> from < minutes(b.close()) && to > minutes(b.open()))) starts.add(start);
+        }
+        return starts.stream().flatMap(start -> {
+            var local = date.atTime(LocalTime.ofSecondOfDay(start * 60L));
+            return zone.getRules().getValidOffsets(local).stream().map(local::toInstant);
+        }).distinct().sorted().map(start -> new Slot(date, start, start.plus(Duration.ofMinutes(slotMinutes))))
+                .filter(slot -> !slot.endsAt().isAfter(date.atTime(hours.close()).atZone(zone).toInstant())).toList();
     }
-    public static Placement placement(Instant startsAt, Hours hours, boolean holiday, ZoneId zone, int slotMinutes, List<LocalTime> starts) {
-        if (starts==null) return placement(startsAt,hours,holiday,zone,slotMinutes);
-        var slots=slots(startsAt.atZone(zone).toLocalDate(),hours,holiday,zone,slotMinutes,starts);
+    private static int minutes(LocalTime time) { return time.toSecondOfDay() / 60; }
+
+    public static Placement placement(Instant startsAt, Hours hours, boolean holiday, ZoneId zone, int slotMinutes, List<Hours> bands) {
+        if (bands == null) return placement(startsAt, hours, holiday, zone, slotMinutes);
+        var local = startsAt.atZone(zone);
+        var slots = slots(local.toLocalDate(), hours, holiday, zone, slotMinutes, bands);
         if (slots.isEmpty()) return Placement.CLOSED;
-        return slots.stream().anyMatch(s -> s.startsAt().equals(startsAt))?Placement.ON_GRID:Placement.OFF_GRID;
+        if (slots.stream().anyMatch(s -> s.startsAt().equals(startsAt))) return Placement.ON_GRID;
+        int minute = minutes(local.toLocalTime());
+        return minute < minutes(hours.open()) || minute + slotMinutes > minutes(hours.close()) ? Placement.CLOSED : Placement.OFF_GRID;
     }
 
     /** Step 4 for one `(ring, slot)`; `dogId` marks the queried dog's own booking as OWN_TRAINING. */

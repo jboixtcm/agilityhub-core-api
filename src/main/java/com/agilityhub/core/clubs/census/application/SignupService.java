@@ -423,17 +423,19 @@ public class SignupService implements SignupPaymentAccess {
                             "familyGroupClaim",previousClaim,"signup",member.signup));
         } else appendConsents(member,consents);
         String planId=string(request.get("planId"));policy.require(planId);
+        String initialMethod=initialMethod(map(request.get("payment")).get("initialMethod"));
+        if(initialMethod!=null && "CARD".equals(map(request.get("payment")).get("type"))) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
         String option=string(map(request.get("payment")).getOrDefault("firstMonthOption","TODAY"));String submission=UUID.randomUUID().toString();
         // S04 §3 (E3-T10): the snapshot of the submission, with its origin (hashed IP, user agent) and the requested method.
         member.status="PENDING";member.signup=object("submittedAt",clock.instant(),"locale",locale,"source","PUBLIC","readmission",readmission,"planIdRequested",planId,
-                "paymentMethodTypeRequested",target.paymentMethod==null?null:target.paymentMethod.get("type"),"firstMonthOption",option,"submissionId",submission,
+                "initialPaymentMethod",initialMethod,"paymentMethodTypeRequested",target.paymentMethod==null?null:target.paymentMethod.get("type"),"firstMonthOption",option,"submissionId",submission,
                 "ipHash",capabilities.fingerprint(ip),"userAgent",agent(userAgent));
         var prepared=prepareDog(member,map(request.get("dog")),readmission);
         var quote=policy.quote(planId,prepared.dog().id,false,null,option,policy.today());freeze(member.signup,quote);
         if(readmission) access.members.save(member);else access.members.insert(member);
         var dog=storeDog(prepared,member.signup,rows(map(request.get("dog")).get("documents")));createPayments(member.id,submission,quote);
         String origin=CurrentUser.current()==null?"PUBLIC":null;
-        boolean checkout=checkoutRequired(member,quote.totalDue());
+        boolean checkout=checkoutRequired(member,quote.totalDue(),initialMethod);
         // E3-T17: N-01 names the submitted dog, also a reused one whose record keeps its own name until validation.
         String dogName=readmissionPending(dog)?submittedView(dog).name:dog.name;
         events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(effectivePayment(member)).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout,
@@ -450,7 +452,24 @@ public class SignupService implements SignupPaymentAccess {
      * rewrite before delivery: `locale`, `dogNames` and `upfrontTotal` (the frozen `signup.upfront.totalDue`; null without BILLING).
      */
     private Map<String,Object> upfrontTotal(SignupPolicy.Quote quote) { return billing()?money(quote.totalDue()):null; }
-    private boolean checkoutRequired(Member m,Money due) { return billing()&&settings.providerEnabled("STRIPE")&&(due.amountMinor()>0 || "CARD".equals(map(effectivePayment(m)).get("type"))); }
+    private List<String> initialMethods() {
+        var methods = new ArrayList<String>();
+        if (settings.providerEnabled("STRIPE")) methods.add("CARD");
+        if (settings.providerEnabled("MANUAL")) { methods.add("BANK_TRANSFER"); methods.add("CASH"); }
+        return methods;
+    }
+    private String initialMethod(Object value) {
+        String method = string(value);
+        if (method == null) return null; // Preserve older clients and previously submitted signups.
+        String provider = "CARD".equals(method) ? "STRIPE" : "MANUAL";
+        if (!billing() || !List.of("CARD", "BANK_TRANSFER", "CASH").contains(method) || !settings.assignableProvider(provider))
+            throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
+        return method;
+    }
+    private boolean checkoutRequired(Member member, Money due, String initialMethod) {
+        if (initialMethod != null) return billing() && "CARD".equals(initialMethod) && due.amountMinor() > 0;
+        return billing() && settings.providerEnabled("STRIPE") && (due.amountMinor() > 0 || "CARD".equals(map(effectivePayment(member)).get("type")));
+    }
     private static List<UpfrontPayments.Charge> charges(SignupPolicy.Quote quote) { return quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList(); }
     private void createPayments(String member,String submission,SignupPolicy.Quote quote) { payments.create(member,submission,charges(quote)); }
     private static Map<String,Object> money(Money value) { return object("amountMinor",value.amountMinor(),"currency",value.currency()); }
@@ -650,15 +669,16 @@ public class SignupService implements SignupPaymentAccess {
         // the member to): 409 PRICE_OVERLAP, before anything is written.
         policy.requireAddDogQuotable(member.planId,planId);
         appendConsents(member,consentRows(member,map(request.get("consents")),true,locale(),ip));
+        String initialMethod=initialMethod(request.get("initialPaymentMethod"));
         String option=string(request.getOrDefault("additionalDogOption","TODAY"));String submission=UUID.randomUUID().toString();
         // S04 §3 (E3-T10): an add-dog submission never overwrites the member's public signup; its block lives on its dog only.
         var block=object("submittedAt",clock.instant(),"locale",locale(),"source","APP_ADD_DOG","readmission",false,"planIdRequested",planId,
-                "paymentMethodTypeRequested",billing()?map(member.paymentMethod).get("type"):null,"additionalDogOption",option,"submissionId",submission,
+                "initialPaymentMethod",initialMethod,"paymentMethodTypeRequested",billing()?map(member.paymentMethod).get("type"):null,"additionalDogOption",option,"submissionId",submission,
                 "ipHash",capabilities.fingerprint(ip),"userAgent",agent(userAgent));
         var prepared=prepareDog(member,map(request.get("dog")),false);
         var quote=policy.quote(planId,prepared.dog().id,true,member.planId,option,policy.today());freeze(block,quote);
         access.members.save(member);var dog=storeDog(prepared,block,rows(request.get("documents")));createPayments(member.id,submission,quote);
-        boolean checkout=checkoutRequired(member,quote.totalDue());
+        boolean checkout=checkoutRequired(member,quote.totalDue(),initialMethod);
         events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(member.paymentMethod).get("type"),"source","APP_ADD_DOG","readmission",false,"checkoutRequired",checkout,
                 "locale",locale(),"dogNames",List.of(dog.name),"upfrontTotal",upfrontTotal(quote)));
         refreshDashboard();
@@ -681,6 +701,7 @@ public class SignupService implements SignupPaymentAccess {
         if(access.enabled(Module.FAMILY_GROUP)) result.put("allowFamilyGroupPending",Boolean.TRUE.equals(config.get("signup.allowFamilyGroupPending",Boolean.class)));
         if(billing()) {
             // M7 (§2 row 19): the MANUAL method carries the club's own payment instructions; the cash conditions stay in `texts`.
+            result.put("initialPaymentMethods",initialMethods());
             result.put("paymentMethods",offeredMethods().stream().map(type -> object("type",type,"label",paymentLabel(type,language),
                     "instructions",type.equals("MANUAL")?settings.manualInstructions(language):null,"mandateText",type.equals("SEPA_DD")?mandate(language):null)).toList());
             var monthly=plans.stream().filter(plan -> "MONTHLY_FEE".equals(plan.billingMode())&&plan.price()!=null).findFirst().orElse(null);
@@ -871,7 +892,7 @@ public class SignupService implements SignupPaymentAccess {
         var claim=new LinkedHashMap<>(map(member.familyGroupClaim));String holderId=string(claim.remove("holderMemberId"));
         // E3-T16 round 2: the whole FamilyMember (number, ACTIVE dogs), never a partial one whose required `dogs` is null.
         if(holderId!=null) claim.put("holder",queries.familyMember(holderId));
-        return object("member",queries.member(id,true),"dogs",dogs.stream().map(this::dogView).toList(),"signup",select(submission,"submittedAt","pendingDays","readmission","source","locale","planIdRequested"),
+        return object("member",queries.member(id,true),"dogs",dogs.stream().map(this::dogView).toList(),"signup",select(submission,"submittedAt","pendingDays","readmission","source","locale","planIdRequested","initialPaymentMethod"),
                 "familyGroupClaim",access.enabled(Module.FAMILY_GROUP)?claim:null,"upfront",billing()?reviewUpfront(member,dogs):null,
                 "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null||policy.twinned(plan.id())?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,
                 "nextInvoiceDate",first==null?member.nextInvoiceDate:policy.nextInvoice(first),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),

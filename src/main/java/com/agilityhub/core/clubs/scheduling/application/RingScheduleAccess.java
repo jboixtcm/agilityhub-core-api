@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class RingScheduleAccess {
+    public record TrainingBand(java.time.LocalTime start, java.time.LocalTime end) { }
     public record ClassInterval(String id, String ringId, Instant from, Instant to, String description) { }
     public record BlockInterval(String id, String ringId, Instant from, Instant to, String kind, String reason, String note, String createdByName, String activityId) { }
     private final ClassSessionRepository classes; private final RingBlockRepository blocks; private final SessionProjection projection;
@@ -21,10 +22,10 @@ public class RingScheduleAccess {
         this.dailyTimeBands=dailyTimeBands;
         this.classes = classes; this.blocks = blocks; this.projection = projection; this.ringSlots = ringSlots;
     }
-    /** Absent before generation; an empty list means a generated day without training starts. */
-    public Optional<List<java.time.LocalTime>> trainingStarts(java.time.LocalDate date) {
+    /** Absent before generation; generated bands anchor the training intervals. */
+    public Optional<List<TrainingBand>> trainingBands(java.time.LocalDate date) {
         var day=dailyTimeBands.get(date);
-        return day.configured()?Optional.of(day.bands().stream().map(b -> java.time.LocalTime.parse(b.startTime())).toList()):Optional.empty();
+        return day.configured()?Optional.of(day.bands().stream().map(b -> new TrainingBand(java.time.LocalTime.parse(b.startTime()),java.time.LocalTime.parse(b.endTime()))).toList()):Optional.empty();
     }
     /**
      * R-09-13: `$inc` of the ring-slot sequences inside the caller's transaction, in instant order. A training booking

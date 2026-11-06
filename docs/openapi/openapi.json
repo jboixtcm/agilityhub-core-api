@@ -1165,6 +1165,10 @@
           "dog" : {
             "$ref" : "#/components/schemas/SignupDog"
           },
+          "initialPaymentMethod" : {
+            "enum" : [ "CARD", "BANK_TRANSFER", "CASH" ],
+            "type" : "string"
+          },
           "planIdRequested" : {
             "description" : "R-04-09: omitted, the member's own plan. A member without a plan, or whose plan is no longer assignable (inactive or its module off; GET /signup then marks no plan current), must send one of the offered plans (400 VALIDATION_ERROR, fieldErrors planIdRequested REQUIRED), unless GET /signup offers none",
             "format" : "uuid",
@@ -21886,6 +21890,14 @@
           "enabled" : {
             "type" : "boolean"
           },
+          "initialPaymentMethods" : {
+            "description" : "Available initial-payment methods, separate from recurring receipts; omitted without BILLING",
+            "items" : {
+              "enum" : [ "CARD", "BANK_TRANSFER", "CASH" ],
+              "type" : "string"
+            },
+            "type" : "array"
+          },
           "legal" : {
             "$ref" : "#/components/schemas/SignupLegal"
           },
@@ -22390,6 +22402,11 @@
             "type" : "string",
             "writeOnly" : true
           },
+          "initialMethod" : {
+            "description" : "Initial payment, independent of the recurring payment type. Omitted by legacy clients.",
+            "enum" : [ "CARD", "BANK_TRANSFER", "CASH" ],
+            "type" : "string"
+          },
           "type" : {
             "enum" : [ "SEPA_DD", "CARD", "MANUAL" ],
             "type" : "string"
@@ -22830,6 +22847,10 @@
       },
       "SignupSubmission" : {
         "properties" : {
+          "initialPaymentMethod" : {
+            "enum" : [ "CARD", "BANK_TRANSFER", "CASH" ],
+            "type" : "string"
+          },
           "locale" : {
             "type" : "string"
           },
@@ -56915,7 +56936,7 @@
                 }
               }
             },
-            "description" : "MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, DOG_DOCUMENT_REQUIRED, DOCUMENT_TYPE_UNKNOWN, CONSENT_VERSION_OUTDATED"
+            "description" : "PAYMENT_METHOD_NOT_AVAILABLE, MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, DOG_DOCUMENT_REQUIRED, DOCUMENT_TYPE_UNKNOWN, CONSENT_VERSION_OUTDATED"
           },
           "429" : {
             "content" : {

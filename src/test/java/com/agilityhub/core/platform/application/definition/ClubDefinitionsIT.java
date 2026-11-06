@@ -132,12 +132,10 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
                 "MANUAL", Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS))));
         codec.validate(exported); assertThat(definitions.apply(exported, false).changes()).isZero();
     }
-    /** The Cànic's cash payment instructions, word for word as the product owner confirmed them from the approved mockup 19 (26-09). */
+    /** The club's public transfer instructions, confirmed in the November 6 feedback. */
     static final Map<String, String> CASH_INSTRUCTIONS = Map.of(
-            "ca", "El pagament de l'entrada i el mes en curs (o el proper) és necessari per a la validació de l'alta. Pot fer-se per transferència"
-                    + " al compte ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o per Bizum al 607 475 945.",
-            "es", "El pago de la entrada y del mes en curso (o del siguiente) es necesario para la validación del alta. Puede hacerse por transferencia"
-                    + " a la cuenta ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o por Bizum al 607 475 945.");
+            "ca", "Pot fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el seu nom i el del gos",
+            "es", "Puede hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto su nombre y el del perro");
     /**
      * E5-T23 step 1 (S04 §2 row 19, R-04-10; S12 `MANUAL {instructions}`; Jordi, 26-09): the Cànic's seed carries its cash
      * payment instructions. A club applied from the previous seed gets them as one `paymentProviders` change, then none.
@@ -151,7 +149,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var preview = definitions.apply(activeCanic(), true);
         assertThat(preview.changes()).isEqualTo(1);
         assertThat(preview.render(true)).contains("~ paymentProviders changed",
-                "paymentProviders.MANUAL: {\"enabled\":true} -> {\"enabled\":true,\"instructions\":{\"ca\":\"El pagament de l'entrada");
+                "paymentProviders.MANUAL: {\"enabled\":true} -> {\"enabled\":true,\"instructions\":{\"ca\":\"Pot fer la transferència");
         assertThat(definitions.apply(activeCanic(), false).changes()).isEqualTo(1);
         assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS));
         var second = definitions.apply(activeCanic(), false);

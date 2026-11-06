@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-06 — Signup payments and training intervals
+
+- Separate upfront CARD/BANK_TRANSFER/CASH from recurring SEPA_DD/MANUAL on signup and additional-dog requests. Manual payments stay due until confirmed; keep older clients compatible.
+- Split each generated daily band into complete training intervals and fill uncovered opening hours on the wall-clock grid. Listing, booking and locking share the same grid.
+
 ## 2026-11-05 — Daily schedule bands and administration feedback
 
 - Freeze all daily template bands when generating a week, including unused bands, and backfill existing generated weeks once. New classes and 30-minute trainings use their day’s starts.
