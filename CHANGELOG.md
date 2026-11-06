@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Josep feedback 20261105-3: allow correction/removal of unbilled price history, preserve billed price protections, and expose confirmed plan/price removal with plan deactivation fallback.
+
 - Admins can request a single club-branded welcome email for an active member while automatic messages are disabled. Add a club-scoped Brevo SMS switch, draft-week reset and updated signup and billing defaults.
 
 - The admin notification log searches safe stored subjects and recipient identity within the club. Brevo temporary rejections retain a sanitized diagnostic and receipt time without permanent suppression, resending or changing provider acceptance into delivery; subsequent delivery remains possible.

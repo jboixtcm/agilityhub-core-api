@@ -26,9 +26,8 @@ class OfferCalculatorsTest {
         assertThat(PriceRules.status(next, date("2027-01-01"))).isEqualTo(PriceRules.Status.CURRENT);
     }
     @Test void T_05_03_lockedTermsAndInvoicePeriodBoundaries() {
-        var today = date("2026-09-15"); var future = new Period(date("2026-10-01"), null);
-        assertThat(PriceRules.locked(future, today, false)).isFalse(); assertThat(PriceRules.locked(future, today, true)).isTrue();
-        assertThat(PriceRules.locked(new Period(today, null), today, false)).isTrue();
+        var today = date("2026-09-15");
+        assertThat(PriceRules.locked(false)).isFalse(); assertThat(PriceRules.locked(true)).isTrue();
         PriceRules.newStart(date("2026-09-01"), today, null);
         assertThatThrownBy(() -> PriceRules.newStart(date("2026-08-31"), today, null)).isInstanceOf(ApiException.class);
         assertThatThrownBy(() -> PriceRules.newStart(date("2026-09-30"), today, date("2026-09-30"))).isInstanceOf(ApiException.class);

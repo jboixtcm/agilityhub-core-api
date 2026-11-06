@@ -175,6 +175,22 @@ class PlansIT extends AbstractIntegrationTest {
         admin(delete("/api/v1/prices/" + id)).andExpect(status().isNoContent());
         assertThat(json(admin(get("/api/v1/prices").param("planId", plan)), 200).path("items")).hasSize(1);
     }
+    @Test void T_05_feedback_unbilledCurrentAndExpiredPricesCanBeCorrectedAndDeleted() throws Exception {
+        String plan = plan("HISTORY", "MONTHLY");
+        String old = price(plan, 6000, "2026-01-01", "2026-01-31").at("/price/id").asText();
+        String current = price(plan, 6500, "2026-02-01", null).at("/price/id").asText();
+        clock.setInstant(Instant.parse("2026-09-15T12:00:00Z"));
+        var corrected = json(admin(body(patch("/api/v1/prices/" + old), Map.of("amount", Map.of("amountMinor", 6100, "currency", "EUR"),
+                "validFrom", "2025-12-01", "version", 0))), 200);
+        assertThat(corrected.path("locked").asBoolean()).isFalse();
+        assertThat(corrected.at("/amount/amountMinor").asInt()).isEqualTo(6100);
+        error(admin(body(patch("/api/v1/prices/" + old), Map.of("validTo", "2026-02-01", "version", 1))), 409, "PRICE_OVERLAP");
+        error(admin(body(patch("/api/v1/prices/" + old), Map.of("validTo", "2026-01-30", "version", 0))), 409, "STALE_VERSION");
+        admin(delete("/api/v1/prices/" + old)).andExpect(status().isNoContent());
+        admin(delete("/api/v1/prices/" + current)).andExpect(status().isNoContent());
+        assertThat(json(admin(get("/api/v1/prices").param("planId", plan)), 200).path("items")).isEmpty();
+    }
+
     @Test void T_05_04_planTermsEntryFeesAndConfiguredProposals() throws Exception {
         String id = plan("THERAPY", "MONTHLY"), pack = plan("PACK", "PACK");
         var therapy = updatePlan(id, Map.of("billingMode", "MAINTENANCE", "entryFee", Map.of("mode", "PERCENT", "percent", 50), "version", 0,
@@ -481,7 +497,7 @@ class PlansIT extends AbstractIntegrationTest {
         String plan = plan("MIDNIGHT", "MONTHLY"), id = price(plan, 6000, "2026-02-01", null).at("/price/id").asText();
         clock.setInstant(Instant.parse("2026-01-31T23:30:00Z"));
         var item = json(admin(get("/api/v1/prices").param("planId", plan)), 200).at("/items/0");
-        assertThat(item.path("status").asText()).isEqualTo("CURRENT"); assertThat(item.path("locked").asBoolean()).isTrue();
+        assertThat(item.path("status").asText()).isEqualTo("CURRENT"); assertThat(item.path("locked").asBoolean()).isFalse();
         error(admin(body(post("/api/v1/prices"), priceInput(plan, 6500, "2026-01-31", "2026-01-31"))), 409, "PRICE_LOCKED");
         assertThat(item.path("id").asText()).isEqualTo(id);
     }

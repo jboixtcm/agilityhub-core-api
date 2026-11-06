@@ -40,7 +40,7 @@ public class PriceService {
         billing(); plans.get(planId);
         return prices.forPlan(planId).stream().filter(price -> concept == null || concept == price.concept()).toList();
     }
-    public boolean locked(Price price) { return PriceRules.locked(price, today(), usage.price(price.id()).referenced()); }
+    public boolean locked(Price price) { return PriceRules.locked(usage.price(price.id()).referenced()); }
     private Price build(Price old, Map<String, Object> request) {
         var values = new LinkedHashMap<>(writer.fields(old)); values.putAll(request);
         String planId = Objects.toString(values.get("planId"), ""); var plan = plans.get(planId);
@@ -118,7 +118,7 @@ public class PriceService {
             }
             var next = build(old, request);
             if (locked && !Objects.equals(old.validTo(), next.validTo())) { PriceRules.close(next.validTo(), today(), billed(old)); }
-            if (!locked) { PriceRules.newStart(next.validFrom(), today(), null); }
+            // Unbilled history may be corrected even after its start date; overlap and version checks still apply.
             overlap(next, prices.forPlan(old.planId())); save(old, next, "UPDATED"); return null;
         });
     }

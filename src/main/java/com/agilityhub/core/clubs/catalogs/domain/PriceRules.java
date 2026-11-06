@@ -24,8 +24,8 @@ public final class PriceRules {
         return (left.validTo() == null || !left.validTo().isBefore(right.validFrom()))
                 && (right.validTo() == null || !right.validTo().isBefore(left.validFrom()));
     }
-    public static boolean locked(Period price, LocalDate today, boolean referenced) {
-        return referenced || !price.validFrom().isAfter(today);
+    public static boolean locked(boolean referenced) {
+        return referenced;
     }
     public static void validate(Money amount, String currency, BigDecimal tax, LocalDate from, LocalDate to) {
         if (amount == null || amount.amountMinor() < 0 || tax == null || tax.signum() < 0 || tax.compareTo(BigDecimal.valueOf(100)) > 0
