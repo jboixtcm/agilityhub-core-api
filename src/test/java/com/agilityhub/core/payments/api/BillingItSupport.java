@@ -48,7 +48,7 @@ public abstract class BillingItSupport extends AbstractIntegrationTest {
     protected static final String IBAN = "ES0000000000000000004321";
     protected static final Instant NOW = Instant.parse("2026-08-25T08:00:00Z");
     protected static final List<String> DATA = List.of("members", "family_groups", "dogs", "plans", "prices", "parameters", "invoices", "collections", "remittances",
-            "invoice_concepts", "billing_runs", "billing_simulations", "billing_locks", "pending_charges", "audit_entries", "idempotency_records", "bookings", "notifications",
+            "invoice_concepts", "billing_runs", "billing_simulations", "billing_locks", "catalog_write_locks", "pending_charges", "audit_entries", "idempotency_records", "bookings", "notifications",
             "memberships", "class_sessions", "attendances", "domain_events",
             // E8-T06: the lifecycle and process rows a P5/P10 test leaves would change another class's receipts (an inactivity fee).
             "inactivity_periods", "leave_requests", "pack_balances", "dog_documents", "job_runs", "job_locks", "job_action_marks");

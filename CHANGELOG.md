@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 - Josep feedback 20261105-3: allow correction/removal of unbilled price history, preserve billed price protections, and expose confirmed plan/price removal with plan deactivation fallback.
+- Serialize invoice generation with catalog writes and invalidate prior billing simulations when an unbilled price is removed.
 
 - Admins can request a single club-branded welcome email for an active member while automatic messages are disabled. Add a club-scoped Brevo SMS switch, draft-week reset and updated signup and billing defaults.
 

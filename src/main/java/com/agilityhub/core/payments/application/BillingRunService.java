@@ -84,6 +84,7 @@ public class BillingRunService {
 
     /** R-12-11/12: the month's generation; call it inside {@link #locked} and a billing transaction. */
     public RunOutcome generate(YearMonth period, String simulationId, LocalDate requestedCollectionDate) {
+        catalog.lock();
         if (runs.live(period.toString()).isPresent()) { throw new ApiException(ErrorCode.RUN_EXISTS); }
         var simulation = simulations.findById(simulationId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var plan = invoicing.plan(period);

@@ -14,6 +14,16 @@ public class PlanRepository extends CatalogRepository<Plan> {
                 .unique().partial(PartialIndexFilter.of(Criteria.where("code").exists(true)))
                 .collation(Collation.of("en").strength(2)).named("plan_code"));
     }
+    /** A deleted price has no updatedAt left for S12's simulation freshness check. Keep it on the shared fence. */
+    public void markPriceRemoval(java.time.Instant at) {
+        mongo.upsert(tenantQuery().addCriteria(Criteria.where("catalog").is(Plan.class.getSimpleName())),
+                new Update().max("lastPriceRemoval", java.util.Date.from(at)), "catalog_write_locks");
+    }
+    public java.util.Optional<java.time.Instant> lastPriceRemoval() {
+        var fence = mongo.findOne(tenantQuery().addCriteria(Criteria.where("catalog").is(Plan.class.getSimpleName())),
+                org.bson.Document.class, "catalog_write_locks");
+        return java.util.Optional.ofNullable(fence == null ? null : fence.getDate("lastPriceRemoval")).map(java.util.Date::toInstant);
+    }
     @Override public Plan update(Plan next, long version) {
         super.update(next, version);
         var reset = new Update();

@@ -54,6 +54,9 @@ public class BillingCatalogAccess {
         this.plans = plans; this.prices = prices; this.resolver = resolver;
     }
 
+    /** Share the catalog write fence while invoice generation reads and references price terms. */
+    public void lock() { plans.lock(); }
+
     public Optional<BillingPlan> plan(String planId) {
         if (planId == null) { return Optional.empty(); }
         return plans.findById(planId).map(plan -> new BillingPlan(plan.id(), plan.code(), plan.type().name(),
@@ -73,7 +76,8 @@ public class BillingCatalogAccess {
     }
     /** R-12-07: the latest change of the club's plans and prices (`SIMULATION_STALE`), if any. */
     public Optional<Instant> lastChange() {
-        return Stream.concat(plans.findAll().stream().map(plan -> plan.updatedAt()), prices.findAll().stream().map(price -> price.updatedAt()))
+        return Stream.concat(plans.lastPriceRemoval().stream(), Stream.concat(
+                plans.findAll().stream().map(plan -> plan.updatedAt()), prices.findAll().stream().map(price -> price.updatedAt())))
                 .filter(Objects::nonNull).max(Instant::compareTo);
     }
 }

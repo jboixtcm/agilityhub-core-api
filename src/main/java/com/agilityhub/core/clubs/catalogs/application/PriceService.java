@@ -127,7 +127,7 @@ public class PriceService {
         transactions.run(() -> {
             planRepository.lock(); var old = get(id);
             if (locked(old)) { throw new ApiException(ErrorCode.PRICE_LOCKED); }
-            save(old, null, "DELETED"); return null;
+            save(old, null, "DELETED"); planRepository.markPriceRemoval(clock.instant()); return null;
         });
     }
 }
