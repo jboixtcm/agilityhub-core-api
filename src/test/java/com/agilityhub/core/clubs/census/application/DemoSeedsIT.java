@@ -142,7 +142,27 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         ((ObjectNode) input.at("/catalogs/rings/0")).putNull("trainingCapacity"); definitions.apply(input, false);
         assertThat(definitions.apply(input, false).changes()).isZero();
         var price = (ObjectNode) input.at("/catalogs/prices/0/amount"); price.put("amountMinor", 6001);
-        assertThatThrownBy(() -> definitions.apply(input, false)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.PRICE_LOCKED));
+        assertThat(definitions.apply(input, false).changes()).isPositive();
+        var repriced = snapshot();
+        assertThat(definitions.apply(input, false).changes()).isZero(); assertThat(snapshot()).isEqualTo(repriced);
+        String priceId;
+        try (var tenant = TenantContext.open(club)) {
+            var plan = plans.list(true).stream().filter(p -> p.code().equals(input.at("/catalogs/prices/0/planCode").asText())).findFirst().orElseThrow();
+            var storedPrice = prices.list(plan.id(), null).getFirst();
+            assertThat(storedPrice.amount().amountMinor()).isEqualTo(6001);
+            priceId = storedPrice.id();
+        }
+        String invoiceId = "seed-price-lock-" + UUID.randomUUID();
+        mongo.insert(new Document("_id", invoiceId).append("clubId", club).append("period", "2026-09")
+                .append("lines", List.of(new Document("priceId", priceId))), "invoices");
+        try {
+            price.put("amountMinor", 6002);
+            var billed = snapshot();
+            assertThatThrownBy(() -> definitions.apply(input, false)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.PRICE_LOCKED));
+            assertThat(snapshot()).isEqualTo(billed);
+        } finally {
+            mongo.remove(Query.query(Criteria.where("_id").is(invoiceId)), "invoices");
+        }
         assertThat(definitions.apply(codec.read(Path.of("seeds/club-minim.yaml")), false).changes()).isPositive();
         var consumer = codec.read(Path.of("seeds/club-canic-consumer.yaml")); var canonical = seed(); consumer.remove("domains"); canonical.remove("domains"); assertThat(consumer).isEqualTo(canonical);
         for (String name : List.of("rules", "privacy")) {
