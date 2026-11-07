@@ -27,9 +27,13 @@ class GatewayUnavailableTest(unittest.TestCase):
         dead = club.replace('(club_spa)', '(club_spa_dead)').replace('{$CADDY_APP_UPSTREAM}', '127.0.0.1:59999')
         cls.directory = tempfile.TemporaryDirectory(prefix='gateway-f08-')
         root = Path(cls.directory.name)
+        (root / 'maintenance').mkdir()
+        cls.maintenance_flag = root / 'maintenance/enabled'
         for app in ('clubs', 'clubsadmin'):
             (root / app).mkdir()
             (root / app / 'index.html').write_text('<h1>Fictional ' + app + '</h1>')
+            (root / app / 'assets').mkdir()
+            (root / app / 'assets/app.css').write_text('body{color:navy}')
         conf = '''{ admin off }
 ''' + snippets.replace('core:8080', '127.0.0.1:9090') + club + dead + '''
 http://:8080 {
@@ -44,6 +48,9 @@ http://:8081 {
     @api path /api/* /oauth2/*
     handle @api { reverse_proxy 127.0.0.1:59999 }
     handle { import club_spa_dead }
+}
+http://:8082 {
+    import spa /srv/clubs
 }
 http://:9090 {
     @unavailable query host=unavailable.example.test
@@ -65,11 +72,13 @@ http://:9090 {
         # Caddyfile blocks must have their directives on separate lines.
         conf = conf.replace('{ admin off }', '{\n admin off\n}').replace('handle { import club_spa }', 'handle {\n import club_spa\n}').replace('handle { import club_spa_dead }', 'handle {\n import club_spa_dead\n}').replace('handle @api { reverse_proxy 127.0.0.1:59999 }', 'handle @api {\n reverse_proxy 127.0.0.1:59999\n}')
         (root / 'Caddyfile').write_text(conf)
-        cls.normal, cls.dead = port(), port()
+        cls.normal, cls.dead, cls.product = port(), port(), port()
         cls.container = subprocess.check_output(['docker','run','--rm','-d',
             '-p',f'127.0.0.1:{cls.normal}:8080','-p',f'127.0.0.1:{cls.dead}:8081',
+            '-p',f'127.0.0.1:{cls.product}:8082',
             '-e','CADDY_APP_UPSTREAM=127.0.0.1:9090',
             '-v',f'{root / "Caddyfile"}:/etc/caddy/Caddyfile:ro',
+            '-v',f'{root / "maintenance"}:/maintenance:ro',
             '-v',f'{root / "clubs"}:/srv/clubs:ro','-v',f'{root / "clubsadmin"}:/srv/clubsadmin:ro',IMAGE],text=True).strip()
         cls.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
         for _ in range(50):
@@ -147,6 +156,30 @@ http://:9090 {
         self.assertEqual(500,status)
         self.assertEqual('original-trace',json.loads(body)['traceId'])
         self.assertNotIn('Retry-After',headers)
+
+    def test_F08_planned_maintenance_does_not_depend_on_core_or_spa_assets(self):
+        for endpoint in (self.product, self.normal, self.dead):
+            with self.subTest(endpoint=endpoint):
+                self.maintenance_flag.write_text('enabled')
+                try:
+                    body = self.check_unavailable(self.request(endpoint, 'members.example.test', '/agenda?token=fictional-capability'), 'text/html')
+                    self.assertIn('Actualització en curs', body)
+                    self.assertIn('<style>', body)
+                    self.assertNotIn('<link', body)
+                    self.check_unavailable(self.request(endpoint, 'members.example.test', '/api/v1/me'), 'application/json')
+                    self.check_unavailable(self.request(endpoint, 'members.example.test', '/assets/app.css', 'text/css'), 'application/json')
+                finally:
+                    self.maintenance_flag.unlink()
+        self.assertEqual(200, self.request(self.normal, 'members.example.test')[0])
+        self.assertEqual(200, self.request(self.product, 'members.example.test')[0])
+
+    def test_F08_missing_versioned_assets_never_receive_the_spa_html(self):
+        for endpoint in (self.normal, self.product):
+            with self.subTest(endpoint=endpoint):
+                self.assertEqual('body{color:navy}', self.request(endpoint, 'members.example.test', '/assets/app.css', 'text/css')[2])
+                status, _, body = self.request(endpoint, 'members.example.test', '/assets/old.css', 'text/css')
+                self.assertEqual(404, status)
+                self.assertNotIn('Fictional clubs', body)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

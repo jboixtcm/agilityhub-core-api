@@ -71,7 +71,7 @@ class DeploymentReviewTest(unittest.TestCase):
 
     def test_E11_T04_05_spa_cache_after_rewrite(self):
         caddy = (ROOT / 'deploy/Caddyfile').read_text()
-        self.assertRegex(caddy, r'route\s*\{\s*try_files[^\n]+\n\s*header /index.html Cache-Control "no-cache"')
+        self.assertRegex(caddy, r'try_files \{path\} /index.html\n\s*header /index.html Cache-Control "no-cache"')
 
     def test_E11_T04_05_real_caddy_index_headers(self):
         # Run the real snippets, without the API or an entire Compose stack.

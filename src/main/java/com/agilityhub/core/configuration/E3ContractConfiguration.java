@@ -14,7 +14,7 @@ public class E3ContractConfiguration {
      * a value as `null`; `ClubSummary.legalAddress` (`/branding`, R-02-02) is `null` without a street or postal code.
      * E5-T16 (review E3-T16 #1): D1's module- and parameter-controlled blocks, `null` when off (S14 §6, R-14-04, R-14-07).
      */
-    static final List<String> NULLABLE_REFERENCES = List.of("Member", "ClubSummary", "Dashboard", "DashboardKpis");
+    static final List<String> NULLABLE_REFERENCES = List.of("Member", "FamilyMember", "ClubSummary", "Dashboard", "DashboardKpis");
 
     @Bean OpenApiCustomizer optionalSignupAuthentication() {
         return api -> {

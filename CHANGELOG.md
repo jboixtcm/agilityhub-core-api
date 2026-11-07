@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-07 — Family administration and planned maintenance
+
+- Share dog views and permitted member operations across active family groups while preserving restricted instructor impersonation. Expose each member's plan and the family-holder list field.
+- Allow administrators to explicitly cancel a pending signup checkout before validating a changed plan; dry runs remain read-only and late provider completions retain reconciliation.
+- Serve a self-contained maintenance page from a persistent deployment flag and return 404 for missing versioned SPA assets.
+
 ## 2026-11-06 — Signup payments and training intervals
 
 - Separate upfront CARD/BANK_TRANSFER/CASH from recurring SEPA_DD/MANUAL on signup and additional-dog requests. Manual payments stay due until confirmed; keep older clients compatible.

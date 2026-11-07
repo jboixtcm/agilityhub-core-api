@@ -60,9 +60,23 @@ public class CensusAccess implements DogOwnerAccess {
     public static ApiException readmissionFrozen() { return new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "READMISSION_PENDING")); }
     public Dog ownDog(String id, boolean mutation) {
         var dog = dogs.require(id); var member = me();
-        if (!member.id.equals(dog.memberId)) { throw new ApiException(ErrorCode.FORBIDDEN); }
-        if (mutation) { CensusRules.mutable(member.erasedAt); }
+        if (!reachableMemberIds(member.id).contains(dog.memberId)) { throw new ApiException(ErrorCode.FORBIDDEN); }
+        if (mutation) { CensusRules.mutable(member.erasedAt); mutableMember(dog.memberId); }
         return dog;
+    }
+    /** Active family membership shares dog operations; instructor impersonation remains confined to one student. */
+    public Set<String> reachableMemberIds(String memberId) {
+        if (CurrentUser.bookingsOnly()) {
+            return CurrentUser.current().impersonation().memberId().equals(memberId) ? Set.of(memberId) : Set.of();
+        }
+        var result = new LinkedHashSet<String>(); result.add(memberId);
+        var member = members.findById(memberId).orElse(null);
+        if (!enabled(Module.FAMILY_GROUP) || member == null || member.familyGroupId == null || member.erasedAt != null) { return result; }
+        groups.findById(member.familyGroupId).filter(group -> "ACTIVE".equals(group.status) && group.memberIds != null && group.memberIds.contains(memberId))
+                .ifPresent(group -> members.matching(Criteria.where("_id").in(group.memberIds)).stream()
+                        .filter(other -> group.id.equals(other.familyGroupId) && other.erasedAt == null && other.mergedIntoMemberId == null)
+                        .forEach(other -> result.add(other.id)));
+        return result;
     }
     @Override public void requireDog(String dogId, boolean ownerOnly, boolean mutation) {
         var dog = ownerOnly ? ownDog(dogId, mutation) : mutation ? mutableDog(dogId) : dogs.require(dogId);

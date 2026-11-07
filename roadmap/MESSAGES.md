@@ -4128,3 +4128,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-06 — Direct user request: Josep signup feedback
 
 @organizer: Implemented the November 6 feedback and the remaining November 5-2 training interval rules in an isolated source snapshot based on the November 5-3 publication checkout. User request: “hi ha feedback nou i preguntes, revisa i aplica”. No existing roadmap task or organizer verification was modified. See `roadmap/evidence/feedback-20261106/REPORT.md` for checks and limitations. New payment labels are taken from the supplied feedback with Spanish/English translations; no new error or parameter keys were invented. Deployment and club-specific transfer instructions remain separate from source changes.
+
+
+## 2026-11-07 — Direct user request: family groups and Josep feedback
+
+@organizer: Completed the November 6–7 feedback from the supplied Word documents and resumed the interrupted validation. The family editor, shared dog access, record actions, pending-checkout cancellation and maintenance support are ready locally. See `roadmap/evidence/feedback-20261107/REPORT.md` and `verification.json`. All recorded local checks pass. Publish API, web and operations together; the web requests the new family-holder list field. No existing roadmap task or organizer verification was modified. The specific census member is deferred until Jordi identifies it; the reported plan reactivation issue is not reproduced. No production records, credentials or delivery settings were changed, and no release was deployed.

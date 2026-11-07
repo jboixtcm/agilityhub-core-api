@@ -1065,7 +1065,7 @@ public class SignupService implements SignupPaymentAccess {
             // The preview is what the validation will write: the rows as they are, or (plan change, S04 §5 / E39) the kept rows plus the new ones.
             var scope=scope(member,dogs);List<UpfrontPayments.Line> lines;Money due,paid,exceeds=null;
             if(!gone&&planChanged(member,plan,dogs)) {
-                var replacement=payments.replacement(id,scope,charges(quote));lines=replacement.lines();due=replacement.due(currency());paid=replacement.paid(currency());
+                var replacement=payments.replacement(id,scope,charges(quote),Boolean.TRUE.equals(request.get("cancelPendingCheckout")));lines=replacement.lines();due=replacement.due(currency());paid=replacement.paid(currency());
                 if(replacement.checkoutPending()) warnings.add("CHECKOUT_PENDING");
                 // E39b: what was paid beyond the new quote stays paid; D2 warns so the club refunds it (S12).
                 exceeds=replacement.paidExceedsQuote();if(exceeds!=null) warnings.add("PAID_EXCEEDS_QUOTE");
@@ -1116,6 +1116,9 @@ public class SignupService implements SignupPaymentAccess {
         }
         if(billing()&&plan!=null&&"MONTHLY".equals(plan.type())&&!addDog&&request.get("nextInvoiceDate")==null) throw new ApiException(ErrorCode.NEXT_INVOICE_DATE_REQUIRED);
         String selectedId=plan==null?null:plan.id();var scope=scope(member,dogs);
+        if (Boolean.TRUE.equals(request.get("cancelPendingCheckout"))) {
+            checkouts.getObject().rejected(id, payments.lines(id, scope).stream().map(UpfrontPayments.Line::id).toList(), false);
+        }
         Money exceeds=planChanged(member,plan,dogs)?payments.replace(id,scope,charges(quote)).paidExceedsQuote():null;
         Money due=payments.due(id,scope,currency());
         if(billing()&&due.amountMinor()>0&&payments.lines(id,scope).stream().noneMatch(l -> "STRIPE".equals(l.provider())&&l.paidAmount().amountMinor()>0)&&request.get("upfrontAmountPaid")==null) throw invalid("upfrontAmountPaid","REQUIRED");

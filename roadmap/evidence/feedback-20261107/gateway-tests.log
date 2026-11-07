@@ -1,0 +1,7 @@
+.........CADDY ASKED THE CORE ["/internal/domains/app?host=office.example.test%26x%3Dy", "/internal/domains/app?host=x%26host%3Doffice.example.test"]
+....MAVEN -B -q -s /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-q65pcjps/settings.xml -Dmaven.repo.local=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-q65pcjps/repository -Daether.connector.http.retryHandler.count=3 -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t09-maven-retry-q65pcjps/pom.xml validate -> exit 0; requests [('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom', 200), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 502), ('/test/e11t09/retry-parent/1.0/retry-parent-1.0.pom.sha1', 200)]
+....................................................
+----------------------------------------------------------------------
+Ran 65 tests in 18.114s
+
+OK

@@ -169,6 +169,7 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) PaymentMethodView paymentMethod,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
             @Schema(requiredMode = NOT_REQUIRED) NamedReference familyGroup,
+            @Schema(requiredMode = NOT_REQUIRED) Boolean familyGroupHolder,
             @Schema(requiredMode = NOT_REQUIRED) Instant joinedAt,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate leaveDate,
             @Schema(requiredMode = REQUIRED) boolean bookingBlocked,
@@ -324,7 +325,8 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer memberNumber,
-            @Schema(requiredMode = REQUIRED) List<FamilyDog> dogs) { }
+            @Schema(requiredMode = REQUIRED) List<FamilyDog> dogs,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) NamedReference plan) { }
     public enum FamilyGroupStatus { ACTIVE, DISSOLVED }
     public record FamilyGroup(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -380,6 +382,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
             @Schema(requiredMode = REQUIRED) String breed,
+            @Schema(requiredMode = REQUIRED) DogStatus status,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = NOT_REQUIRED) boolean freeTrainingAllowed,
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,

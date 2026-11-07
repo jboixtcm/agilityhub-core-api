@@ -1,0 +1,188 @@
+{
+  "status": "PASS",
+  "api": {
+    "surefire-reports": {
+      "totals": {
+        "tests": 5017,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "classes": 486,
+      "changedClasses": [
+        {
+          "name": "com.agilityhub.core.configuration.S04ErrorContractTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        }
+      ]
+    },
+    "failsafe-reports": {
+      "totals": {
+        "tests": 2381,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "classes": 179,
+      "changedClasses": [
+        {
+          "name": "com.agilityhub.core.configuration.E3ContractIT",
+          "tests": "17",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "com.agilityhub.core.clubs.census.api.CensusIT",
+          "tests": "69",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "com.agilityhub.core.clubs.census.api.SignupGateFixesIT",
+          "tests": "26",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "com.agilityhub.core.configuration.E2ContractIT",
+          "tests": "8",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        }
+      ]
+    }
+  },
+  "apiCompletionGatesExitCode": 0,
+  "webTests": 3717,
+  "browserTests": {
+    "admin": 219,
+    "members": 157,
+    "identity": 1,
+    "courseViewer": 4,
+    "total": 381
+  },
+  "gatewayTests": 65,
+  "deploymentTests": 60,
+  "sourceMatch": true,
+  "productionModified": false,
+  "published": false,
+  "commands": [
+    {
+      "scope": "api",
+      "command": "./mvnw -q clean verify",
+      "exitCode": null,
+      "log": "logs/api-clean-verify.log",
+      "note": "Continued process from the referenced chat; exit code unavailable after handover. Fresh test reports and final gates confirm success."
+    },
+    {
+      "scope": "api",
+      "command": "./mvnw -q failsafe:verify jacoco:check@coverage",
+      "exitCode": 0,
+      "log": "logs/api-final-gates.log",
+      "note": "Captures final integration and coverage gates without rerunning tests."
+    },
+    {
+      "scope": "api",
+      "command": "bin/openapi-snapshot",
+      "exitCode": 0,
+      "log": "logs/api-openapi-generation.log",
+      "note": ""
+    },
+    {
+      "scope": "api",
+      "command": "python3 -m unittest discover -s deploy -p 'test_*.py'",
+      "exitCode": 0,
+      "log": "logs/gateway-tests.log",
+      "note": ""
+    },
+    {
+      "scope": "ops",
+      "command": "python3 -m unittest discover -s ops -p 'test_deploy_clubs.py'",
+      "exitCode": 0,
+      "log": "logs/deployment-tests.log",
+      "note": ""
+    },
+    {
+      "scope": "web",
+      "command": "pnpm turbo run lint typecheck test build",
+      "exitCode": 0,
+      "log": "logs/web-checks.log",
+      "note": ""
+    },
+    {
+      "scope": "web",
+      "command": "API_SPEC=/Users/jordib/dev/agilityhub/feedback-20261107/api/docs/openapi/openapi.json pnpm api:generate",
+      "exitCode": 0,
+      "log": "logs/web-api-generation.log",
+      "note": ""
+    },
+    {
+      "scope": "web",
+      "command": "pnpm i18n:check",
+      "exitCode": 0,
+      "log": "logs/web-i18n.log",
+      "note": ""
+    },
+    {
+      "scope": "web",
+      "command": "pnpm size-limit",
+      "exitCode": 0,
+      "log": "logs/web-size.log",
+      "note": ""
+    },
+    {
+      "scope": "web",
+      "command": "pnpm typecheck:e2e-core",
+      "exitCode": 0,
+      "log": "logs/web-e2e-core-types.log",
+      "note": ""
+    },
+    {
+      "scope": "web",
+      "command": "docker exec canic-feedback-nov7-e2e node /src/node_modules/@playwright/test/cli.js test --config /work/apps/clubs-admin/playwright.config.ts --workers=2",
+      "exitCode": 0,
+      "log": "logs/browser-admin-full.log",
+      "note": "Admin suite used a compiled VITE_MOCK=1 build; all browser checks use fictional data."
+    },
+    {
+      "scope": "web",
+      "command": "docker exec canic-feedback-nov7-e2e node /src/node_modules/@playwright/test/cli.js test --config /work/apps/clubs/playwright.config.ts --workers=2",
+      "exitCode": 0,
+      "log": "logs/browser-clubs.log",
+      "note": "Admin suite used a compiled VITE_MOCK=1 build; all browser checks use fictional data."
+    },
+    {
+      "scope": "web",
+      "command": "docker exec canic-feedback-nov7-e2e node /src/node_modules/@playwright/test/cli.js test --config /work/apps/id/playwright.config.ts --workers=2",
+      "exitCode": 0,
+      "log": "logs/browser-id.log",
+      "note": "Admin suite used a compiled VITE_MOCK=1 build; all browser checks use fictional data."
+    },
+    {
+      "scope": "web",
+      "command": "docker exec canic-feedback-nov7-e2e node /src/node_modules/@playwright/test/cli.js test --config /work/packages/course-ui/playwright.config.ts --workers=2",
+      "exitCode": 0,
+      "log": "logs/browser-course-ui.log",
+      "note": ""
+    }
+  ],
+  "roadmapValidation": {
+    "api": {
+      "tasks": 150,
+      "exitCode": 0
+    },
+    "web": {
+      "tasks": 97,
+      "exitCode": 0
+    },
+    "command": "python3 roadmap/tools/check.py --render && git diff --check",
+    "taskStatusesChanged": false
+  }
+}

@@ -225,6 +225,7 @@ public class SignupController {
     @Operation(summary = "Validate member signup", description = "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. "
             + "409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change, or an upfrontAmountPaid above 0, while a checkout of the submission is in progress, "
             + "S04 §5 E39 and R-04-16; dryRun warns CHECKOUT_PENDING whenever a line waits for a checkout). "
+            + "cancelPendingCheckout=true explicitly expires the pending checkout of this submission before validation; dryRun simulates the cancellation without writes. Provider expiry runs after commit and late payments follow refund reconciliation. "
             + "upfrontAmountPaid in another currency than the club's → 422 CURRENCY_MISMATCH with details.field = upfrontAmountPaid, before any write. "
             + "Without planId and priceId, a requested plan that is no longer assignable gives a dryRun of the rows as they are (no price) and a validation 422 PLAN_NOT_AVAILABLE. "
             + "With BILLING, a plan with two current prices of one concept (a legacy price twin, INC-68, ruling E138) → 409 PRICE_OVERLAP "

@@ -131,6 +131,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         fields.put("bookingBlocked", fallback("$bookingBlock.active", false));
         fields.put("contact", new Document("emails", emails()).append("phones", phones()));
         fields.put("plan", reference("$plan")); fields.put("familyGroup", reference("$familyGroup"));
+        fields.put("familyGroupHolder", expr("$and", expr("$eq", "$familyGroup.status", "ACTIVE"), expr("$eq", "$familyGroup.holderMemberId", "$_id")));
         fields.put("paymentMethod", new Document("type", "$paymentMethod.type")
                 // R-03-27 (E5-T28 round 2): a migrated account (`ibanLast4`) is masked in the one format too.
                 .append("maskedAccount", masked(fallback("$paymentMethod.ibanLast4", fallback("$paymentMethod.sepa.iban", "$paymentMethod.iban")), false))

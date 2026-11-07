@@ -61,19 +61,9 @@ public class BookingMemberAccess {
     }
     /** The actor's own members plus, with FAMILY_GROUP and an ACTIVE group holding both, the other group members (R-08-02). */
     public Set<String> reachableMembers(String actorMemberId) {
-        // An instructor opens one student record; the student's household never extends this grant.
-        if (CurrentUser.bookingsOnly()) {
-            String selected = CurrentUser.current().impersonation().memberId();
-            return selected.equals(actorMemberId) ? Set.of(selected) : Set.of();
-        }
-        var result = new LinkedHashSet<String>(); result.add(actorMemberId);
-        if (!access.enabled(Module.FAMILY_GROUP)) { return result; }
-        var actor = access.members.findById(actorMemberId).orElse(null);
-        if (actor == null || actor.familyGroupId == null) { return result; }
-        access.groups.findById(actor.familyGroupId).filter(g -> "ACTIVE".equals(g.status) && g.memberIds != null && g.memberIds.contains(actorMemberId))
-                .ifPresent(g -> result.addAll(g.memberIds));
-        return result;
+        return access.reachableMemberIds(actorMemberId);
     }
+
     public boolean canAccess(String actorMemberId, Dog dog) { return dog != null && reachableMembers(actorMemberId).contains(dog.memberId()); }
     /** Every dog the actor may book for: own and, with FAMILY_GROUP, the group's. */
     public List<Dog> accessibleDogs(String actorMemberId) {

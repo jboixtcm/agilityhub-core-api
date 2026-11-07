@@ -234,7 +234,7 @@ class E3ContractIT extends AbstractIntegrationTest {
         assertThat(strings(schema.at("/SignupDogValues/required"))).containsExactlyInAnyOrder("name", "documents");
         properties(schema, "UploadUrl", "uploadUrl,fileKey,expiresAt,headers");
         assertThat(schema.at("/UploadUrl/required").toString()).contains("headers");
-        properties(schema, "ValidationRequest", "version,dogs,planId,priceId,nextInvoiceDate,familyGroupId,upfrontAmountPaid");
+        properties(schema, "ValidationRequest", "version,dogs,planId,priceId,nextInvoiceDate,familyGroupId,upfrontAmountPaid,cancelPendingCheckout");
         properties(schema, "UpfrontLine", "id,concept,amount,status,paidAmount,provider");
         assertThat(strings(schema.at("/UpfrontLine/properties/concept/enum"))).containsExactly("ENTRY_FEE","FIRST_MONTH","PACK","ADDITIONAL_DOG_FEE");
         assertThat(strings(schema.at("/UpfrontLine/properties/status/enum"))).containsExactly("DUE","CHECKOUT_PENDING","PAID","PARTIAL","CANCELLED","REFUNDED");

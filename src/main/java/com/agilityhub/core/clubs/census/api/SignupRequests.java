@@ -74,6 +74,7 @@ public final class SignupRequests {
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String priceId,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String familyGroupId,
-            @Schema(requiredMode = NOT_REQUIRED) Money upfrontAmountPaid) { }
+            @Schema(requiredMode = NOT_REQUIRED) Money upfrontAmountPaid,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Explicitly expire an unpaid checkout before applying the validation; late provider payments follow reconciliation.") Boolean cancelPendingCheckout) { }
     public record RejectionRequest(@NotNull @PositiveOrZero Long version, @NotBlank @Size(min = 3, max = 500) String reason) { }
 }

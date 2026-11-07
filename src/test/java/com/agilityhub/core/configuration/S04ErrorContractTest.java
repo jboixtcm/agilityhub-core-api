@@ -81,7 +81,8 @@ class S04ErrorContractTest {
                     "PLAN_NOT_AVAILABLE", "a requested plan that is no longer assignable is caught (SignupService.planGone) and proposes nothing",
                     // E138 (E11-T13 round 2): D2 still loads a twinned plan; only its dry run and validation refuse it.
                     "PRICE_OVERLAP", "the review calls proposedPlan with refuseTwins = false"))),
-            new Route("POST /members/{id}/validation", SIGNUP, "validate", Set.of("VALIDATION_ERROR"), SAVED_MEMBER),
+            // Explicit pending-checkout cancellation uses the same caught, after-commit provider expiry as rejection.
+            new Route("POST /members/{id}/validation", SIGNUP, "validate", Set.of("VALIDATION_ERROR"), REJECTED_MEMBER),
             new Route("POST /members/{id}/rejection", SIGNUP, "reject", Set.of("VALIDATION_ERROR"), with(CLUB_CURRENCY, REJECTED_MEMBER)),
             // Round 2, point 4 (S04 §6, D2): the census PATCH routes also edit a pending signup (`patchPending`).
             new Route("PATCH /members/{id}", com.agilityhub.core.clubs.census.api.MembersController.class, "updateMember", Set.of("VALIDATION_ERROR"),

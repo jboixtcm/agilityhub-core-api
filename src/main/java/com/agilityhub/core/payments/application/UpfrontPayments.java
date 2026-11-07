@@ -130,13 +130,22 @@ public class UpfrontPayments {
      * impossible (`checkoutPending`; {@link #replace} answers 409).
      */
     public Replacement replacement(String memberId,List<Submission> scope,List<Charge> charges) {
+        return replacement(memberId, scope, charges, false);
+    }
+    /** Read-only preview of an explicitly cancelled checkout; the write expires it under the census lock. */
+    public Replacement replacement(String memberId,List<Submission> scope,List<Charge> charges,boolean cancelPendingCheckout) {
         var kept=new ArrayList<Line>();var cancelled=new ArrayList<Line>();var corrections=new ArrayList<Line>();boolean pending=false;long covered=0;String currency=null;
         for (var p:selected(memberId,scope)) {
             currency=p.amountDue().currency();
             switch (p.status()) {
                 case "CANCELLED","REFUNDED" -> { }
                 case "DUE" -> cancelled.add(line(p));
-                case "CHECKOUT_PENDING" -> { pending=true; kept.add(line(p)); }
+                case "CHECKOUT_PENDING" -> {
+                    if (cancelPendingCheckout) {
+                        cancelled.add(line(p));
+                        if (p.amountPaid().amountMinor() > 0) { corrections.add(line(correction(p))); covered += p.amountPaid().amountMinor(); }
+                    } else { pending=true; kept.add(line(p)); }
+                }
                 case "PARTIAL" -> { cancelled.add(line(p)); corrections.add(line(correction(p))); covered+=p.amountPaid().amountMinor(); }
                 default -> { kept.add(line(p)); covered+=p.amountPaid().amountMinor(); }
             }

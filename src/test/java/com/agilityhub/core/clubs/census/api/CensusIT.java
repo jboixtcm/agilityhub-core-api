@@ -520,13 +520,13 @@ class CensusIT extends AbstractIntegrationTest {
         error(admin(body(put("/api/v1/me/dogs/dog-one/instructor-note"), Map.of("text", "No"))), ErrorCode.FORBIDDEN);
         error(own(body(put("/api/v1/me/dogs/dog-family/instructor-note"), Map.of("text", "No"))), ErrorCode.FORBIDDEN);
     }
-    @Test void T_03_26_myDogsContainOnlyOwnActiveDogsWithSafeTasksAndLicenses() throws Exception {
+    @Test void T_03_26_myDogsContainOwnAndFamilyActiveDogsWithSafeTasksAndLicenses() throws Exception {
         family();
         field("dogs", "dog-two", "licenses", List.of(object("organisation", "EXAMPLE", "number", "123", "category", "M", "grade", "2", "division", "2D")));
         field("dogs", "dog-two", "handlerName", "Example Handler");
         mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-two").append("remaining", 4).append("sessionsTotal", 10).append("state", "ACTIVE").append("expiresOn", "2027-12-31"), "pack_balances");
         task("pending", "PENDING", null); task("recent", "DONE", clock.instant().minus(Duration.ofDays(30))); task("old", "DONE", clock.instant().minus(Duration.ofDays(31)));
-        var response = json(own(get("/api/v1/me/dogs")), 200); assertThat(response.path("dogs")).hasSize(2); assertThat(response.toString()).doesNotContain("chip", "handlerName", "passwordHash", "dog-family");
+        var response = json(own(get("/api/v1/me/dogs")), 200); assertThat(response.path("dogs")).hasSize(3); assertThat(response.toString()).contains("dog-family").doesNotContain("chip", "handlerName", "passwordHash");
         assertThat(response.path("dogs").get(0).path("tasks").path("items")).hasSize(2);
         assertThat(response.path("dogs").get(0).path("tasks").path("open").asInt()).isEqualTo(1);
         // INC-53 point 1 (E11-T02): screen 13 says «feta per {nom} el {data}», as 26 does: a done task carries `doneBy`, never an account id.
@@ -636,6 +636,35 @@ class CensusIT extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open(CLUB)) { assertThat(billing.familyGroupOf("two")).isEmpty(); }
     }
     @Autowired BillingCensusAccess billing;
+    @Test void T_03_28_familySharesDogsAndShowsHolderWithoutExposingOtherMembers() throws Exception {
+        String groupId = family();
+        mongo.insert(new Document("_id", "family-plan").append("clubId", CLUB).append("name", new Document("en", "Family Plan")).append("type", "MONTHLY"), "plans");
+        field("members", "one", "planId", "family-plan");
+        assertThat(json(admin(get("/api/v1/family-groups/" + groupId)), 200).at("/members/0/plan/id").asText()).isEqualTo("family-plan");
+        assertThat(json(call(get("/api/v1/family-groups/" + groupId), CLUB, "one", "INSTRUCTOR"), 200).toString()).doesNotContain("\"plan\"");
+        assertThat(json(own(get("/api/v1/me/family-group")), 200).toString()).doesNotContain("\"plan\"");
+        dog(CLUB, "family-dog", "two", "level-c", "941000000100009");
+        dog(CLUB, "unrelated-dog", "admin", "level-c", "941000000100010");
+        own(body(put("/api/v1/me/dogs/family-dog/instructor-note"), Map.of("text", "Shared family note"))).andExpect(status().isOk());
+        error(own(body(put("/api/v1/me/dogs/unrelated-dog/instructor-note"), Map.of("text", "No"))), ErrorCode.FORBIDDEN);
+        var overview = json(admin(get("/api/v1/members/one/overview")), 200);
+        assertThat(overview.path("dogs").toString()).contains("family-dog", "dog-one").doesNotContain("unrelated-dog");
+        assertThat(overview.path("dogs").get(0).path("status").asText()).isEqualTo("ACTIVE");
+        assertThat(json(own(get("/api/v1/me/dogs")), 200).toString()).contains("family-dog").doesNotContain("unrelated-dog");
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(access.reachableMemberIds("one")).containsExactlyInAnyOrder("one", "two");
+        }
+        var rows = json(admin(get("/api/v1/members").param("fields", "fullName,familyGroup,familyGroupHolder")), 200).path("items");
+        for (var row : rows) {
+            if (row.path("id").asText().equals("one")) assertThat(row.path("familyGroupHolder").asBoolean()).isTrue();
+            if (row.path("id").asText().equals("two")) assertThat(row.path("familyGroupHolder").asBoolean()).isFalse();
+        }
+        admin(delete("/api/v1/family-groups/" + groupId)).andExpect(status().isNoContent());
+        assertThat(json(own(get("/api/v1/me/dogs")), 200).toString()).doesNotContain("family-dog");
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(access.reachableMemberIds("one")).containsExactly("one"); }
+    }
+    @Autowired CensusAccess access;
+
     @Test @AuditCovers(AuditAction.FAMILY_GROUP_CHANGED)
     void T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic() throws Exception {
         error(admin(body(post("/api/v1/family-groups"), Map.of("holderMemberId", "one", "memberIds", List.of("one")))), ErrorCode.FAMILY_GROUP_TOO_SMALL);

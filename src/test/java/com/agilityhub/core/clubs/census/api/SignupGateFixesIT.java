@@ -485,6 +485,24 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         result(admin(postJson("/members/"+id+"/validation",request)),200);
         assertThat(member(id).getString("status")).isEqualTo("ACTIVE");assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
     }
+    @Test void T_04_22_pendingCheckoutCanBeExplicitlyCancelledWhileChangingThePlan() throws Exception {
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders",new Document("MANUAL",new Document("enabled",true)).append("SEPA_XML",new Document("enabled",true)).append("STRIPE",new Document("enabled",true)))));
+        configs.invalidate(club);signupService.invalidateConfiguration(club);
+        var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);String id=submitted.path("memberId").asText();
+        var checkout=result(postJson("/checkout-sessions",Map.of("memberId",id,"signupToken",submitted.path("signupToken").asText(),"successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel")).header("Idempotency-Key",UUID.randomUUID()),201);
+        var request=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",pendingDog(id),"levelId",level)),
+                "planId",pack(),"upfrontAmountPaid",Map.of("amountMinor",0,"currency","EUR"),"cancelPendingCheckout",true));
+        var dry=result(admin(postJson("/members/"+id+"/validation",request).param("dryRun","true")),200);
+        assertThat(dry.at("/upfront/totalDue/amountMinor").asLong()).isEqualTo(13500);
+        assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
+        result(admin(postJson("/members/"+id+"/validation",request)),200);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");
+        assertThat(rows(id)).noneMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
+        var stored=mongo.getCollection("checkout_sessions").find(new Document("_id",checkout.path("checkoutSessionId").asText())).first();
+        assertThat(stored).isNotNull(); assertThat(stored.getString("status")).isEqualTo("EXPIRED");
+    }
+
     String pack() { return pack(13500); }
     /** A pack plan without entry fee: its whole quote is `amountMinor`. */
     String pack(long amountMinor) {

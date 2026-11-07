@@ -131,10 +131,13 @@ public class CensusQuery {
         var tasks = access.references.tasks(dogId, clock.now(TenantContext.require()).toInstant().minus(Duration.ofDays(30)));
         return object("open", tasks.stream().filter(task -> task.get("doneAt") == null).count(), "completed", tasks.stream().filter(task -> task.get("doneAt") != null).count(), "items", tasks);
     }
+    private List<Dog> familyDogs(String memberId) {
+        return access.dogs.matching(Criteria.where("memberId").in(access.reachableMemberIds(memberId)));
+    }
     public Map<String,Object> myDogs() {
         var member = access.me();
         // S04 R-04-25 (E36): the member's own PENDING dogs are listed too, with the public fields only and no actions.
-        var dogs = ownerDogs(member.id).stream().filter(dog -> Set.of("ACTIVE", "PENDING").contains(dog.status)).map(dog -> {
+        var dogs = familyDogs(member.id).stream().filter(dog -> Set.of("ACTIVE", "PENDING").contains(dog.status)).map(dog -> {
             var result = object("id", dog.id, "name", dog.name, "breed", dog.breed, "sex", dog.sex, "ageYears", CensusRules.age(dog.birthDate, today()), "status", dog.status);
             if ("PENDING".equals(dog.status)) { return result; }
             result.putAll(object("photoUrl", attachments.url(dog.photoFileKey, dog.name), "level", level(dog.levelId), "documents", documents.list(dog.id), "licenses", licenses(dog), "pack", pack(dog.id)));
@@ -154,8 +157,14 @@ public class CensusQuery {
     /** A `FamilyMember`: its number (null while pending) and its ACTIVE dogs; also the D2 claim's holder ({@link SignupService}). */
     Map<String,Object> familyMember(String id) {
         var member = access.members.require(id);
-        return object("id", id, "fullName", fullName(member), "memberNumber", member.memberNumber, "dogs", ownerDogs(id).stream()
+        var result = object("id", id, "fullName", fullName(member), "memberNumber", member.memberNumber, "dogs", ownerDogs(id).stream()
                 .filter(dog -> "ACTIVE".equals(dog.status)).map(dog -> object("id", dog.id, "name", dog.name, "levelCode", map(level(dog.levelId)).get("code"))).toList());
+        var user = CurrentUser.current();
+        if (access.role("ADMIN") && access.enabled(Module.BILLING) && (user == null || user.impersonation() == null)) {
+            var plan = access.references.plan(member.planId);
+            result.put("plan", plan.isEmpty() ? null : object("id", member.planId, "name", localized(plan.get("name"))));
+        }
+        return result;
     }
     public Map<String,Object> family(String id) {
         access.require(Module.FAMILY_GROUP); var group = access.groups.require(id);
@@ -171,8 +180,8 @@ public class CensusQuery {
     }
     public Map<String,Object> overview(String id) {
         var member = access.members.require(id);
-        var result = object("member", member(id, true), "dogs", ownerDogs(id).stream().map(dog -> {
-            var view = object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "breed", dog.breed, "level", level(dog.levelId), "pack", pack(dog.id), "pendingDocuments", documents.pending(dog.id));
+        var result = object("member", member(id, true), "dogs", familyDogs(id).stream().map(dog -> {
+            var view = object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "breed", dog.breed, "status", dog.status, "level", level(dog.levelId), "pack", pack(dog.id), "pendingDocuments", documents.pending(dog.id));
             if (access.enabled(Module.FREE_TRAINING)) { view.put("freeTrainingAllowed", access.free(dog).allowed()); } return view;
         }).toList(), "notificationPreferences", preferences(member), "recentAudit", access.references.recentAudit(id));
         result.put("plannedLeave", lifecycle.getObject().plannedLeave(id));

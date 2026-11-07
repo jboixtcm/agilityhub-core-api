@@ -34,9 +34,21 @@
     }
 }
 
+# The deployment flag is independent of Core and all SPA assets.
+(planned_maintenance) {
+    @maintenance file {
+        root /maintenance
+        try_files enabled
+    }
+    handle @maintenance {
+        error "planned maintenance" 503
+    }
+}
+
 # F08: gateway failures remain unavailable, with a readable page for navigation and JSON for API clients.
 # Do not expose the internal upstream, the request URI or signed query parameters in the response.
 (gateway_unavailable) {
+    import planned_maintenance
     handle_errors 502 503 504 {
         header {
             Cache-Control "no-store"
@@ -47,6 +59,24 @@
             method GET HEAD
             header Accept *text/html*
             not path /api/* /oauth2/* /.well-known/* /connect/logout
+        }
+        @planned_navigation {
+            expression `{err.message} == "planned maintenance"`
+            method GET HEAD
+            header Accept *text/html*
+            not path /api/* /oauth2/* /.well-known/* /connect/logout
+        }
+        handle @planned_navigation {
+            header Content-Type "text/html; charset=utf-8"
+            respond <<HTML
+                <!doctype html>
+                <html lang="ca"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>Actualització en curs</title>
+                <style>:root{color-scheme:light dark}body{font:1.05rem/1.6 system-ui,sans-serif;max-width:40rem;margin:12vh auto;padding:1.5rem}h1{line-height:1.2}a{color:inherit;display:inline-block;padding:.7rem 1.2rem;border:1px solid;border-radius:.4rem}</style>
+                <main><h1>Actualització en curs</h1><p>El servei no està disponible mentre acabem l’actualització. Torna-ho a provar d’aquí a uns instants.</p><p><a href="">Torna-ho a provar</a></p>
+                <p lang="es">Actualización en curso. El servicio estará disponible en unos instantes.</p>
+                <p lang="en">Update in progress. The service will be available again shortly.</p></main></html>
+                HTML 503
         }
         handle @navigation {
             header Content-Type "text/html; charset=utf-8"
@@ -81,6 +111,10 @@
     handle {
         root * {args[0]}
         route {
+            @asset path /assets/* /pwa/*
+            handle @asset {
+                file_server
+            }
             try_files {path} /index.html
             header /index.html Cache-Control "no-cache"
             file_server
@@ -145,6 +179,10 @@ http://127.0.0.1:9080 {
         @club_admin header X-Club-App clubs-admin
         root @club_admin /srv/clubsadmin
         root * /srv/clubs
+        @asset path /assets/* /pwa/*
+        handle @asset {
+            file_server
+        }
         try_files {path} /index.html
         header /index.html Cache-Control "no-cache"
         file_server

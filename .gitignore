@@ -87,3 +87,6 @@ __pycache__/
 
 # Validation logs for Josep feedback, 2026-11-01.
 !roadmap/evidence/2026-11-01-josep-feedback/*.log
+
+# Validation evidence for the November 7 family groups feedback.
+!roadmap/evidence/feedback-20261107/*.log
