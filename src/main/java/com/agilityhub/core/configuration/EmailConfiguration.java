@@ -50,7 +50,7 @@ public class EmailConfiguration {
             return new RestrictedEmailSender(sender, HostedDemoPolicy.emailRecoveryEnabled(environment), HostedDemoPolicy.signupEmailClubId(environment),
                     HostedDemoPolicy.adminWelcomeClubId(environment));
         }
-        return demo.enabled() ? new AllowListEmailSender(sender, demo) : sender;
+        return demo.enabled() && !HostedDemoPolicy.emailPublicDeliveryEnabled(environment) ? new AllowListEmailSender(sender, demo) : sender;
     }
     @Bean SendGridSignatureVerifier sendGridSignatures(Environment environment, @Value("${email.sendgrid.webhook-public-key:}") String key) {
         HostedDemoPolicy.from(environment);

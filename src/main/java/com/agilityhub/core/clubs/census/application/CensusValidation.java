@@ -60,6 +60,6 @@ public class CensusValidation {
                     "category", text(row.get("category"), "licenses.category", 10, false), "grade", text(row.get("grade"), "licenses.grade", 30, false),
                     "division", text(row.get("division"), "licenses.division", 20, false)));
         }
-        return result;
+        return com.agilityhub.core.clubs.census.domain.LicenseCategories.initialize(result);
     }
 }

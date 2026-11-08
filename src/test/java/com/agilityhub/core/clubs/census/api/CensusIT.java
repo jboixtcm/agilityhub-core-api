@@ -711,6 +711,31 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(response.path("items")).hasSize(1); assertThat(response.path("items").get(0).path("handlerName").asText()).isEqualTo("Example Handler");
         assertThat(response.path("items").get(0).path("licenses").get(0).path("category").asText()).isEqualTo("S");
     }
+    @Test void T_03_32_fcagBackfillAndEditsPreserveIndependentCategories() throws Exception {
+        var original = List.of(object("organisation", "RSCE", "number", "10", "category", "S"),
+                object("organisation", "FCAG", "number", "20", "division", "1D"));
+        field("dogs", "dog-one", "licenses", original);
+        field("dogs", "dog-two", "licenses", original);
+        field("dogs", "dog-two", "erasedAt", Date.from(Instant.parse("2026-01-01T00:00:00Z")));
+        field("dogs", "dog-foreign", "licenses", List.of(object("organisation", "FCAG", "number", "30", "category", "L")));
+        new LicenseCategoryBackfill(mongo).run(null);
+        assertThat(dog("dog-one").licenses.get(1)).containsEntry("category", "S").containsEntry("division", "1D");
+        assertThat(dog("dog-two").licenses.get(1)).doesNotContainKey("category");
+        long version = dog("dog-one").version();
+        error(admin(body(patch("/api/v1/dogs/dog-one"), object("version", version - 1, "licenses", original))), ErrorCode.STALE_VERSION);
+        new LicenseCategoryBackfill(mongo).run(null);
+        assertThat(dog("dog-one").version()).isEqualTo(version);
+        var changed = List.of(object("organisation", "RSCE", "number", "10", "category", "M"),
+                object("organisation", "FCAG", "number", "20", "category", "L", "division", "1D"));
+        change("dogs/dog-one", object("version", version, "licenses", changed));
+        new LicenseCategoryBackfill(mongo).run(null);
+        var detail = json(admin(get("/api/v1/dogs/dog-one")), 200);
+        assertThat(detail.path("licenses").get(0).path("category").asText()).isEqualTo("M");
+        assertThat(detail.path("licenses").get(1).path("category").asText()).isEqualTo("L");
+        assertThat(mongo.getCollection("dogs").find(new Document("_id", "dog-foreign")).first().getList("licenses", Document.class).getFirst().getString("category")).isEqualTo("L");
+        error(call(body(patch("/api/v1/dogs/dog-one"), object("version", version + 1, "licenses", original)), OTHER, "foreign", "ADMIN"), ErrorCode.NOT_FOUND);
+    }
+
     @Test void T_03_33_instructorProjectionExcludesFinancialAndInternalFields() throws Exception {
         field("members", "one", "internalNotes", "Private"); field("members", "one", "paymentMethod", Map.of("type", "SEPA_DD", "iban", IBAN));
         field("members", "one", "bookingBlock", Map.of("active", true, "reason", "Private reason"));

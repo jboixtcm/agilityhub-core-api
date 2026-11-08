@@ -561,6 +561,7 @@ and URIs are included because they must remain consistent across recovery.
 | `OIDC_AR_APP_REDIRECT_URI`, `OIDC_AR_APP_LOGOUT_URI` | Exact AR callback/logout URI from its client configuration; keep the existing defaults until that deployment is ready. |
 | `OIDC_LEARN_REDIRECT_URI`, `OIDC_LEARN_LOGOUT_URI` | Exact Learn callback/logout URI; activate only when A30 permits the connection. |
 | `CORS_PLATFORM_HOSTS` | Comma-separated exact platform hosts from DNS/client inventory; no wildcard. Front SPAs use same-origin proxies. |
+| `EMAIL_PUBLIC_DELIVERY_ENABLED` | Defaults `false`. Explicit production email opt-in: with `EMAIL_DELIVERY_ENABLED=true`, send ordinary mail without the hosted tester allowlist. Provider credentials and authenticated callbacks remain required; other hosted storage, SMS, push and payment restrictions stay active. Pin this value in the reviewed release and restore it on rollback. |
 | `EMAIL_DELIVERY_ENABLED` | Defaults `true`. Set `false` only with `HOSTED_DEMO_ENABLED=true` for internal review: ordinary email stays disabled. Without any explicit email exception no provider credentials are required. Skipped emails become terminal `SKIPPED_NOT_ALLOWED` records. Re-enabling is a separate deployment decision. |
 | `EMAIL_ADMIN_WELCOME_CLUB_ID` | Optional club ID allowed to send the welcome/access message from an individual active member’s admin record. This control is independent of automatic signup emails. |
 | `EMAIL_SIGNUP_APPLICANT_CLUB_ID` | Optional club ID. In restricted delivery mode, sends only SignupSubmitted (N-01) and SignupRejected (N-03) to that club’s applicant. Requires the configured email provider and webhook authentication. Existing skipped deliveries remain terminal. |
@@ -1717,3 +1718,8 @@ Before activating email delivery, verify in the actual delivered message that lo
 Official contracts checked: [send email](https://developers.brevo.com/reference/send-transac-email), [secure webhooks](https://developers.brevo.com/docs/secured-webhooks), [create webhook](https://developers.brevo.com/reference/create-webhook), [transactional event payloads](https://developers.brevo.com/docs/transactional-webhooks).
 
 The deployment Caddyfile explicitly selects the Let's Encrypt production ACME directory. Caddy issues and renews the public certificates and redirects HTTP to HTTPS. DNS must point each product hostname to this server before issuance; tenant aliases also require verified application domain records. Pending DNS is not evidence of a valid certificate.
+
+
+## 8 November 2026: authorized public email delivery
+
+Jordi authorized enabling emails and deploying the pending November 8 feedback. The Clubs release tool now pins `email_delivery_enabled`; when true it supplies both `EMAIL_DELIVERY_ENABLED=true` and `EMAIL_PUBLIC_DELIVERY_ENABLED=true`. Historical releases default both settings to false when selected for rollback. Recovery retains its separately pinned setting. This activation does not replay terminal skipped notifications. Inspect pending outbox/notification work and the provider sender before activation, then record the live runtime and delivery evidence separately. The earlier October restrictions above describe the historical internal-review phase.

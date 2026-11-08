@@ -90,3 +90,8 @@ __pycache__/
 
 # Validation evidence for the November 7 family groups feedback.
 !roadmap/evidence/feedback-20261107/*.log
+
+# Validation evidence for the November 8 Josep feedback.
+!roadmap/evidence/feedback-20261108/*.log
+
+!roadmap/evidence/email-activation-20261108/*.log

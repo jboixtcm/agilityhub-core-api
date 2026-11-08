@@ -360,7 +360,7 @@ public class PlayoffPlanner {
             var dog=object("memberId",memberId,"name",dogName,"breed",row.get("breed"),"sex",sex,
                     "handlerName",row.get("handler"),"status",c.status().equals("LEFT") ? "INACTIVE" : "ACTIVE","registeredAt",instant(c.joined()),
                     "sourceIds",object("playoffMemberId",source,"playoffDogIndex",0),"externalIds",object("playoff",source),
-                    "instructorNote",object("text",row.get("objectives")),"licenses",licenses(row));
+                    "instructorNote",object("text",row.get("objectives")),"licenses",licenses(row,storedDogs.get(dogId)));
             dog.put("birthDate",row.get("dogBirth").isEmpty() ? null : date(row.get("dogBirth")).toString());
             dog.put("chip",row.get("chip").isEmpty() ? null : row.get("chip"));
             if (c.status().equals("LEFT")) { dog.putAll(object("deactivatedAt",instant(c.left()),"deactivationReason","MEMBER_LEFT")); }
@@ -401,12 +401,18 @@ public class PlayoffPlanner {
             if (!Set.of("transferència","paga en efectiu").contains(payment)) { warn(row,"CARD_NOT_MIGRATED"); }
             return object("type","MANUAL","channel",payment.equals("transferència") ? "transfer" : payment.equals("paga en efectiu") ? "cash" : null);
         }
-        List<Map<String,Object>> licenses(PlayoffInput.Row row) {
+        List<Map<String,Object>> licenses(PlayoffInput.Row row, Map<String,Object> storedDog) {
             var values=new ArrayList<Map<String,Object>>();
             for (String org:List.of("rsce","fcag")) { if (!row.get(org).isEmpty()) {
                 var license=object("organisation",org.toUpperCase(Locale.ROOT),"number",row.get(org));
                 if (org.equals("rsce")) { license.putAll(object("category",row.get("category"),"grade",row.get("grade"))); }
-                else { license.put("division",row.get("division")); }
+                else {
+                    // Playoff has no separate FCAG category: initialize new records, preserve later club edits.
+                    var previousCategory = rows(storedDog == null ? null : storedDog.get("licenses")).stream()
+                            .filter(old -> "FCAG".equalsIgnoreCase(string(old.get("organisation"))))
+                            .map(old -> old.get("category")).filter(Objects::nonNull).findFirst();
+                    license.putAll(object("category",previousCategory.orElse(row.get("category")),"division",row.get("division")));
+                }
                 values.add(license);
             } }
             return values;

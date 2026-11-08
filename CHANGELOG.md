@@ -29,6 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Josep feedback 8 November 2026
+
+- Initialize missing FCAG license categories from RSCE once, preserve independent edits and explicitly empty categories, and retain them during later Playoff imports. Legacy initialization excludes erased records and CLI runs, and uses tenant/id/version guards.
+
 - Josep feedback 20261105-3: allow correction/removal of unbilled price history, preserve billed price protections, and expose confirmed plan/price removal with plan deactivation fallback.
 - Serialize invoice generation with catalog writes and invalidate prior billing simulations when an unbilled price is removed.
 
@@ -2208,3 +2212,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and the initial generated OpenAPI snapshot.
 - Local/test/staging/prod configuration, environment template, editor and ignore
   conventions, and five-command getting-started instructions.
+
+- 2026-11-08: Add an explicit public email delivery opt-in while preserving hosted storage, payment, SMS and push policy; validate it at startup and release preflight.

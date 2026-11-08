@@ -12,6 +12,34 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 class HostedDemoConfigurationTest {
+    @Test void T_11_25_publicEmailOptInPreservesOtherHostedRestrictions() {
+        var environment = demo("").withProperty("email.public-delivery-enabled", "true")
+                .withProperty("email.provider", "brevo").withProperty("email.brevo.api-key", "fictional");
+        var configuration = new EmailConfiguration();
+        assertThat(configuration.emailSender(environment, mapper, "", "sender@example.test", "",
+                mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
+                .isInstanceOf(com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.class);
+        assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled()).isTrue();
+        assertThat(new MessagingConfiguration().smsSender(environment, mapper, "", "", "", "").send(null))
+                .isEqualTo(SendResult.notAllowed());
+        assertThatThrownBy(() -> configuration.brevoWebhookAuthentication(environment))
+                .hasMessageContaining("BREVO_WEBHOOK_TOKEN");
+        environment.setProperty("email.brevo.api-key", "");
+        assertThatThrownBy(() -> configuration.emailSender(environment, mapper, "", "sender@example.test", "",
+                mock(com.agilityhub.core.clubs.messaging.persistence.BrevoWebhookRepository.class)))
+                .hasMessageContaining("BREVO_API_KEY");
+    }
+    @Test void T_11_25_publicEmailRejectsMalformedAndContradictorySettings() {
+        var environment = demo("").withProperty("email.public-delivery-enabled", "yes");
+        assertThatThrownBy(() -> com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment))
+                .hasMessageContaining("EMAIL_PUBLIC_DELIVERY_ENABLED must");
+        environment.setProperty("email.public-delivery-enabled", "true");
+        environment.setProperty("email.delivery-enabled", "false");
+        assertThatThrownBy(() -> com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment))
+                .hasMessageContaining("requires EMAIL_DELIVERY_ENABLED=true");
+        environment.setProperty("email.public-delivery-enabled", "false");
+        assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled()).isTrue();
+    }
     private final ObjectMapper mapper = new ObjectMapper();
     private MockEnvironment demo(String recipients) {
         var environment = new MockEnvironment().withProperty("core.hosted-demo.enabled", "true")

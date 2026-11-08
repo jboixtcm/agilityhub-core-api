@@ -369,3 +369,8 @@ Ordre: A → (B ∥ C) → (D ∥ E ∥ F) → G. Tres fils típics: fil 1 = A +
 - 28-09-2026 · verificació d'E6-T03, ronda 3 (decisió E70): §7, `MemberNoteChanged` porta `author{accountId, displayName, gender}`, qui ha escrit la nota tal com era en escriure-la.
 - 17-10-2026 · E11-T02 (INC-31, A37, decisió E109): R-03-07, l'IBAN es desa segellat (`ibanEncrypted` + `ibanLast4`); `census:seal-ibans` segella els desats en clar abans.
 - 21-10-2026 · E11-T15 (decisió E146, E109): §3, `nextInvoiceDate` el corregeix l'admin amb `PUT /members/{id}/next-invoice-date` (S12 §6), auditat `MEMBER_UPDATED` amb el motiu; el canvi de pla d'un membre sense data li'n dona una.
+
+
+## Canvis 8 de novembre de 2026
+
+Feedback de Josep: la categoria FCAG és independent de la RSCE. Quan manca, s’inicialitza amb la categoria RSCE del mateix gos; una categoria FCAG informada, inclòs un valor buit desat expressament, no es reemplaça en reiniciar ni en reimportar el cens. La fitxa mostra la categoria al costat de la llicència i ofereix accés directe a l’edició. La baixa amb data també és accessible des d’Accions de l’abonat.

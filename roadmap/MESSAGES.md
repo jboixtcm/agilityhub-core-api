@@ -4133,3 +4133,13 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-07 — Direct user request: family groups and Josep feedback
 
 @organizer: Completed the November 6–7 feedback from the supplied Word documents and resumed the interrupted validation. The family editor, shared dog access, record actions, pending-checkout cancellation and maintenance support are ready locally. See `roadmap/evidence/feedback-20261107/REPORT.md` and `verification.json`. All recorded local checks pass. Publish API, web and operations together; the web requests the new family-holder list field. No existing roadmap task or organizer verification was modified. The specific census member is deferred until Jordi identifies it; the reported plan reactivation issue is not reproduced. No production records, credentials or delivery settings were changed, and no release was deployed.
+
+
+## 2026-11-08 — Direct user request: further Josep feedback
+
+@organizer: Implemented and locally validated the new November 8 Word feedback (`202608-1_Josep.docx`, source kept in SOFTWARE_CANIC). Existing November 6–7 items were already published. No existing roadmap task or organizer verification was changed. Validation and release status are recorded in `roadmap/evidence/feedback-20261108/REPORT.md`. No production records or messaging settings were changed.
+
+
+## 2026-11-08 — Direct user request: activate emails and deploy
+
+@organizer: Jordi authorized production email activation and publication of the validated November 8 feedback. Added an explicit `EMAIL_PUBLIC_DELIVERY_ENABLED` switch so ordinary delivery can leave the tester allowlist without changing storage, payments, SMS or push. Default remains false. Release configuration pins activation and rollback restores the selected release setting. See `roadmap/evidence/email-activation-20261108/REPORT.md`. No roadmap task or organizer verification changed.

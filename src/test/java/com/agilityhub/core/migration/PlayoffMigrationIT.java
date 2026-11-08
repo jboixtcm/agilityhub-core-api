@@ -72,6 +72,17 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         data.put("persons",persons); return new PlayoffInput(data,List.of());
     }
     List<Document> rows(String collection) { return mongo.find(new Query(),Document.class,collection); }
+    @Test void T_18_01_reimportPreservesTheIndependentFcagCategory() {
+        assertThat(apply().hasErrors()).isFalse();
+        var dog = rows("dogs").stream().filter(row -> !row.getList("licenses", Document.class).isEmpty()).findFirst().orElseThrow();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(dog.get("_id")).and("clubId").is(CLUB)),
+                new Update().set("licenses.1.category", "M"), "dogs");
+        var planned = preview(input()).changes().stream().filter(change -> change.entity().equals("dogs") && change.id().equals(dog.get("_id"))).findFirst().orElseThrow();
+        var licenses = com.agilityhub.core.clubs.census.application.CensusValues.rows(planned.fields().get("licenses"));
+        assertThat(licenses.getFirst()).containsEntry("category", "L");
+        assertThat(licenses.get(1)).containsEntry("category", "M").containsEntry("division", "1D");
+    }
+
     @Test @com.agilityhub.core.support.AuditCovers(com.agilityhub.core.platform.application.audit.AuditAction.MIGRATION_APPLIED)
     void T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections() {
         var report=apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
@@ -88,7 +99,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(licenseDog.get("handlerName")).isNotNull();
         assertThat(((List<Document>)licenseDog.get("licenses"))).extracting(d -> d.getString("organisation")).containsExactly("RSCE","FCAG");
         assertThat(((List<Document>)licenseDog.get("licenses")).getFirst()).containsEntry("category","L").containsEntry("grade","2").doesNotContainKey("division");
-        assertThat(((List<Document>)licenseDog.get("licenses")).get(1)).containsEntry("division","1D").doesNotContainKeys("category","grade");
+        assertThat(((List<Document>)licenseDog.get("licenses")).get(1)).containsEntry("division","1D").containsEntry("category","L").doesNotContainKey("grade");
         assertThat(licenseDog.get("levelId")).isEqualTo("level-A");
         assertThat(dogs.stream().filter(d -> d.get("levelId")==null)).isNotEmpty();
         assertThat(rows("audit_entries")).hasSize(1).allMatch(d -> "MigrationRun".equals(d.get("entityType")) && "MIGRATION_APPLIED".equals(d.get("action")));

@@ -1,0 +1,17 @@
+{
+  "unit": {
+    "tests": 5021,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "changedClass": [
+    {
+      "class": "com.agilityhub.core.configuration.HostedDemoConfigurationTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "surefire": {
+    "totals": {
+      "tests": 5019,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.census.persistence.LicenseCategoryBackfillTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.domain.LicenseCategoriesTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "failsafe": {
+    "totals": {
+      "tests": 2383,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.census.api.CensusIT",
+        "tests": 70,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.migration.PlayoffMigrationIT",
+        "tests": 52,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  }
+}

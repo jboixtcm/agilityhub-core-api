@@ -145,6 +145,20 @@ class ReleasePreflightTest(unittest.TestCase):
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_configuration(self.config)
 
+    def test_public_email_requires_explicit_opt_in_and_keeps_provider_checks(self):
+        env = self.config['services']['core']['environment']
+        env.update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='true', EMAIL_PUBLIC_DELIVERY_ENABLED='true',
+                   HOSTED_DEMO_EMAIL_ALLOWLIST='', EMAIL_PROVIDER='brevo', BREVO_API_KEY='fictional-api-key',
+                   BREVO_WEBHOOK_TOKEN='r' * 32)
+        PREFLIGHT.check_configuration(self.config)
+        for key, invalid in [('EMAIL_PUBLIC_DELIVERY_ENABLED', 'false'), ('EMAIL_PUBLIC_DELIVERY_ENABLED', 'yes'),
+                             ('EMAIL_DELIVERY_ENABLED', 'false'), ('BREVO_API_KEY', ''), ('BREVO_WEBHOOK_TOKEN', '')]:
+            original = env[key]
+            env[key] = invalid
+            with self.subTest(key=key, invalid=invalid), self.assertRaises(PREFLIGHT.PreflightError):
+                PREFLIGHT.check_configuration(self.config)
+            env[key] = original
+
     def test_scoped_applicant_email_and_disabled_brevo_sms(self):
         env = self.config['services']['core']['environment']
         env.update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false', EMAIL_RECOVERY_ENABLED='false',

@@ -64,12 +64,15 @@ def check_configuration(config):
     require(demo in ('true', 'false'), 'HOSTED_DEMO_ENABLED must be true or false')
     email_enabled = str(environment.get('EMAIL_DELIVERY_ENABLED', 'true')).lower()
     require(email_enabled in ('true', 'false'), 'EMAIL_DELIVERY_ENABLED must be true or false')
+    public_delivery = str(environment.get('EMAIL_PUBLIC_DELIVERY_ENABLED', 'false')).lower()
+    require(public_delivery in ('true', 'false'), 'EMAIL_PUBLIC_DELIVERY_ENABLED must be true or false')
+    require(public_delivery != 'true' or email_enabled == 'true', 'EMAIL_PUBLIC_DELIVERY_ENABLED requires EMAIL_DELIVERY_ENABLED=true')
     recovery_enabled = str(environment.get('EMAIL_RECOVERY_ENABLED', 'false')).lower()
     require(recovery_enabled in ('true', 'false'), 'EMAIL_RECOVERY_ENABLED must be true or false')
     signup_club_id = str(environment.get('EMAIL_SIGNUP_APPLICANT_CLUB_ID') or '').strip()
     transport_enabled = email_enabled == 'true' or recovery_enabled == 'true' or bool(signup_club_id) or bool(str(environment.get('EMAIL_ADMIN_WELCOME_CLUB_ID') or '').strip())
     require(email_enabled == 'true' or demo == 'true', 'EMAIL_DELIVERY_ENABLED=false requires HOSTED_DEMO_ENABLED=true')
-    if demo == 'true' and email_enabled == 'true':
+    if demo == 'true' and email_enabled == 'true' and public_delivery != 'true':
         recipients = str(environment.get('HOSTED_DEMO_EMAIL_ALLOWLIST', '')).split(',')
         require(all(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._%+\-]*@[A-Za-z0-9](?:[A-Za-z0-9.\-]*[A-Za-z0-9])?\.[A-Za-z]{2,}', address.strip()) for address in recipients),
                 'HOSTED_DEMO_EMAIL_ALLOWLIST requires nonempty exact email addresses, without wildcards')
