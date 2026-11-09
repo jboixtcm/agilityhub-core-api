@@ -41,7 +41,7 @@ public final class DashboardData {
     public record Notified(String memberFirstName, String gender, String dogName) { }
     public record DogsByLevel(int totalActiveDogs, int activeDogWeeks, List<Level> levels, int others) { }
     public record Level(String levelId, String code, String name, String color, int total, int withRecentBooking) { }
-    /** `progression` (S05 E29): only the active progression levels get a column in D1 (S14 R-14-07, E35). */
+    /** D1 includes every active census level; progression remains a separate teaching/coverage property. */
     public record LevelSource(String levelId, String code, LocalizedText name, String color, int order, boolean active, boolean progression) { }
     public record DogCount(String levelId, int total, int withRecentBooking) { }
 }

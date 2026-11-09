@@ -1,0 +1,47 @@
+{
+  "surefire-reports": {
+    "totals": {
+      "tests": 5021,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": [
+      {
+        "name": "com.agilityhub.core.clubs.dashboard.domain.DashboardBuildersTest",
+        "tests": "7",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.008"
+      }
+    ]
+  },
+  "failsafe-reports": {
+    "totals": {
+      "tests": 2384,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": [
+      {
+        "name": "com.agilityhub.core.clubs.census.api.CensusIT",
+        "tests": "71",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "17.101"
+      },
+      {
+        "name": "com.agilityhub.core.clubs.dashboard.api.DashboardIT",
+        "tests": "11",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "6.772"
+      }
+    ]
+  },
+  "exitCode": 0
+}

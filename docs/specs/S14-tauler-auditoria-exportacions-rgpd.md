@@ -336,3 +336,8 @@ Dos fils: **fil 1 (transversal back)** = A → B → C → D (l'auditoria és bl
 - 18-10-2026 · E11-T10 (INC-38, revisió, decisió E109): R-14-15, la supressió també pseudonimitza les entrades d'auditoria que tenen com a entitat un gos de l'abonat (`entityType = Dog`), encara que s'escrivissin quan el gos era d'un altre abonat (traspàs): abans conservaven el nom del gos a `entityLabel` i `q` les trobava.
 - 21-10-2026 · E11-T17 (verificació d'E11-T10 i d'E11-W01, decisió E151): §8, l'acció `OPEN_EXPORT` de N-50 porta `jobId` (l'id del `ExportJob`); R-14-10, una entrada pot enllaçar només els esdeveniments del seu propi canvi (`@Audited(events)`): cada anul·lació d'entrenament d'un lot del club enllaça el seu `TrainingCancelled`, i no el de les altres (S09 R-09-13).
 - 22-10-2026 · E11-T16 (auditoria del 21-10, decisió E109): R-14-15, el nom del compte suprimit com a actor surt també dels documents d'altres abonats (reserves, inscripcions, tasques, observacions d'un gos) i de la sol·licitud de grup `FOUND` d'un altre sol·licitant; els registres `FAILED` de l'outbox se'n van com els `PUBLISHED`, i les traces de P3 perden el `dogName` de l'abonat. R-14-16 (g): la passada mensual esborra el que arriba després de la supressió (`PURGE_ERASED_TRACES` per `Member` i, ronda 2, per `Instructor`). Un token de suport no programa ni anul·la cap supressió (S17 R-17-10).
+
+
+### Revisió del 09-11-2026 — distribució de gossos
+
+Petició directa de Jordi: el gràfic de nivells i els totals corresponents inclouen tots els nivells actius del catàleg, també els no progressius (pendent i teràpia). No es canvia el caràcter progressiu dels nivells ni les regles d’elegibilitat de classes. Els gossos de nivell absent o inactiu continuen comptant a altres nivells.

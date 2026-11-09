@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-09 — Incomplete census records and member app feedback
+
+- Include every active catalog level, including pending/therapy, in dashboard dog-level totals without changing progression eligibility. Verify that private member notes stay out of member and impersonated projections.
+
 ## 2026-11-07 — Family administration and planned maintenance
 
 - Share dog views and permitted member operations across active family groups while preserving restricted instructor impersonation. Expose each member's plan and the family-holder list field.

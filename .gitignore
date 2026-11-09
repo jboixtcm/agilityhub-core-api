@@ -95,3 +95,6 @@ __pycache__/
 !roadmap/evidence/feedback-20261108/*.log
 
 !roadmap/evidence/email-activation-20261108/*.log
+
+# Validation evidence for the November 9 Josep feedback.
+!roadmap/evidence/feedback-20261109/*.log

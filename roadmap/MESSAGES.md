@@ -4143,3 +4143,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-08 — Direct user request: activate emails and deploy
 
 @organizer: Jordi authorized production email activation and publication of the validated November 8 feedback. Added an explicit `EMAIL_PUBLIC_DELIVERY_ENABLED` switch so ordinary delivery can leave the tester allowlist without changing storage, payments, SMS or push. Default remains false. Release configuration pins activation and rollback restores the selected release setting. See `roadmap/evidence/email-activation-20261108/REPORT.md`. No roadmap task or organizer verification changed.
+
+
+## 2026-11-09 — Direct user request: Josep feedback
+
+@organizer: Implemented the November 9 request and Word feedback. See `roadmap/evidence/feedback-20261109/REPORT.md` for scope, validation and release handoff. No existing task or organizer verification was changed. Club settings, sender and icon deployment are managed separately in SOFTWARE_CANIC operations evidence.

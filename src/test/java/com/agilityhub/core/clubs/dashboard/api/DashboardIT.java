@@ -123,8 +123,8 @@ class DashboardIT extends AbstractIntegrationTest {
         assertThat(first.at("/kpis/classOccupancy/percent").isNull()).isTrue();
         assertThat(first.at("/kpis/classOccupancy/capacity").asInt()).isZero();
         assertThat(first.at("/dogsByLevel/totalActiveDogs").asInt()).isEqualTo(242);
-        // S14 R-14-07 (E35): the eight progression levels of S05 §12; TER and PENDENT count in «altres».
-        assertThat(first.at("/dogsByLevel/levels")).extracting(row -> row.path("code").asText()).containsExactly("CAD", "A", "B", "C", "D", "E", "F", "G");
+        // The census chart includes all active levels, including those outside the teaching progression.
+        assertThat(first.at("/dogsByLevel/levels")).extracting(row -> row.path("code").asText()).containsExactly("CAD", "A", "B", "C", "D", "E", "F", "G", "TER", "PENDENT");
         int columns = 0; for (var row : first.at("/dogsByLevel/levels")) { columns += row.path("total").asInt(); }
         assertThat(first.at("/dogsByLevel/others").asInt()).isEqualTo(242 - columns);
         assertThat(first.at("/dogsByLevel/levels")).allSatisfy(row -> assertThat(row.path("withRecentBooking").asInt()).isZero());

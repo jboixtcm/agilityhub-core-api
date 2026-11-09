@@ -736,6 +736,19 @@ class CensusIT extends AbstractIntegrationTest {
         error(call(body(patch("/api/v1/dogs/dog-one"), object("version", version + 1, "licenses", original)), OTHER, "foreign", "ADMIN"), ErrorCode.NOT_FOUND);
     }
 
+    @Test void T_03_33_internalNotesStayPrivateInMemberAndImpersonatedViews() throws Exception {
+        field("members", "one", "internalNotes", "Private staff-only note");
+        assertThat(json(admin(get("/api/v1/members/one/overview")), 200).at("/member/internalNotes").asText()).isEqualTo("Private staff-only note");
+        for (String path : List.of("/api/v1/me/profile", "/api/v1/me/dogs")) {
+            assertThat(json(own(get(path)), 200).toString()).doesNotContain("internalNotes", "Private staff-only note");
+        }
+        String token;
+        try (var tenant = TenantContext.open(CLUB)) { token = impersonation.create("admin-account", "one", "Example support").token().getTokenValue(); }
+        var profile = mvc.perform(get("/api/v1/me/profile").header("Authorization", "Bearer " + token)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(profile).doesNotContain("internalNotes", "Private staff-only note");
+        own(get("/api/v1/members/one/overview")).andExpect(status().isForbidden());
+    }
+
     @Test void T_03_33_instructorProjectionExcludesFinancialAndInternalFields() throws Exception {
         field("members", "one", "internalNotes", "Private"); field("members", "one", "paymentMethod", Map.of("type", "SEPA_DD", "iban", IBAN));
         field("members", "one", "bookingBlock", Map.of("active", true, "reason", "Private reason"));
