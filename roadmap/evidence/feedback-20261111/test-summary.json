@@ -1,0 +1,56 @@
+{
+  "surefire-reports": {
+    "totals": {
+      "tests": 5021,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": []
+  },
+  "failsafe-reports": {
+    "totals": {
+      "tests": 2388,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupIT",
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupMinorFixesIT",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT",
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.messaging.api.ClassNoticesIT",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.definition.ClubDefinitionsIT",
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  }
+}

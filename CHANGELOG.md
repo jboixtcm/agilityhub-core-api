@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-11 — Class notice history and existing-member signup
+
+- Add an administrator-only, tenant-scoped class notice history with recipient deduplication, stable newest-first pagination and club-local today counts.
+- Public identity checks direct existing members to sign in without sending a recognition email. Keep authenticated additional-dog signup and readmission behavior.
+- Update the club's transfer instructions and cash-payment conditions in instance seeds; existing clubs need the narrow configuration update recorded in operations evidence.
+
 ## 2026-11-09 — Incomplete census records and member app feedback
 
 - Include every active catalog level, including pending/therapy, in dashboard dog-level totals without changing progression eligibility. Verify that private member notes stay out of member and impersonated projections.

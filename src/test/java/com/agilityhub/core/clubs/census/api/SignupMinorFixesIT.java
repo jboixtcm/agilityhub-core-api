@@ -312,8 +312,18 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         assertThat(registered.getString("dogId")).isEqualTo(added);assertThat(registered.get("levelId")).isNull();
     }
 
-    // ---- Step 7 (§8): N-02 and N-39 in Account.locale ----
-    @Test void R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback() throws Exception {
+    @Autowired com.agilityhub.core.clubs.census.application.CensusEvents censusEvents;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    /** A previously queued recognition still renders safely, although public checks no longer emit it. */
+    private void queuedRecognition(String id) {
+        try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
+            new org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                censusEvents.emit("SignupRecognitionRequested","Member",id,Map.of("memberId",id,"accountId",member(id).getString("accountId"),"redirect","/gossos/nou")));
+        }
+    }
+    // Welcome and already queued recognition messages retain account-locale rendering.
+
+    @Test void R_04_22_T_04_17_welcomeAndQueuedRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback() throws Exception {
         var body=request();String email=body.at("/person/emails/0").asText();String id=submit(body).path("memberId").asText();dispatch();
         validate(id);
         // The account existed before (a Learn user, say) with its own language: the welcome follows it, not the form's `ca`.
@@ -323,11 +333,14 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         assertThat(welcome.locale().getLanguage()).isEqualTo("en");assertThat(welcome.subject()).isEqualTo("Welcome, Example!");
         var identity=Map.of("idDocument",body.at("/person/idDocument"),"emails",List.of(email));
         mongo.getCollection("accounts").updateOne(new Document("_id",member(id).getString("accountId")),new Document("$set",new Document("locale","es")));
-        result(postJson("/signup/identity-checks",identity),200);dispatch();
+        int sent=mailbox().messages().size();
+        assertThat(result(postJson("/signup/identity-checks",identity),200).path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");dispatch();
+        assertThat(mailbox().messages()).hasSize(sent);
+        queuedRecognition(id);dispatch();
         assertThat(mailbox().lastTo(email).locale().getLanguage()).isEqualTo("es");
         // An account without a language falls back to the submission's.
         mongo.getCollection("accounts").updateOne(new Document("_id",member(id).getString("accountId")),new Document("$unset",new Document("locale","")));
-        clock.setInstant(clock.instant().plusSeconds(3700));result(postJson("/signup/identity-checks",identity),200);dispatch();
+        clock.setInstant(clock.instant().plusSeconds(3700));queuedRecognition(id);dispatch();
         assertThat(mailbox().lastTo(email).locale().getLanguage()).isEqualTo("ca");
         assertThat(collection("notifications").stream().filter(n -> "N-39".equals(n.getString("code")))).hasSize(2);
     }

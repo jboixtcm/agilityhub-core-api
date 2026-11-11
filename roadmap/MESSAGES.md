@@ -4148,3 +4148,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-09 — Direct user request: Josep feedback
 
 @organizer: Implemented the November 9 request and Word feedback. See `roadmap/evidence/feedback-20261109/REPORT.md` for scope, validation and release handoff. No existing task or organizer verification was changed. Club settings, sender and icon deployment are managed separately in SOFTWARE_CANIC operations evidence.
+
+
+## 2026-11-11 — Direct user request: Josep feedback
+
+@organizer: Implemented the two November 11 Word documents under Jordi's explicit request to apply all changes, retain unchecked consents and run the necessary tests. Scope, verification results and release handoff are recorded in `roadmap/evidence/feedback-20261111/REPORT.md`. Existing administrator delivery was verified in SOFTWARE_CANIC operations evidence; no recipient restriction or resend was added. No existing task or organizer verification was modified. Source changes and seed updates are local; no deployment or production configuration change has occurred in this task.

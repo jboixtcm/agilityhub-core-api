@@ -165,27 +165,25 @@ class SignupIT extends AbstractIntegrationTest {
     @Test void T_04_11_identityRecognitionUsesPrimaryEmailAndDocumentPrecedence() throws Exception {
         var original=request();var created=submit(original);String id=created.path("memberId").asText();validate(id,16000);
         var identity=Map.of("idDocument",original.at("/person/idDocument"),"emails",List.of("another@example.test"));
-        // E3-T10 step 11: each case asserts its exact result, the masked address and the outbox (T-04-11 row).
+        // Existing members are directed to sign in without exposing contact details or sending mail.
         var byDocument=result(postJson("/signup/identity-checks",identity),200);
-        assertThat(byDocument.path("result").asText()).isEqualTo("VERIFICATION_SENT");
-        assertThat(byDocument.path("maskedEmail").asText()).contains("•","@").doesNotContain("applicant","example.test","Example");
-        var recognitions=collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type"))).toList();
-        assertThat(recognitions).hasSize(1);
-        assertThat(recognitions.getFirst().get("payload",Document.class)).containsEntry("memberId",id).containsEntry("accountId",member(id).getString("accountId")).containsEntry("redirect","/gossos/nou");
+        assertThat(byDocument.path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
+        assertThat(byDocument.has("maskedEmail")).isFalse();
+        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).isEmpty();
         var newer=request();var emailMatch=Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of(original.at("/person/emails/0").asText()));
         var byEmail=result(postJson("/signup/identity-checks",emailMatch),200);
-        assertThat(byEmail.path("result").asText()).isEqualTo("VERIFICATION_SENT");assertThat(byEmail.path("maskedEmail").asText()).isEqualTo(byDocument.path("maskedEmail").asText());
-        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).hasSize(2);
+        assertThat(byEmail.path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");assertThat(byEmail.path("maskedEmail").asText()).isEqualTo(byDocument.path("maskedEmail").asText());
+        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).isEmpty();
         mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$push",new Document("contactEmails",new Document("email","secondary@example.test"))));
         var secondary=result(postJson("/signup/identity-checks",Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of("secondary@example.test"))),200);
         assertThat(secondary.path("result").asText()).isEqualTo("NEW");assertThat(secondary.has("maskedEmail")).isFalse();
-        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).hasSize(2);
+        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).isEmpty();
         assertThat(result(postJson("/signup",original).header("Idempotency-Key",UUID.randomUUID()),409).path("code").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
         var pending=submit(newer);long events=collection("domain_events").size();
         assertThat(result(postJson("/signup/identity-checks",Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of("unknown@example.test"))),200).path("result").asText()).isEqualTo("SIGNUP_ALREADY_PENDING");
         assertThat(collection("domain_events")).hasSize((int)events);
         mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$unset",new Document("accountId","")));
-        assertThat(result(postJson("/signup/identity-checks",identity),200).path("result").asText()).isEqualTo("CONTACT_CLUB");
+        assertThat(result(postJson("/signup/identity-checks",identity),200).path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
     }
     @Test void T_04_12_readmissionReusesTheMemberNumberAndOwnInactiveDog() throws Exception {
         var original=request();String id=submit(original).path("memberId").asText();String dog=dog(id);reject(id);
@@ -436,10 +434,10 @@ class SignupIT extends AbstractIntegrationTest {
         assertThat(Duration.between(token.getDate("createdAt").toInstant(),token.getDate("expiresAt").toInstant())).isEqualTo(Duration.ofDays(7));
         int count=mailbox.messages().size();dispatch();assertThat(mailbox.messages()).hasSize(count);
         result(postJson("/signup/identity-checks",Map.of("idDocument",Map.of("type","DNI","value","12000001"+"TRWAGMYFPDXBNJZSQVHLCKE".charAt(12000001%23)),"emails",List.of("applicant1@example.test"))),200);dispatch();
-        assertThat(collection("magic_link_tokens").stream().filter(t->"RECOGNITION".equals(t.getString("purpose"))).map(t->t.getString("redirectUri"))).containsExactly("/gossos/nou");
-        assertThat(mailbox.lastTo("applicant1@example.test").text().contains("redirect=%2Fgossos%2Fnou")).isTrue();
+        assertThat(collection("magic_link_tokens").stream().filter(t->"RECOGNITION".equals(t.getString("purpose")))).isEmpty();
+        assertThat(mailbox.messages()).hasSize(count);
         assertThat(collection("notifications").stream().filter(n->"N-02".equals(n.getString("code")))).hasSize(2);
-        assertThat(collection("notifications").stream().filter(n->"N-39".equals(n.getString("code")))).hasSize(1);
+        assertThat(collection("notifications").stream().filter(n->"N-39".equals(n.getString("code")))).isEmpty();
         var add=result(asMember(postJson("/me/dogs/signup",Map.of("dog",request().get("dog"),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),id),201);dispatch();
         validate(id,13000);dispatch();
         assertThat(collection("notifications").stream().filter(n->"N-37".equals(n.getString("code")))).hasSize(1);

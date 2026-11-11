@@ -16,7 +16,7 @@ public final class SignupResponses {
 
     public enum SignupStep { PERSON, DOG, FAMILY_GROUP, PAYMENT }
     public enum SignupSource { PUBLIC, APP_ADD_DOG }
-    public enum IdentityCheckOutcome { NEW, VERIFICATION_SENT, SIGNUP_ALREADY_PENDING, CONTACT_CLUB }
+    public enum IdentityCheckOutcome { NEW, VERIFICATION_SENT, SIGNUP_ALREADY_PENDING, CONTACT_CLUB, MEMBER_ALREADY_EXISTS }
     public enum FamilyGroupLookupOutcome { FOUND, NOT_FOUND }
     public enum FamilyGroupClaimStatus { NONE, FOUND, NOT_FOUND_PENDING }
     public enum UpfrontConcept { ENTRY_FEE, FIRST_MONTH, PACK, ADDITIONAL_DOG_FEE }

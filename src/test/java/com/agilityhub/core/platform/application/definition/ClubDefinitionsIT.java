@@ -86,8 +86,8 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var response = mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse();
         assertThat(mapper.readTree(response.getContentAsString())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/branding-canic.json").toFile()));
         assertThat(mapper.<com.fasterxml.jackson.databind.JsonNode>valueToTree(configs.get(first.id()).parameters())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/parameters-canic.json").toFile()));
-        // The Cànic seed: one event and one audit entry per catalog row, COMPETICIO_1 and its price included (B34).
-        assertThat(count("domain_events")).isEqualTo(73); assertThat(count("audit_entries")).isEqualTo(38);
+        // The instance seed includes catalog changes and the configured cash-conditions override.
+        assertThat(count("domain_events")).isEqualTo(74); assertThat(count("audit_entries")).isEqualTo(38);
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().action()).isEqualTo(AuditAction.CLUB_UPDATED);
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().clubId()).isEqualTo(first.id());
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().reason()).isEqualTo("source: APPLY");
@@ -95,7 +95,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var second = definitions.apply(definition, false);
         assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("0 changes");
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(original);
-        assertThat(count("domain_events")).isEqualTo(73); assertThat(count("audit_entries")).isEqualTo(38);
+        assertThat(count("domain_events")).isEqualTo(74); assertThat(count("audit_entries")).isEqualTo(38);
         assertThat(count("accounts")).isEqualTo(15); assertThat(count("memberships")).isEqualTo(15);
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero();
@@ -134,8 +134,8 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     }
     /** The club's public transfer instructions, confirmed in the November 6 feedback. */
     static final Map<String, String> CASH_INSTRUCTIONS = Map.of(
-            "ca", "Pot fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el seu nom i el del gos",
-            "es", "Puede hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto su nombre y el del perro");
+            "ca", "Pots fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el teu nom i el del gos",
+            "es", "Puedes hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto tu nombre y el del perro");
     /**
      * E5-T23 step 1 (S04 §2 row 19, R-04-10; S12 `MANUAL {instructions}`; Jordi, 26-09): the Cànic's seed carries its cash
      * payment instructions. A club applied from the previous seed gets them as one `paymentProviders` change, then none.
@@ -149,7 +149,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var preview = definitions.apply(activeCanic(), true);
         assertThat(preview.changes()).isEqualTo(1);
         assertThat(preview.render(true)).contains("~ paymentProviders changed",
-                "paymentProviders.MANUAL: {\"enabled\":true} -> {\"enabled\":true,\"instructions\":{\"ca\":\"Pot fer la transferència");
+                "paymentProviders.MANUAL: {\"enabled\":true} -> {\"enabled\":true,\"instructions\":{\"ca\":\"Pots fer la transferència");
         assertThat(definitions.apply(activeCanic(), false).changes()).isEqualTo(1);
         assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS));
         var second = definitions.apply(activeCanic(), false);

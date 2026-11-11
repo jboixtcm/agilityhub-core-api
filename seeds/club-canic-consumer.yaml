@@ -61,9 +61,13 @@ paymentProviders:
     enabled: true
     # Public transfer instructions confirmed in the November 6 signup feedback.
     instructions:
-      ca: "Pot fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el seu nom i el del gos"
-      es: "Puede hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto su nombre y el del perro"
+      ca: "Pots fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el teu nom i el del gos"
+      es: "Puedes hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto tu nombre y el del perro"
 parameters:
+  signup.text.cashConditions:
+    ca: "El pagament en efectiu es fa sempre per trimestres complets. Coordina amb el club l’import i forma de pagament."
+    es: "El pago en efectivo se realiza siempre por trimestres completos. Coordina con el club el importe y la forma de pago."
+    en: "Cash payments always cover full quarters. Contact the club to agree on the amount and how to pay."
   signup.enabled: true
   signup.pendingExpiryDays: 30
   signup.requireDogDocumentAtSignup: false

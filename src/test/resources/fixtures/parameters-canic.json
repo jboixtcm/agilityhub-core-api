@@ -14,9 +14,9 @@
     "en": "When you no longer want to train at the club, or you want to take a break, let us know before day {deadlineDay} so we can change the following month's billing. You can do it from your profile or by contacting us."
   },
   "signup.text.cashConditions": {
-    "ca": "Per pagar la quota en efectiu, posa’t en contacte amb el club.",
-    "es": "Para pagar la cuota en efectivo, ponte en contacto con el club.",
-    "en": "Contact the club to arrange payment in cash."
+    "ca": "El pagament en efectiu es fa sempre per trimestres complets. Coordina amb el club l’import i forma de pagament.",
+    "es": "El pago en efectivo se realiza siempre por trimestres completos. Coordina con el club el importe y la forma de pago.",
+    "en": "Cash payments always cover full quarters. Contact the club to agree on the amount and how to pay."
   },
   "signup.text.freeTrainingConditions": {
     "ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.",

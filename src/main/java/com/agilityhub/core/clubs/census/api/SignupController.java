@@ -141,7 +141,7 @@ public class SignupController {
     @PreAuthorize("isAnonymous()")
     @SecurityRequirements
     @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, SIGNUP_CLOSED, RATE_LIMITED})
-    @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most signup.rateLimit.notificationsPerRecipientPerHour (3) per recipient and hour. "
+    @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only the outcome. Existing active members receive MEMBER_ALREADY_EXISTS and must sign in to manage their details or add a dog. No verification email or recognition event is generated. "
             + "A pending readmission is also matched on the primary address it submitted (R-04-06): SIGNUP_ALREADY_PENDING. "
             + "idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED." + PUBLIC)
     public IdentityCheckResult identityCheck(@Valid @RequestBody IdentityCheckRequest request) { return output(transactions.run(() -> service.identityCheck(input(request))),IdentityCheckResult.class); }

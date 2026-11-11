@@ -1400,12 +1400,21 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
                 .satisfies(m->{assertThat(m.getString("accountId")).isEqualTo(account);assertThat(m.getString("status")).isEqualTo("ACTIVE");assertThat(m.getList("roles",String.class)).contains("MEMBER");});
     }
 
+    @Autowired com.agilityhub.core.clubs.census.application.CensusEvents censusEvents;
+    /** Previously queued recognition events remain safe to drain; new public checks never emit them. */
+    private void legacyRecognition(String id) {
+        try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
+            new org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult(status ->
+                censusEvents.emit("SignupRecognitionRequested","Member",id,Map.of("memberId",id,"accountId",member(id).getString("accountId"),"redirect","/gossos/nou")));
+        }
+    }
+
     /** Point 6 (R-04-20): the recipient cap is `signup.rateLimit.notificationsPerRecipientPerHour`, read per club. */
     @Test void R_04_05_R_04_20_theRecipientCapIsTheClubsParameter() throws Exception {
         parameter("signup.rateLimit",Map.of("identityChecksPerHour",10,"familyGroupLookupsPerHour",20,"uploadUrlsPerHour",30,"signupPerHour",5,"signupPerDay",20,
                 "checkoutSessionsAnonymousPerHour",10,"townsPerHour",60,"notificationsPerRecipientPerHour",1));
-        var body=withEmail(request(),unique("capped"));activeMember(body);dispatch();
-        for(int i=0;i<3;i++) assertThat(result(from(postJson("/signup/identity-checks",identity(body)),"198.51.100."+(242+i)),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
+        var body=withEmail(request(),unique("capped"));String id=activeMember(body);dispatch();
+        for(int i=0;i<3;i++) legacyRecognition(id);
         dispatch();
         assertThat(collection("notifications").stream().filter(n->"N-39".equals(n.getString("code")))).as("one N-39 an hour for this club").hasSize(1);
         // E3-T16 step 4 (E3-T15 review #2): each N-39 decision, the refused ones too, lives as long as its event: once the event is
@@ -1436,7 +1445,7 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         var mailbox=(com.agilityhub.core.clubs.messaging.application.FakeEmailSender)sender;mailbox.clear();
         var body=request();String id=activeMember(body);dispatch();String email=body.at("/person/emails/0").asText();
         long welcome=mailbox.messages().stream().filter(m->m.to().equals(email)).count();
-        for(int i=0;i<5;i++) assertThat(result(from(postJson("/signup/identity-checks",identity(body)),"198.51.100."+(210+i)),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
+        for(int i=0;i<5;i++) legacyRecognition(id);
         dispatch();
         assertThat(mailbox.messages().stream().filter(m->m.to().equals(email)).count()-welcome).as("N-39 per recipient").isEqualTo(3);
         assertThat(collection("notifications").stream().filter(n->"N-39".equals(n.getString("code")))).hasSize(3);
@@ -1505,8 +1514,8 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         // The profiler stamps `ts` with the server's wall clock (the application's clock is the MockClock).
         Date since=Date.from(database.runCommand(new Document("hello",1)).getDate("localTime").toInstant().minusSeconds(1));
         try {
-            assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",holder.at("/person/idDocument"),"emails",List.of("unknown@example.test"))),"198.51.100.209"),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
-            assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of(holder.at("/person/emails/0").asText()))),"198.51.100.209"),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
+            assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",holder.at("/person/idDocument"),"emails",List.of("unknown@example.test"))),"198.51.100.209"),200).path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
+            assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of(holder.at("/person/emails/0").asText()))),"198.51.100.209"),200).path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
             // Round 2: a miss runs every match query, the pending readmissions' submitted addresses included (R-04-06 a).
             assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of("nobody@example.test"))),"198.51.100.209"),200).path("result").asText()).isEqualTo("NEW");
             var found=result(from(postJson("/signup/family-group-lookups",Map.of("holderName","angela holder","dogName",holder.at("/dog/name").asText().toUpperCase(Locale.ROOT))),"198.51.100.209"),200);
@@ -1556,17 +1565,18 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(collection("members")).hasSize(1);
     }
 
-    // ---- Step 4.8: maskedEmail has the R-04-05 shape and N-39 goes to the masked address ----
-    @Test void R_04_05_maskedEmailHasTheSpecShapeAndN39GoesToTheMaskedAddress() throws Exception {
+    // Existing members sign in through the app; a public identity check never sends a recognition link.
+    @Test void existingMemberIdentityCheckDoesNotExposeTheLoginAddressOrSendN39() throws Exception {
         var mailbox=(com.agilityhub.core.clubs.messaging.application.FakeEmailSender)sender;
         var body=request();String id=activeMember(body);String account=member(id).getString("accountId");
         mongo.getCollection("accounts").updateOne(new Document("_id",account),new Document("$set",new Document("email","marta.access@exemple.test")));
         mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("contactEmails",List.of(new Document("email","contact"+sequence+"@example.test")))));
         dispatch();mailbox.clear();
         var check=result(from(postJson("/signup/identity-checks",identity(body)),"198.51.100.231"),200);
-        assertThat(check.path("maskedEmail").asText()).isEqualTo("m•••s@e•••.test");
+        assertThat(check.path("result").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
+        assertThat(check.path("maskedEmail").isMissingNode() || check.path("maskedEmail").isNull()).isTrue();
         dispatch();
-        assertThat(mailbox.messages()).hasSize(1);assertThat(mailbox.messages().getFirst().to()).isEqualTo("marta.access@exemple.test");
+        assertThat(mailbox.messages()).isEmpty();
     }
 
     // ---- Step 5: GET /signup and the SIGNUP_CLOSED decision are fresh right after a change ----

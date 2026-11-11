@@ -204,12 +204,8 @@ public class SignupService implements SignupPaymentAccess {
         var emails=policy.emails(strings(request.get("emails")));var m=match(number,emails,false);
         if(m==null) return object("result","NEW");
         if("PENDING".equals(m.status)) return object("result","SIGNUP_ALREADY_PENDING");
-        if(m.accountId==null) return object("result","CONTACT_CLUB");
-        // R-04-05 (E3-T09): the link of N-39 goes to the account's access address, so that is the one masked.
-        String address;
-        try { address=accounts.accessEmail(m.accountId); } catch(ApiException inactive) { return object("result","CONTACT_CLUB"); }
-        events.emit("SignupRecognitionRequested","Member",m.id,object("memberId",m.id,"accountId",m.accountId,"redirect","/gossos/nou"));
-        return object("result","VERIFICATION_SENT","maskedEmail",policy.maskedEmail(address));
+        // Existing members manage their profile and add dogs after signing in; public signup sends no access link.
+        return object("result","MEMBER_ALREADY_EXISTS");
     }
     @SuppressWarnings("unchecked") private List<String> strings(Object raw) { return (List<String>)raw; }
     /**

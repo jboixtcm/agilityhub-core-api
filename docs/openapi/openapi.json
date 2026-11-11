@@ -5045,6 +5045,67 @@
         "required" : [ "heldOnly" ],
         "type" : "object"
       },
+      "ClassNoticeItem" : {
+        "properties" : {
+          "body" : {
+            "type" : "string"
+          },
+          "classDate" : {
+            "type" : "string"
+          },
+          "classDescription" : {
+            "type" : "string"
+          },
+          "classId" : {
+            "type" : "string"
+          },
+          "classTime" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "ringName" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "body", "classDate", "classDescription", "classId", "classTime", "code", "createdAt", "id", "ringName", "title" ],
+        "type" : "object"
+      },
+      "ClassNoticePage" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ClassNoticeItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "items", "page", "size", "totalItems" ],
+        "type" : "object"
+      },
       "ClassOccupancyKpi" : {
         "properties" : {
           "booked" : {
@@ -10327,7 +10388,7 @@
             "type" : "string"
           },
           "result" : {
-            "enum" : [ "NEW", "VERIFICATION_SENT", "SIGNUP_ALREADY_PENDING", "CONTACT_CLUB" ],
+            "enum" : [ "NEW", "VERIFICATION_SENT", "SIGNUP_ALREADY_PENDING", "CONTACT_CLUB", "MEMBER_ALREADY_EXISTS" ],
             "type" : "string"
           }
         },
@@ -37013,6 +37074,172 @@
         } ],
         "summary" : "checkoutSession",
         "tags" : [ "payments" ]
+      }
+    },
+    "/api/v1/class-notices" : {
+      "get" : {
+        "description" : "Roles: ADMIN, never impersonation. Class cancellation and risk notices delivered to administrators, one per event, code and class across recipients. Newest first with stable paging; today uses the club timezone and notification creation date. Frozen class labels preserve the sent content; no recipient details are exposed. Size 1–100. Tenant comes from the JWT.",
+        "operationId" : "classNotices",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "today",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClassNoticePage"
+                }
+              }
+            },
+            "description" : "ClassNoticePage"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "classNotices",
+        "tags" : [ "clubs.messaging" ]
       }
     },
     "/api/v1/class-sessions" : {
@@ -88240,7 +88467,7 @@
     },
     "/api/v1/signup/identity-checks" : {
       "post" : {
-        "description" : "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most signup.rateLimit.notificationsPerRecipientPerHour (3) per recipient and hour. A pending readmission is also matched on the primary address it submitted (R-04-06): SIGNUP_ALREADY_PENDING. idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
+        "description" : "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only the outcome. Existing active members receive MEMBER_ALREADY_EXISTS and must sign in to manage their details or add a dog. No verification email or recognition event is generated. A pending readmission is also matched on the primary address it submitted (R-04-06): SIGNUP_ALREADY_PENDING. idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "identityCheck",
         "requestBody" : {
           "content" : {
