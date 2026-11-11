@@ -79,3 +79,12 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 ## Release handoff
 
 No commit, push, deployment, production data change or message send occurred. Publish API and web together because the web consumes the new class-notices endpoint and identity-check outcome. For an already provisioned club, seed changes alone do not update its settings: read current versions and update only MANUAL.instructions and signup.text.cashConditions via the supported APIs, preserving enabled state and all other configuration. Do not apply a full seed or replay notifications.
+
+
+## Production configuration follow-up — 2026-11-11 21:24 UTC
+
+The earlier release handoff records the local implementation stage. Jordi subsequently authorized publication, deployment and applying the club texts. Both functional commits were published, but the Actions runs created during the GitHub incident remained queued with no jobs; after recovery GitHub rejected cancellation (HTTP 409, not queued yet) and rerun (already running). This evidence update also starts fresh validation of the unchanged implementation. Deployment still requires successful CI and the exact scanned, published API image together with the matching web build.
+
+The two requested club texts are now applied through the supported `club:apply` CLI, using a partial definition without accounts, catalogues, templates, pages or domains. The preview and apply each reported exactly two changes: MANUAL payment instructions and `signup.text.cashConditions`. A fresh encrypted backup passed isolated restore verification and off-host checksum verification before applying. Comparing complete club exports before and after confirmed that only those two values changed; payment provider order and enabled states were preserved. Authenticated parameter readback and public signup responses passed for Catalan, Spanish and the configured Catalan fallback for unsupported English. No passwords or roles changed, and no messages were sent or replayed. The user does not need platform-console credentials for this completed configuration update.
+
+Operational evidence is kept privately under the 2026-11-11 feedback release directory; the shareable status belongs in `SOFTWARE_CANIC/ops/evidence/2026-11-11-josep-feedback/`. The current application release remains the November 9 release until the coordinated API/web deployment passes its gates.
