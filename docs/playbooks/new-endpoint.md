@@ -15,6 +15,9 @@ are verbatim excerpts, with imports and surrounding code in their linked files.
    wiring in the secured slice. Role membership does not establish tenant or
    resource ownership; use `TenantContext.require()` and tenant repositories.
    Do not grant a platform role access to club data without the spec's permission.
+   `ArchitectureTest` fails on a mapping with no `@PreAuthorize` on the method or
+   its class, unless the route is opened by a security chain and listed in
+   `ArchitectureRules.OPEN_HANDLERS` with its reason (AUTHZ-03).
 4. Add `@RequiresModule` to gated controllers/methods. Both requirements apply
    when class and method are annotated. The MVC interceptor runs before JSON
    decoding/validation and returns `MODULE_DISABLED` (404). Application services
