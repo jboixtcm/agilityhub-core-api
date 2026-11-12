@@ -18,6 +18,9 @@ are verbatim excerpts, with imports and surrounding code in their linked files.
    `ArchitectureTest` fails on a mapping with no `@PreAuthorize` on the method or
    its class, unless the route is opened by a security chain and listed in
    `ArchitectureRules.OPEN_HANDLERS` with its reason (AUTHZ-03).
+   `HandlerRolesSnapshotTest` then fails until you regenerate
+   `src/test/resources/snapshots/security/handler-roles.txt` with
+   `-Dsnapshots.update=true`; review the new or changed lines against the matrix (REL-06).
 4. Add `@RequiresModule` to gated controllers/methods. Both requirements apply
    when class and method are annotated. The MVC interceptor runs before JSON
    decoding/validation and returns `MODULE_DISABLED` (404). Application services
