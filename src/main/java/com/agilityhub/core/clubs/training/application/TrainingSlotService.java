@@ -163,7 +163,7 @@ public class TrainingSlotService {
     }
     /** @param members first name of the booking member by booking id */
     private static Map<String, Object> occupant(TrainingGrid.Seat seat, Map<String, String> members, Map<String, String> dogs) {
-        return Map.of("bookingId", seat.bookingId(), "memberName", Objects.toString(members.get(seat.bookingId()), ""), "dogName", Objects.toString(dogs.get(seat.dogId()), ""));
+        return Map.of("bookingId", seat.bookingId(), "dogId", seat.dogId(), "memberName", Objects.toString(members.get(seat.bookingId()), ""), "dogName", Objects.toString(dogs.get(seat.dogId()), ""));
     }
     static String hhmm(Instant instant, ZoneId zone) { return instant.atZone(zone).toLocalTime().withSecond(0).withNano(0).toString(); }
 }

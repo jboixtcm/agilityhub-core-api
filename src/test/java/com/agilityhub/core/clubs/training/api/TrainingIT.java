@@ -144,6 +144,14 @@ class TrainingIT extends TrainingFixtures {
         var staff = slots(as("estel"), "2026-10-06", "2026-10-06", null);
         assertThat(cell(staff, "2026-10-06T09:30", CEN).at("/occupants/0/memberName").asText()).isEqualTo("Maria");
         assertThat(cell(staff, "2026-10-06T09:30", CEN).at("/occupants/0/dogName").asText()).isEqualTo("Rock");
+        assertThat(cell(staff, "2026-10-06T09:30", CEN).at("/occupants/0/dogId").asText()).isEqualTo("s09-d-rock");
+        assertThat(cell(slots(as("admin"), "2026-10-06", "2026-10-06", null), "2026-10-06T09:30", CEN)
+                .at("/occupants/0/dogId").asText()).isEqualTo("s09-d-rock");
+        assertThat(cell(slots(as("pau"), "2026-10-06", "2026-10-06", "s09-d-blat"), "2026-10-06T09:30", CEN).path("occupants").isNull()).isTrue();
+        var foreignGrid = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/training-slots?from=2026-10-06&to=2026-10-06")
+                .header("Host", OTHER_HOST).with(jwt(OTHER))).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(foreignGrid).doesNotContain("s09-d-rock", "Rock", rock.path("id").asText());
         assertThat(cell(staff, "2026-10-06T16:00", CAR).at("/block/note").asText()).isEqualTo("Reg de la pista");
         assertThat(cell(staff, "2026-10-06T16:00", CAR).at("/block/kind").asText()).isEqualTo("BLOCK");
         assertThat(cell(staff, "2026-10-06T08:30", MUN).at("/classSession/id").asText()).isEqualTo("s09-draft");
@@ -400,10 +408,10 @@ class TrainingIT extends TrainingFixtures {
             var from = local("2026-10-08T00:00"); var to = local("2026-10-09T00:00");
             var staff = occupancy.occupancy(from, to, null, "INSTRUCTOR");
             assertThat(staff).extracting(i -> i.type() + ":" + i.reason()).containsExactly("TRAINING:TRAINING", "RING_BLOCK:PRIVATE_CLASS");
-            assertThat(staff.get(0).memberName()).isEqualTo("Pau"); assertThat(staff.get(0).dogName()).isEqualTo("Blat");
+            assertThat(staff.get(0).memberName()).isEqualTo("Pau"); assertThat(staff.get(0).dogName()).isEqualTo("Blat"); assertThat(staff.get(0).dogId()).isEqualTo("s09-d-blat");
             assertThat(staff.get(1).note()).isEqualTo("Particular amb l'alumna de la tarda");
             var member = occupancy.occupancy(from, to, null, "MEMBER");
-            assertThat(member).allSatisfy(i -> { assertThat(i.memberName()).isNull(); assertThat(i.dogName()).isNull(); assertThat(i.note()).isNull(); });
+            assertThat(member).allSatisfy(i -> { assertThat(i.memberName()).isNull(); assertThat(i.dogName()).isNull(); assertThat(i.dogId()).isNull(); assertThat(i.note()).isNull(); });
             assertThat(member).extracting(i -> i.type() + ":" + i.reason()).containsExactly("TRAINING:TRAINING", "RING_BLOCK:PRIVATE_CLASS");
             assertThat(member).allSatisfy(i -> assertThat(i.id()).as("no booking or block id for a MEMBER (E5-T09)").isNull());
             assertThat(staff).allSatisfy(i -> assertThat(i.id()).isNotBlank());
@@ -831,7 +839,9 @@ class TrainingIT extends TrainingFixtures {
         assertThat(member.toString()).contains("OCCUPIED", "TRAINING", "PRIVATE_CLASS").doesNotContain("Pau", "Blat", "Particular");
         assertThat(staff.toString()).contains("Pau + Blat", "Particular", "\"kind\":\"TRAINING\"");
         // The booking id never leaks to a member through the grid; the staff view links it.
-        assertThat(member.toString()).doesNotContain(bookingId); assertThat(staff.toString()).contains(bookingId);
+        assertThat(member.toString()).doesNotContain(bookingId, "s09-d-blat", "trainingDogIds"); assertThat(staff.toString()).contains(bookingId);
+        assertThat(staff.at("/rows/0/cells/0/who/0").asText()).isEqualTo("Pau + Blat");
+        assertThat(staff.at("/rows/0/cells/0/trainingDogIds/0").asText()).isEqualTo("s09-d-blat");
         // E5-T09: nor the block id (R-09-12 `{type, reason}`), and the block is still one cell, not a copy per source.
         assertThat(member.toString()).doesNotContain("s09-private"); assertThat(staff.toString()).contains("s09-private");
         assertThat(member.toString().split("PRIVATE_CLASS", -1)).hasSize(2); assertThat(staff.toString().split("PRIVATE_CLASS", -1)).hasSize(2);

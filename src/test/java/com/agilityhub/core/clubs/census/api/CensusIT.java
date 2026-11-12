@@ -700,6 +700,59 @@ class CensusIT extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open(CLUB)) { transactions.run(() -> { statuses.transition("one", "ACTIVE", LocalDate.of(2026, 1, 1), null); return null; }); }
         assertThat(member("one").memberNumber).isEqualTo(1); assertThat(dog("dog-one").status).isEqualTo("INACTIVE"); assertThat(audit(AuditAction.MEMBER_STATUS_CHANGED)).hasSize(2);
     }
+    @Test void T_03_08_categoryDrilldownIncludesEveryActiveDogOrderedByAssignmentAcrossPages() throws Exception {
+        field("dogs", "dog-one", "levelAssignedAt", Instant.parse("2024-01-01T00:00:00Z"));
+        field("dogs", "dog-family", "levelAssignedAt", Instant.parse("2025-01-01T00:00:00Z"));
+        field("dogs", "dog-foreign", "levelId", "level-c");
+        dog(CLUB, "category-inactive", "one", "level-c", "941000000109999");
+        field("dogs", "category-inactive", "status", "INACTIVE");
+        dog(CLUB, "category-unknown", "one", "level-c", "941000000109998");
+        field("dogs", "category-unknown", "levelAssignedAt", null);
+        var expected = new ArrayList<String>(); expected.add("category-unknown");
+        for (int i = 0; i < 25; i++) {
+            String id = String.format("category-%02d", i);
+            dog(CLUB, id, "one", "level-c", String.format("94100000011%04d", i));
+            field("dogs", id, "levelAssignedAt", Instant.parse("2020-01-01T00:00:00Z").plusSeconds(i * 86400L));
+            expected.add(id);
+        }
+        expected.addAll(List.of("dog-one", "dog-family"));
+        var actual = new ArrayList<String>();
+        for (int page = 0; page < 2; page++) {
+            var response = json(admin(get("/api/v1/dogs").param("filter", "levelId:eq:level-c", "status:eq:ACTIVE")
+                    .param("sort", "levelAssignedAt,asc", "name,asc").param("page", Integer.toString(page)).param("size", "20")
+                    .param("fields", "name,breed,level,owner,levelAssignedAt,birthDate,displayStatus")), 200);
+            assertThat(response.path("totalItems").asInt()).isEqualTo(28);
+            assertThat(response.path("totalPages").asInt()).isEqualTo(2);
+            response.path("items").forEach(row -> {
+                actual.add(row.path("id").asText());
+                assertThat(row.path("birthDate").asText()).isEqualTo("2022-03-12");
+                assertThat(row.path("breed").asText()).isEqualTo("Example breed");
+                assertThat(row.path("level").path("id").asText()).isEqualTo("level-c");
+                assertThat(row.path("owner").path("fullName").asText()).startsWith("Example ");
+                assertThat(row.path("displayStatus").path("kind").asText()).isEqualTo("ACTIVE");
+            });
+            if (page == 0) { assertThat(response.at("/items/0/levelAssignedAt").isMissingNode()).isTrue(); }
+        }
+        assertThat(actual).containsExactlyElementsOf(expected);
+        assertThat(dog("category-unknown").levelAssignedAt).isNull();
+    }
+
+    @Test void T_03_33_dogBirthDateIsRoleSafeAndDoesNotExposeMemberBirthDates() throws Exception {
+        for (String role : List.of("ADMIN", "INSTRUCTOR")) {
+            var response = json(call(get("/api/v1/dogs").param("filter", "id:eq:dog-one").param("fields", "birthDate"), CLUB, "admin", role), 200);
+            assertThat(response.path("items")).hasSize(1);
+            assertThat(response.at("/items/0").properties()).hasSize(2);
+            assertThat(response.at("/items/0/birthDate").asText()).isEqualTo("2022-03-12");
+            var foreign = json(call(get("/api/v1/dogs").param("filter", "id:eq:dog-one").param("fields", "birthDate"), OTHER, "foreign", role), 200);
+            assertThat(foreign.path("items")).isEmpty();
+        }
+        error(own(get("/api/v1/dogs").param("fields", "birthDate")), ErrorCode.FORBIDDEN);
+        error(call(get("/api/v1/members").param("fields", "birthDate"), CLUB, "admin", "INSTRUCTOR"), ErrorCode.INVALID_FILTER);
+        field("dogs", "dog-one", "birthDate", null);
+        var unknown = json(admin(get("/api/v1/dogs").param("filter", "id:eq:dog-one").param("fields", "birthDate")), 200);
+        assertThat(unknown.at("/items/0/birthDate").isMissingNode()).isTrue();
+    }
+
     @Test void T_03_32_dogPatchSupportsHandlerAndCompleteLicenseFields() throws Exception {
         // A2-08: the chip is normalised before the unique index compares it (dog-two's chip, typed with spaces and dashes).
         error(admin(body(patch("/api/v1/dogs/dog-one"), Map.of("version", 0, "chip", "941 000-000 100 002"))), ErrorCode.CHIP_ALREADY_EXISTS);

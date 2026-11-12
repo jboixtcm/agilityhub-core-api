@@ -41,7 +41,7 @@ public final class TrainingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = STAFF) SlotClassSession classSession,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = "^\\d{2}:\\d{2}$",
                     description = "INC-44: the club-local start (HH:mm) of the class that occupies the cell («18:50 classe», S09 §13-3); every viewer") String classStartsAtLocal) { }
-    public record SlotOccupant(String bookingId, String memberName, String dogName) { }
+    public record SlotOccupant(String bookingId, String dogId, String memberName, String dogName) { }
     public record SlotBlock(String id, @Schema(allowableValues = {"BLOCK", "RESERVATION"}) String kind,
             @Schema(allowableValues = {"MAINTENANCE", "PRIVATE_CLASS", "THERAPY", "PREPARATION", "ACTIVITY", "OTHER"}) String reason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note, String createdByName) { }

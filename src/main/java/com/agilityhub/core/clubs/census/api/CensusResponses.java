@@ -311,6 +311,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
             @Schema(requiredMode = REQUIRED) Sex sex,
             @Schema(requiredMode = REQUIRED) double age,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = NOT_REQUIRED) String chip,
             @Schema(requiredMode = REQUIRED) List<String> pendingDocuments,
             @Schema(requiredMode = NOT_REQUIRED) Instant levelAssignedAt,

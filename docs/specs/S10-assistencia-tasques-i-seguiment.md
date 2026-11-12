@@ -416,3 +416,8 @@ Ordre: A → (B ∥ C ∥ D/E/F contra mocks) → G. Tres fils: back-B, back-C, 
 - 28-09-2026 · verificació d'E6-T03, ronda 3 (decisió E70): §7, `MemberNoteChanged` porta l'autor de la nota, i el consumidor és idempotent per `eventId`.
 - 30-09-2026 · verificació d'E6-W02 (decisió E74): §6, `HistoryItem.activityId` a les files d'activitat de 25 (api E6-T05). `completion` i `reopening` d'una tasca continuen idempotents per estat, sense `Idempotency-Key`.
 - 30-09-2026 · verificació d'E6-W03 (decisió E75): §6, `GET /followup/filter-values`, el `q` de `GET /followup` i `InstructorWeek.trainingSlotMinutes` (`training.slotMinutes`, per a la llegenda de D12; `null` sense `FREE_TRAINING`) (api E6-T06). `HistoryItem.activityId` només d'una activitat amb pàgina (pregunta d'E6-T05).
+
+
+## Canvis 12 de novembre de 2026
+
+Feedback de Josep: els noms dels gossos a la vista d’instructor enllacen amb la fitxa de l’alumne. Les entrades de la llista d’espera del full d’assistència inclouen `dogId` tant en la consulta com després de desar l’assistència, de manera coherent amb les files de reserves. Les ocupacions d’entrenament de la vista d’instructor també inclouen `dogId`; la graella d’abonats continua sense mostrar les dades dels ocupants. Els permisos i l’aïllament entre clubs es mantenen.

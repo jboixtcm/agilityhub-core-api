@@ -141,14 +141,16 @@ public final class SchedulingContracts {
     public record DayGridRow(String time, List<DayGridCell> cells) { }
     public enum CellKind { CLASS, OCCUPIED, TRAINING, BLOCK, ACTIVITY }
     public enum CellReason { MAINTENANCE, PRIVATE_CLASS, THERAPY, PREPARATION, ACTIVITY, OTHER, TRAINING }
-    @Schema(description = "MEMBER: CLASS/OCCUPIED/ACTIVITY only; no occupancy, who, trainingBookingIds, note, createdByName or blockId. Instructor name follows R-06-12. INSTRUCTOR/ADMIN: all cell kinds, counts and names. ACTIVITY carries activityId/title in both views.")
+    @Schema(description = "MEMBER: CLASS/OCCUPIED/ACTIVITY only; no occupancy, who, trainingBookingIds, trainingDogIds, note, createdByName or blockId. Instructor name follows R-06-12. INSTRUCTOR/ADMIN: all cell kinds, counts and names. ACTIVITY carries activityId/title in both views.")
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record DayGridCell(@Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId, CellKind kind, String endTime,
             @Schema(requiredMode = NOT_REQUIRED) String classId, @Schema(requiredMode = NOT_REQUIRED) String description,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName, @Schema(requiredMode = NOT_REQUIRED) ClassState state,
             @Schema(requiredMode = NOT_REQUIRED) Boolean atRisk, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String riskText,
             @Schema(requiredMode = NOT_REQUIRED) GridOccupancy occupancy, @Schema(requiredMode = NOT_REQUIRED) List<String> who,
-            @Schema(requiredMode = NOT_REQUIRED) List<String> trainingBookingIds, @Schema(requiredMode = NOT_REQUIRED) String blockId,
+            @Schema(requiredMode = NOT_REQUIRED) List<String> trainingBookingIds,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Staff TRAINING cells only: dog identifiers aligned with who") List<String> trainingDogIds,
+            @Schema(requiredMode = NOT_REQUIRED) String blockId,
             @Schema(requiredMode = NOT_REQUIRED) CellReason reason, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note,
             @Schema(requiredMode = NOT_REQUIRED) String createdByName, @Schema(requiredMode = NOT_REQUIRED) String activityId,
             @Schema(requiredMode = NOT_REQUIRED) String title,

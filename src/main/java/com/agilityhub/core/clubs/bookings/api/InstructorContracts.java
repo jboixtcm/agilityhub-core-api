@@ -99,7 +99,7 @@ public final class InstructorContracts {
     public record SheetWaitlist(WaitlistMode mode,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "waitlist.fifoConfirmMinutes; only in FIFO") Integer fifoConfirmMinutes,
             List<SheetWaitlistEntry> entries) { }
-    public record SheetWaitlistEntry(String entryId, String dogName, String memberFirstName,
+    public record SheetWaitlistEntry(String entryId, String dogId, String dogName, String memberFirstName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)") String handlerName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelCode, Instant joinedAt, WaitlistState state) { }
     public record AttendanceSaveRequest(@NotNull @PositiveOrZero @Schema(description = "sheet.version read by the caller") Long version,

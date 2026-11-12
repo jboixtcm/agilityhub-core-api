@@ -368,8 +368,8 @@ class CalendarIT extends AbstractIntegrationTest {
                     .satisfies(r -> assertThat(r.ringName().values()).containsExactly(Map.entry("ca","Sense pista"),Map.entry("es","Sin pista"),Map.entry("en","No ring")));
         }
         var from=Instant.parse("2026-08-25T08:00:00Z");doubles.training.add(new TrainingConflictPort.Booking("training","plan-ring",from,from.plusSeconds(1800),"Private guide","Private dog"));
-        var member=memberGrid("2026-08-25",false);assertThat(member.toString()).contains("OCCUPIED","TRAINING").doesNotContain("Private","occupancy","who","trainingBookingIds");
-        assertThat(memberGrid("2026-08-25",true).toString()).contains("Private guide","trainingBookingIds","waiting");
+        var member=memberGrid("2026-08-25",false);assertThat(member.toString()).contains("OCCUPIED","TRAINING").doesNotContain("Private","occupancy","who","trainingBookingIds","trainingDogIds");
+        assertThat(memberGrid("2026-08-25",true).toString()).contains("Private guide","trainingBookingIds","trainingDogIds","dog-training","waiting");
         mvc.perform(call("GET","/class-sessions/"+id,null).with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isOk()).andExpect(jsonPath("$.freeSeats").value(4)).andExpect(jsonPath("$.notes").doesNotExist()).andExpect(jsonPath("$.counters").doesNotExist());
         mvc.perform(call("GET","/class-sessions/"+draft,null).with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isNotFound());
         String active=session("2026-08-25","20:00","plan-ring");ok("POST","/class-sessions/"+active+"/cancellation",Map.of("reason","CLUB_MANUAL"));
@@ -685,7 +685,7 @@ class CalendarIT extends AbstractIntegrationTest {
             gateAt=null;gateEntered.countDown();
             try {gateRelease.await(30,TimeUnit.SECONDS);} catch(InterruptedException interrupted) {Thread.currentThread().interrupt();}
         }
-        public List<Interval> occupancy(Instant from,Instant to,Collection<String> rings,String role) {return training.stream().filter(b -> b.from().isBefore(to) && from.isBefore(b.to())).map(b -> new Interval(b.ringId(),b.from(),b.to(),Type.TRAINING,"TRAINING",b.memberName(),b.dogName(),null,b.bookingId())).toList();}
+        public List<Interval> occupancy(Instant from,Instant to,Collection<String> rings,String role) {return training.stream().filter(b -> b.from().isBefore(to) && from.isBefore(b.to())).map(b -> new Interval(b.ringId(),b.from(),b.to(),Type.TRAINING,"TRAINING",b.memberName(),b.dogName(),null,b.bookingId(),"dog-"+b.bookingId())).toList();}
         public Map<String,String> titles(Collection<String> ids,Locale locale) {var titles=new HashMap<String,String>();ids.forEach(id -> titles.put(id,"Example activity"));return titles;}
         private void undo(Runnable action) {assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {public void afterCompletion(int status) {if(status!=STATUS_COMMITTED) action.run();}});}
     }

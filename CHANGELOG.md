@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-12 — Dog category drilldown and instructor links
+
+- Expose dog birth dates as a selectable list/export column with the existing tenant-scoped category/status filters and assignment-date sorting. Instructor access still excludes member birth dates.
+- Include the dog identifier in attendance waiting-list entries and staff-only training occupants so instructors can open the student record from every dog name.
+
 ## 2026-11-11 — Class notice history and existing-member signup
 
 - Add an administrator-only, tenant-scoped class notice history with recipient deduplication, stable newest-first pagination and club-local today counts.

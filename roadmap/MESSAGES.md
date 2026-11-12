@@ -4153,3 +4153,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-11 — Direct user request: Josep feedback
 
 @organizer: Implemented the two November 11 Word documents under Jordi's explicit request to apply all changes, retain unchecked consents and run the necessary tests. Scope, verification results and release handoff are recorded in `roadmap/evidence/feedback-20261111/REPORT.md`. Existing administrator delivery was verified in SOFTWARE_CANIC operations evidence; no recipient restriction or resend was added. No existing task or organizer verification was modified. Source changes and seed updates are local; no deployment or production configuration change has occurred in this task.
+
+
+## 2026-11-12 — Direct user request: dog categories and instructor links
+
+@organizer: Implemented the November 12 dog category list fields and instructor dog-name navigation support. Dog birth dates are selectable and exportable; attendance waiting lists, staff training occupants and instructor day-grid rows expose the dog identifiers needed by the web. Member projections remain redacted, and tenant checks remain intact. See `roadmap/evidence/feedback-20261112-category/REPORT.md` for the full run, two corrected stale fixtures, final affected regressions and passing coverage. Final accumulated XML totals: 5,033 unit/snapshot and 2,390 integration tests, zero failures/errors/skips. This is the clean full run plus final affected regressions, not one green full invocation after every change. Existing roadmap tasks and organizer verification are unchanged. No commit, push, deployment, provider activation or production data mutation was performed by this API task.

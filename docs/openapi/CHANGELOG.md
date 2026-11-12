@@ -2,6 +2,11 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-12 · Dog category drilldown and instructor navigation
+
+- `GET /dogs` and `/dogs/export` add the optional `birthDate` column/field, represented as an ISO date in `DogListItem`. Existing `levelId`/`status` filters and `levelAssignedAt` sorting support the dashboard drilldown without a new endpoint.
+- `SheetWaitlistEntry` adds `dogId`, returned by attendance reads and saves. `SlotOccupant` also adds `dogId` within the existing staff-only training slot details; `DayGridCell.trainingDogIds` aligns with `who` for staff training cells. Member grids remain redacted. Existing ADMIN/INSTRUCTOR and tenant restrictions are unchanged.
+
 ## 2026-10-30 · Onboarding consent readback
 
 - `GET/PUT /me/onboarding` return optional nullable `imageConsent`, preserving an existing image permission when the request omits it. `consentAccepted` and `consentVersion` remain required request fields; acceptance must match the current pending policy. When all policies are already accepted, profile completion can send `false` and an empty version without recording a new consent. Impersonated sessions remain unable to complete or postpone personal consent.

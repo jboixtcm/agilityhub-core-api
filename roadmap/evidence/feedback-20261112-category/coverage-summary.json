@@ -1,0 +1,42 @@
+{
+  "gatesExitCode": 0,
+  "source": "target/site/jacoco/jacoco.xml",
+  "counters": [
+    {
+      "type": "INSTRUCTION",
+      "missed": 10169,
+      "covered": 357875,
+      "coverage": 0.9723701513949419
+    },
+    {
+      "type": "BRANCH",
+      "missed": 3459,
+      "covered": 25015,
+      "coverage": 0.8785207557772002
+    },
+    {
+      "type": "LINE",
+      "missed": 576,
+      "covered": 34844,
+      "coverage": 0.9837380011293054
+    },
+    {
+      "type": "COMPLEXITY",
+      "missed": 3644,
+      "covered": 23726,
+      "coverage": 0.8668615272195835
+    },
+    {
+      "type": "METHOD",
+      "missed": 338,
+      "covered": 12609,
+      "coverage": 0.9738935660770834
+    },
+    {
+      "type": "CLASS",
+      "missed": 55,
+      "covered": 3002,
+      "coverage": 0.9820085050703304
+    }
+  ]
+}

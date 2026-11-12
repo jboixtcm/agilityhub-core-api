@@ -26,7 +26,7 @@
         "rings": {"r-pet": {"state": "BLOCKED", "reason": "RING_BLOCK",
           "block": {"id": "rb-3", "kind": "RESERVATION", "reason": "PRIVATE_CLASS", "note": "Particular amb l'alumna de la tarda", "createdByName": "Estel"}}}},
       {"startsAt": "2026-10-08T16:30:00Z", "startsAtLocal": "18:30", "endsAtLocal": "19:00", "anyFree": false, "bookable": false,
-        "rings": {"r-pet": {"state": "BOOKED", "reason": "TRAINING", "occupants": [{"bookingId": "tb-8", "memberName": "Pau", "dogName": "Blat"}]}}},
+        "rings": {"r-pet": {"state": "BOOKED", "reason": "TRAINING", "occupants": [{"bookingId": "tb-8", "dogId": "dog-blat", "memberName": "Pau", "dogName": "Blat"}]}}},
       {"startsAt": "2026-10-08T17:00:00Z", "startsAtLocal": "19:00", "endsAtLocal": "19:30", "anyFree": false, "bookable": false,
         "rings": {"r-pet": {"state": "BLOCKED", "reason": "CLASS", "classSession": {"id": "c9", "description": "B+C"}}}}]}]
   },

@@ -1,0 +1,6 @@
+{
+  "pid": 86505,
+  "rawWaitStatus": 256,
+  "exitCode": 1,
+  "method": "macOS EVFILT_PROC NOTE_EXITSTATUS"
+}

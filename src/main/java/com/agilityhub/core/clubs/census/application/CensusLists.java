@@ -24,7 +24,7 @@ public class CensusLists implements ListProvider {
         var sorts = new LinkedHashMap<String, String>();
         var columns = new ArrayList<>(List.of((members
                 ? "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,familyGroupHolder,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument"
-                : "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt").split(",")));
+                : "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,birthDate,chip,pendingDocuments,levelAssignedAt,pack,registeredAt").split(",")));
         add(filters, "id", "_id", TEXT);
         if (members) {
             if(ListAccess.admin()) {
@@ -65,7 +65,7 @@ public class CensusLists implements ListProvider {
             columns.removeAll(List.of("plan", "paymentMethod", "nextInvoiceDate", "pack"));
             filters.keySet().removeAll(List.of("planId", "priceId", "paymentMethodType", "nextInvoiceDate")); sorts.remove("nextInvoiceDate");
         }
-        if (!ListAccess.admin()) { columns.removeAll(List.of("imageRights", "idDocument", "birthDate", "gender", "roles")); filters.keySet().removeAll(List.of("imageRightsGranted", "birthDate", "gender", "roles")); }
+        if (members && !ListAccess.admin()) { columns.removeAll(List.of("imageRights", "idDocument", "birthDate", "gender", "roles")); filters.keySet().removeAll(List.of("imageRightsGranted", "birthDate", "gender", "roles")); }
         if (!config.modules().contains(Module.FAMILY_GROUP)) { columns.remove("familyGroup"); columns.remove("familyGroupHolder"); filters.remove("familyGroupId"); }
         if (!config.modules().contains(Module.FREE_TRAINING)) { columns.remove("freeTraining"); filters.remove("freeTrainingAllowed"); }
         if (!config.modules().contains(Module.INACTIVITY)) { filters.remove("inactivityUntil"); columns.remove("inactivityUntil"); }

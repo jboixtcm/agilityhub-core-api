@@ -1,0 +1,45 @@
+{
+  "exitCode": 0,
+  "classes": [
+    {
+      "name": "com.agilityhub.core.platform.application.PaymentProviderFlagsTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest",
+      "tests": "25",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.83"
+    },
+    {
+      "name": "com.agilityhub.core.payments.domain.InvoicingRulesTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.029"
+    },
+    {
+      "name": "com.agilityhub.core.platform.application.BillingProviderSettingsTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.001"
+    },
+    {
+      "name": "com.agilityhub.core.payments.api.RemittancesIT",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "26.889"
+    }
+  ]
+}

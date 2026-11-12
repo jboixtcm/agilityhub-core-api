@@ -32,14 +32,14 @@ public class TrainingOccupancyService implements TrainingOccupancyPort {
             // S10 R-10-00 (E6-T02): the guide of «{guia} + {gos}» is the dog's handler when it has one.
             var handlers = member ? Map.<String, String>of() : census.handlerNames(dogIds);
             for (var b : active) {
-                result.add(member ? new Interval(b.ringId(), b.startsAt(), b.endsAt(), Type.TRAINING, "TRAINING", null, null, null, null)
+                result.add(member ? new Interval(b.ringId(), b.startsAt(), b.endsAt(), Type.TRAINING, "TRAINING", null, null, null, null, null)
                         : new Interval(b.ringId(), b.startsAt(), b.endsAt(), Type.TRAINING, "TRAINING", handlers.getOrDefault(b.dogId(), names.get(b.memberId())),
-                                dogs.get(b.dogId()), null, b.id()));
+                                dogs.get(b.dogId()), null, b.id(), b.dogId()));
             }
         }
         for (var block : schedule.blocks(from, to, !member)) {
             if (ringIds != null && !ringIds.contains(block.ringId())) { continue; }
-            result.add(new Interval(block.ringId(), block.from(), block.to(), Type.RING_BLOCK, block.reason(), null, null, member ? null : block.note(), member ? null : block.id()));
+            result.add(new Interval(block.ringId(), block.from(), block.to(), Type.RING_BLOCK, block.reason(), null, null, member ? null : block.note(), member ? null : block.id(), null));
         }
         result.sort(Comparator.comparing(Interval::from).thenComparing(Interval::ringId).thenComparing(i -> Objects.toString(i.id(), "")));
         return result;

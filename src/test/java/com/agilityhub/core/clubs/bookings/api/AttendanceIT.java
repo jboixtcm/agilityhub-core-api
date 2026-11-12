@@ -263,12 +263,14 @@ class AttendanceIT extends BookingFixtures {
             var sheet = sheet("last", as("inst"));
             assertThat(row(sheet, duna).has("levelCode")).isTrue(); assertThat(row(sheet, duna).path("levelCode").isNull()).as("levels " + levels).isTrue();
             assertThat(sheet.path("waitlist").path("entries")).singleElement().satisfies(e -> {
+                assertThat(e.path("dogId").asText()).isEqualTo("s08-d-c0");
                 assertThat(e.path("dogName").asText()).isEqualTo("Dog0"); assertThat(e.has("levelCode")).isTrue(); assertThat(e.path("levelCode").isNull()).isTrue();
             });
         }
         parameter("levels.enabled", false);
         var saved = save("last", as("inst"), 200, 0, duna, "PRESENT");
         assertThat(row(saved, duna).path("state").asText()).isEqualTo("PRESENT"); assertThat(row(saved, duna).path("levelCode").isNull()).isTrue();
+        assertThat(saved.path("waitlist").path("entries").get(0).path("dogId").asText()).isEqualTo("s08-d-c0");
         assertThat(saved.path("waitlist").path("entries").get(0).path("levelCode").isNull()).isTrue();
         assertThat(attendance(duna).getString("state")).isEqualTo("PRESENT");
     }

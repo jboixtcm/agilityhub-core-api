@@ -158,7 +158,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         return fields;
     }
     private Map<String, Object> dogFields() {
-        var fields = fields("name", "breed", "sex", "chip", "handlerName", "handlerIsMember", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
+        var fields = fields("name", "breed", "sex", "birthDate", "chip", "handlerName", "handlerIsMember", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
         fields.put("photoUrl", photoReference("$"));
         fields.put("version", fallback("$version", 0));
         fields.put("level", level("$level"));

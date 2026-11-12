@@ -20,7 +20,7 @@
        "notice": {"atLocal": "12:40", "at": "2026-08-02T10:40:00Z", "late": false, "minutesBefore": 1190, "seatReleased": true, "waitlistNotified": true, "afterClassEnd": false, "bookingState": "CANCELLED"}},
       {"bookingId": "b4", "dogId": "d4", "dogName": "Fish", "memberId": "m4", "memberFirstName": "Eva", "levelCode": "B", "state": "NO_SHOW", "final": false, "markedAt": "2026-08-03T06:41:10Z", "markedByName": "Estel", "pendingTasksCount": 1,
        "noShowNotice": {"scheduledFor": "2026-08-04T06:00:00Z"}}],
-    "waitlist": {"mode": "ALL_AT_ONCE", "entries": [{"entryId": "w1", "dogName": "Blat", "memberFirstName": "Pau", "levelCode": "B", "joinedAt": "2026-08-02T19:04:00Z", "state": "ACTIVE"}]}},
+    "waitlist": {"mode": "ALL_AT_ONCE", "entries": [{"entryId": "w1", "dogId": "dog-blat", "dogName": "Blat", "memberFirstName": "Pau", "levelCode": "B", "joinedAt": "2026-08-02T19:04:00Z", "state": "ACTIVE"}]}},
   "AttendanceSheet#put": {
     "classSession": {"id": "c1", "date": "2026-08-03", "startTime": "08:30", "endTime": "09:30", "displayDescription": "A+B", "ring": {"id": "r2", "name": "Central", "color": "#8FCE8F"}, "instructorName": "Estel", "state": "ACTIVE", "capacity": 5, "booked": 3, "waiting": 1},
     "sheet": {"version": 5, "canMarkPresence": true, "canMarkNotice": true, "editableUntil": "2026-08-04T21:59:59Z", "savedAt": "2026-08-03T06:45:00Z", "savedByName": "Marc", "noShowNoticeTime": "08:00"},

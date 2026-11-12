@@ -8343,7 +8343,7 @@
         "type" : "object"
       },
       "DayGridCell" : {
-        "description" : "MEMBER: CLASS/OCCUPIED/ACTIVITY only; no occupancy, who, trainingBookingIds, note, createdByName or blockId. Instructor name follows R-06-12. INSTRUCTOR/ADMIN: all cell kinds, counts and names. ACTIVITY carries activityId/title in both views.",
+        "description" : "MEMBER: CLASS/OCCUPIED/ACTIVITY only; no occupancy, who, trainingBookingIds, trainingDogIds, note, createdByName or blockId. Instructor name follows R-06-12. INSTRUCTOR/ADMIN: all cell kinds, counts and names. ACTIVITY carries activityId/title in both views.",
         "properties" : {
           "activityId" : {
             "type" : "string"
@@ -8402,6 +8402,13 @@
             "type" : "string"
           },
           "trainingBookingIds" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "trainingDogIds" : {
+            "description" : "Staff TRAINING cells only: dog identifiers aligned with who",
             "items" : {
               "type" : "string"
             },
@@ -8834,6 +8841,10 @@
           "age" : {
             "format" : "double",
             "type" : "number"
+          },
+          "birthDate" : {
+            "format" : "date",
+            "type" : "string"
           },
           "breed" : {
             "type" : "string"
@@ -21886,6 +21897,9 @@
       },
       "SheetWaitlistEntry" : {
         "properties" : {
+          "dogId" : {
+            "type" : "string"
+          },
           "dogName" : {
             "type" : "string"
           },
@@ -21911,7 +21925,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "dogName", "entryId", "joinedAt", "memberFirstName", "state" ],
+        "required" : [ "dogId", "dogName", "entryId", "joinedAt", "memberFirstName", "state" ],
         "type" : "object"
       },
       "Signup" : {
@@ -23237,6 +23251,9 @@
           "bookingId" : {
             "type" : "string"
           },
+          "dogId" : {
+            "type" : "string"
+          },
           "dogName" : {
             "type" : "string"
           },
@@ -23244,7 +23261,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bookingId", "dogName", "memberName" ],
+        "required" : [ "bookingId", "dogId", "dogName", "memberName" ],
         "type" : "object"
       },
       "SlotOutOfWindowDetails" : {
@@ -43011,6 +43028,9 @@
           "key" : "age"
         }, {
           "defaultVisible" : false,
+          "key" : "birthDate"
+        }, {
+          "defaultVisible" : false,
           "key" : "chip"
         }, {
           "defaultVisible" : false,
@@ -43027,7 +43047,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -43308,6 +43328,9 @@
           "key" : "age"
         }, {
           "defaultVisible" : false,
+          "key" : "birthDate"
+        }, {
+          "defaultVisible" : false,
           "key" : "chip"
         }, {
           "defaultVisible" : false,
@@ -43324,7 +43347,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -43603,6 +43626,9 @@
           "key" : "age"
         }, {
           "defaultVisible" : false,
+          "key" : "birthDate"
+        }, {
+          "defaultVisible" : false,
           "key" : "chip"
         }, {
           "defaultVisible" : false,
@@ -43619,7 +43645,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],

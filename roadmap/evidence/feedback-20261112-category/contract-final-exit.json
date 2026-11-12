@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh",
+    "./mvnw",
+    "-q",
+    "-Dit.test=E2ContractIT,E4ContractIT,E5ContractIT,E6ContractIT,CensusIT,TrainingIT,CalendarIT",
+    "test-compile",
+    "failsafe:integration-test",
+    "failsafe:verify",
+    "jacoco:report@coverage",
+    "jacoco:check@coverage"
+  ],
+  "exitCode": 0
+}

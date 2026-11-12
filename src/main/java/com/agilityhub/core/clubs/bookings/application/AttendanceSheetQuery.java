@@ -124,7 +124,7 @@ public class AttendanceSheetQuery {
         return map("mode", mode, "fifoConfirmMinutes", mode == WaitlistMode.FIFO ? context.integer("waitlist.fifoConfirmMinutes") : null,
                 "entries", entries.stream().map(e -> {
                     var pair = pairs.get(e.dogId());
-                    return map("entryId", e.id(), "dogName", pair == null ? null : pair.dogName(), "memberFirstName", pair == null ? null : pair.memberFirstName(),
+                    return map("entryId", e.id(), "dogId", e.dogId(), "dogName", pair == null ? null : pair.dogName(), "memberFirstName", pair == null ? null : pair.memberFirstName(),
                             "handlerName", pair == null ? null : pair.handlerName(), "levelCode", levelCode(levels, pair),
                             "joinedAt", e.joinedAt(), "state", e.state());
                 }).toList());

@@ -48,7 +48,7 @@ public class DayGridQuery {
             var cell=new LinkedHashMap<String,Object>(); cell.put("ringId",t.ringId()); cell.put("endTime",t.to().atZone(zone).toLocalTime().toString());
             cell.put("kind",staff?(t.type()==TrainingOccupancyPort.Type.TRAINING?"TRAINING":"BLOCK"):"OCCUPIED"); cell.put("reason",t.type()==TrainingOccupancyPort.Type.TRAINING?"TRAINING":t.reason());
             if(staff) {
-                if(t.type()==TrainingOccupancyPort.Type.TRAINING) { cell.put("who",List.of(Objects.toString(t.memberName(),"")+" + "+Objects.toString(t.dogName(),""))); cell.put("trainingBookingIds",List.of(t.id())); }
+                if(t.type()==TrainingOccupancyPort.Type.TRAINING) { cell.put("who",List.of(Objects.toString(t.memberName(),"")+" + "+Objects.toString(t.dogName(),""))); cell.put("trainingBookingIds",List.of(t.id())); if(t.dogId()!=null) cell.put("trainingDogIds",List.of(t.dogId())); }
                 else { cell.put("blockId",t.id()); cell.put("note",t.note()); }
             }
             rows.computeIfAbsent(t.from().isBefore(from)?"00:00":t.from().atZone(zone).toLocalTime().toString(),k -> new ArrayList<>()).add(cell);
