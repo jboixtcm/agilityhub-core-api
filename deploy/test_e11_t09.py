@@ -186,6 +186,13 @@ class InventoryTest(unittest.TestCase):
         for name in ('OIDC_LEARN_CLIENT_SECRET', 'MAIL_FROM_PLATFORM', 'SENDGRID_WEBHOOK_PUBLIC_KEY'):
             self.assertIn(name, names)
 
+    def test_CFG_09_core_runs_without_capabilities_or_privilege_gain(self):
+        compose = (ROOT / 'deploy/compose.prod.yaml').read_text()
+        core = compose[compose.index('\n  core:\n'):compose.index('\n  caddy:\n')]
+        self.assertRegex(core, r'\n    cap_drop: \[ALL\]\n')
+        self.assertRegex(core, r'\n    security_opt: \[no-new-privileges:true\]\n')
+        self.assertNotRegex(core, r'cap_add|privileged|\n    user:')
+
 
 def scope_bindings(body):
     """How often each name is bound in one function scope (nested functions, lambdas and comprehensions are their own scopes),

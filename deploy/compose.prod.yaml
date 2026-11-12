@@ -41,6 +41,9 @@ services:
     restart: unless-stopped
     # CFG-06: longer than Spring's graceful shutdown (spring.lifecycle.timeout-per-shutdown-phase, 45 s) plus closing the context.
     stop_grace_period: 60s
+    # CFG-09: the image runs Java as a non-root user on port 8080; it needs no Linux capability and never gains privileges.
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     environment: &core-environment
       SPRING_PROFILES_ACTIVE: prod
       HOSTED_DEMO_ENABLED: ${HOSTED_DEMO_ENABLED:-false}
