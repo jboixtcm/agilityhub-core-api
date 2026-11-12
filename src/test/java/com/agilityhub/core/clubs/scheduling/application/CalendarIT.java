@@ -263,6 +263,50 @@ class CalendarIT extends AbstractIntegrationTest {
         error("POST","/class-sessions/"+draft+"/cancellation",Map.of("reason","DELETED"),ErrorCode.INVALID_STATE);patch(draft,Map.of("notes","Keep history"));
         error("PATCH","/class-sessions/"+draft,Map.of("version",session(draft).path("version").asLong(),"capacity",3),ErrorCode.INVALID_STATE);
     }
+    /**
+     * SCH-01 (owner request, 12-11-2026): an ADMIN restores a future class the club cancelled. It is ACTIVE again with no
+     * cancellation and counters {0, 0}; the bookings and the waiting list stay cancelled and nobody is notified; one
+     * ClassSessionUpdated and one CLASS_RESTORED entry. Refused: a class that is not CANCELLED (a repeat included), a DELETED one,
+     * a started one (INVALID_STATE), the ring taken by another class (CLASS_CONFLICT), by a block (RING_BLOCKED) or by a training
+     * booking, which stays (RING_HAS_BOOKINGS); and any role but ADMIN.
+     */
+    @Test @AuditCovers(AuditAction.CLASS_RESTORED)
+    void SCH_01_anAdminRestoresAFutureCancelledClassWithoutItsBookingsNoticesOrAnOccupiedRing() throws Exception {
+        modules(Module.SMS,Module.WAITLIST,Module.FREE_TRAINING);String id=session("2026-08-25","18:00","plan-ring");validate(id);audience(id,2,1);
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        ok("POST","/class-sessions/"+id+"/cancellation",Map.of("reason","CLUB_MANUAL","adminText","Rain: please choose another class."));
+        for(String role:List.of("INSTRUCTOR","MEMBER")) {
+            mvc.perform(call("POST","/class-sessions/"+id+"/restoration",Map.of()).with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_"+role))).andExpect(status().isForbidden());
+        }
+        String other=session("2026-08-25","18:30","plan-ring");
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.CLASS_CONFLICT);
+        ok("POST","/class-sessions/"+other+"/cancellation",Map.of("reason","DELETED"));
+        String block=ok("POST","/ring-blocks",blockBody("2026-08-25T16:30:00Z","2026-08-25T17:00:00Z")).path("id").asText();
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.RING_BLOCKED);
+        ok("POST","/ring-blocks/"+block+"/cancellation",Map.of());
+        var from=Instant.parse("2026-08-25T16:00:00Z");doubles.training.add(new TrainingConflictPort.Booking("training-a","plan-ring",from,from.plusSeconds(1800),"Example","Dog"));
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.RING_HAS_BOOKINGS);assertThat(doubles.training).hasSize(1);
+        assertThat(session(id).path("state").asText()).isEqualTo("CANCELLED");assertThat(events("ClassSessionUpdated")).isZero();
+        doubles.training.clear();
+        dispatcher.dispatch();long notices=mongo.count(Query.query(Criteria.where("clubId").is(CLUB)),"notifications");assertThat(notices).as("the cancellation's N-08a").isPositive();
+        var restored=ok("POST","/class-sessions/"+id+"/restoration",Map.of());
+        assertThat(restored.path("state").asText()).isEqualTo("ACTIVE");assertThat(restored.path("cancellation").isNull() || restored.path("cancellation").isMissingNode()).isTrue();
+        assertThat(restored.at("/counters/booked").asInt()).isZero();assertThat(restored.at("/counters/waiting").asInt()).isZero();
+        assertThat(doubles.cancelled).contains(id);assertThat(doubles.activeBookings(id)).isEmpty();assertThat(doubles.liveWaitlist(id)).isEmpty();
+        assertThat(events("ClassSessionUpdated")).isEqualTo(1);dispatcher.dispatch();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)),"notifications")).as("nobody is notified").isEqualTo(notices);
+        var entry=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("CLASS_RESTORED").and("entityId").is(id)),Document.class,"audit_entries");
+        assertThat(entry).as("the CLASS_RESTORED entry").isNotNull();
+        assertThat(entry.getList("changes",Document.class)).anySatisfy(change -> {
+            assertThat(change.getString("path")).isEqualTo("state");assertThat(change.get("before")).hasToString("CANCELLED");assertThat(change.get("after")).hasToString("ACTIVE");});
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        String deleted=session("2026-08-26","18:00",null);ok("POST","/class-sessions/"+deleted+"/cancellation",Map.of("reason","DELETED"));
+        error("POST","/class-sessions/"+deleted+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        String started=session("2026-08-27","18:00",null);ok("POST","/class-sessions/"+started+"/cancellation",Map.of("reason","CLUB_MANUAL"));
+        clock.setInstant(Instant.parse("2026-08-27T16:00:00Z"));
+        error("POST","/class-sessions/"+started+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        assertThat(session(started).path("state").asText()).isEqualTo("CANCELLED");
+    }
     Map<String,Object> blockBody(String from,String to) { return new LinkedHashMap<>(Map.of("ringId","plan-ring","from",from,"to",to,"kind","BLOCK","reason","MAINTENANCE","note","Private maintenance note")); }
     @Test @AuditCovers({AuditAction.RING_BLOCK_CREATED,AuditAction.RING_BLOCK_CANCELLED})
     void T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction() throws Exception {

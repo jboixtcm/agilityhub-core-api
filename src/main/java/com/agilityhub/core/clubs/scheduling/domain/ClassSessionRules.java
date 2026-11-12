@@ -14,6 +14,16 @@ public final class ClassSessionRules {
         };
         if (!allowed) { throw new ApiException(ErrorCode.INVALID_STATE); }
     }
+    /**
+     * SCH-01 (owner request, 12-11-2026): the ADMIN's restoration CANCELLED → ACTIVE, outside the lifecycle of {@link #transition}
+     * (where CANCELLED stays terminal). Only a class with a cancellation whose reason is not DELETED and whose start is still after
+     * {@code now}; anything else is INVALID_STATE.
+     */
+    public static void restorable(ClassState state, ClassCancellationReason reason, Instant startsAt, Instant now) {
+        if (state != ClassState.CANCELLED || reason == null || reason == ClassCancellationReason.DELETED || startsAt == null || !startsAt.isAfter(now)) {
+            throw new ApiException(ErrorCode.INVALID_STATE);
+        }
+    }
     public static void transition(WeekState from, WeekState to) {
         if (!(from == WeekState.PENDING && (to == WeekState.GENERATED || to == WeekState.VALIDATED)
                 || from == WeekState.GENERATED && to == WeekState.VALIDATED)) { throw new ApiException(ErrorCode.INVALID_STATE); }

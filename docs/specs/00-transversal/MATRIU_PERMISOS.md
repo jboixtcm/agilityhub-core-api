@@ -16,7 +16,7 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | Catàlegs (`/levels`, `/rings`, `/instructors`, `/plans`, `/prices`) | R (`/public/*/plans`) | R | R | RW | RW (clonar catàlegs base) |
 | Paràmetres `/parameters`, FAQ, plantilles de comunicat | — | R FAQ | R FAQ | RW | RW |
 | Plantilles setmanals, setmanes, generació, validació | — | — | R | RW + X | — |
-| Classes `/class-sessions` | — | R (actives del seu nivell/tots els quadres) | R totes · W assistència | RW + X (anul·lar, eliminar→anul·lada, exempció de risc) | — |
+| Classes `/class-sessions` | — | R (actives del seu nivell/tots els quadres) | R totes · W assistència | RW + X (anul·lar, eliminar→anul·lada, restaurar una anul·lada, exempció de risc) | — |
 | Bloquejos de pista `/ring-blocks` | — | R (com «Ocupada», sense qui) | RW (propis i de tothom: 24) | RW | — |
 | Reserves de classe `/bookings` | — | RW propi (límits) | R totes · X «ha avisat» (21) · RW en sessió de reserves de l’alumne | R totes · via impersonació per reservar/anul·lar | — |
 | Llista d'espera | — | RW propi (claim) | RW en sessió de reserves de l’alumne | R + X cancel·lar | — |

@@ -304,6 +304,21 @@ public class SchedulingController {
         return view(projections.session(cancellations.cancel(id,ClassCancellationReason.valueOf(request.reason().name()),request.adminText(),events.actor()),false,java.util.List.of()),ClassSession.class);
     }
 
+    @PostMapping("/api/v1/class-sessions/{id}/restoration")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, CLASS_CONFLICT, RING_BLOCKED, RING_HAS_BOOKINGS})
+    @Operation(summary = "restoreClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. SCH-01: a CANCELLED class "
+            + "whose start is still ahead and whose cancellation.reason is not DELETED becomes ACTIVE again, with cancellation null; anything else is "
+            + "409 INVALID_STATE (a repeat included). The bookings, waiting-list entries and holds the cancellation removed are not restored and "
+            + "nobody is notified: counters stay {booked: 0, waiting: 0}. The ring must still be free: another DRAFT/ACTIVE class of the ring at "
+            + "that time is 409 CLASS_CONFLICT, an ACTIVE ring block 422 RING_BLOCKED, a live training booking 422 RING_HAS_BOOKINGS {bookings[]} "
+            + "(never cancelled). Audited as CLASS_RESTORED.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
+    public ClassSession restoreClass(@PathVariable String id, @Valid @RequestBody EmptyRequest request) {
+        access.tenant();
+        access.classSession(id);
+        return view(projections.session(sessions.restore(id),false,java.util.List.of()),ClassSession.class);
+    }
+
     @PostMapping("/api/v1/class-sessions/{id}/risk-exemption")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE})

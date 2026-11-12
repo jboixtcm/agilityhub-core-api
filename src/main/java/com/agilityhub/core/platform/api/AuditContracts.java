@@ -67,6 +67,8 @@ public final class AuditContracts {
         CLASS_CANCELLED,
         CLASS_UPDATED_WITH_BOOKINGS,
         CLASS_RISK_EXEMPTION_CHANGED,
+        /** SCH-01 (owner request, 12-11-2026): a CANCELLED class restored to ACTIVE. */
+        CLASS_RESTORED,
         RING_BLOCK_CREATED,
         RING_BLOCK_CANCELLED,
         TEMPLATE_CLASS_DELETED,

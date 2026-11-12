@@ -74,5 +74,18 @@ class CalendarRulesTest {
         }
         for(var state:ClassState.values()) { ClassSessionRules.editable(state,Set.of("notes")); if(state==ClassState.CANCELLED || state==ClassState.FINISHED) invalid(() -> ClassSessionRules.editable(state,Set.of("ringId"))); else ClassSessionRules.editable(state,Set.of("ringId")); }
     }
+    /** SCH-01 (owner request, 12-11-2026): only a CANCELLED class, not DELETED, whose start is still ahead is restorable; the lifecycle keeps CANCELLED terminal. */
+    @Test void SCH_01_onlyAFutureCancelledClassThatWasNotDeletedIsRestorable() {
+        var now=Instant.parse("2026-08-25T10:00:00Z");var later=now.plusSeconds(60);
+        for(var state:ClassState.values()) for(var reason:ClassCancellationReason.values()) {
+            if(state==ClassState.CANCELLED && reason!=ClassCancellationReason.DELETED) ClassSessionRules.restorable(state,reason,later,now);
+            else invalid(() -> ClassSessionRules.restorable(state,reason,later,now));
+        }
+        invalid(() -> ClassSessionRules.restorable(ClassState.CANCELLED,ClassCancellationReason.CLUB_MANUAL,now,now));
+        invalid(() -> ClassSessionRules.restorable(ClassState.CANCELLED,ClassCancellationReason.RISK_REVIEW,now.minusSeconds(1),now));
+        invalid(() -> ClassSessionRules.restorable(ClassState.CANCELLED,null,later,now));
+        invalid(() -> ClassSessionRules.restorable(ClassState.CANCELLED,ClassCancellationReason.ACTIVITY,null,now));
+        for(var reason:ClassCancellationReason.values()) invalid(() -> ClassSessionRules.transition(ClassState.CANCELLED,ClassState.ACTIVE,reason));
+    }
     private void invalid(Runnable action) { assertThatThrownBy(action::run).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.INVALID_STATE)); }
 }
