@@ -61,6 +61,11 @@ def main():
         feedback_fixture = root / 'bin/security-secret-policy-test.py'
         feedback_fixture.parent.mkdir(parents=True)
         feedback_fixture.write_text(feedback_line + '\n')
+        # REL-07: roadmap reports are exempt from generic-api-key only (a test description there looks like an assignment).
+        reports = [root / 'roadmap/MESSAGES.md', root / 'roadmap/tasks/E11-T03.md']
+        reports[1].parent.mkdir(parents=True)
+        for report in reports:
+            report.write_text('- api_key="' + fixture_value() + '" in a test description\n')
 
         def scan():
             result = subprocess.run([args.gitleaks, 'dir', '--no-banner', '--redact', '--config', str(ROOT / '.gitleaks.toml'),
@@ -77,6 +82,7 @@ def main():
         print('PASS the exact fictional export filename argument')
         print('PASS a SHA-256 digest beside a key-named path in an evidence manifest')
         print('PASS the exact verified OpenAPI checksum in the feedback test summary')
+        print('PASS a generic-api-key match in the roadmap reports')
         (evidence / 'fixture.log').write_text(trace + ' api_key="' + fixture_value() + '"\n'
                                             + dedup + ' api_key="' + fixture_value() + '"\n'
                                             + 'Idempotency-Key:"' + fixture_value() + '"\n')
@@ -90,6 +96,10 @@ def main():
         for feedback_file in (feedback_summary, feedback_fixture):
             feedback_file.write_text(feedback_line + ' api_key="' + fixture_value() + '"\n'
                                      + '"openapi_sha256": "' + fixture_value() + '"\n')
+        # Split so that this file never holds a private-key block itself.
+        private_key = '-----BEGIN ' + 'PRIVATE KEY-----\n' + fixture_value() + '\n-----END ' + 'PRIVATE KEY-----\n'
+        for report in reports:
+            report.write_text(report.read_text() + private_key)
         code, findings = scan()
         locations = {(Path(f['File']).relative_to(root).as_posix(), f['StartLine'], f['RuleID']) for f in findings}
         expected = {('roadmap/evidence/E11-T03/fixture.log', line, 'generic-api-key') for line in (1, 2, 3)}
@@ -100,8 +110,10 @@ def main():
         expected.update((p.relative_to(root).as_posix(), 2, 'generic-api-key') for p in coordinated_manifests)
         expected.update((p.relative_to(root).as_posix(), line, 'generic-api-key')
                         for p in (feedback_summary, feedback_fixture) for line in (1, 2))
+        expected.update((p.relative_to(root).as_posix(), 2, 'private-key') for p in reports)
         assert code == 1 and len(findings) == len(expected) and locations == expected, 'Every injected secret must remain detected'
         print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, changed filename and a non-digest manifest value all fail')
+        print('PASS a private key in a roadmap report fails (REL-07)')
 
 
 if __name__ == '__main__':
