@@ -104,6 +104,32 @@
     }
 }
 
+# CFG-05: the static answers of an SPA (never the proxied API, which keeps its own headers). They are compressed and
+# revalidated on every load, the entry document at `/` included, except an existing file under /assets/ (Vite names them by
+# content hash), cached for a year. A dot path (`/.env`, `/.git/…`) is a 404, and so is a missing file with one of the listed
+# extensions (`/robots.txt`, `/old.js`): only a path that looks like a route falls back to index.html with 200.
+(static_files) {
+    encode zstd gzip
+    header Cache-Control "no-cache"
+    @dot_path path */.*
+    respond @dot_path 404
+    @asset path /assets/* /pwa/*
+    handle @asset {
+        @hashed {
+            path /assets/*
+            file
+        }
+        header @hashed Cache-Control "public, max-age=31536000, immutable"
+        file_server
+    }
+    @not_a_route path *.js *.mjs *.css *.map *.json *.txt *.xml *.html *.ico *.png *.svg *.webmanifest *.fbx *.env *.php
+    handle @not_a_route {
+        file_server
+    }
+    try_files {path} /index.html
+    file_server
+}
+
 (spa) {
     import gateway_unavailable
     import security_headers
@@ -111,13 +137,7 @@
     handle {
         root * {args[0]}
         route {
-            @asset path /assets/* /pwa/*
-            handle @asset {
-                file_server
-            }
-            try_files {path} /index.html
-            header /index.html Cache-Control "no-cache"
-            file_server
+            import static_files
         }
     }
 }
@@ -183,13 +203,7 @@ http://127.0.0.1:9080 {
         @club_admin header X-Club-App clubs-admin
         root @club_admin /srv/clubsadmin
         root * /srv/clubs
-        @asset path /assets/* /pwa/*
-        handle @asset {
-            file_server
-        }
-        try_files {path} /index.html
-        header /index.html Cache-Control "no-cache"
-        file_server
+        import static_files
     }
 }
 

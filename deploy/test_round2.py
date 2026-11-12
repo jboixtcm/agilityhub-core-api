@@ -70,8 +70,14 @@ class DeploymentReviewTest(unittest.TestCase):
         self.assertNotIn('hostManager', (ROOT / 'deploy/mongo-health.js').read_text())
 
     def test_E11_T04_05_spa_cache_after_rewrite(self):
+        # CFG-05: no-cache is the default of every static answer, set before the rewrite to index.html (so `/` has it too);
+        # only an existing file under /assets/ overrides it. Both SPA snippets serve their files through static_files.
         caddy = (ROOT / 'deploy/Caddyfile').read_text()
-        self.assertRegex(caddy, r'try_files \{path\} /index.html\n\s*header /index.html Cache-Control "no-cache"')
+        static = caddy[caddy.index('(static_files) {'):caddy.index('(spa) {')]
+        self.assertRegex(static, r'header Cache-Control "no-cache"\n(.*\n)*\s*try_files \{path\} /index.html\n\s*file_server\n\}')
+        self.assertEqual(2, static.count('Cache-Control'))
+        for snippet in ('(spa) {', '(club_spa) {'):
+            self.assertIn('import static_files', caddy[caddy.index(snippet):].split('\n}\n')[0], snippet)
 
     def test_E11_T04_05_real_caddy_index_headers(self):
         # Run the real snippets, without the API or an entire Compose stack.

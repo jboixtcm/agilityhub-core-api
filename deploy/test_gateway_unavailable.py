@@ -1,4 +1,7 @@
-"""F08: exercise the real Caddy image against dead, failed and recovered fictional upstreams."""
+"""F08: exercise the real Caddy image against dead, failed and recovered fictional upstreams.
+
+CFG-05: the same fixture checks how both SPA snippets deliver static files."""
+import gzip
 import json
 import os
 from pathlib import Path
@@ -12,6 +15,8 @@ import urllib.request
 
 SOURCE = Path(os.environ.get('CADDYFILE', Path(__file__).with_name('Caddyfile')))
 IMAGE = 'caddy:2.10.2-alpine'
+# Above Caddy's 512-byte minimum for compression.
+APP_JS = 'console.log("fictional");\n' * 200
 
 def port():
     with socket.socket() as sock:
@@ -34,6 +39,7 @@ class GatewayUnavailableTest(unittest.TestCase):
             (root / app / 'index.html').write_text('<h1>Fictional ' + app + '</h1>')
             (root / app / 'assets').mkdir()
             (root / app / 'assets/app.css').write_text('body{color:navy}')
+            (root / app / 'assets/app.js').write_text(APP_JS)
         conf = '''{ admin off }
 ''' + snippets.replace('core:8080', '127.0.0.1:9090') + club + dead + '''
 http://:8080 {
@@ -180,6 +186,28 @@ http://:9090 {
                 status, _, body = self.request(endpoint, 'members.example.test', '/assets/old.css', 'text/css')
                 self.assertEqual(404, status)
                 self.assertNotIn('Fictional clubs', body)
+
+    def test_CFG_05_static_files_are_compressed_cached_by_kind_and_never_answered_with_the_shell(self):
+        for endpoint in (self.normal, self.product):
+            with self.subTest(endpoint=endpoint):
+                # An existing file under /assets/ (content-hashed) is cached for a year; everything else revalidates.
+                status, headers, _ = self.request(endpoint, 'members.example.test', '/assets/app.css', 'text/css')
+                self.assertEqual((200, 'public, max-age=31536000, immutable'), (status, headers['Cache-Control']))
+                for path in ('/', '/agenda', '/index.html'):
+                    status, headers, body = self.request(endpoint, 'members.example.test', path)
+                    self.assertEqual((200, 'no-cache', '<h1>Fictional clubs</h1>'), (status, headers['Cache-Control'], body), path)
+                status, headers, _ = self.request(endpoint, 'members.example.test', '/assets/old.css', 'text/css')
+                self.assertEqual((404, 'no-cache'), (status, headers['Cache-Control']))
+                # A dot path or a missing file is a 404, never the SPA shell with 200.
+                for path in ('/.env', '/.git/config', '/assets/.hidden', '/robots.txt', '/app.js.map', '/wp-login.php'):
+                    status, _, body = self.request(endpoint, 'members.example.test', path, '*/*')
+                    self.assertEqual(404, status, path)
+                    self.assertNotIn('Fictional', body, path)
+                request = urllib.request.Request(f'http://127.0.0.1:{endpoint}/assets/app.js',
+                                                 headers={'Host': 'members.example.test', 'Accept-Encoding': 'gzip'})
+                with self.opener.open(request, timeout=3) as response:
+                    self.assertEqual('gzip', response.headers['Content-Encoding'])
+                    self.assertEqual(APP_JS, gzip.decompress(response.read()).decode())
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

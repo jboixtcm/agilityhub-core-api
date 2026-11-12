@@ -112,7 +112,9 @@ class ClubAppTest(unittest.TestCase):
                         'caddy', 'validate', '--config', '/etc/caddy/Caddyfile'], check=True, capture_output=True)
 
     def test_INC_64_real_caddy_serves_each_host_the_app_the_core_names(self):
-        snippet = self.caddy[self.caddy.index('(club_spa) {'):self.caddy.index('https:// {')]
+        # CFG-05: club_spa serves its files through the shared static_files snippet.
+        snippet = (self.caddy[self.caddy.index('(static_files) {'):self.caddy.index('(spa) {')]
+                   + self.caddy[self.caddy.index('(club_spa) {'):self.caddy.index('https:// {')])
         port, stub_port = free_port(), free_port()
         with tempfile.TemporaryDirectory(prefix='inc64-caddy-') as directory:
             path = Path(directory)
