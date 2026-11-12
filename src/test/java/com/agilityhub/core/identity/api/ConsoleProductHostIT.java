@@ -279,8 +279,17 @@ class ConsoleProductHostIT extends IdentityIntegrationSupport {
     }
 
     @Test void T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost() throws Exception {
+        // FE-03: the club app gets no code into itself (403 NO_MEMBERSHIP); a club-app code comes from the back office's profile switch.
+        mvc.perform(post("/api/v1/auth/handoff").header("Host", HOST).header("Authorization", bearer(login()))
+                .contentType("application/json").content(mapper.writeValueAsString(Map.of("targetClientId", "clubs-app"))))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NO_MEMBERSHIP"));
+        var backOffice = readTokens(grantAs("clubs-admin", HandoffService.GRANT, handoff("clubs-admin"), "admin.example.test")
+                .andExpect(status().isOk()).andReturn().getResponse());
+        String code = mapper.readTree(mvc.perform(post("/api/v1/auth/handoff").header("Host", "admin.example.test")
+                .header("Authorization", bearer(backOffice)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("targetClientId", "clubs-app"))))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).path("code").asText();
         // The club app's handoff code: 404 on the product host (the old code issued a club token there), unused; it opens on the club host.
-        String code = handoff("clubs-app");
         grantAs("clubs-app", HandoffService.GRANT, code, PRODUCT).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
         assertThat(mongo.find(Query.query(Criteria.where("codeHash").is(com.agilityhub.core.identity.application.TokenService.digest(code))), HandoffCode.class))
                 .singleElement().satisfies(stored -> assertThat(stored.usedAt()).isNull());

@@ -31,6 +31,8 @@ public class HandoffService {
         this.urls = urls; this.security = security; this.clock = clock; this.impersonations = impersonations;
     }
     public Created create(String accountId, String sourceClientId, String familyId, String targetClientId) {
+        // FE-03 (pre-production audit): R-01-13 switches between the two apps; no client asks the club app for a code into itself.
+        if ("clubs-app".equals(sourceClientId) && "clubs-app".equals(targetClientId)) { throw new ApiException(ErrorCode.NO_MEMBERSHIP); }
         return transactions.run(() -> {
             var session = eligible(accountId, targetClientId);
             if (!("clubs-app".equals(sourceClientId) || "clubs-admin".equals(sourceClientId))) { throw new ApiException(ErrorCode.NO_MEMBERSHIP); }
