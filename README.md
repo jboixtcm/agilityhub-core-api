@@ -25,8 +25,11 @@ Compose builds the API with the pinned Maven wrapper and Java 21, then runs it
 as a non-root user on `eclipse-temurin:21-jre`. MongoDB 7 initializes the
 single-node `rs0` replica set and must become PRIMARY before the API starts.
 Expect health JSON with `status: "UP"`, replica-set state `1`, and both services
-healthy. Health also returns the Maven project `version` and UTC `builtAt`
-timestamp. It is public and global and reads no tenant, locale, bearer or data, but `UP`
+healthy. Health also returns the Maven project `version`, the UTC `builtAt`
+timestamp and the git `commit` of the build (REL-02: CI passes it to the image
+build, which also labels the image `org.opencontainers.image.revision`; `null`
+for a build given none, such as this local one). It is public and global and
+reads no tenant, locale, bearer or data, but `UP`
 means the database answers: it pings MongoDB with a 1 s bound (E5-T27, INC-01
 semantics). When the ping fails or times out it answers `503` with the same body
 and `status: "DOWN"`, and logs a WARN with the request's `traceId`. The Docker

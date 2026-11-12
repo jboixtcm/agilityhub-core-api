@@ -32,11 +32,19 @@ public class HealthController {
      */
     @GetMapping("/api/v1/health")
     @Operation(summary = "health", description = "ANON, global (no tenant, no locale, no data; an Authorization header is never read). 200 {status: UP} only when a Mongo ping answers within 1 s; "
-            + "otherwise 503 with the same envelope and status DOWN. version and builtAt come from the build.",
+            + "otherwise 503 with the same envelope and status DOWN. version, builtAt and commit come from the build.",
             responses = @ApiResponse(responseCode = "200", description = "HealthResponse, status UP", useReturnTypeSchema = true))
     public ResponseEntity<HealthResponse> health(@io.swagger.v3.oas.annotations.Parameter(hidden = true) HttpServletRequest request) {
-        if (database.up()) { return ResponseEntity.ok(new HealthResponse("UP", build.getVersion(), build.getTime())); }
+        if (database.up()) { return ResponseEntity.ok(new HealthResponse("UP", build.getVersion(), build.getTime(), commit())); }
         LOG.warn("Health DOWN: the database did not answer a ping within {} ms traceId={}", DatabaseProbe.TIMEOUT.toMillis(), RequestTraceFilter.traceId(request));
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new HealthResponse("DOWN", build.getVersion(), build.getTime()));
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new HealthResponse("DOWN", build.getVersion(), build.getTime(), commit()));
     }
+
+    /** REL-02: build-info's `commit` (pom.xml `git.commit`); a build that was given none records `unknown`. */
+    private String commit() {
+        String commit = build.get("commit");
+        return commit == null || commit.isBlank() || UNKNOWN_COMMIT.equals(commit) ? null : commit;
+    }
+
+    static final String UNKNOWN_COMMIT = "unknown";
 }

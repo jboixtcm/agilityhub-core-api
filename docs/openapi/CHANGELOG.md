@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-12 · REL-02 · The health names the build's commit
+
+**No operations or error codes added; 1 schema property added (`HealthResponse.commit`, required, `string | null`); 1 operation description changed.**
+
+- `GET /health` (200 UP and 503 DOWN) also returns `commit`: the git commit the running build was made from, as CI passes it to the image build; `null` for a build given none (a local build). The snapshot was edited by hand: regenerate it with `bin/openapi-snapshot` and compare before merging.
+
 ## 2026-11-12 · COMM-05 · Push endpoints only on a push service's address
 
 **No operations, schemas or error codes added; 1 operation description changed.**

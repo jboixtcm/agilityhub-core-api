@@ -10,8 +10,10 @@ COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
 # Integration tests run on the host with Docker, not inside the image build.
 # E11-T09 round 2: Maven 3.9's resolver retries a transfer that Maven Central answers with a transient 5xx (by default only
 # 429 and 503), so a single 502 does not fail the image job (deploy/test_e11_t09.py MavenRetryTest).
+# REL-02: CI passes the commit it builds (GIT_COMMIT); build-info records it and the health returns it.
+ARG GIT_COMMIT=unknown
 RUN ./mvnw -B -q -Daether.connector.http.retryHandler.count=3 \
-    -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -DskipTests package
+    -Daether.connector.http.retryHandler.serviceUnavailable=429,500,502,503,504 -Dgit.commit=${GIT_COMMIT:-unknown} -DskipTests package
 
 # Core starts Java directly; the base image's unused Pebble supervisor brings a separate vulnerable Go runtime (INC-90).
 FROM eclipse-temurin:21-jre
@@ -36,6 +38,9 @@ COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
 COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
 COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+# REL-02: the same commit on the image itself (`docker image inspect`); declared last so the layers above keep their cache.
+ARG GIT_COMMIT=unknown
+LABEL org.opencontainers.image.revision=$GIT_COMMIT
 USER agilityhub
 EXPOSE 8080
 HEALTHCHECK --interval=5s --timeout=3s --start-period=40s --retries=12 \

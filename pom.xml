@@ -36,6 +36,10 @@
         <pitest.version>1.21.0</pitest.version>
         <pitest-junit5.version>1.2.3</pitest-junit5.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+        <!-- REL-02: the git commit the jar is built from, recorded in build-info and returned by the health. The image build
+             passes it (`-Dgit.commit=…` from the GIT_COMMIT build argument CI sets); `unknown` for any other build (build-info
+             refuses an empty value), which the health answers as null. -->
+        <git.commit>unknown</git.commit>
     </properties>
 
     <!-- The pinned Spring Boot parent manages exact versions for starters,
@@ -265,6 +269,9 @@
                 <executions>
                     <execution>
                         <goals><goal>build-info</goal></goals>
+                        <configuration>
+                            <additionalProperties><commit>${git.commit}</commit></additionalProperties>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

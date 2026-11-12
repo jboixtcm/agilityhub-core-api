@@ -108,7 +108,8 @@ email settings before activation; never supply fake credentials to pass it.
    it, so Spring's graceful shutdown (`spring.lifecycle.timeout-per-shutdown-phase`, 45 s) can finish the requests in
    flight (CFG-06). An open build-session stream counts as one: the old Core then stops after the full 45 s.
 
-5. Smoke the deployed hosts: HTTPS health returns `UP`; each club host's
+5. Smoke the deployed hosts: HTTPS health returns `UP` and, as `commit`, the
+   full commit of the reviewed `sha-…` tag (REL-02); each club host's
    `/api/v1/branding` identifies its intended tenant; all three SPAs load and
    deep links work; sign in and refresh once on a front host. Check the rotated
    `ah_refresh` has no Domain, with HttpOnly/Secure/SameSite=Strict and

@@ -71,10 +71,17 @@ class HealthControllerTest {
         mvc.perform(get("/api/v1/health"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.version").value(build.getVersion()))
-                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()))
+                .andExpect(jsonPath("$.commit").value(recordedCommit()));
+    }
+
+    /** REL-02: the commit build-info recorded (pom.xml `git.commit`), or null for a build given none (`unknown`). */
+    private org.hamcrest.Matcher<Object> recordedCommit() {
+        String commit = build.get("commit");
+        return commit == null || commit.equals("unknown") ? org.hamcrest.Matchers.nullValue() : org.hamcrest.Matchers.equalTo(commit);
     }
 
     /**
@@ -87,10 +94,11 @@ class HealthControllerTest {
         mvc.perform(get("/api/v1/health").header("X-Club-Host", "club-a.example.test"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$.status").value("DOWN"))
                 .andExpect(jsonPath("$.version").value(build.getVersion()))
-                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()))
+                .andExpect(jsonPath("$.commit").value(recordedCommit()));
     }
 
     @ParameterizedTest
