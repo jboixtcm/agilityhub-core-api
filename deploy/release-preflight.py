@@ -19,6 +19,7 @@ REPOSITORY = 'ghcr.io/jboixtcm/agilityhub-core-api'
 DIGEST = re.compile(r'sha256:[0-9a-f]{64}')
 IMAGE = re.compile(re.escape(REPOSITORY) + r':sha-([0-9a-f]{7,40})(?:@(sha256:[0-9a-f]{64}))?')
 DIST_TARGETS = ('/srv/id', '/srv/clubs', '/srv/clubsadmin')
+MOCK_WORKER = 'mockServiceWorker.js'
 
 
 class PreflightError(Exception):
@@ -212,6 +213,8 @@ def check_dist(directory):
     digest, count = hashlib.sha256(), 0
     for file in sorted(directory.rglob('*')):
         require(not file.is_symlink(), 'SPA release artifacts must not contain symlinks')
+        # REL-03: only a VITE_MOCK=1 build copies the web's public/ folder, and with it the MSW worker and mock world.
+        require(file.name != MOCK_WORKER, 'SPA dist contains the mock service worker; rebuild it without VITE_MOCK=1')
         if file.is_file():
             digest.update(file.relative_to(directory).as_posix().encode() + b'\0')
             file_digest = hashlib.sha256()

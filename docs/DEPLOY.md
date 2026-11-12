@@ -133,7 +133,8 @@ stay outside the checkout without group/other permissions (0600, or read-only
 publication. A local image ID is not a registry digest. The command rejects
 `:main`, local/CI tags, absent or mismatched registry digests, local proof profiles,
 exposed database/API ports, broad proxy trust, reused Mongo passwords, placeholders,
-missing backup configuration and proof HTML in place of the built SPAs. It also
+missing backup configuration, proof HTML in place of the built SPAs and a dist
+holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03). It also
 checks each mounted SPA's compiled entry module exists and fingerprints every
 file of its distinct read-only dist directory. Its JSON output contains only image
 identifiers and artifact hashes, suitable for the release record. Keep the reviewed

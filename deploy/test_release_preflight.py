@@ -331,6 +331,18 @@ class ReleasePreflightTest(unittest.TestCase):
                 with self.assertRaises(PREFLIGHT.PreflightError):
                     PREFLIGHT.check_spas(self.config)
 
+    def test_REL_03_a_mock_build_with_the_msw_worker_is_refused(self):
+        PREFLIGHT.check_spas(self.config)
+        for location in ('clubs/mockServiceWorker.js', 'id/assets/mockServiceWorker.js'):
+            with self.subTest(location=location):
+                worker = self.directory / location
+                worker.write_text('/* Mock Service Worker */')
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('mock service worker', str(caught.exception))
+                worker.unlink()
+        PREFLIGHT.check_spas(self.config)
+
     def test_path_escape_and_artifact_symlinks_are_refused(self):
         outside = self.directory / 'outside.js'
         outside.write_text('outside')
