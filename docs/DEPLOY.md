@@ -1650,6 +1650,8 @@ scrubbed with the same exclusion list, stack locations and the three IDs remain.
 Every handled 500 is captured explicitly in `ApiExceptionHandler` with the response trace id: unexpected
 exceptions, framework 5xx and `INTERNAL_ERROR` answers the code gives (for example a payment provider outage).
 The default Sentry exception resolver keeps its later order, so one error produces one event.
+A scheduled-process run that ends `FAILED` or `PARTIAL` (S15 R-15-07, audit JOB-01) is captured once by the call that
+closed it (`JobRunner.report`), with its first exception, if any, and the trace id of its first error, which the job's error log line also prints.
 Handled 4xx errors, `NOT_IMPLEMENTED` stubs, an expired async (SSE) request and a client that went away are not captured.
 
 The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled

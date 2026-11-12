@@ -410,6 +410,32 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(metrics.find("jobs.last_success_age_seconds").tags("job", "TEST_NOOP", "club", CLUB).gauge().value()).isZero();
     }
 
+    /** R-15-07, R-15-10 (audit JOB-01): the call that closes a FAILED or PARTIAL run sends one Sentry event; a dry or SUCCEEDED run none. */
+    @Test void T_15_10_failedAndPartialRunsAreReportedToSentryOnce() {
+        var sentry = org.mockito.Mockito.mock(io.sentry.IScopes.class);
+        JobRunner target = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(runner);
+        Object previous = org.springframework.test.util.ReflectionTestUtils.getField(target, "sentry");
+        org.springframework.test.util.ReflectionTestUtils.setField(target, "sentry", sentry);
+        try {
+            job.configure(DAILY, 3, 2, false);
+            var partial = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+            assertThat(partial.status()).isEqualTo(JobStatus.PARTIAL);
+            var event = org.mockito.ArgumentCaptor.forClass(io.sentry.SentryEvent.class);
+            org.mockito.Mockito.verify(sentry).captureEvent(event.capture());
+            assertThat(event.getValue().getThrowable()).isInstanceOf(ApiException.class);
+            assertThat(event.getValue().getTag("traceId")).isEqualTo(partial.errors().getFirst().traceId());
+            job.configure(DAILY, 1, 0, false);
+            runner.manual(CLUB, JobName.TEST_NOOP, true, ADMIN);
+            assertThat(runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN).status()).isEqualTo(JobStatus.SUCCEEDED);
+            org.mockito.Mockito.verify(sentry, org.mockito.Mockito.times(1)).captureEvent(org.mockito.ArgumentMatchers.any(io.sentry.SentryEvent.class));
+            job.configure(DAILY, 3, 0, true);
+            assertThat(runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN).status()).isEqualTo(JobStatus.FAILED);
+            org.mockito.Mockito.verify(sentry, org.mockito.Mockito.times(2)).captureEvent(org.mockito.ArgumentMatchers.any(io.sentry.SentryEvent.class));
+        } finally {
+            org.springframework.test.util.ReflectionTestUtils.setField(target, "sentry", previous);
+        }
+    }
+
     @Test void T_15_04_missedWindowSkipsAndAlerts() throws Exception {
         job.configure(new JobDefinition(JobName.TEST_NOOP, "test-noop", Cadence.DAILY, "jobs.dailyTime", null, null,
                 CatchUpWindow.END_OF_LOCAL_DAY, "jobs.cleanup.enabled"), 1, 0, false);

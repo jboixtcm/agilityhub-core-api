@@ -60,6 +60,9 @@ public class JobRunner {
     private final JobMetrics metrics;
     private final ObjectProvider<Job> jobs;
     private final String instance = UUID.randomUUID().toString();
+    /** R-15-07 (audit JOB-01): Sentry receives every FAILED or PARTIAL run; without `SENTRY_DSN` the client sends nothing. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private io.sentry.IScopes sentry;
 
     public JobRunner(JobRunRepository runs, JobLockRepository locks, ClubConfigService configs, TransactionTemplate transactions,
             EventPublisher events, Clock clock, JobMetrics metrics, ObjectProvider<Job> jobs) {
@@ -194,6 +197,7 @@ public class JobRunner {
                 request.scheduledFor().atZone(request.zone()).toLocalDate(), request.dryRun(), request.config(), recorder, running.id());
         var items = new ArrayList<JobRun.Item>();
         var errors = new ArrayList<JobRun.RunError>();
+        RuntimeException firstFailure = null;
         JobStatus status;
         Instant renewed = clock.instant();
         boolean leaseLost = false;
@@ -220,6 +224,7 @@ public class JobRunner {
                         trace(items, item.entityType(), item.entityId(), effect.action() == null ? item.action() : effect.action(),
                                 effect.detail().isEmpty() ? item.detail() : effect.detail());
                     } catch (RuntimeException failure) {
+                        if (firstFailure == null) { firstFailure = failure; }
                         errors.add(error(item.entityId(), failure));
                         LOG.error("Job item failed jobRunId={} job={} clubId={} entityId={} traceId={}", running.id(), running.job(),
                                 request.clubId(), item.entityId(), errors.getLast().traceId(), failure);
@@ -234,6 +239,7 @@ public class JobRunner {
                 status = errors.isEmpty() ? JobStatus.SUCCEEDED : JobStatus.PARTIAL;
             }
         } catch (RuntimeException failure) {
+            firstFailure = failure;
             errors.addFirst(error(null, failure));
             status = JobStatus.FAILED;
             LOG.error("Job failed jobRunId={} job={} clubId={} traceId={}", running.id(), running.job(), request.clubId(),
@@ -250,7 +256,31 @@ public class JobRunner {
         }
         metrics.finished(request.clubId(), running.job(), status, Duration.ofMillis(finished.durationMs()), recorder.counters);
         if (status == JobStatus.FAILED && !request.dryRun()) { failed(request.job(), request.clubId(), running.id()); }
+        if (!request.dryRun()) { report(sentry, finished, firstFailure); }
         return finished;
+    }
+
+    /**
+     * R-15-07, R-15-10 (audit JOB-01): one Sentry event per FAILED or PARTIAL run, sent by the call that closed it (a dry run
+     * reports nothing, as it publishes nothing). It carries the run's first exception, if any, and the trace id of the run's
+     * first error, which the log line of that error also prints. `SentryPrivacyConfiguration` scrubs it like any other event.
+     */
+    static void report(io.sentry.IScopes sentry, JobRun run, Throwable failure) {
+        if (sentry == null || (run.status() != JobStatus.FAILED && run.status() != JobStatus.PARTIAL)) { return; }
+        try { sentry.captureEvent(sentryEvent(run, failure)); }
+        catch (RuntimeException unreported) {
+            LOG.warn("Job run not reported to Sentry jobRunId={} job={} clubId={}", run.id(), run.job(), run.clubId(), unreported);
+        }
+    }
+    static io.sentry.SentryEvent sentryEvent(JobRun run, Throwable failure) {
+        var event = failure == null ? new io.sentry.SentryEvent() : new io.sentry.SentryEvent(failure);
+        event.setLevel(io.sentry.SentryLevel.ERROR);
+        var message = new io.sentry.protocol.Message();
+        message.setFormatted("Job run " + run.status() + " job=" + run.job() + " clubId=" + run.clubId() + " jobRunId=" + run.id()
+                + " errorCount=" + run.errors().size());
+        event.setMessage(message);
+        if (!run.errors().isEmpty() && run.errors().getFirst().traceId() != null) { event.setTag("traceId", run.errors().getFirst().traceId()); }
+        return event;
     }
 
     /** {@link Job#failed}: only after the call that closed the row, so a slow holder whose run was reaped never repeats it. */
@@ -279,7 +309,10 @@ public class JobRunner {
         // R-15-10: the reaper's FAILED is the outcome of record, so it is the one counted in jobs.run.duration (E5-T10).
         metrics.finished(clubId, run.job(), JobStatus.FAILED, Duration.ofMillis(closed.durationMs()), Map.of());
         LOG.error("Job lease expired jobRunId={} job={} clubId={}", run.id(), run.job(), clubId);
-        if (!run.dryRun()) { registered(run.job()).ifPresent(job -> failed(job, clubId, run.id())); }
+        if (!run.dryRun()) {
+            registered(run.job()).ifPresent(job -> failed(job, clubId, run.id()));
+            report(sentry, closed, null);
+        }
         return true;
     }
 
