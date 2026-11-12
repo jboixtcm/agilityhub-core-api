@@ -25,6 +25,7 @@ public class CensusLists implements ListProvider {
         var columns = new ArrayList<>(List.of((members
                 ? "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,familyGroupHolder,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument"
                 : "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt").split(",")));
+        var searchable = new ArrayList<>(members ? List.of("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name") : List.of("name", "owner.fullName", "chip"));
         add(filters, "id", "_id", TEXT);
         if (members) {
             if(ListAccess.admin()) {
@@ -66,6 +67,8 @@ public class CensusLists implements ListProvider {
             filters.keySet().removeAll(List.of("planId", "priceId", "paymentMethodType", "nextInvoiceDate")); sorts.remove("nextInvoiceDate");
         }
         if (!ListAccess.admin()) { columns.removeAll(List.of("imageRights", "idDocument", "birthDate", "gender", "roles")); filters.keySet().removeAll(List.of("imageRightsGranted", "birthDate", "gender", "roles")); }
+        // AUTHZ-01: `q` must not reach a field the reader cannot see; a match on the ID number would be a yes/no oracle on it.
+        if (!ListAccess.admin()) { searchable.remove("idDocument.number"); }
         if (!config.modules().contains(Module.FAMILY_GROUP)) { columns.remove("familyGroup"); columns.remove("familyGroupHolder"); filters.remove("familyGroupId"); }
         if (!config.modules().contains(Module.FREE_TRAINING)) { columns.remove("freeTraining"); filters.remove("freeTrainingAllowed"); }
         if (!config.modules().contains(Module.INACTIVITY)) { filters.remove("inactivityUntil"); columns.remove("inactivityUntil"); }
@@ -77,8 +80,7 @@ public class CensusLists implements ListProvider {
         if (!members) { fields.addAll(Set.of("handlerName", "handlerIsMember", "photoUrl")); }
         if (members && ListAccess.admin()) { fields.addAll(List.of("signupPending","pendingDogs","warnings","signup")); }
         if (members && !ListAccess.admin()) { fields.addAll(List.of("firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status")); }
-        var definition = new ListDefinition(key, filters, sorts,
-                members ? List.of("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name") : List.of("name", "owner.fullName", "chip"),
+        var definition = new ListDefinition(key, filters, sorts, List.copyOf(searchable),
                 columns, defaults, members ? List.of("lastName,asc", "firstName,asc") : List.of("name,asc"), fields);
         return projection.dataset(definition, members, ListAccess.admin());
     }
