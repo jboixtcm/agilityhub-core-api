@@ -466,7 +466,38 @@ Integration tests (`*IT`) need MongoDB and were not run in the environment where
 
 ## cross-repo
 
+The web fix log's `OTHER-REPO:` items for this repository, done here or left with their question. The items this repository logged for the web are in the web's `## cross-repo` section.
+
 ### FE-03 — PARTIAL
 - Api part of the web's FE-03: `HandoffService.create` refuses a code whose source and target are both `clubs-app` with `403 NO_MEMBERSHIP` (the route's documented refusal, and what an unsupported source already gets), before anything is read or stored. R-01-13 switches between the two apps and no web client asks for that pair (03b's portal asks clubs-app → clubs-admin, the profile switch clubs-admin → clubs-app); `clubs-admin` → `clubs-admin` stays, since it is the console's way in (R-01-02), and impersonation launch codes do not go through this route. S01 Canvis line added. No OpenAPI change.
 - Tests: new `HandoffServiceAppSwitchTest` (2 cases; the refusal fails without the fix) ran and passed with `HandoffServiceSurvivorsTest`. `ConsoleProductHostIT.T_01_12_R_01_02_productHostAnswersAClubAppHandoffAsAnUnknownHost` built its club-app code from a club-app session; it now asserts the 403 and takes the code from a back-office session (a clubs-admin handoff redeemed on the club's console host), the rest unchanged: not run (MongoDB).
 - Still the web entry's decision: requiring ADMIN for clubs-admin → clubs-app (it would take the profile switch away from instructors) and binding a code to the browser that asked for it.
+- Other-repo part done in dadc6a2.
+
+### WEB-01 — NEEDS-DECISION
+- No code changed. Only the web entry's option (c), an admin bulk «send access» from a census selection, touches this repository: the 60/hour per-IP magic-link bucket (`magic-link-ip`, `application.yml:212`; 10/hour per address) would stop a batch sent from one office. Question: which first-access path the club takes; with (c), whether staff-sent links get their own bucket (per club or per account) or the batch is paced.
+
+### WEB-02 — NEEDS-DECISION
+- No code changed. `pushsubscriptionchange` in the worker has no bearer, so re-registering a rotated subscription needs either relaying to an open tab (web only) or a new anonymous route that accepts the old endpoint plus a proof of it (a contract and catalogue change). Question: which, and whether a member should be re-subscribed without asking (R-11-07 allows the POST only in context).
+
+### WEB-03 — NEEDS-DECISION
+- No code changed. The web entry's option (c) is an R-11-16 change: N-13 by e-mail when the member has no `ACTIVE` push subscription, whatever `emailByCategory.OPERATIONAL` says. Question: options (a)/(b) on the web or (c) here, and for (c) whether a subscription that is `ACTIVE` but stale counts.
+
+### WEB-05 — NEEDS-DECISION
+- No code changed. Lazy photos in lists need either longer-lived photo URLs than `AttachmentService.url`'s five minutes or server-side thumbnails stored next to the original with their own URL in list rows. Question: the URL lifetime (and whether unsigned thumbnails are acceptable for dog photos), the thumbnail size and format, and whether the client downscales before upload instead.
+
+### WEB-06 — NEEDS-DECISION
+- No code changed. The web entry's option (b): `DELETE /parameters/{key}` taking `version` (`409 STALE_VERSION`) and an optional `reason` kept in the history, an S02 §2 contract change with the web's reset dialog. Question: options (a)–(c) of the web entry; (b) is the one that changes this repository.
+
+### WEB-09 — NEEDS-DECISION
+- No code changed. The web's late-cancel warning uses the device clock; the api decides in-time or late by its own clock (`BookingCancellationService`, `CANCELLED_LATE`), so only the dialog's text can be wrong. Options: (a) `serverNow` on the `Booking` response, either on the shared schema (every route returning a booking) or only on `GET /bookings/{id}`, as `SeatHoldResponse` has it; (b) the web reads the HTTP `Date` header of that GET, with no contract change but one-second resolution; (c) keep the device clock.
+
+### FE-06 — NEEDS-DECISION
+- No code changed. Expiring a push subscription when its session is revoked needs the session (refresh family) stored on the subscription and a hook in every revocation path (logout, `DELETE /me/sessions/{id}`, a password change, an erasure). Question: the web entry's options (a)–(c); only (b) needs this, and it would also stop push on a phone whose session simply expired.
+
+### FE-07 — NEEDS-DECISION
+- No code changed. The web entry's option (a) needs a build id from this repository (a `/branding` field or a response header) to compare with the SPA's own. Question: whether to tell users about a new version at all, and if so which carrier; it goes with the web's REL-02 choice of how a bundle records its commit.
+
+### FE-10 — NEEDS-DECISION
+- No code changed. `OAuthController.revoke` (`:166-170`) answers every token revoke except a bookings-only one with the Set-Cookie that clears `ah_refresh`, so leaving an impersonation or a support access signs the actor out of that host. The web entry's option (b) would clear the cookie only on the revoke of a cookie session, never for an `imp` or support token, together with a web guarantee that such a tab never restores the actor's session. Question: (a) keep today's behaviour or (b).
+
