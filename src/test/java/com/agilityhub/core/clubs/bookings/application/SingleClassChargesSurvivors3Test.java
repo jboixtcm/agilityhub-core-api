@@ -44,4 +44,12 @@ class SingleClassChargesSurvivors3Test {
         verify(gateways, never()).getObject();
         verifyNoInteractions(checkouts);
     }
+
+    /** PAY-08: P7's timeout and a failed provider call give the checkout up on both sides, not only on Core's. */
+    @Test void PAY_08_abandoningACheckoutExpiresItAtTheProviderToo() {
+        charges.abandon("checkout-1");
+
+        verify(checkouts).abandonBooking("checkout-1");
+        verify(checkouts, never()).expire(any());
+    }
 }

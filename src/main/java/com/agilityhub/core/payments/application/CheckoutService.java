@@ -325,12 +325,22 @@ public class CheckoutService {
      * state, a booking row `CANCELLED`, {@link UpfrontPayments#checkout}); any other state is left as it is. Its own path, so an
      * expiry (which `POST /checkout-sessions` asks for, E5-T28) never reaches the member's card.
      */
-    public void expire(String sessionId) {
-        transactions.run(() -> {
-            members.lock();var session=sessions.findById(sessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-            if(sessions.finish(sessionId,"EXPIRED",null)) payments.checkout(session.memberId(),sessionId,false);
-            return null;
-        });
+    public void expire(String sessionId) { transactions.run(() -> expireHere(sessionId)); }
+    /**
+     * PAY-08 (S08 R-08-18, S15 R-15-17): Core gives up on a PAY_TO_BOOK checkout (P7 timed its booking out, or the provider call
+     * that opened it failed). A `PENDING` session expires as {@link #expire} expires it and then, once the caller's transaction
+     * committed and outside it, at the provider too, as after a rejection ({@link #rejected}): the member can no longer pay for a
+     * seat that was released. A session already closed is left alone. A payment the provider took first still takes E34's path.
+     */
+    public void abandonBooking(String sessionId) {
+        String clubId=TenantContext.require();
+        if(transactions.run(() -> expireHere(sessionId))) afterCommit(() -> expireAtProvider(sessionId,clubId));
+    }
+    private boolean expireHere(String sessionId) {
+        members.lock();var session=sessions.findById(sessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        if(!sessions.finish(sessionId,"EXPIRED",null)) return false;
+        payments.checkout(session.memberId(),sessionId,false);
+        return true;
     }
     /**
      * E34 (S15 R-15-17): the provider completed a PAY_TO_BOOK checkout after its booking was cancelled on our side, so the
