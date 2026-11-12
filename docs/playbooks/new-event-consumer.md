@@ -97,7 +97,9 @@ task. Returning normally marks that consumer processed, so a skip is durable.
   claim before delivery. Each matching handler and its checkpoint commit in one
   Mongo transaction. On failure those Mongo effects roll back.
 - Successfully checkpointed consumers are skipped on retry. A later consumer's
-  failure does not roll back an earlier consumer's committed work. Treat delivery
+  failure does not roll back an earlier consumer's committed work, and a consumer's
+  failure does not keep the consumers after it from running (audit OUT-01): each
+  gets its attempt, and the record backs off if any of them failed. Treat delivery
   as at least once: external effects must deduplicate using `eventId` (and consumer
   identity if a provider key space is shared), since HTTP effects cannot roll back.
 - Attempts use exponential delays of 1, 2, 4, ... seconds, capped at 300 seconds.

@@ -157,6 +157,33 @@ class OutboxIT extends AbstractIntegrationTest {
         assertThat(record(id).error()).isNull();
         assertThat(mongo.getCollection("outbox_effects").countDocuments()).isEqualTo(1);
     }
+    /** Audit OUT-01: a consumer that throws no longer keeps the consumers after it from their delivery. */
+    @Test void OUT_01_aFailingConsumerDoesNotKeepTheConsumersAfterItFromTheirDelivery() {
+        String id = publish("club-a");
+        AtomicInteger first = new AtomicInteger(); AtomicInteger second = new AtomicInteger();
+        Map<String, DomainEventHandler<?>> handlers = new LinkedHashMap<>();
+        handlers.put("first", handler((eventId, event) -> {
+            if (first.incrementAndGet() == 1) { throw new IllegalArgumentException("Handler failure"); }
+        }));
+        handlers.put("second", handler((eventId, event) -> {
+            mongo.insert(new Document("_id", eventId).append("clubId", event.clubId()), "outbox_effects");
+            second.incrementAndGet();
+        }));
+        var dispatcher = dispatcher(handlers, 10);
+        dispatcher.dispatch();
+        assertThat(first).hasValue(1); assertThat(second).hasValue(1);
+        assertThat(record(id).status()).isEqualTo(DomainEventRecord.Status.PENDING);
+        assertThat(record(id).processedAt()).hasSize(1);
+        assertThat(record(id).attempts()).isEqualTo(1);
+        assertThat(record(id).nextAttemptAt()).isEqualTo(clock.instant().plusSeconds(1));
+        assertThat(record(id).error()).isEqualTo("IllegalStateException");
+        assertThat(mongo.getCollection("outbox_effects").countDocuments()).isEqualTo(1);
+        clock.advance(Duration.ofSeconds(1)); dispatcher.dispatch();
+        assertThat(first).hasValue(2); assertThat(second).as("the processed consumer is skipped").hasValue(1);
+        assertThat(record(id).status()).isEqualTo(DomainEventRecord.Status.PUBLISHED);
+        assertThat(record(id).processedAt()).hasSize(2);
+        assertThat(mongo.getCollection("outbox_effects").countDocuments()).isEqualTo(1);
+    }
     @Test void E0_T04_maxAttemptsFailsAndBackoffCapsAtFiveMinutes() {
         String id = publish("club-a");
         var failing = handler((ignored, event) -> { throw new IllegalStateException("private data must not be persisted"); });

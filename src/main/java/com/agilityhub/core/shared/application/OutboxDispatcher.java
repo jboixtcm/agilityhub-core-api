@@ -47,7 +47,11 @@ public class OutboxDispatcher {
         Gauge.builder("outbox.failed", records, r -> r.count(DomainEventRecord.Status.FAILED)).register(metrics);
     }
 
-    /** INC-40 (E11-T10): on its own thread, so neither the job tick nor a provider send delays the outbox. */
+    /**
+     * INC-40 (E11-T10): on its own thread, so neither the job tick nor a provider send delays the outbox. Audit OUT-01: each
+     * matching consumer runs in its own attempt, so one that throws does not keep the consumers after it from their delivery;
+     * the record backs off (or ends FAILED) once every consumer has had its turn, and a retry runs only the unprocessed ones.
+     */
     @Scheduled(fixedDelay = 1000, scheduler = SchedulerConfiguration.OUTBOX)
     public void dispatch() {
         for (int i = 0; i < 100; i++) {
@@ -55,18 +59,24 @@ public class OutboxDispatcher {
             if (record == null) { return; }
             try {
                 if (record.attempts() > maxAttempts) { throw new IllegalStateException("Claim attempts exhausted"); }
+                Exception firstFailure = null;
                 for (var entry : handlers.entrySet()) {
                     String consumer = Base64.getUrlEncoder().withoutPadding()
                             .encodeToString(entry.getKey().getBytes(StandardCharsets.UTF_8));
                     var handler = entry.getValue();
                     if (handler.eventType().equals(record.type()) && !record.processedAt().containsKey(consumer)) {
-                        retries.inTransaction(RETRY_CONTEXT, CONFLICT_ATTEMPTS, transactions, status -> {
-                            records.lock(record, clock.instant());
-                            deliver(handler, record);
-                            records.processed(record, consumer, clock.instant());
-                        });
+                        try {
+                            retries.inTransaction(RETRY_CONTEXT, CONFLICT_ATTEMPTS, transactions, status -> {
+                                records.lock(record, clock.instant());
+                                deliver(handler, record);
+                                records.processed(record, consumer, clock.instant());
+                            });
+                        } catch (Exception failure) {
+                            if (firstFailure == null) { firstFailure = failure; }
+                        }
                     }
                 }
+                if (firstFailure != null) { throw firstFailure; }
                 records.published(record, clock.instant());
             } catch (Exception failure) {
                 records.failed(record, clock.instant(), maxAttempts, failure);
