@@ -130,6 +130,11 @@ class PushSubscriptionsIT extends AbstractIntegrationTest {
         var bad = new ArrayList<String>();
         bad.add(body("http://push.example.test/send/x", P256DH, AUTH, null)); // not https
         bad.add(body("https:///no-host", P256DH, AUTH, null));
+        // COMM-05: no push service lives on an IP literal, a single-label or localhost name, or a port other than 443.
+        bad.add(body("https://127.0.0.1/send/x", P256DH, AUTH, null));
+        bad.add(body("https://localhost/send/x", P256DH, AUTH, null));
+        bad.add(body("https://mongo/send/x", P256DH, AUTH, null));
+        bad.add(body("https://push.example.test:8443/send/x", P256DH, AUTH, null));
         bad.add(body("https://push.example.test/send/x", "not+base64/url", AUTH, null));
         bad.add(body("https://push.example.test/send/x", Base64.getUrlEncoder().withoutPadding().encodeToString(key(64, (byte) 4)), AUTH, null)); // not 65 bytes
         bad.add(body("https://push.example.test/send/x", Base64.getUrlEncoder().withoutPadding().encodeToString(key(65, (byte) 3)), AUTH, null)); // not an uncompressed point

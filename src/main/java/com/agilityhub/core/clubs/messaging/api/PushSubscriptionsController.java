@@ -36,7 +36,8 @@ public class PushSubscriptionsController {
             + "subscription per endpoint and club), ACTIVE again if it had expired. A subscription never changes owner (E76): when another account's is "
             + "active on this browser it ends (EXPIRED, PushUnsubscribed for that account) and the caller gets a subscription of its own, a new id. "
             + "deviceLabel from the User-Agent when absent («iPhone · Safari»); PushSubscribed{accountId, endpoint = its SHA-256} when something changed. "
-            + "An endpoint that is no https URL, or keys that are not base64url of a point on P-256 (65 bytes, uncompressed) and a 16-byte secret → "
+            + "An endpoint that is no https URL of a DNS name of two labels or more on the HTTPS port (an IP literal, localhost or another port is "
+            + "refused), or keys that are not base64url of a point on P-256 (65 bytes, uncompressed) and a 16-byte secret → "
             + "PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey." + TENANT,
             responses = @ApiResponse(responseCode = "201", description = "PushSubscriptionCreated", useReturnTypeSchema = true))
     public PushSubscriptionCreated subscribePush(@Valid @RequestBody PushSubscriptionRequest request,

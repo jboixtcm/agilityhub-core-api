@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-12 · COMM-05 · Push endpoints only on a push service's address
+
+**No operations, schemas or error codes added; 1 operation description changed.**
+
+- `POST /push-subscriptions` also refuses, with `422 PUSH_SUBSCRIPTION_INVALID {field: endpoint}`, an `https` endpoint whose host is an IP literal, a single-label name or a `localhost` name, or whose port is not 443: no browser's push service uses one, and the sender would otherwise call the server's own network. The snapshot's description was edited by hand: regenerate it with `bin/openapi-snapshot` and compare before merging.
+
 ## 2026-11-12 · SCH-01 · An administrator restores a cancelled class
 
 **1 operation added (`POST /class-sessions/{id}/restoration`); 1 enum value added (`AuditAction`: `CLASS_RESTORED`); no schemas or error codes added.**
