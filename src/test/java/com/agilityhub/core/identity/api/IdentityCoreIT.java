@@ -243,6 +243,27 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk());
     }
 
+    /**
+     * AUTH-06 (S01 R-01-05): the change also ends the links mailed before it, a 15-minute sign-in link and a 7-day "resend access"
+     * link alike, so an older link no longer gets in after the owner changes the password; a link requested afterwards works.
+     */
+    @Test void AUTH_06_aPasswordChangeEndsTheMagicLinksMailedBeforeIt() throws Exception {
+        createMagic(MagicLinkToken.Purpose.LOGIN);
+        String login = linkToken();
+        createMagic(MagicLinkToken.Purpose.ACCESS_RESEND);
+        String resend = linkToken();
+        assertThat(resend).isNotEqualTo(login);
+        var session = login();
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(session)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", "Fictional new password", "repeat", "Fictional new password"))))
+                .andExpect(status().isOk());
+        assertThat(mongo.findAll(MagicLinkToken.class)).hasSize(2).allMatch(link -> clock.instant().equals(link.usedAt()));
+        magic(login, "clubs-app", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MAGIC_LINK_INVALID"));
+        magic(resend, "clubs-app", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MAGIC_LINK_INVALID"));
+        createMagic(MagicLinkToken.Purpose.LOGIN);
+        magic(linkToken(), "clubs-app", HOST).andExpect(status().isOk());
+    }
+
     /** INC-37 (S01 §8, N-26 {changed_at, device}): the notice names the device of the session that changed the password, not another one. */
     @Test void T_01_09_INC_37_theN26NoticeNamesTheDeviceThatChangedThePassword() throws Exception {
         var other = readTokens(login(HOST, "admin@example.test", PASSWORD).andReturn().getResponse());

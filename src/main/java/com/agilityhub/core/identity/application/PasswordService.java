@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.messaging.application.SystemNotificationService
 import com.agilityhub.core.identity.domain.IdentityEvent;
 import com.agilityhub.core.identity.persistence.AccountRepository;
 import com.agilityhub.core.identity.persistence.AccountSessionRepository;
+import com.agilityhub.core.identity.persistence.MagicLinkTokenRepository;
 import com.agilityhub.core.identity.persistence.RefreshToken;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.domain.ApiException;
@@ -20,6 +21,7 @@ public class PasswordService {
     private final IdentityService identities;
     private final AccountRepository accounts;
     private final AccountSessionRepository sessions;
+    private final MagicLinkTokenRepository magicLinks;
     private final TokenService tokens;
     private final PasswordHasher passwords;
     private final CompromisedPasswords compromised;
@@ -28,17 +30,18 @@ public class PasswordService {
     private final EventPublisher events;
     private final SystemNotificationService notifications;
     private final Clock clock;
-    public PasswordService(IdentityService identities, AccountRepository accounts, AccountSessionRepository sessions, TokenService tokens,
-            PasswordHasher passwords, CompromisedPasswords compromised, AuthSettings settings, IdentityTransactions transactions,
-            EventPublisher events, SystemNotificationService notifications, Clock clock) {
-        this.identities = identities; this.accounts = accounts; this.sessions = sessions; this.tokens = tokens;
+    public PasswordService(IdentityService identities, AccountRepository accounts, AccountSessionRepository sessions,
+            MagicLinkTokenRepository magicLinks, TokenService tokens, PasswordHasher passwords, CompromisedPasswords compromised,
+            AuthSettings settings, IdentityTransactions transactions, EventPublisher events, SystemNotificationService notifications, Clock clock) {
+        this.identities = identities; this.accounts = accounts; this.sessions = sessions; this.magicLinks = magicLinks; this.tokens = tokens;
         this.passwords = passwords; this.compromised = compromised; this.settings = settings; this.transactions = transactions;
         this.events = events; this.notifications = notifications; this.clock = clock;
     }
     /**
      * R-01-05: `current` is required whenever a password exists, except once in a session opened by a RESET magic link within its
      * 15 minutes (E5-T27, ruling E49). A failed attempt keeps that mark; the first change clears it, so the ordinary rule applies
-     * again afterwards.
+     * again afterwards. The change also ends the account's unused magic links (AUTH-06): the other sessions are revoked, and so are
+     * the links that would open new ones.
      */
     @Transactional(propagation = Propagation.NEVER)
     public void change(String accountId, String clientId, String familyId, String current, String next, String repeat) {
@@ -61,6 +64,7 @@ public class PasswordService {
             sessions.clearPasswordReset(accountId, familyId);
             accounts.password(accountId, hash, clock.instant());
             sessions.revokeOthers(accountId, familyId, clock.instant());
+            magicLinks.revokeUnused(accountId, clock.instant());
             sessions.preserveFamily(accountId, familyId, fresh.familyVersion() + 1);
             events.publish(IdentityEvents.of(IdentityEvent.Kind.PasswordChanged, null, accountId, clock.instant(), Map.of("accountId", accountId)));
             return null;

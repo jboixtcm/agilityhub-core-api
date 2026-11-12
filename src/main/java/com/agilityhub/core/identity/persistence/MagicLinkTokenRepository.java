@@ -37,6 +37,14 @@ public class MagicLinkTokenRepository extends TenantRepository<MagicLinkToken> {
                     new Update().set("usedAt", now), MagicLinkToken.class);
         }
     }
+    /**
+     * S01 R-01-05 (AUTH-06): a password change ends every link of the account still unused, of any purpose and any club, as `trim`
+     * ends one; a link mailed before the change no longer opens a session.
+     */
+    public void revokeUnused(String accountId, Instant now) {
+        mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("usedAt").is(null).and("expiresAt").gt(now)),
+                new Update().set("usedAt", now), MagicLinkToken.class);
+    }
     public void ensureIndexes() {
         mongo.indexOps(MagicLinkToken.class).createIndex(new Index().on("tokenHash", Sort.Direction.ASC).unique());
         mongo.indexOps(MagicLinkToken.class).createIndex(new Index().on("accountId", Sort.Direction.ASC).on("purpose", Sort.Direction.ASC));

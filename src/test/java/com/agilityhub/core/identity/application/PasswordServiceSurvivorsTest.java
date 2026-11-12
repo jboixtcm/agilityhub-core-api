@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.messaging.application.SystemNotificationService
 import com.agilityhub.core.identity.persistence.Account;
 import com.agilityhub.core.identity.persistence.AccountRepository;
 import com.agilityhub.core.identity.persistence.AccountSessionRepository;
+import com.agilityhub.core.identity.persistence.MagicLinkTokenRepository;
 import com.agilityhub.core.identity.persistence.RefreshToken;
 import com.agilityhub.core.shared.application.EventPublisher;
 import java.time.Clock;
@@ -33,6 +34,7 @@ class PasswordServiceSurvivorsTest {
     final IdentityService identities = mock(IdentityService.class);
     final AccountRepository accounts = mock(AccountRepository.class);
     final AccountSessionRepository sessions = mock(AccountSessionRepository.class);
+    final MagicLinkTokenRepository magicLinks = mock(MagicLinkTokenRepository.class);
     final TokenService tokens = mock(TokenService.class);
     final PasswordHasher passwords = mock(PasswordHasher.class);
     final CompromisedPasswords compromised = mock(CompromisedPasswords.class);
@@ -40,7 +42,7 @@ class PasswordServiceSurvivorsTest {
     final IdentityTransactions transactions = mock(IdentityTransactions.class);
     final EventPublisher events = mock(EventPublisher.class);
     final SystemNotificationService notifications = mock(SystemNotificationService.class);
-    final PasswordService service = new PasswordService(identities, accounts, sessions, tokens, passwords, compromised, settings, transactions,
+    final PasswordService service = new PasswordService(identities, accounts, sessions, magicLinks, tokens, passwords, compromised, settings, transactions,
             events, notifications, Clock.fixed(NOW, ZoneOffset.UTC));
     final Account account = new Account("acc-1", "laura@example.test", "Laura Example", "ca", OLD_HASH, Set.of(), Account.Status.ACTIVE,
             new Account.Security(0, null, NOW.minus(Duration.ofDays(60)), 0), Map.of(), false, NOW.minus(Duration.ofDays(400)));
@@ -80,5 +82,19 @@ class PasswordServiceSurvivorsTest {
 
         verify(sessions).revokeOthers("acc-1", "fam-1", NOW);
         verify(sessions).preserveFamily("acc-1", "fam-1", 1);
+    }
+
+    /** AUTH-06: the links mailed before the change (sign-in, recovery, welcome) stop opening sessions, as the other sessions stop. */
+    @Test void AUTH_06_aChangeEndsTheAccountsUnusedMagicLinks() {
+        change("Kq7#mZ2p-longer");
+
+        verify(magicLinks).revokeUnused("acc-1", NOW);
+    }
+
+    @Test void AUTH_06_aRefusedChangeLeavesTheMagicLinksAlone() {
+        assertThatThrownBy(() -> service.change("acc-1", "id-web", "fam-1", "Wrong-passw0rd", "Kq7#mZ2p-longer", "Kq7#mZ2p-longer"))
+                .hasMessage("INVALID_CREDENTIALS");
+
+        verifyNoInteractions(magicLinks);
     }
 }
