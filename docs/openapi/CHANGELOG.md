@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-12 · SCH-01 · An administrator restores a cancelled class
+
+**1 operation added (`POST /class-sessions/{id}/restoration`); 1 enum value added (`AuditAction`: `CLASS_RESTORED`); no schemas or error codes added.**
+
+- New `POST /class-sessions/{id}/restoration` (ADMIN; body `{}`, no `Idempotency-Key`; `200` `ClassSession`): a `CANCELLED` class whose `cancellation.reason` is not `DELETED` and whose start is still ahead becomes `ACTIVE` again, with `cancellation: null` and `counters {booked: 0, waiting: 0}`. The bookings, waiting-list entries and holds its cancellation removed are not restored and nobody is notified. `404 NOT_FOUND` · `409 INVALID_STATE` (not `CANCELLED`, `DELETED` or no reason, already started, a repeat) · `409 CLASS_CONFLICT` (another `DRAFT`/`ACTIVE` class of the ring at that time) · `422 RING_BLOCKED` (an `ACTIVE` ring block) · `422 RING_HAS_BOOKINGS {bookings[]}` (a live training booking, never cancelled here) · `403 IMPERSONATION_DENIED`. Audited `CLASS_RESTORED`; publishes `ClassSessionUpdated{classId, diff: {state}, bookedCount: 0}`.
+- The snapshot was edited by hand for this change (no Docker where it was written): regenerate it with `bin/openapi-snapshot` and compare before merging.
+
 ## 2026-10-30 · Onboarding consent readback
 
 - `GET/PUT /me/onboarding` return optional nullable `imageConsent`, preserving an existing image permission when the request omits it. `consentAccepted` and `consentVersion` remain required request fields; acceptance must match the current pending policy. When all policies are already accepted, profile completion can send `false` and an empty version without recording a new consent. Impersonated sessions remain unable to complete or postpone personal consent.
