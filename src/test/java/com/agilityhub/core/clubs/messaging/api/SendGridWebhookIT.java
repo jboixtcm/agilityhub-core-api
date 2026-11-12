@@ -135,6 +135,23 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
         assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isNull();
         assertThat(mongo.findAll(SecurityEvent.class)).hasSize(2).allSatisfy(this::assertSignatureSecurityEvent);
     }
+    @Test void CFG_03_aSignedBodyAboveOneMebibyteIsRefusedBeforeItsSignatureAndOneAtTheCapIsProcessed() throws Exception {
+        byte[] event = event("cfg03-at-cap", "bounce");
+        for (int size : new int[] {SendGridWebhookController.MAX_BODY_BYTES + 1, SendGridWebhookController.MAX_BODY_BYTES}) {
+            byte[] body = java.util.Arrays.copyOf(event, size);
+            java.util.Arrays.fill(body, event.length, size, (byte) ' ');
+            var result = mvc.perform(post("/webhooks/email/sendgrid").contentType("application/json").content(body)
+                    .header("X-Twilio-Email-Event-Webhook-Timestamp", TIMESTAMP).header("X-Twilio-Email-Event-Webhook-Signature", sign(body)));
+            if (size > SendGridWebhookController.MAX_BODY_BYTES) {
+                result.andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+                assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isZero();
+            } else {
+                result.andExpect(status().isOk());
+                assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isOne();
+            }
+        }
+        assertThat(mongo.findAll(SecurityEvent.class)).isEmpty();
+    }
     private void assertSignatureSecurityEvent(SecurityEvent event) {
         assertThat(event.type()).isEqualTo(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID);
         assertThat(event.route()).isEqualTo("other");

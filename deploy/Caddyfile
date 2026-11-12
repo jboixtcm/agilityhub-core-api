@@ -135,6 +135,10 @@
     import gateway_unavailable
     @private path /internal/* /actuator/*
     respond @private 404
+    # CFG-03: the anonymous webhooks (Stripe, Brevo, SendGrid) never send more than the 1 MiB the Core reads of them.
+    request_body /webhooks/* {
+        max_size 1MiB
+    }
     reverse_proxy core:8080
 }
 

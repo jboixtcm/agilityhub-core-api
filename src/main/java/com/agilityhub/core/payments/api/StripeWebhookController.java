@@ -3,11 +3,14 @@ package com.agilityhub.core.payments.api;
 import com.agilityhub.core.payments.application.BillingContractAccess;
 import com.agilityhub.core.payments.application.StripeWebhookSignatures;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
+import com.agilityhub.core.shared.domain.ApiException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import org.springframework.web.bind.annotation.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
@@ -38,12 +41,30 @@ public class StripeWebhookController {
             + "charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon "
             + "as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04).",
             responses = @ApiResponse(responseCode = "200", description = "Stored (processed, ignored or deferred)", content = @Content))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = BillingRequests.StripeWebhookEvent.class)))
     public void receiveStripeEvent(@PathVariable String clubId,
             @RequestHeader(value = "Stripe-Signature", required = false) @Schema(description = "t=…,v1=… (Stripe's HMAC-SHA256 of the raw body)") String signature,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = BillingRequests.StripeWebhookEvent.class))) @RequestBody byte[] body) {
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) HttpServletRequest request) {
+        byte[] body = body(request);
+        if (body.length > MAX_BODY_BYTES) { throw new ApiException(VALIDATION_ERROR); }
         signatures.authenticate(clubId, signature, body);
         access.stripeClub(clubId);
         webhooks.receive(clubId, body);
+    }
+
+    /**
+     * CFG-03: at most this many bytes of a webhook body are read, the cap of a keyed request (`IdempotencyFilter`) and of Brevo's
+     * webhook; a longer body is refused before its signature is checked, so an anonymous caller cannot make the server buffer it.
+     */
+    static final int MAX_BODY_BYTES = 1_048_576;
+
+    /** Reads at most one byte past {@link #MAX_BODY_BYTES}; an empty or unreadable body → 400, as Spring's required body was. */
+    static byte[] body(HttpServletRequest request) {
+        try {
+            byte[] body = request.getInputStream().readNBytes(MAX_BODY_BYTES + 1);
+            if (body.length == 0) { throw new ApiException(VALIDATION_ERROR); }
+            return body;
+        } catch (IOException unreadable) { throw new ApiException(VALIDATION_ERROR); }
     }
 }

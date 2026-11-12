@@ -99,6 +99,13 @@ class ClubAppTest(unittest.TestCase):
         backend = re.search(r'@backend path ([^\n]+)', self.caddy).group(1).split()
         self.assertFalse([path for path in backend if path.startswith('/internal')])
 
+    def test_CFG_03_the_core_host_caps_webhook_bodies_before_the_proxy(self):
+        # Only the Core's own host proxies /webhooks/*; Caddy stops a body above the 1 MiB the Core reads (the Core refuses it too).
+        core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
+        self.assertRegex(core, r'request_body /webhooks/\* \{\s*max_size 1MiB\s*\}\s*reverse_proxy core:8080')
+        backend = re.search(r'@backend path ([^\n]+)', self.caddy).group(1).split()
+        self.assertFalse([path for path in backend if path.startswith('/webhooks')])
+
     def test_INC_64_production_caddyfile_validates(self):
         flags = [part for key, value in PRODUCTION_ENV.items() for part in ('-e', f'{key}={value}')]
         subprocess.run(['docker', 'run', '--rm', '-v', f'{ROOT / "deploy/Caddyfile"}:/etc/caddy/Caddyfile:ro', *flags, IMAGE,
