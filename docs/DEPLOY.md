@@ -104,6 +104,10 @@ email settings before activation; never supply fake credentials to pass it.
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml up -d --wait --wait-timeout 420
    ```
 
+   A recreated or stopped Core gets SIGTERM and up to its `stop_grace_period` (60 s; Mongo 120 s) before Docker kills
+   it, so Spring's graceful shutdown (`spring.lifecycle.timeout-per-shutdown-phase`, 45 s) can finish the requests in
+   flight (CFG-06). An open build-session stream counts as one: the old Core then stops after the full 45 s.
+
 5. Smoke the deployed hosts: HTTPS health returns `UP`; each club host's
    `/api/v1/branding` identifies its intended tenant; all three SPAs load and
    deep links work; sign in and refresh once on a front host. Check the rotated

@@ -26,6 +26,8 @@ services:
       - ./mongo-entrypoint.sh:/opt/deploy/mongo-entrypoint.sh:ro
       - ./mongo-health.js:/opt/deploy/mongo-health.js:ro
     tmpfs: [/run/mongo-key:mode=0700]
+    # CFG-06: Docker's default 10 s before SIGKILL would cut mongod's clean shutdown short.
+    stop_grace_period: 120s
     healthcheck:
       test: [CMD, mongosh, --quiet, /opt/deploy/mongo-health.js]
       interval: 5s
@@ -37,6 +39,8 @@ services:
   core:
     image: ghcr.io/jboixtcm/agilityhub-core-api:${IMAGE_TAG:?Set IMAGE_TAG to a reviewed sha tag}
     restart: unless-stopped
+    # CFG-06: longer than Spring's graceful shutdown (spring.lifecycle.timeout-per-shutdown-phase, 45 s) plus closing the context.
+    stop_grace_period: 60s
     environment: &core-environment
       SPRING_PROFILES_ACTIVE: prod
       HOSTED_DEMO_ENABLED: ${HOSTED_DEMO_ENABLED:-false}
