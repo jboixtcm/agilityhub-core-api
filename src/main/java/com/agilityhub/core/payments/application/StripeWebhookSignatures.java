@@ -29,6 +29,10 @@ import org.springframework.stereotype.Service;
  * ({@link ProviderSecretVault}). A missing, malformed, wrong or stale signature, a tampered body, an unknown club, a club
  * without a secret and one whose secret does not decrypt all answer `401 WEBHOOK_SIGNATURE_INVALID` with a
  * `SecurityEvent` (S14 R-14-17) and store nothing else; the answer never says which.
+ * <p>
+ * PAY-10: an authentic event whose `livemode` contradicts the club's configured `mode` (a test event reaching a live
+ * configuration, or a live one a test configuration) is refused the same way, so test money never settles as real money when
+ * a test endpoint's secret is stored with live keys. An event without a boolean `livemode` keeps today's check.
  */
 @Service
 public class StripeWebhookSignatures {
@@ -49,7 +53,7 @@ public class StripeWebhookSignatures {
     public void authenticate(String clubId, String header, byte[] body) {
         var stripe = providers.stripe(clubId);
         String secret = stripe.map(settings -> secret(clubId, settings)).orElse(null);
-        if (secret != null && valid(header, body, secret, clock.instant()) && (!hostedDemo || testEvent(body))) { return; }
+        if (secret != null && valid(header, body, secret, clock.instant()) && (!hostedDemo || testEvent(body)) && sameMode(clubId, stripe.get().mode(), body)) { return; }
         // An unknown club is recorded without the path's text.
         securityEvents.record(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID, null, stripe.isPresent() ? clubId : null);
         throw new ApiException(ErrorCode.WEBHOOK_SIGNATURE_INVALID);
@@ -74,6 +78,16 @@ public class StripeWebhookSignatures {
             var event = JSON.readTree(body);
             return event != null && event.path("livemode").isBoolean() && !event.path("livemode").booleanValue();
         } catch (java.io.IOException invalid) { return false; }
+    }
+
+    /** PAY-10: false only when the event says `livemode` and it is not the club's configured mode. */
+    private static boolean sameMode(String clubId, String mode, byte[] body) {
+        try {
+            var livemode = JSON.readTree(body).path("livemode");
+            if (!livemode.isBoolean() || livemode.booleanValue() == "live".equals(mode)) { return true; }
+        } catch (java.io.IOException | RuntimeException unreadable) { return true; }
+        LOG.warn("Stripe webhook event of the other mode refused: clubId={} mode={}", clubId, mode);
+        return false;
     }
 
     /** Stripe's scheme: one `t`, at least one `v1` equal to HMAC-SHA256(secret, "{t}.{body}") in hex, `t` within the tolerance. */

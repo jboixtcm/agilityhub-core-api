@@ -208,6 +208,22 @@ class CardPaymentsIT extends BillingItSupport {
         error(post("/webhooks/stripe/" + CLUB).contentType("application/json").content("{}"), 401, "WEBHOOK_SIGNATURE_INVALID");
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "stripe_events")).isZero();
     }
+    /** PAY-10: the club is in test mode, so a correctly signed live event is refused like a bad signature and nothing is stored. */
+    @Test void PAY_10_aSignedEventOfTheOtherModeWritesOnlySecurityEvent() throws Exception {
+        long at = clock.instant().getEpochSecond();
+        for (boolean livemode : new boolean[] {true, false}) {
+            String body = mapper.writeValueAsString(Map.of("id", "evt_pay10_" + livemode, "type", "customer.created", "livemode", livemode, "created", at,
+                    "data", Map.of("object", Map.of("id", "cus_pay10"))));
+            var mac = Mac.getInstance("HmacSHA256"); mac.init(new SecretKeySpec(SECRET.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            String signature = "t=" + at + ",v1=" + HexFormat.of().formatHex(mac.doFinal((at + "." + body).getBytes(StandardCharsets.UTF_8)));
+            var request = post("/webhooks/stripe/" + CLUB).header("Stripe-Signature", signature).contentType("application/json").content(body);
+            if (livemode) {
+                error(request, 401, "WEBHOOK_SIGNATURE_INVALID");
+                assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "stripe_events")).isZero();
+            } else { ok(request, 200); }
+        }
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "stripe_events")).isEqualTo(1);
+    }
     @Test void T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails() throws Exception {
         for (int i = 0; i < 25; i++) { member("batch-" + i, 400 + i, "Batch", "Example" + i, validCard("batch-" + i), "abonat"); }
         fake.requireAction();
