@@ -22,6 +22,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Import(IntegrationTestConfiguration.class)
 public abstract class AbstractIntegrationTest {
 
+    /**
+     * REL-09: the integration tests run on production's Mongo, 7.0.41 by its digest (`deploy/compose.prod.yaml`; Testcontainers
+     * takes a tag or a digest, not both). {@code MongoImagePinTest} fails when the two differ.
+     */
+    public static final String MONGO_IMAGE = "mongo@sha256:8102f674c3d5b5c3b5a248397778b8d148a998c6409f390ff62628eb617f0847";
+
     // Singleton lifecycle: no @Container, which would stop Mongo after each subclass.
     // Testcontainers' Ryuk cleans up when the test JVM exits.
     protected static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
@@ -35,7 +41,7 @@ public abstract class AbstractIntegrationTest {
     // Fixtures use MockClock; Mongo's wall-clock TTL worker would delete their historical
     // tokens/events nondeterministically. Keep TTL indexes and application expiry checks.
     // Testcontainers 2 (E11-T07): the single-node replica set (transactions) is opt-in.
-    protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7").withReplicaSet()
+    protected static final MongoDBContainer MONGO = new MongoDBContainer(MONGO_IMAGE).withReplicaSet()
             .withCommand("--replSet", "docker-rs", "--bind_ip_all", "--setParameter", "ttlMonitorEnabled=false");
 
     static {

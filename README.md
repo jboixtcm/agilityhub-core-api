@@ -106,7 +106,9 @@ of Spring Data dependencies.
 JDK 21 is required. `verify` also requires a running Docker engine: integration
 tests fail if Docker is unavailable. The Compose stack is not required for
 tests; Testcontainers creates an isolated MongoDB 7 replica set on a random
-port and cleans it up after the test JVM exits. The Maven wrapper downloads its
+port and cleans it up after the test JVM exits. It runs production's image
+(7.0.41, pinned by the digest of `deploy/compose.prod.yaml`; `MongoImagePinTest`
+keeps the two equal, REL-09). The Maven wrapper downloads its
 pinned distribution on the first run.
 
 ```sh

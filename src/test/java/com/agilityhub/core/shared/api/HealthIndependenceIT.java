@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
 class HealthIndependenceIT {
     // Separate storage proves startup and every probe work before any club/account is seeded.
-    @Container static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7").withReplicaSet();
+    @Container static final MongoDBContainer MONGO = new MongoDBContainer(com.agilityhub.core.support.AbstractIntegrationTest.MONGO_IMAGE).withReplicaSet();
     /**
      * E5-T27 round 3: a master key persists the signing key ring, as on staging and prod, so decoding any bearer reads it from
      * Mongo (`SigningKeys.publicKeys()`). The ring is written at startup: it is bootstrap, not club or account data.
