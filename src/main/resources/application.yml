@@ -65,7 +65,9 @@ identity:
 
 agilityhub:
   legal:
-    privacyPolicyVersion: ${PLATFORM_PRIVACY_POLICY_VERSION:v1}
+    # PRIV-01: the platform policy apps/id serves at /privacy; the version is its PRIVACY_POLICY_VERSION and the «Versió» of
+    # docs/legal/POLITICA_PRIVACITAT_AGILITYHUB_ID.md (LegalPolicyDefaultsTest). A new version asks every account to accept again.
+    privacyPolicyVersion: ${PLATFORM_PRIVACY_POLICY_VERSION:2}
     privacyPolicyUrl: ${PLATFORM_PRIVACY_POLICY_URL:https://id.agilitydoghub.com/privacy}
 
 spring:
