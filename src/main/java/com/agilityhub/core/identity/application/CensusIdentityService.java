@@ -57,7 +57,7 @@ public class CensusIdentityService {
      * account must be active with an active membership here (`422 MEMBER_NOT_ACTIVE`); a club changes only an account that is
      * its own alone, as R-01-14 renames only such an account: not one with another club's membership or a platform role
      * (`403 FORBIDDEN`); the new address must differ from the current one (`400 VALIDATION_ERROR`, `email` · `UNCHANGED`); and the
-     * resend's magic-link limits apply to the new address. Returns the normalised new address.
+     * magic-link limits of `/auth/magic-link` apply to the new address (10/h per address, 60/h per IP). Returns the normalised new address.
      */
     public String checkLoginEmailChange(String accountId, String email, String ip) {
         String current = accessEmail(accountId);

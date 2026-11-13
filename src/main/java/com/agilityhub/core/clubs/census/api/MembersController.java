@@ -151,7 +151,7 @@ public class MembersController {
                     + "cleared and ACCOUNT_EMAIL_CHANGED is audited as the requesting ADMIN's. A newer request supersedes an unused one. "
                     + "Only an ACTIVE member with an account (422 MEMBER_NOT_ACTIVE); only an account that is this club's alone, without a "
                     + "platform role (403 FORBIDDEN); the new address must differ from the current one (400 VALIDATION_ERROR, fieldErrors "
-                    + "email · UNCHANGED); the magic-link limits of the resend apply to the new address (429 RATE_LIMITED). An address that "
+                    + "email · UNCHANGED); the limits of /auth/magic-link apply to the new address, per address and per IP (429 RATE_LIMITED). An address that "
                     + "already belongs to another account gets no link, with the same 202 (no existence is revealed); a link whose address "
                     + "was taken in between answers MAGIC_LINK_INVALID and changes nothing.",
             responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse: sentTo is the new address"))
