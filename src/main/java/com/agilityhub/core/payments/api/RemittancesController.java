@@ -109,6 +109,23 @@ public class RemittancesController {
         return BillingViews.remittance(submitted);
     }
 
+    @PostMapping("/api/v1/remittances/{id}/submission-undo")
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
+    @Operation(summary = "undoRemittanceSubmission", description = ROLES + "SEPA-04 (a), R-12-15 [Desfés «enviada al banc»]: the file did not "
+            + "reach the bank (refused, or marked by mistake): SUBMITTED → GENERATED, submittedAt and submittedByAccountId removed; "
+            + "REMITTANCE_SUBMISSION_UNDONE audit with the reason. Only before the remittance's collection date (club-local) → otherwise "
+            + "409 INVALID_STATE {reason: COLLECTION_DATE_PASSED}; and only while every receipt of the remittance is still COLLECTING in it "
+            + "with its attempt here open and last (none marked returned or paid, cancelled or charged by card since) → otherwise 409 "
+            + "INVALID_STATE {reason: INVOICE_CHANGED, invoiceIds}. Not SUBMITTED → 409 INVALID_STATE {status}. The run can then be rolled "
+            + "back (R-12-14). The same Idempotency-Key answers the same remittance." + SERVED,
+            responses = @ApiResponse(responseCode = "200", description = "Remittance", useReturnTypeSchema = true))
+    public Remittance undoRemittanceSubmission(@PathVariable String id, @Valid @RequestBody SubmissionUndoRequest request,
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        access.remittance(id);
+        var undone = transactions.keyed(200, () -> remittances.undoSubmission(id, request.reason()), result -> json(BillingViews.remittance(result)));
+        return BillingViews.remittance(undone);
+    }
+
     private byte[] json(Object body) {
         try { return mapper.writeValueAsBytes(body); }
         catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalStateException(failure); }

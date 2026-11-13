@@ -33,7 +33,8 @@ class RemittanceServiceSurvivorsTest {
 
     final RemittanceRepository remittances = mock(RemittanceRepository.class);
     final ExportFileStore files = mock(ExportFileStore.class);
-    final RemittanceService service = new RemittanceService(remittances, files, mock(ClubConfigService.class), mock(AuditWriter.class),
+    final RemittanceService service = new RemittanceService(remittances, mock(com.agilityhub.core.payments.persistence.BillingDocuments.InvoiceRepository.class),
+            mock(com.agilityhub.core.payments.persistence.BillingDocuments.CollectionRepository.class), files, mock(ClubConfigService.class), mock(AuditWriter.class),
             Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test void T_12_21_anUnknownRemittanceIsNotFound() {

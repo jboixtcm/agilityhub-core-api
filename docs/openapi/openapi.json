@@ -1805,7 +1805,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "ACCOUNT_EMAIL_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "CLASS_RESTORED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "SUPPORT_ACCESS_ENDED", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "REMITTANCE_SUBMISSION_UNDONE", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "ACCOUNT_EMAIL_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "CLASS_RESTORED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "SUPPORT_ACCESS_ENDED", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -23391,6 +23391,18 @@
           }
         },
         "required" : [ "submittedAt" ],
+        "type" : "object"
+      },
+      "SubmissionUndoRequest" : {
+        "properties" : {
+          "reason" : {
+            "description" : "SEPA-04 (R-12-15): why the remittance is no longer taken as sent, e.g. the bank refused the file or it was marked by mistake; kept in the audit entry",
+            "maxLength" : 500,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "reason" ],
         "type" : "object"
       },
       "SupportAccess" : {
@@ -83524,6 +83536,165 @@
           }
         },
         "summary" : "submitRemittance",
+        "tags" : [ "payments" ]
+      }
+    },
+    "/api/v1/remittances/{id}/submission-undo" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. SEPA-04 (a), R-12-15 [Desfés «enviada al banc»]: the file did not reach the bank (refused, or marked by mistake): SUBMITTED → GENERATED, submittedAt and submittedByAccountId removed; REMITTANCE_SUBMISSION_UNDONE audit with the reason. Only before the remittance's collection date (club-local) → otherwise 409 INVALID_STATE {reason: COLLECTION_DATE_PASSED}; and only while every receipt of the remittance is still COLLECTING in it with its attempt here open and last (none marked returned or paid, cancelled or charged by card since) → otherwise 409 INVALID_STATE {reason: INVOICE_CHANGED, invoiceIds}. Not SUBMITTED → 409 INVALID_STATE {status}. The run can then be rolled back (R-12-14). The same Idempotency-Key answers the same remittance. Tenant comes from the JWT; another club's resource → 404.",
+        "operationId" : "undoRemittanceSubmission",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SubmissionUndoRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Remittance"
+                }
+              }
+            },
+            "description" : "Remittance"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "undoRemittanceSubmission",
         "tags" : [ "payments" ]
       }
     },

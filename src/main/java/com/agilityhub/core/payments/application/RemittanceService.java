@@ -1,6 +1,10 @@
 package com.agilityhub.core.payments.application;
 
+import com.agilityhub.core.payments.domain.CollectionStatus;
+import com.agilityhub.core.payments.domain.InvoiceStatus;
 import com.agilityhub.core.payments.domain.RemittanceStatus;
+import com.agilityhub.core.payments.persistence.BillingDocuments.CollectionRepository;
+import com.agilityhub.core.payments.persistence.BillingDocuments.InvoiceRepository;
 import com.agilityhub.core.payments.persistence.BillingDocuments.RemittanceRepository;
 import com.agilityhub.core.payments.persistence.Remittance;
 import com.agilityhub.core.platform.application.ClubConfigService;
@@ -17,7 +21,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,6 +39,9 @@ import org.springframework.stereotype.Service;
  * bank (not after today, not before the remittance's own day; stored as that day's start in the club's zone) and the admin
  * who marked it, audited `REMITTANCE_SUBMITTED`; any other status is `409 INVALID_STATE`. From then on the run cannot be
  * rolled back (`RUN_NOT_ROLLBACKABLE {reasons: [REMITTANCE_SUBMITTED]}`) and an unpaid debit follows R-12-17.</li>
+ * <li>{@link #undoSubmission}: SEPA-04 (a), R-12-15 [Desfés «enviada al banc»], `SUBMITTED → GENERATED` with the admin's reason,
+ * audited `REMITTANCE_SUBMISSION_UNDONE`: only before the remittance's collection date and while every receipt it carries is as
+ * the run left it.</li>
  * </ul>
  */
 @Service
@@ -41,10 +50,12 @@ public class RemittanceService {
     public record FileLink(String downloadUrl, String fileName, Instant expiresAt) { }
     public record Download(InputStream content, String fileName, String contentType) { }
 
-    private final RemittanceRepository remittances; private final ExportFileStore files; private final ClubConfigService configs;
-    private final AuditWriter audit; private final Clock clock;
-    public RemittanceService(RemittanceRepository remittances, ExportFileStore files, ClubConfigService configs, AuditWriter audit, Clock clock) {
-        this.remittances = remittances; this.files = files; this.configs = configs; this.audit = audit; this.clock = clock;
+    private final RemittanceRepository remittances; private final InvoiceRepository invoices; private final CollectionRepository collections;
+    private final ExportFileStore files; private final ClubConfigService configs; private final AuditWriter audit; private final Clock clock;
+    public RemittanceService(RemittanceRepository remittances, InvoiceRepository invoices, CollectionRepository collections, ExportFileStore files,
+            ClubConfigService configs, AuditWriter audit, Clock clock) {
+        this.remittances = remittances; this.invoices = invoices; this.collections = collections; this.files = files; this.configs = configs;
+        this.audit = audit; this.clock = clock;
     }
 
     public Remittance get(String id) { return remittances.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
@@ -90,6 +101,49 @@ public class RemittanceService {
         audit.write(new AuditCommand(AuditAction.REMITTANCE_SUBMITTED, "Remittance", id, null, remittance, after, null),
                 Map.of("runId", remittance.runId(), "period", remittance.period(), "messageId", remittance.messageId(), "submittedOn", submittedAt.toString()));
         return after;
+    }
+
+    /**
+     * SEPA-04 (a), R-12-15 [Desfés «enviada al banc»]: the file did not reach the bank (it refused it, or the remittance was marked
+     * by mistake), so `SUBMITTED → GENERATED`, its `submittedAt` and `submittedByAccountId` removed. Allowed only before the
+     * remittance's collection date (club-local) — `409 INVALID_STATE {reason: COLLECTION_DATE_PASSED}` — and while every receipt it
+     * carries is as the run left it: `COLLECTING` in this remittance, its attempt here still open and its last one (none returned,
+     * paid, cancelled or charged by card since) — `409 INVALID_STATE {reason: INVOICE_CHANGED, invoiceIds}`. Not `SUBMITTED` →
+     * `409 INVALID_STATE {status}`. Audited `REMITTANCE_SUBMISSION_UNDONE` with the admin's reason. The run can then be rolled
+     * back (R-12-14), and D6 asks again to mark the remittance sent.
+     */
+    public Remittance undoSubmission(String id, String reason) {
+        var remittance = get(id);
+        if (remittance.status() != RemittanceStatus.SUBMITTED) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", remittance.status().name())); }
+        ZoneId zone = ZoneId.of(configs.get(TenantContext.require()).club().timeZone());
+        if (!LocalDate.ofInstant(clock.instant(), zone).isBefore(LocalDate.parse(remittance.requestedCollectionDate()))) {
+            throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "COLLECTION_DATE_PASSED"));
+        }
+        var changed = changedInvoices(remittance);
+        if (!changed.isEmpty()) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "INVOICE_CHANGED", "invoiceIds", changed)); }
+        if (!remittances.undoSubmission(id)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+        var after = get(id);
+        var details = new java.util.LinkedHashMap<String, Object>();
+        details.put("runId", remittance.runId()); details.put("period", remittance.period()); details.put("messageId", remittance.messageId());
+        if (remittance.submittedAt() != null) { details.put("submittedOn", LocalDate.ofInstant(remittance.submittedAt(), zone).toString()); }
+        audit.write(new AuditCommand(AuditAction.REMITTANCE_SUBMISSION_UNDONE, "Remittance", id, null, remittance, after, reason), details);
+        return after;
+    }
+    /** The receipts of {@code remittance} that something touched since the run: not as {@link #undoSubmission} requires. */
+    private List<String> changedInvoices(Remittance remittance) {
+        var changed = new TreeSet<String>();
+        for (String collectionId : remittance.collectionIds()) {
+            var attempt = collections.findById(collectionId).orElse(null);
+            if (attempt == null) { continue; }
+            var invoice = invoices.findById(attempt.invoiceId()).orElse(null);
+            var attempts = collections.forInvoice(attempt.invoiceId());
+            boolean open = attempt.status() == CollectionStatus.CREATED || attempt.status() == CollectionStatus.SUBMITTED;
+            boolean last = !attempts.isEmpty() && attempts.getLast().id().equals(attempt.id());
+            if (invoice == null || invoice.status() != InvoiceStatus.COLLECTING || !remittance.id().equals(invoice.remittanceId()) || !open || !last) {
+                changed.add(attempt.invoiceId());
+            }
+        }
+        return List.copyOf(changed);
     }
 
     /** `remesa-{period}.xml` (S12 §2 «Descarrega l'XML»). */

@@ -27,7 +27,7 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | Notificacions `/notifications` | — | R pròpies · X accions natives | R pròpies | R pròpies + R log complet del club | — |
 | Preferències d'avís | — | RW pròpies | RW pròpies | RW de qualsevol abonat (D10) | — |
 | Comunicats massius (`/message-templates/{id}/send`) | — | — | — | X | — |
-| Facturació (rebuts, remeses, cobraments, exports) | — | R rebuts propis | — | RW + X (simular, generar, retrocedir, marcar cobrat/impagat, reintentar Stripe, reemborsar) | — |
+| Facturació (rebuts, remeses, cobraments, exports) | — | R rebuts propis | — | RW + X (simular, generar, retrocedir, marcar enviada / desfer «enviada», marcar cobrat/impagat, reintentar Stripe, reemborsar) | — |
 | Pagaments a l'acte (`/checkout-sessions`) | W (alta amb Stripe) | W propi | — | W en nom de l'abonat (manual) | — |
 | Inactivitat / baixa | — | W sol·licitud pròpia | — | RW + X (aprovar, denegar, data d'efecte) | — |
 | Tauler D1, KPIs | — | — | — | R | R agregat per club (consola) |

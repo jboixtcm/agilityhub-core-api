@@ -263,6 +263,15 @@ public final class BillingDocuments {
                     new Update().set("status", "SUBMITTED").set("submittedAt", submittedAt).set("submittedByAccountId", accountId).inc("version", 1L),
                     "remittances").getMatchedCount() == 1;
         }
+        /**
+         * SEPA-04 (a), R-12-15: `SUBMITTED → GENERATED`, the submission's day and admin removed; false when it is no longer
+         * `SUBMITTED`.
+         */
+        public boolean undoSubmission(String id) {
+            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("SUBMITTED")),
+                    new Update().set("status", "GENERATED").unset("submittedAt").unset("submittedByAccountId").inc("version", 1L),
+                    "remittances").getMatchedCount() == 1;
+        }
         /** R-12-12 (E8-T03): which of {@code ids} were marked as sent to the bank (their debits count as submitted). */
         public java.util.Set<String> submittedAmong(java.util.Collection<String> ids) {
             var query = tenantQuery().addCriteria(Criteria.where("_id").in(List.copyOf(ids)).and("status").is("SUBMITTED"));

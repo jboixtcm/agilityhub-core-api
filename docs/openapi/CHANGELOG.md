@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · SEPA-04 (a) · Undo «sent to the bank»
+
+**1 operation added (`POST /remittances/{id}/submission-undo`); 1 schema added (`SubmissionUndoRequest`); 1 enum value added (`AuditAction`: `REMITTANCE_SUBMISSION_UNDONE`); no error codes added.**
+
+- New `POST /remittances/{id}/submission-undo` (ADMIN, module `BILLING`, no impersonation; `Idempotency-Key` required; body `{reason}`, 1–500 characters; `200 Remittance`): a remittance marked sent whose file did not reach the bank goes back to `GENERATED`, its `submittedAt` and `submittedByAccountId` removed, audited `REMITTANCE_SUBMISSION_UNDONE` with the reason. Only before its collection date (club-local) and while every receipt of the remittance is still `COLLECTING` in it, its attempt there open and its last one. `400 VALIDATION_ERROR` (blank reason) · `404 NOT_FOUND` · `409 INVALID_STATE {status}` (not `SUBMITTED`) / `{reason: COLLECTION_DATE_PASSED}` / `{reason: INVOICE_CHANGED, invoiceIds}` · `409 STALE_VERSION`. Afterwards the run is rollbackable again (`POST /billing/runs/{id}/rollback`) and `GET /billing/periods/{period}` shows `submissionDue` again.
+
 ## 2026-11-13 · COMM-03 · Staff actions may skip the member's notice
 
 **No operations added; 1 schema added (`PaymentMethodUpdate`); 6 schema properties added (`notifyMember`, optional, `boolean | null`, on `BookingRequest`, `ClaimRequest`, `BookingCancellationRequest`, `TrainingBookingRequest`, `TrainingCancellationRequest`, `DogLevelRequest`); 1 error code added to 5 operations (`403 FORBIDDEN`); 7 operation descriptions changed.**

@@ -26,6 +26,8 @@ public final class BillingRequests {
             @NotBlank @Schema(description = "The word D6's confirmation dialog asks to type (R-12-14): RETROCEDIR, or FITXER_NO_ENVIAT when the "
                     + "file was never sent to the bank — it lifts only COLLECTION_DATE_PASSED (E156)") String confirmation) { }
     public record SubmissionRequest(@NotNull @Schema(description = "The club-local day the XML was uploaded to the bank (R-12-15)") LocalDate submittedAt) { }
+    public record SubmissionUndoRequest(@NotBlank @Size(max = 500) @Schema(description = "SEPA-04 (R-12-15): why the remittance is no longer "
+            + "taken as sent, e.g. the bank refused the file or it was marked by mistake; kept in the audit entry") String reason) { }
     public record ManualInvoiceLine(@NotBlank @Size(max = 140) String description, @NotNull @Valid Money base,
             @NotNull @DecimalMin("0") @DecimalMax("100") BigDecimal taxPercent) { }
     public record ManualInvoiceRequest(@NotBlank @Schema(format = "uuid") String memberId, @NotEmpty List<@Valid ManualInvoiceLine> lines,
