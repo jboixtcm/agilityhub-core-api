@@ -1123,9 +1123,8 @@ runbook (E12-T02). They are rules of the specs, not defects:
   (`COLLECTION_DATE_PASSED`, E147). From the day before, D6 shows
   `submissionDue`. P5i settles only a `SUBMITTED` remittance.
 - **`--cut-over` is a day of the launch month**, never the rehearsal's today
-  (`PlayoffCommand`: the club's today when omitted). It sets the mandates'
-  signature date and every monthly member's first `nextInvoiceDate` (01 of the
-  next month, R-18-13).
+  (`PlayoffCommand`: the club's today when omitted). It sets every monthly
+  member's first `nextInvoiceDate` (01 of the next month, R-18-13).
 - **Cash members already paid in Playoff**: list them in `pagat_fins.csv`
   (`Member ID;Paid until`, `YYYY-MM`). Without it, the first run bills the months
   of their half-year that Playoff already charged. After the load, correct one
@@ -1138,12 +1137,22 @@ runbook (E12-T02). They are rules of the specs, not defects:
 - **`--cut-over` is mandatory in production** (round 2, E156):
   `migration:playoff --apply --env production` without it is refused before
   anything is read. The production `--dry-run` keeps the club's today.
-- **Resolve every `NUMBER_CONFLICT` on an ACTIVE SEPA record in Playoff before
-  the real cut-over.** Such a record is loaded without a mandate
-  (`MANDATE_PENDING`). The rehearsal's simulation lists each one as a
-  `MANDATE_PENDING` incident and the run skips it (E156). Fix the number in
-  Playoff and load again: the member gets `{slug}-{number}-1`, signed on the
-  cut-over.
+- **The mandates come from `mandats.csv`** (SEPA-02, S18 R-18-08): one row per
+  record with its Playoff mandate reference and signature date. Its headings in
+  `playoff-v2.yaml` are the rehearsal's (`Member ID;Mandate reference;Signed
+  on`): put the real export's in the `--mapping`. Nothing is invented: every
+  SEPA member without a row is loaded without a mandate and listed as `members
+  WARNING MANDATE_PENDING`; the simulation shows it as a `MANDATE_PENDING`
+  incident and the run skips it (E156). A reference outside the SEPA rules, a
+  reference given to two members, two mandates for one member, or a missing or
+  future date is an `ERROR` on its row (field `mandateRef`, `mandateSignedAt` or
+  `memberId`) and nothing is loaded. To resolve listed members after the load,
+  add their rows and run an approved reapply of step 5 (`--steps=5`,
+  `MIGRATION_STEPS.md`): it replaces the stored reference and date of every
+  member with a row and leaves without a mandate every member without one.
+  Step 5 also rewrites the IBAN, holder, plan, price and `nextInvoiceDate` from
+  the export: read the dry run before applying, and do it before a billing run
+  has moved any `nextInvoiceDate` (or correct those dates afterwards).
 - **`previsio.csv` is optional.** It only feeds the reconciliation (R-18-13).
   One unreadable row of it, or one short, long or broken row of `rebuts.csv`,
   `packs.csv`, `mandats.csv` or `pagat_fins.csv`, is a warning on its line and is

@@ -34,6 +34,14 @@ public final class CensusRules {
     /** pain.008 `MndtId` is `Max35Text`. */
     public static final int MANDATE_REF_MAX = 35;
     /**
+     * SEPA-02 (S18 R-18-08): a mandate reference a club brings from its previous system — `Max35Text` in the EPC basic Latin set,
+     * neither starting nor ending with `/` and without `//` (the EPC rule for every identifier of the file).
+     */
+    public static boolean validMandateRef(String reference) {
+        return reference != null && !reference.isBlank() && reference.length() <= MANDATE_REF_MAX && SepaCharacters.containsOnly(reference)
+                && !reference.startsWith("/") && !reference.endsWith("/") && !reference.contains("//");
+    }
+    /**
      * E43 (S12 §7, S18 R-18-08): the mandate of a member is `{clubSlug}-{memberNumber}-{n}`, the migrated format, never above
      * 35 characters: a long slug is cut. The last two segments are the member number and {@code n}, so two members of a club
      * never share a reference. {@code n} is 1, or the next one after {@code previous} when that was this member's own mandate

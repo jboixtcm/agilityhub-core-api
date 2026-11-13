@@ -275,6 +275,39 @@ class MigrationStagedImportIT extends AbstractIntegrationTest {
         assertThat(rows("invoices")).singleElement().satisfies(row->assertThat(row).containsEntry("memberId",memberId));
         assertThat(rows("pack_balances")).singleElement().satisfies(row->assertThat(row).containsEntry("memberId",memberId));
     }
+    /**
+     * SEPA-02 (S18 R-18-08, R-18-14): after the production load, an approved reapply of step 5 with the mandates file gives each member
+     * with a row that reference and signature date in place of the mandate the earlier load stored, and keeps the replaced
+     * `{slug}-{number}-n` sequence; a member without a row is left without a mandate and listed (`MANDATE_PENDING`). The fields of the
+     * stages not selected are not touched.
+     */
+    @Test void SEPA_02_anApprovedReapplyOfStep5ReplacesTheStoredMandatesWithThePreviousSystemsOnes() throws Exception {
+        green(execute(false,true,request("1-10",null))); var prior=latest();
+        var cutover=Date.from(CUTOVER.atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant());
+        // The production load of October (before SEPA-02) stored an invented mandate on every SEPA member.
+        for(int ordinal:List.of(50,51)) {
+            assertThat(member(ordinal).get("paymentMethod",Document.class)).containsEntry("type","SEPA_DD");
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(member(ordinal).get("_id"))),new Update()
+                    .set("paymentMethod.mandateRef",CLUB+"-"+member(ordinal).get("memberNumber")+"-1").set("paymentMethod.mandateSignedAt",cutover),"members");
+        }
+        String name=member(50).getString("firstName"); change(50,"firstName","Not part of step 5");
+        Files.writeString(fixture.resolve("mandats.csv"),"Member ID;Mandate reference;Signed on\n"+source(50)+";PO-000050;2018-05-02\n");
+        var steps=MigrationSteps.parse("5");
+        var approved=new ReapplyApproval(CLUB,prior.id(),ReapplyApproval.manifestSha256(input().manifest()),CUTOVER,steps,
+                "Fictional operator",clock.instant(),"Fictional load of the previous mandates","fictional-runbook-entry",UUID.randomUUID().toString());
+        var report=execute(false,true,new MigrationExecutionRequest(steps,true,null,approved)); green(report);
+        assertThat(member(50).get("paymentMethod",Document.class)).containsEntry("mandateRef","PO-000050")
+                .containsEntry("mandateSignedAt",Date.from(LocalDate.of(2018,5,2).atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant()))
+                .containsEntry("lastMandateSequence",1).containsKey("ibanEncrypted");
+        assertThat(member(51).get("paymentMethod",Document.class)).containsEntry("mandateRef",null).containsEntry("mandateSignedAt",null)
+                .containsEntry("lastMandateSequence",1);
+        assertThat(report.rows()).anySatisfy(row->{
+            assertThat(row.file()).isEqualTo("members"); assertThat(row.row()).isEqualTo(52); assertThat(row.code()).isEqualTo("MANDATE_PENDING");
+        });
+        assertThat(report.rows()).noneSatisfy(row->{ assertThat(row.row()).isEqualTo(51); assertThat(row.code()).isEqualTo("MANDATE_PENDING"); });
+        assertThat(member(50)).containsEntry("firstName",name);
+        assertThat(latest().execution().approvalDigest()).isEqualTo(approved.digest());
+    }
     ReapplyApproval approval(MigrationRun prior) {
         return new ReapplyApproval(CLUB,prior.id(),ReapplyApproval.manifestSha256(input().manifest()),CUTOVER,MigrationSteps.all(),
                 "Fictional operator",clock.instant(),"Fictional mapped-field correction","fictional-runbook-entry",UUID.randomUUID().toString());

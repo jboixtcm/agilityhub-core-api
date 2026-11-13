@@ -67,6 +67,16 @@ class CensusRulesTest {
         assertThat(CensusRules.keepMandateSequence("canic", 87, null, card)).isEqualTo(card);
         assertThat(CensusRules.keepMandateSequence("canic", 87, java.util.Map.of("mandateRef", "canic-87-1"), null)).isNull();
     }
+    /** SEPA-02 (S18 R-18-08): a mandate reference of the mandates file must be one the pain.008 can carry under the EPC rules. */
+    @Test void SEPA_02_aMandateReferenceOfThePreviousSystemFollowsTheEpcRules() {
+        for (String valid : java.util.List.of("PO-000123", "A", "12345678901234567890123456789012345", "ab/cd-ef?gh:(1).2,'3+ x", "canic-87-1")) {
+            assertThat(CensusRules.validMandateRef(valid)).as(valid).isTrue();
+        }
+        for (String invalid : java.util.Arrays.asList(null, "", "   ", "123456789012345678901234567890123456", "PO_000123", "MANDAT-Ñ1",
+                "/PO-1", "PO-1/", "PO//1", "PO-1\n")) {
+            assertThat(CensusRules.validMandateRef(invalid)).as(String.valueOf(invalid)).isFalse();
+        }
+    }
     @Test void T_03_04_completeYearsAtEachClubLocalDate() {
         var time = Instant.parse("2026-09-03T00:30:00Z"); var birth = LocalDate.parse("2022-03-12");
         assertThat(CensusRules.age(birth, time.atZone(ZoneId.of("Europe/Madrid")).toLocalDate())).isEqualTo(4);

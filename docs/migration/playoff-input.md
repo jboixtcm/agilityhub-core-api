@@ -254,11 +254,23 @@ no password, and the club's default locale; existing accounts remain intact.
 Memberships get MEMBER plus explicit team/instructor roles; LEFT members get none.
 Loading sends no notifications or welcome links.
 
-Every SEPA record receives a new cutover mandate reference using club slug and
-member number (stable member id if the number is absent), with the club-local
-cutover date, preserved on reapply. These exports contain no mandate fields;
-S12 owns remittance generation and reads the existing `billing.sepa.useFrst=false`
-product default for RCUR. RSCE category/grade and FCAG division populate only their respective licenses.
+SEPA-02 (S18 R-18-08): the club continues its previous mandates. The optional
+`mandats.csv` (`memberId`, `mandateRef`, `mandateSignedAt`; rehearsal headings)
+gives a record's mandate reference and signature date, and reaches the member
+through any record of the person. Before anything is written, each row is
+checked: the reference must be SEPA `Max35Text` in the EPC character set, must
+not start or end with `/` nor contain `//`, and must belong to one member only
+(in the file and among the members this load does not write, ignoring case);
+the date must be present, readable and not after the club's today; a member
+must not get two different mandates. A failing row is `members ERROR
+INPUT_SCHEMA_MISMATCH` with the field (`mandateRef`, `mandateSignedAt` or
+`memberId`); the report never prints the reference. No mandate is invented: a
+SEPA member without a row (or with an empty reference) gets `mandateRef` and
+`mandateSignedAt` null and a `members WARNING MANDATE_PENDING` line. A reapply
+replaces the stored mandate with the file's (or none) and keeps the replaced
+`{slug}-{number}-n` sequence in `lastMandateSequence`. S12 owns remittance
+generation and reads the existing `billing.sepa.useFrst=false` product default
+for RCUR. RSCE category/grade and FCAG division populate only their respective licenses.
 Card methods become MANUAL with `CARD_NOT_MIGRATED` and no guessed cash channel;
 invalid/absent IBANs stay absent. Future leave dates are retained on the member;
 S13 owns the eventual leave workflow. No auxiliary inactivity-period input is
