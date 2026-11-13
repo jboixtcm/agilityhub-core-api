@@ -239,10 +239,11 @@ public class MemberService {
     }
     @Transactional
     @Audited(action = AuditAction.ACCESS_RESENT, entityType = "'Member'", entity = "#id", member = "#id", reason = "'ACCESS_RESENT'")
-    public String resend(String id, String ip) {
+    public String resend(String id) {
         var member = access.mutableMember(id);
         if (!"ACTIVE".equals(member.status) || member.accountId == null) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
-        String email = identities.accessEmail(member.accountId); identities.limitResend(email, ip);
+        // WEB-01 (S03 R-03-06): the welcome is sent only here, one member at a time; limited per address and per club.
+        String email = identities.accessEmail(member.accountId); identities.limitWelcome(email);
         events.emit("AccessResent", "Member", id, object("memberId", id, "accountId", member.accountId)); return email;
     }
 }

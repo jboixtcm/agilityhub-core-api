@@ -210,6 +210,8 @@ core:
       token-account: {capacity: 10, period: 1m}
       magic-link-email: {capacity: 10, period: 1h}
       magic-link-ip: {capacity: 60, period: 1h}
+      # WEB-01: the D10 welcome e-mails of one club, whatever the administrator's address (per-address bucket above as well).
+      access-resend-club: {capacity: 60, period: 1h}
     cors:
       platform-hosts: ${CORS_PLATFORM_HOSTS:id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
 

@@ -130,9 +130,12 @@ public class MembersController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({MEMBER_NOT_ACTIVE, RATE_LIMITED, MEMBER_ERASED})
     @Operation(summary = "Resend access",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. "
+                    + "S03 R-03-06 (WEB-01): D10's «Envia la benvinguda», the welcome e-mail (N-27, variant ADMIN_WELCOME, a link valid "
+                    + "auth.welcomeLinkDays) to an ACTIVE member's account, sent only when an ADMIN asks, one member at a time. "
+                    + "429 RATE_LIMITED (details.retryAfter) per address and per club, not per the administrator's IP.",
             responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse"))
-    public AccessResendResponse resendAccess(@PathVariable String id, jakarta.servlet.http.HttpServletRequest http) { return new AccessResendResponse(transactions.run(() -> members.resend(id, http.getRemoteAddr()))); }
+    public AccessResendResponse resendAccess(@PathVariable String id) { return new AccessResendResponse(transactions.run(() -> members.resend(id))); }
 
     @PostMapping("/api/v1/members/{id}/login-email")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")

@@ -80,6 +80,16 @@ public class CensusIdentityService {
                 limits.retryAfter(RateLimits.Route.MAGIC_LINK_IP, ip == null ? "census" : ip));
         if (retry > 0) { throw new ApiException(ErrorCode.RATE_LIMITED, Map.of("retryAfter", retry)); }
     }
+    /**
+     * WEB-01 (owner decision 13-11-2026, S03 R-03-06): the D10 welcome e-mail is limited per address (the magic link's 10/h) and per
+     * club (`ACCESS_RESEND_CLUB`), never by the administrator's IP: that bucket stays the members' own sign-in requests', which
+     * come from the same club network.
+     */
+    public void limitWelcome(String email) {
+        long retry = Math.max(limits.retryAfter(RateLimits.Route.MAGIC_LINK_EMAIL, TokenService.digest(email)),
+                limits.retryAfter(RateLimits.Route.ACCESS_RESEND_CLUB, TenantContext.require()));
+        if (retry > 0) { throw new ApiException(ErrorCode.RATE_LIMITED, Map.of("retryAfter", retry)); }
+    }
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void sendAccess(String eventId, String accountId) {
         links.createAndSend(accessEmail(accountId), MagicLinkToken.Purpose.ACCESS_RESEND, "clubs-app", null, clubs.appHost(), null, null, eventId);

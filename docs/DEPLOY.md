@@ -1592,6 +1592,7 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 | `core.security.rate-limits.token-account` | 10 / 1m | Digest of normalized token username, across IPs |
 | `core.security.rate-limits.magic-link-email` | 10 / 1h | Digest of normalized e-mail (existing magic-link rule) |
 | `core.security.rate-limits.magic-link-ip` | 60 / 1h | IP (existing magic-link rule) |
+| `core.security.rate-limits.access-resend-club` | 60 / 1h | Club; the D10 welcome e-mail (`POST /members/{id}/access-resend`, WEB-01), with the per-address bucket above and without the IP one |
 | `core.security.rate-limits.branding` | 120 / 1m | IP |
 | `core.security.rate-limits.public-routes` | 60 / 1m | IP for the public API |
 | `core.security.rate-limits.me` | 600 / 1m | Account across IPs and `/me` children |

@@ -13,7 +13,12 @@ import java.util.Map;
 public final class RateLimits {
     public enum Route { ANONYMOUS, WEBHOOK, STRIPE_WEBHOOK, CHECKOUT_STATUS, SIGNED_FILE, HANDOFF, TOKEN_ACCOUNT, TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP, SIGNUP_IDENTITY, SIGNUP_FAMILY, SIGNUP_UPLOAD, SIGNUP_SUBMIT, SIGNUP_DAILY, SIGNUP_CHECKOUT, SIGNUP_TOWNS,
         /** E3-T09: the anonymous signup mails (N-39, the applicant's N-01) per club, notification and recipient (`notificationsPerRecipientPerHour`). */
-        SIGNUP_RECIPIENT }
+        SIGNUP_RECIPIENT,
+        /**
+         * WEB-01 (owner decision 13-11-2026, S03 R-03-06): the welcome e-mails a club's administrators send from D10, per club, apart
+         * from the magic-link IP bucket that the members' own sign-in requests from the club's network use.
+         */
+        ACCESS_RESEND_CLUB }
     public record Limit(long capacity, Duration period) {
         public Limit {
             if (capacity < 1 || period == null || period.isZero() || period.isNegative()) {
@@ -40,7 +45,7 @@ public final class RateLimits {
 
     /**
      * {@code maximumBuckets}: the cap of the buckets kept over every route (tests use a small one). INC-74 (E11-T13): each
-     * route keeps its equal share, {@code maximumBuckets / routes} (4 761 of the default 100 000), so the worst-case heap stays
+     * route keeps its equal share, {@code maximumBuckets / routes} (4 545 of the default 100 000 with 22 routes), so the worst-case heap stays
      * the single cache's (≈ 52 MB) and a flood on one route still evicts only that route's buckets. An equal share rather than
      * a fixed 10 000 per route, because only the share keeps the sum at {@code maximumBuckets} whatever the number of routes.
      * Maintenance runs on the caller's thread, so an eviction is never left to a background pool.

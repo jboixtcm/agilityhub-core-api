@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · WEB-01 · The D10 welcome is limited per club
+
+**No operations, schemas or error codes added; 1 operation description changed.**
+
+- `POST /members/{id}/access-resend` is D10's «Envia la benvinguda», the welcome e-mail (N-27, variant `ADMIN_WELCOME`) sent only when an ADMIN asks, one member at a time. Its `429 RATE_LIMITED` (`details.retryAfter`) is now per address (10/h, as before) and per club (`core.security.rate-limits.access-resend-club`, 60/h), no longer per the administrator's IP: that bucket is left to the members' own `POST /auth/magic-link` requests from the club's network.
+
 ## 2026-11-13 · AUTH-02 · An administrator changes a member's login e-mail
 
 **1 operation added (`POST /members/{id}/login-email`); 2 schemas added (`LoginEmailChangeRequest`, `MemberLogin`); 1 schema property added (`Member.login`, optional, nullable); 1 enum value added (`AuditAction`: `ACCOUNT_EMAIL_CHANGED`); no error codes added.**
