@@ -463,8 +463,14 @@ class CardPaymentsIT extends BillingItSupport {
                 .allSatisfy(p -> assertThat(p.getString("status")).isEqualTo("CHECKOUT_PENDING"));
         assertThat(events("UpfrontPaymentSucceeded")).isEmpty();
     }
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026) changed the dead-lettering this test asserts: a webhook event used to stop after the
+     * club's billing.stripeMaxAttempts (3) with 10 s and 20 s waits and lose its recovery data; it now follows the constant backoff
+     * (1 min, 5 min, 15 min, 30 min, 1 h, 2 h, 4 h, 8 h, 8 h), stops after its tenth attempt and keeps its recovery data. The
+     * payment operations keep the club's attempt limit.
+     */
     @Test @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
-    void T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+    void T_12_15_PAY_02_recoveryIsFairBackedOffAndDeadLettersAfterAboutADay(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
         try (var tenant = TenantContext.open(CLUB)) {
             for (int i = 100; i >= 0; i--) {
                 String id = "evt_poison_" + i;
@@ -487,13 +493,25 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(fake.calls().stream().filter(c -> c.operation().equals("forget"))).hasSize(1);
         var event = mongo.findById("evt_poison_0", Document.class, "stripe_events");
         assertThat(event.getInteger("attempts")).isEqualTo(1);
-        assertThat(event.getDate("nextAttemptAt").toInstant()).isAfter(clock.instant());
-        for (int i = 0; i < 2; i++) { clock.setInstant(clock.instant().plusSeconds(3600)); recovery.recover(); recovery.recover(); }
+        assertThat(event.getDate("nextAttemptAt").toInstant()).isEqualTo(clock.instant().plus(java.time.Duration.ofMinutes(1)));
+        var waits = List.of(1, 5, 15, 30, 60, 120, 240, 480, 480);
+        for (int i = 0; i < waits.size(); i++) {
+            clock.setInstant(clock.instant().plus(java.time.Duration.ofMinutes(waits.get(i)))); recovery.recover(); recovery.recover();
+            var row = mongo.findById("evt_poison_0", Document.class, "stripe_events");
+            assertThat(row.getInteger("attempts")).as("after wait %s", i).isEqualTo(i + 2);
+            if (i + 1 < waits.size()) {
+                assertThat(row.getDate("nextAttemptAt").toInstant()).isEqualTo(clock.instant().plus(java.time.Duration.ofMinutes(waits.get(i + 1))));
+                assertThat(row.get("processedAt")).isNull();
+            }
+        }
         for (String collection : List.of("stripe_events", "payment_operations")) {
             var row = mongo.findById(collection.equals("stripe_events") ? "evt_poison_0" : "poison_0", Document.class, collection);
-            assertThat(row.getInteger("attempts")).isEqualTo(3); assertThat(row.getString("outcome")).isEqualTo("FAILED");
+            assertThat(row.getInteger("attempts")).isEqualTo(collection.equals("stripe_events") ? 10 : 3); assertThat(row.getString("outcome")).isEqualTo("FAILED");
             assertThat(row.getDate("processedAt")).isNotNull(); assertThat(row.get("nextAttemptAt")).isNull();
         }
+        // The stopped event keeps its recovery data until the retention cleanup, so a redelivery can still process it.
+        assertThat(mongo.findById("evt_poison_0", Document.class, "stripe_events").get("work", Document.class).get("object", Document.class)
+                .getString("payment_intent")).isEqualTo("pi_unknown_0");
         assertThat(inbox.pending()).noneMatch(e -> e.id().startsWith("evt_poison_"));
         assertThat(operations.pending()).noneMatch(o -> o.id().startsWith("poison_"));
         assertThat(output.getOut()).contains("Stripe event recovery exhausted: eventId=evt_poison_0", "Payment operation recovery exhausted: eventId=poison_0")
@@ -544,17 +562,141 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(refund.get("metadata", Document.class)).containsExactlyInAnyOrderEntriesOf(Map.of("operationId", "unknown-operation", "reason", "Correction"));
         assertThat(work.toJson()).doesNotContain("private@example.test");
     }
-    @Test void T_12_15_recoveryUsesTheClubsAttemptLimitAndRetainsItsDeadline() throws Exception {
-        parameter(CLUB, "billing.stripeMaxAttempts", 2);
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026) changed what this test asserts: the webhook recovery used to stop at the club's
+     * billing.stripeMaxAttempts (R-12-18's card retries); it now ignores it — with the parameter at 1 the event still runs again
+     * after 1 min and then 5 min — and still keeps each deadline.
+     */
+    @Test void T_12_15_PAY_02_webhookRecoveryIgnoresTheClubsAttemptLimitAndRetainsItsDeadline() throws Exception {
+        parameter(CLUB, "billing.stripeMaxAttempts", 1);
         webhook("evt_limit", "charge.refunded", refundObject("pi_unknown_limit", "re_limit", 1000, Map.of()));
         var first = mongo.findById("evt_limit", Document.class, "stripe_events");
-        assertThat(first.getInteger("attempts")).isEqualTo(1);
+        assertThat(first.getInteger("attempts")).isEqualTo(1); assertThat(first.get("processedAt")).isNull();
+        assertThat(first.getDate("nextAttemptAt").toInstant()).isEqualTo(clock.instant().plus(java.time.Duration.ofMinutes(1)));
         recovery.recover(); assertThat(mongo.findById("evt_limit", Document.class, "stripe_events").getInteger("attempts")).isEqualTo(1);
         clock.setInstant(first.getDate("nextAttemptAt").toInstant()); recovery.recover();
-        var last = mongo.findById("evt_limit", Document.class, "stripe_events");
-        assertThat(last.getInteger("attempts")).isEqualTo(2); assertThat(last.getDate("processedAt")).isNotNull();
-        clock.setInstant(clock.instant().plusSeconds(3600)); recovery.recover();
-        assertThat(mongo.findById("evt_limit", Document.class, "stripe_events")).isEqualTo(last);
+        var second = mongo.findById("evt_limit", Document.class, "stripe_events");
+        assertThat(second.getInteger("attempts")).isEqualTo(2); assertThat(second.get("processedAt")).isNull();
+        assertThat(second.getString("outcome")).isEqualTo("FAILED");
+        assertThat(second.getDate("nextAttemptAt").toInstant()).isEqualTo(clock.instant().plus(java.time.Duration.ofMinutes(5)));
+        clock.setInstant(clock.instant().plusSeconds(299)); recovery.recover();
+        assertThat(mongo.findById("evt_limit", Document.class, "stripe_events")).isEqualTo(second);
+    }
+
+    /** What the Stripe adapter throws for {@code failure} (StripeCalls' own mapping). */
+    static RuntimeException adapterFailure(com.stripe.exception.StripeException failure) {
+        return (RuntimeException) catchThrowable(() -> new com.agilityhub.core.payments.application.stripe.StripeCalls().call(() -> { throw failure; }));
+    }
+    static com.stripe.exception.StripeException stripeStatus(int status) {
+        return new com.stripe.exception.ApiException("Fictional provider message", null, null, status, null);
+    }
+
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026): an outage of the provider while a paid checkout's card is read — a connection error, a
+     * 5xx, 401, 403, 429 — spends no attempt: the event is FAILED, waits 5 minutes each time and is processed once the outage
+     * passes, however long it lasted. A refusal of the request itself spends an attempt and waits the backoff's first step.
+     */
+    @Test void PAY_02_aProviderOutageSpendsNoAttemptAndTheEventIsProcessedOnceItPasses() throws Exception {
+        var rows = signupRows(1); String session = signupCheckout(rows);
+        var outages = List.of(adapterFailure(new com.stripe.exception.ApiConnectionException("Fictional network failure")), adapterFailure(stripeStatus(503)),
+                adapterFailure(stripeStatus(500)), adapterFailure(stripeStatus(401)), adapterFailure(stripeStatus(403)), adapterFailure(stripeStatus(429)));
+        outages.forEach(fake::failCardRead);
+        webhook("evt_outage_paid", "checkout.session.completed", completion(session, "pi_outage", 1000, "paid"));
+        for (int i = 0; i < outages.size(); i++) {
+            var row = mongo.findById("evt_outage_paid", Document.class, "stripe_events");
+            assertThat(row.get("attempts")).as("outage %s", i).isNull();
+            assertThat(row.getString("outcome")).isEqualTo("FAILED"); assertThat(row.get("processedAt")).isNull();
+            assertThat(row.getDate("nextAttemptAt").toInstant()).isEqualTo(clock.instant().plus(java.time.Duration.ofMinutes(5)));
+            assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("CHECKOUT_PENDING");
+            recovery.recover();
+            assertThat(mongo.findById("evt_outage_paid", Document.class, "stripe_events")).as("not before its time").isEqualTo(row);
+            clock.setInstant(clock.instant().plus(java.time.Duration.ofMinutes(5))); recovery.recover();
+        }
+        var processed = mongo.findById("evt_outage_paid", Document.class, "stripe_events");
+        assertThat(processed.getString("outcome")).isEqualTo("PROCESSED"); assertThat(processed.getInteger("attempts")).isEqualTo(1);
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
+        assertThat(events("StripeWebhookReceived").stream().map(e -> e.get("payload", Document.class).getString("outcome"))
+                .filter(outcome -> outcome != null).toList()).containsExactlyInAnyOrder("FAILED", "PROCESSED");
+        // A refusal of the request itself is no outage: it spends an attempt.
+        var other = signupRows(2).get(1); String refusedSession = signupCheckout(List.of(other));
+        fake.failCardRead(adapterFailure(new com.stripe.exception.InvalidRequestException("Fictional provider message", null, null, "resource_missing", 404, null)));
+        webhook("evt_refused_paid", "checkout.session.completed", completion(refusedSession, "pi_refused", 1000, "paid"));
+        var refused = mongo.findById("evt_refused_paid", Document.class, "stripe_events");
+        assertThat(refused.getInteger("attempts")).isEqualTo(1); assertThat(refused.getString("outcome")).isEqualTo("FAILED");
+        assertThat(refused.getDate("nextAttemptAt").toInstant()).isEqualTo(clock.instant().plus(java.time.Duration.ofMinutes(1)));
+    }
+
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026), R-12-21: Stripe delivering again an event recorded as FAILED puts it back in the queue
+     * and processes it — also one stopped before this change, whose recovery data was removed; any other duplicate (a processed
+     * event, another club's event) still has no effect.
+     */
+    @Test void PAY_02_aRedeliveryOfAFailedEventRequeuesItAndAnyOtherDuplicateHasNoEffect() throws Exception {
+        var rows = signupRows(1); String session = signupCheckout(rows);
+        Instant stopped = clock.instant().minus(java.time.Duration.ofDays(2));
+        mongo.insert(new Document("_id", "evt_stopped_paid").append("clubId", CLUB).append("eventId", "evt_stopped_paid").append("type", "checkout.session.completed")
+                .append("receivedAt", Date.from(stopped)).append("processedAt", Date.from(stopped.plusSeconds(40))).append("outcome", "FAILED")
+                .append("attempts", 3).append("payloadHash", "fixture"), "stripe_events");
+        webhook("evt_stopped_paid", "checkout.session.completed", completion(session, "pi_stopped", 1000, "paid"));
+        var requeued = mongo.findById("evt_stopped_paid", Document.class, "stripe_events");
+        assertThat(requeued.getString("outcome")).isEqualTo("PROCESSED"); assertThat(requeued.getInteger("attempts")).isEqualTo(1);
+        assertThat(requeued.getDate("receivedAt").toInstant()).isEqualTo(stopped);
+        assertThat(requeued.getString("payloadHash")).isEqualTo("fixture");
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
+        // A processed event delivered again changes nothing.
+        Document paid = paymentRow(rows.getFirst());
+        webhook("evt_stopped_paid", "checkout.session.completed", completion(session, "pi_stopped", 1000, "paid"));
+        assertThat(mongo.findById("evt_stopped_paid", Document.class, "stripe_events")).isEqualTo(requeued);
+        assertThat(paymentRow(rows.getFirst())).isEqualTo(paid);
+        // Another club's FAILED event with the same id is neither re-queued nor read.
+        mongo.insert(new Document("_id", "evt_other_failed").append("clubId", OTHER).append("eventId", "evt_other_failed").append("type", "payment_method.detached")
+                .append("receivedAt", Date.from(stopped)).append("processedAt", Date.from(stopped)).append("outcome", "FAILED").append("attempts", 10)
+                .append("payloadHash", "fixture"), "stripe_events");
+        var foreign = mongo.findById("evt_other_failed", Document.class, "stripe_events");
+        webhook("evt_other_failed", "payment_method.detached", Map.of("id", "pm_card-member"));
+        assertThat(mongo.findById("evt_other_failed", Document.class, "stripe_events")).isEqualTo(foreign);
+        assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class)
+                .getBoolean("invalid")).isFalse();
+    }
+
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026): an ADMIN sees the club's FAILED Stripe events in billing, newest first — retrying (with
+     * nextAttemptAt) or stopped (with processedAt), the attempts spent (0 when only outages stopped it) — never another club's, a
+     * processed one or the stored recovery data.
+     */
+    @Test void PAY_02_anAdminListsTheClubsFailedStripeEvents() throws Exception {
+        Instant now = clock.instant();
+        mongo.insert(List.of(
+                stripeRow("evt_list_stopped", CLUB, "checkout.session.completed", now.minusSeconds(7200)).append("outcome", "FAILED").append("attempts", 10)
+                        .append("processedAt", Date.from(now.minusSeconds(60))).append("work", new Document("object", new Document("customer", "cus_list"))),
+                stripeRow("evt_list_retrying", CLUB, "charge.refunded", now.minusSeconds(3600)).append("outcome", "FAILED").append("attempts", 2)
+                        .append("nextAttemptAt", Date.from(now.plusSeconds(300))),
+                stripeRow("evt_list_outage", CLUB, "setup_intent.succeeded", now.minusSeconds(60)).append("outcome", "FAILED")
+                        .append("nextAttemptAt", Date.from(now.plusSeconds(240))),
+                stripeRow("evt_list_processed", CLUB, "payment_intent.succeeded", now).append("outcome", "PROCESSED").append("attempts", 1)
+                        .append("processedAt", Date.from(now)),
+                stripeRow("evt_list_other", OTHER, "charge.refunded", now).append("outcome", "FAILED").append("attempts", 10)
+                        .append("processedAt", Date.from(now))), "stripe_events");
+        var page = ok(admin(get("/api/v1/billing/stripe-events")), 200);
+        assertThat(page.path("items").findValuesAsText("id")).containsExactly("evt_list_outage", "evt_list_retrying", "evt_list_stopped");
+        assertThat(page.path("totalItems").asLong()).isEqualTo(3);
+        var outage = page.path("items").get(0);
+        assertThat(outage.path("attempts").asInt()).isZero(); assertThat(outage.path("type").asText()).isEqualTo("setup_intent.succeeded");
+        assertThat(outage.path("nextAttemptAt").asText()).isEqualTo(now.plusSeconds(240).toString()); assertThat(outage.has("processedAt")).isFalse();
+        var stopped = page.path("items").get(2);
+        assertThat(stopped.path("attempts").asInt()).isEqualTo(10); assertThat(stopped.path("receivedAt").asText()).isEqualTo(now.minusSeconds(7200).toString());
+        assertThat(stopped.path("processedAt").asText()).isEqualTo(now.minusSeconds(60).toString()); assertThat(stopped.has("nextAttemptAt")).isFalse();
+        assertThat(page.toString()).doesNotContain("cus_list", "work");
+        assertThat(ok(admin(get("/api/v1/billing/stripe-events").param("sort", "receivedAt,asc").param("fields", "id,attempts")), 200).path("items").get(0).toString())
+                .isEqualTo("{\"id\":\"evt_list_stopped\",\"attempts\":10}");
+        assertThat(ok(as(get("/api/v1/billing/stripe-events"), OTHER, "ADMIN", null), 200).path("items").findValuesAsText("id")).containsExactly("evt_list_other");
+        error(admin(get("/api/v1/billing/stripe-events").param("filter", "type:eq:charge.refunded")), 400, "INVALID_FILTER");
+        error(admin(get("/api/v1/billing/stripe-events").param("q", "evt")), 400, "INVALID_FILTER");
+        error(as(get("/api/v1/billing/stripe-events"), CLUB, "MEMBER", "card-member"), 403, "FORBIDDEN");
+    }
+    Document stripeRow(String id, String clubId, String type, Instant receivedAt) {
+        return new Document("_id", id).append("clubId", clubId).append("eventId", id).append("type", type).append("receivedAt", Date.from(receivedAt))
+                .append("payloadHash", "fixture");
     }
     Map<String, Object> refundEvent(String intent, String id, long amount, String status, String operation) {
         return Map.of("id", id, "object", "refund", "payment_intent", intent, "currency", "eur", "amount", amount,

@@ -122,6 +122,18 @@ public final class BillingContracts {
     @Schema(description = "A short-lived signed URL of the pain.008 XML; its download answers Content-Disposition attachment with fileName")
     public record RemittanceFile(@Schema(format = "uri-reference") String downloadUrl, String fileName, Instant expiresAt) { }
 
+    // ---- Stripe events (S12 §3 `StripeEvent`, R-12-21, PAY-02)
+    @Schema(description = "A row of the failed Stripe events list (CONVENCIONS_API §4, PAY-02): only the row id is required. id is Stripe's event id "
+            + "(evt_…). attempts: the processing attempts it spent (an outage of the provider spends none). nextAttemptAt: when it runs again, while "
+            + "it is retrying; processedAt: when its retries ran out, after which it stays FAILED until Stripe delivers it again or the retention "
+            + "cleanup deletes it.")
+    @com.agilityhub.core.shared.application.contract.SparseListItem
+    public record StripeEventListItem(String id, @Schema(requiredMode = NOT_REQUIRED) String type, @Schema(requiredMode = NOT_REQUIRED) Instant receivedAt,
+            @Schema(requiredMode = NOT_REQUIRED, minimum = "0") Integer attempts, @Schema(requiredMode = NOT_REQUIRED) Instant nextAttemptAt,
+            @Schema(requiredMode = NOT_REQUIRED) Instant processedAt) { }
+    public record StripeEventPage(List<StripeEventListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
+            @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
+
     // ---- Runs and simulations (S12 §3 `BillingRun`, `BillingSimulation`, §6 JSON)
     @Schema(description = "A provider's share of a month: remittanceId only for SEPA_XML, charged/failed only for STRIPE")
     @JsonInclude(JsonInclude.Include.NON_NULL)

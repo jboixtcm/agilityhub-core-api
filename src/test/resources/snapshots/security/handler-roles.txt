@@ -57,6 +57,7 @@ GET /api/v1/billing/concepts | hasRole('ADMIN') and principal.claims['imp'] != t
 GET /api/v1/billing/exports | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.BillingController.exportAccounting
 GET /api/v1/billing/periods/{period} | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.BillingController.billingPeriod
 GET /api/v1/billing/runs/{id} | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.BillingController.billingRun
+GET /api/v1/billing/stripe-events | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.StripeEventsController.stripeEvents
 GET /api/v1/bookings | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.bookings.api.BookingsController.bookings
 GET /api/v1/bookings/filter-values | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.bookings.api.BookingsController.bookingFilterValues
 GET /api/v1/bookings/{id} | hasAnyRole('ADMIN','INSTRUCTOR','MEMBER') | clubs.bookings.api.BookingsController.booking

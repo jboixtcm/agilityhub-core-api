@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · PAY-02 · Failed Stripe events retried for about a day and listed to the admin
+
+**1 operation added (`GET /billing/stripe-events`); 2 schemas added (`StripeEventListItem`, `StripeEventPage`); no error codes added; 1 operation description changed (`POST /webhooks/stripe/{clubId}`).**
+
+- New `GET /billing/stripe-events` (ADMIN, module `BILLING`, no impersonation; universal list, `page`/`size`/`sort=receivedAt`/`fields`, newest `receivedAt` first; no filter and no `q` → `400 INVALID_FILTER`; `200 StripeEventPage`): the club's Stripe events whose processing failed (`outcome = FAILED`), each `{id (Stripe's evt_…), type, receivedAt, attempts, nextAttemptAt?, processedAt?}` — `nextAttemptAt` while it is still retried, `processedAt` once its retries ran out; `attempts` is 0 when only provider outages stopped it. Never the stored recovery data.
+- `POST /webhooks/stripe/{clubId}`: a new delivery of an event recorded as `FAILED` is no longer «200 with no effect»: it goes back in the queue (no attempts) and is processed; any other duplicate still has no effect. A failed processing is retried after 1 min, 5 min, 15 min, 30 min, 1 h, 2 h, 4 h, 8 h and 8 h (ten attempts, a constant; the club's `billing.stripeMaxAttempts` no longer applies to webhooks); a provider outage (connection error, 5xx, 401/403/429) spends no attempt and waits 5 min. Responses unchanged.
+
 ## 2026-11-13 · SEPA-04 (b) · Bank returns of a remittance in one request; a returned receipt re-presented
 
 **1 operation added (`POST /remittances/{id}/returns`); 2 schemas added (`RemittanceReturnsRequest`, `RemittanceReturnsResult`); 1 schema property added (`InvoiceFailureRequest.includeInNextRun`, optional, `boolean | null`); no error codes added; 1 operation description changed.**

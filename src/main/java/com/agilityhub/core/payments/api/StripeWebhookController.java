@@ -37,9 +37,12 @@ public class StripeWebhookController {
             + "with Stripe's 5-minute tolerance on t; a missing, wrong or stale signature, a tampered body, an unknown club or a club without a "
             + "webhook secret → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent, nothing else stored. Then a club without BILLING → 404 "
             + "MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no "
-            + "effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, "
+            + "effect, unless the stored event is FAILED: then it goes back in the queue and is processed again, PAY-02) and processed in a "
+            + "transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, "
             + "charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon "
-            + "as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04).",
+            + "as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04): a failed processing is "
+            + "retried with a growing backoff over about 24 hours, an outage of the provider spending no attempt (PAY-02; GET "
+            + "/billing/stripe-events lists the FAILED events).",
             responses = @ApiResponse(responseCode = "200", description = "Stored (processed, ignored or deferred)", content = @Content))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json",
             schema = @Schema(implementation = BillingRequests.StripeWebhookEvent.class)))

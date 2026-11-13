@@ -13,6 +13,19 @@ public class StripeCalls {
     private final Pause pause;
     public StripeCalls() { this(Thread::sleep); }
     StripeCalls(Pause pause) { this.pause = pause; }
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026): a failure of {@link #call} that says the provider could not be reached or used,
+     * not that the request is wrong: a connection error (the SDK gives it status 0) or a 5xx (the cause of the INTERNAL_ERROR
+     * thrown below; a missing status reads as 500, as below), or a refusal of the club's access — 401, 403 — or a rate limit —
+     * 429 — thrown as a non-definitive {@link com.agilityhub.core.payments.application.PaymentNotSubmitted} (E8-T11's outage,
+     * which also covers a key the club stored that cannot be used). A content rejection (card, invalid request, another 4xx) or
+     * any other failure is not.
+     */
+    public static boolean outage(RuntimeException failure) {
+        if (failure instanceof com.agilityhub.core.payments.application.PaymentNotSubmitted rejected) { return !rejected.definitive(); }
+        return failure instanceof ApiException && failure.getCause() instanceof StripeException cause
+                && (cause instanceof com.stripe.exception.ApiConnectionException || cause.getStatusCode() == null || cause.getStatusCode() >= 500);
+    }
     public <T> T call(Call<T> action) {
         for (int attempt = 0; ; attempt++) {
             try { return action.execute(); }

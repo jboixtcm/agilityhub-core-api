@@ -23411,6 +23411,74 @@
         "required" : [ "current" ],
         "type" : "object"
       },
+      "StripeEventListItem" : {
+        "description" : "A row of the failed Stripe events list (CONVENCIONS_API §4, PAY-02): only the row id is required. id is Stripe's event id (evt_…). attempts: the processing attempts it spent (an outage of the provider spends none). nextAttemptAt: when it runs again, while it is retrying; processedAt: when its retries ran out, after which it stays FAILED until Stripe delivers it again or the retention cleanup deletes it.",
+        "properties" : {
+          "attempts" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "nextAttemptAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "processedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "receivedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id" ],
+        "type" : "object"
+      },
+      "StripeEventPage" : {
+        "properties" : {
+          "appliedFilters" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Filter"
+            },
+            "type" : "array"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/StripeEventListItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
+        "type" : "object"
+      },
       "StripeWebhookEvent" : {
         "description" : "Stripe's event envelope (https://docs.stripe.com/api/events/object); any other key is accepted and ignored",
         "properties" : {
@@ -34085,6 +34153,218 @@
         },
         "summary" : "simulateBilling",
         "tags" : [ "payments" ]
+      }
+    },
+    "/api/v1/billing/stripe-events" : {
+      "get" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PAY-02 (R-12-21): the club's Stripe events whose processing failed, universal list (CONVENCIONS_API §4), newest receivedAt first; no filter and no free-text search (a filter or a q → 400 INVALID_FILTER). A failed processing is retried with a growing backoff (1 min, 5 min, 15 min, 30 min, 1 h, 2 h, 4 h, 8 h, 8 h: ten attempts over about 24 hours); an outage of the provider (connection error, 5xx, 401, 403, 429) spends no attempt and waits 5 min. A row: the Stripe event id and type, receivedAt, the attempts spent, and nextAttemptAt while it is retrying or processedAt once its retries ran out. A FAILED event is kept until the retention cleanup (jobs.retention.stripeEventsDays); Stripe delivering it again (a resend from the Stripe dashboard) puts it back in the queue. Tenant comes from the JWT; another club's resource → 404.",
+        "operationId" : "stripeEvents",
+        "parameters" : [ {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StripeEventPage"
+                }
+              }
+            },
+            "description" : "StripeEventPage"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "stripeEvents",
+        "tags" : [ "payments" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "type"
+        }, {
+          "defaultVisible" : true,
+          "key" : "receivedAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "attempts"
+        }, {
+          "defaultVisible" : true,
+          "key" : "nextAttemptAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "processedAt"
+        } ],
+        "x-exportable" : false,
+        "x-fields" : [ "id", "type", "receivedAt", "attempts", "nextAttemptAt", "processedAt" ],
+        "x-filter-operators" : { },
+        "x-filterable" : [ ],
+        "x-sortable" : [ "receivedAt" ]
       }
     },
     "/api/v1/bookings" : {
@@ -97440,7 +97720,7 @@
     },
     "/webhooks/stripe/{clubId}" : {
       "post" : {
-        "description" : "Roles: Stripe (signature), no bearer token. R-12-21: before anything else the Stripe-Signature header (t={unix seconds},v1={hex HMAC-SHA256 of \"{t}.{raw body}\"}) is verified with the club's webhook secret, with Stripe's 5-minute tolerance on t; a missing, wrong or stale signature, a tampered body, an unknown club or a club without a webhook secret → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent, nothing else stored. Then a club without BILLING → 404 MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04).",
+        "description" : "Roles: Stripe (signature), no bearer token. R-12-21: before anything else the Stripe-Signature header (t={unix seconds},v1={hex HMAC-SHA256 of \"{t}.{raw body}\"}) is verified with the club's webhook secret, with Stripe's 5-minute tolerance on t; a missing, wrong or stale signature, a tampered body, an unknown club or a club without a webhook secret → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent, nothing else stored. Then a club without BILLING → 404 MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no effect, unless the stored event is FAILED: then it goes back in the queue and is processed again, PAY-02) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04): a failed processing is retried with a growing backoff over about 24 hours, an outage of the provider spending no attempt (PAY-02; GET /billing/stripe-events lists the FAILED events).",
         "operationId" : "receiveStripeEvent",
         "parameters" : [ {
           "in" : "path",

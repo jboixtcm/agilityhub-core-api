@@ -653,7 +653,12 @@ means re-encrypting the club's secrets; lookups bypass the config cache.
 Register `/webhooks/stripe/{clubId}` for the Checkout, PaymentIntent, refund,
 SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21.
 Receipts are signature-checked, stored uniquely, then processed transactionally;
-failed work and durable provider commands retry internally. Stripe's default
+failed work and durable provider commands retry internally. A webhook event whose
+processing fails is retried for about 24 hours (1 min up to 8 h apart, ten attempts;
+a Stripe outage, 401/403 or 429 spends none) and then stays `FAILED`, with the WARN
+`Stripe event recovery exhausted`; the club's admin sees the failed events in
+billing (`GET /billing/stripe-events`), and resending one from the Stripe dashboard
+processes it again (PAY-02). Stripe's default
 24-hour Checkout expiration is separate from Core's shorter booking deadline;
 late booking captures are refunded once per payment intent. `compose.yaml`
 forwards the billing key. The administrative credential-entry UI remains a

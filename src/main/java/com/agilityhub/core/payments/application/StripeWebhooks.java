@@ -1,6 +1,7 @@
 package com.agilityhub.core.payments.application;
 
 import com.agilityhub.core.payments.domain.*;
+import com.agilityhub.core.payments.application.stripe.StripeCalls;
 import com.agilityhub.core.payments.persistence.*;
 import com.agilityhub.core.shared.application.*;
 import com.agilityhub.core.shared.domain.*;
@@ -19,9 +20,23 @@ import org.springframework.stereotype.Service;
  * R-12-21: durable receipt first, transactional handlers second. Refund lifecycle is carried by refund.*.
  * Modern charge.refunded events omit refunds: acknowledge them without a ledger mutation or provider fetch.
  * Embedded refunds from older API versions follow the same refund-id checkpoint for compatibility.
+ * <p>
+ * PAY-02 (owner decision of 13 Nov 2026): a failed processing is retried with the growing {@link #RETRY_BACKOFF} — a constant,
+ * not the club's {@code billing.stripeMaxAttempts}, which is R-12-18's card retries — over about 24 hours; an outage of the
+ * provider ({@link StripeCalls#outage}) spends no attempt; Stripe delivering again an event recorded as FAILED puts it back in
+ * the queue; a FAILED event keeps its recovery data until the retention cleanup.
  */
 @Service
 public class StripeWebhooks {
+    /**
+     * PAY-02: the waits after each failed attempt — the first one runs on receipt, the n-th failure waits {@code RETRY_BACKOFF[n-1]}
+     * — so its ten attempts span 23 h 51 min; after the tenth failure the event stays FAILED.
+     */
+    static final List<java.time.Duration> RETRY_BACKOFF = List.of(java.time.Duration.ofMinutes(1), java.time.Duration.ofMinutes(5),
+            java.time.Duration.ofMinutes(15), java.time.Duration.ofMinutes(30), java.time.Duration.ofHours(1), java.time.Duration.ofHours(2),
+            java.time.Duration.ofHours(4), java.time.Duration.ofHours(8), java.time.Duration.ofHours(8));
+    /** PAY-02: an attempt an outage of the provider stopped is run again after E8-T11's deferral, spending no attempt. */
+    static final java.time.Duration OUTAGE_DEFERRAL = PaymentRefunds.DEFERRAL;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.ClubPaymentProviders clubSettings;
     private final StripeInbox inbox; private final BillingTransactions tx; private final CardPayments cards; private final PaymentRefunds refunds;
     private final CheckoutService checkouts; private final SignupCheckoutRepository sessions; private final UpfrontPaymentRepository upfront;
@@ -37,10 +52,13 @@ public class StripeWebhooks {
     public void receive(String clubId, byte[] body) {
         var event = PaymentWebhookParser.parse(new String(body, StandardCharsets.UTF_8), null, null);
         try (var tenant = TenantContext.open(clubId)) {
+            var work = new Document("created", event.createdAt().getEpochSecond()).append("object", safe(event.object(), event.type().startsWith("refund.")));
             try {
-                inbox.receive(new StripeEvent(event.id(), clubId, event.id(), event.type(), clock.instant(), null, null, hash(body)),
-                        new Document("created", event.createdAt().getEpochSecond()).append("object", safe(event.object(), event.type().startsWith("refund."))));
-            } catch (DuplicateKeyException duplicate) { return; }
+                inbox.receive(new StripeEvent(event.id(), clubId, event.id(), event.type(), clock.instant(), null, null, hash(body)), work);
+            } catch (DuplicateKeyException duplicate) {
+                // PAY-02: a new delivery of an event whose processing FAILED puts it back in the queue; any other one has no effect.
+                if (!inbox.requeue(event.id(), work)) { return; }
+            }
             process(event.id());
         }
     }
@@ -72,10 +90,12 @@ public class StripeWebhooks {
             try { refunds.executeLate(); }
             catch (RuntimeException unavailable) { /* The refund command is durable and its own worker will retry it. */ }
         } catch (RuntimeException deferred) {
+            boolean outage = StripeCalls.outage(deferred);
             try { tx.run(() -> {
                 var event = inbox.findById(id).orElseThrow();
                 if (event.processedAt() != null) { return null; }
-                if (inbox.failed(id, clock.instant(), retries.maxAttempts())) { retries.warn("Stripe event", id); }
+                if (outage) { inbox.postpone(id, clock.instant().plus(OUTAGE_DEFERRAL)); }
+                else if (inbox.failed(id, clock.instant(), RETRY_BACKOFF)) { retries.warn("Stripe event", id); }
                 if (event.outcome() != StripeEventOutcome.FAILED) { events.publish(BillingEvent.Kind.StripeWebhookReceived, id,
                         Map.of("eventId", id, "type", event.type(), "outcome", "FAILED")); }
                 return null;

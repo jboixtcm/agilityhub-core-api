@@ -305,7 +305,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : clubRoutes().filter(r -> billing.contains(r.module())).toList()) {
             for (String role : route.roles()) { error(call(route, CLUB, role), 404, "MODULE_DISABLED"); }
         }
-        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(39); // SEPA-04: POST /remittances/{id}/submission-undo, POST /remittances/{id}/returns
+        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(40); // SEPA-04: POST /remittances/{id}/submission-undo, POST /remittances/{id}/returns; PAY-02: GET /billing/stripe-events
         error(as(get("/api/v1/me/invoices"), "MEMBER"), 404, "MODULE_DISABLED");
         // A delivery signed by the club's secret reaches the module guard; an unsigned one never does (R-12-21).
         String event = "{\"id\":\"evt_e8\",\"type\":\"payment_intent.succeeded\"}";
@@ -635,9 +635,9 @@ class E8ContractIT extends AbstractIntegrationTest {
 
     @Test void WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(61); // SEPA-04: POST /remittances/{id}/submission-undo, POST /remittances/{id}/returns
+        assertThat(routes().count()).isEqualTo(62); // SEPA-04: POST /remittances/{id}/submission-undo, POST /remittances/{id}/returns; PAY-02: GET /billing/stripe-events
         long s13 = routes().filter(r -> r.path().contains("inactivity") || r.path().contains("leave") || r.path().endsWith("/reactivation")).count();
-        assertThat(List.of(routes().count() - s13, s13)).containsExactly(40L, 21L);
+        assertThat(List.of(routes().count() - s13, s13)).containsExactly(41L, 21L);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
@@ -660,9 +660,10 @@ class E8ContractIT extends AbstractIntegrationTest {
         // Universal lists (CONVENCIONS_API §4).
         Map<String, List<String>> filterable = Map.of("invoices", List.of("period", "status", "memberId", "paymentMethodType", "runId", "remittanceId", "issueDate", "total", "kind"),
                 "remittances", List.of("period", "status"), "inactivity-periods", List.of("memberId", "state", "fromMonth", "toMonth", "origin", "requestedAt"),
-                "leave-requests", List.of("memberId", "state", "source", "requestedDate", "effectiveDate", "reasonKey", "nps"));
+                "leave-requests", List.of("memberId", "state", "source", "requestedDate", "effectiveDate", "reasonKey", "nps"), "billing/stripe-events", List.of());
         Map<String, List<String>> sortable = Map.of("invoices", List.of("number", "issueDate", "total", "memberLastName"), "remittances", List.of("period", "creationAt"),
-                "inactivity-periods", List.of("fromMonth", "requestedAt", "memberLastName"), "leave-requests", List.of("requestedAt", "requestedDate", "effectiveDate"));
+                "inactivity-periods", List.of("fromMonth", "requestedAt", "memberLastName"), "leave-requests", List.of("requestedAt", "requestedDate", "effectiveDate"),
+                "billing/stripe-events", List.of("receivedAt"));
         filterable.forEach((list, fields) -> {
             var op = api.path("paths").path("/api/v1/" + list).path("get");
             assertThat(strings(op.path("x-filterable"))).as(list).containsExactlyElementsOf(fields);
@@ -670,6 +671,7 @@ class E8ContractIT extends AbstractIntegrationTest {
             assertThat(op.path("parameters").findValuesAsText("name")).as(list).contains("page", "size", "sort", "filter", "fields");
         });
         assertThat(api.at("/paths/~1api~1v1~1remittances/get/parameters").findValuesAsText("name")).doesNotContain("q");
+        assertThat(api.at("/paths/~1api~1v1~1billing~1stripe-events/get/parameters").findValuesAsText("name")).doesNotContain("q");
         assertThat(api.at("/paths/~1api~1v1~1invoices/get/parameters").findValuesAsText("name")).contains("q");
         assertThat(strings(api.at("/paths/~1api~1v1~1members/get/x-filterable"))).contains("leaveSource", "inactivityUntil", "hasPendingRequest");
         // Canonical statuses (CATALEG_ERRORS §1 and rule 0), whatever S12/S13 §6 write.
@@ -708,7 +710,7 @@ class E8ContractIT extends AbstractIntegrationTest {
                 "InactivityOverlapDetails", "MemberLeavingDetails")) {
             assertThat(schemas.path(detail).path("properties").isEmpty()).as(detail).isFalse();
         }
-        for (String item : List.of("InvoiceListItem", "RemittanceListItem", "InactivityPeriodListItem", "LeaveRequestListItem")) {
+        for (String item : List.of("InvoiceListItem", "RemittanceListItem", "InactivityPeriodListItem", "LeaveRequestListItem", "StripeEventListItem")) {
             assertThat(strings(schemas.path(item).path("required"))).as(item).containsExactly("id");
         }
         assertThat(names(schemas.at("/Creditor/properties"))).contains("maskedIban").doesNotContain("iban");
