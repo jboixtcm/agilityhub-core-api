@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTH-01 (a) · Back-office sessions end 12 hours after sign-in
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /oauth2/token`, and its `Set-Cookie` header).**
+
+- `POST /oauth2/token`: a `clubs-admin` session (a club's back office and the console) ends 12 hours after the sign-in (password, sign-in link or handoff) that opened it, however often it is refreshed. A refresh no longer slides past that end: the `ah_refresh` cookie's `Max-Age` and the access token's `exp` stop there, and a refresh after it answers `400 REFRESH_EXPIRED`, also for a session issued before this change with a later `expiresAt`. `clubs-app`, `id-web` and the BODY clients keep the sliding `auth.sessionDays`.
+
 ## 2026-11-13 · AUTH-03 · The member record shows a failed access e-mail
 
 **No operations added; 1 schema property added (`MemberLogin.accessEmailFailedAt`, required, `date-time | null`); no error codes added.**

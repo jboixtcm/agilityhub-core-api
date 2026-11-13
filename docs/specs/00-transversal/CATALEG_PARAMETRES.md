@@ -7,7 +7,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 ## Accés i sessió (`auth.*`) — bloc sistema
 | Clau | Tipus | Cànic | Notes |
 |---|---|---|---|
-| `auth.sessionDays` | int | 30 | refresh token lliscant (ADR-004) |
+| `auth.sessionDays` | int | 30 | refresh token lliscant (ADR-004); el backoffice (`clubs-admin`) caduca, a més, 12 h després de l'inici de sessió (S01 R-01-06, AUTH-01) |
 | `auth.magicLinkMinutes` | int | 15 | caducitat de l'enllaç màgic |
 | `auth.impersonationMinutes` | int | 60 | «Entra com l'abonat» |
 | `auth.passwordMinLength` | int | 8 | |

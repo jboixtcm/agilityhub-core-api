@@ -33,6 +33,11 @@ public class TokenService {
     public static final String CONSOLE_CLIENT = "clubs-admin";
     /** S01 R-01-05 (ruling E49): how long a RESET magic link's session may set a new password without `current`, once. */
     public static final Duration PASSWORD_RESET_WINDOW = Duration.ofMinutes(15);
+    /**
+     * AUTH-01 (S01 R-01-06): a back-office session (the `clubs-admin` client: a club's back office and the console) ends 12 hours
+     * after it began, however often it is refreshed; its access tokens never outlive it. Other clients keep `auth.sessionDays`.
+     */
+    public static final Duration BACK_OFFICE_SESSION = Duration.ofHours(12);
     private static final SecureRandom RANDOM = new SecureRandom();
     private final IdentityService identities;
     private final AccountRepository accounts;
@@ -120,7 +125,7 @@ public class TokenService {
         requirePlatformConsole(session, clientId);
         accounts.touchSessions(session.account().id());
         Instant now = clock.instant();
-        var live = families(accountSessions.active(session.account().id(), session.account().familyVersion(), now));
+        var live = families(live(accountSessions.active(session.account().id(), session.account().familyVersion(), now), now));
         int max = settings.integer("auth.maxSessions");
         for (int i = 0; i <= live.size() - max; i++) {
             var old = live.get(i);
@@ -140,7 +145,7 @@ public class TokenService {
             accounts.touchSessions(old.accountId());
             if (old.replacedByHash() != null) { return reuse(old, clientId, requestedScopes, now); }
             var session = identities.current(old.accountId());
-            if (old.revokedAt() != null || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
+            if (old.revokedAt() != null || !old.expiresAt().isAfter(now) || ended(old, now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             if (session.account().familyVersion() != old.tokenFamilyVersion()) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
             String next = opaque();
@@ -173,7 +178,7 @@ public class TokenService {
             var child = refreshTokens.claimLiveChild(old, now);
             if (child.isPresent() && refreshTokens.useGrace(old.id(), now)) {
                 var session = identities.current(old.accountId());
-                if (session.account().familyVersion() != old.tokenFamilyVersion() || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
+                if (session.account().familyVersion() != old.tokenFamilyVersion() || !old.expiresAt().isAfter(now) || ended(old, now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
                 if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
                 var current = child.get();
                 String next = opaque();
@@ -193,19 +198,21 @@ public class TokenService {
             accounts.touchSessions(accountId);
             memberships.profile(accountId, profile, remember);
             refreshTokens.profile(accountId, familyId, profile);
-            return access(session, clientId, familyId, profile, clock.instant(), family.scopes(), family.authTime());
+            return access(session, clientId, familyId, profile, clock.instant(), family.scopes(), family.authTime(), sessionEnd(family.clientId(), family.createdAt()));
         });
     }
     public RefreshToken requireFamily(String accountId, String clientId, String familyId, long version) {
         var token = refreshTokens.activeFamily(accountId, familyId, clock.instant())
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHENTICATED));
-        if (!token.clientId().equals(clientId) || token.tokenFamilyVersion() != version) { throw new ApiException(ErrorCode.UNAUTHENTICATED); }
+        if (!token.clientId().equals(clientId) || token.tokenFamilyVersion() != version || ended(token, clock.instant())) {
+            throw new ApiException(ErrorCode.UNAUTHENTICATED);
+        }
         return token;
     }
     public List<RefreshToken> sessions(String accountId) {
         var session = identities.current(accountId);
-        return families(TenantContext.current() == null ? accountSessions.active(accountId, session.account().familyVersion(), clock.instant())
-                : refreshTokens.sessions(accountId, clock.instant(), session.account().familyVersion()));
+        return families(live(TenantContext.current() == null ? accountSessions.active(accountId, session.account().familyVersion(), clock.instant())
+                : refreshTokens.sessions(accountId, clock.instant(), session.account().familyVersion()), clock.instant()));
     }
     /**
      * INC-36: a family holds up to two live tokens after a grace (R-01-06); a session is its family, listed and counted once, in
@@ -259,8 +266,10 @@ public class TokenService {
                          Instant passwordResetUntil) {
         requirePlatformConsole(session, clientId);
         Role profile = session.membership() == null ? null : session.membership().activeProfile(requested);
-        Jwt jwt = access(session, clientId, familyId, profile, now, scopes, authTime);
+        Instant end = sessionEnd(clientId, createdAt);
+        Jwt jwt = access(session, clientId, familyId, profile, now, scopes, authTime, end);
         Instant expiry = now.plus(Duration.ofDays(settings.integer("auth.sessionDays")));
+        if (end != null && end.isBefore(expiry)) { expiry = end; }
         refreshTokens.extendFamilyRetention(familyId, expiry);
         refreshTokens.insert(new RefreshToken(UUID.randomUUID().toString(), digest(refresh), session.account().id(), TenantContext.current(),
                 clientId, familyId, session.account().familyVersion(), createdAt, expiry, now, null, null, profile, device, RefreshToken.Status.ACTIVE, scopes, oidc, nonce, authTime,
@@ -278,11 +287,13 @@ public class TokenService {
             throw new ApiException(ErrorCode.PLATFORM_ONLY);
         }
     }
-    private Jwt access(IdentityService.Session session, String clientId, String familyId, Role profile, Instant now, java.util.Set<String> scopes, Instant authTime) {
+    private Jwt access(IdentityService.Session session, String clientId, String familyId, Role profile, Instant now, java.util.Set<String> scopes, Instant authTime,
+                       Instant sessionEnd) {
         var account = session.account();
         var membership = session.membership();
+        Instant expiry = sessionEnd != null && sessionEnd.isBefore(now.plus(ACCESS_TTL)) ? sessionEnd : now.plus(ACCESS_TTL);
         var claims = JwtClaimsSet.builder().issuer(issuer).subject(account.id()).audience(List.of(clientId))
-                .issuedAt(now).expiresAt(now.plus(ACCESS_TTL)).id(UUID.randomUUID().toString()).claim("sid", familyId)
+                .issuedAt(now).expiresAt(expiry).id(UUID.randomUUID().toString()).claim("sid", familyId)
                 .claim("azp", clientId).claim("email", account.email()).claim("name", account.name())
                 .claim("locale", account.locale()).claim("platformRoles", account.platformRoles().stream().map(Enum::name).sorted().toList());
         claims.claim("scope", String.join(" ", scopes.stream().sorted().toList())).claim("auth_time", authTime.getEpochSecond());
@@ -293,6 +304,18 @@ public class TokenService {
             if (membership.instructorId() != null) { claims.claim("instructorId", membership.instructorId()); }
         }
         return encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), claims.build()));
+    }
+    /** AUTH-01 (S01 R-01-06): when a session of {@code clientId} begun at {@code createdAt} ends at the latest; null without a cap. */
+    static Instant sessionEnd(String clientId, Instant createdAt) {
+        return CONSOLE_CLIENT.equals(clientId) && createdAt != null ? createdAt.plus(BACK_OFFICE_SESSION) : null;
+    }
+    /** AUTH-01: a back-office session past its 12 hours, also one issued before the cap with a longer `expiresAt`. */
+    static boolean ended(RefreshToken token, Instant now) {
+        Instant end = sessionEnd(token.clientId(), token.createdAt());
+        return end != null && !end.isAfter(now);
+    }
+    private static List<RefreshToken> live(List<RefreshToken> tokens, Instant now) {
+        return tokens.stream().filter(token -> !ended(token, now)).toList();
     }
     public static String device(String agent) {
         if (agent == null || agent.isBlank()) { return "Unknown device"; }

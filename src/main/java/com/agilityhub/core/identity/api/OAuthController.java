@@ -37,6 +37,8 @@ public class OAuthController {
                     + "a refresh token or an authorization code bound to a club is 400 VALIDATION_ERROR (oauth2Error invalid_grant) there, never renewed "
                     + "with its club; every grant of any other client there is 404 UNKNOWN_HOST and leaves its link or code unused. "
                     + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
+                    + "AUTH-01: a clubs-admin session (club back office and console) ends 12 hours after it began, however often it is refreshed: "
+                    + "its refresh token and access tokens never outlive that end, and a later refresh is 400 REFRESH_EXPIRED; other clients slide auth.sessionDays. "
                     + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. "
                     + "COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. "
                     + "Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. "
@@ -51,7 +53,7 @@ public class OAuthController {
                     @ExtensionProperty(name = "refresh_token", value = "{\"required\":[\"client_id\"],\"optional\":[\"refresh_token\",\"client_secret\",\"scope\"],\"cookie\":\"ah_refresh for COOKIE clients; refresh_token required for BODY clients\"}", parseValue = true)}),
             responses = {
                     @ApiResponse(responseCode = "200", description = "TokenResponse; refresh_token only for BODY clients; id_token depends on grant and scope",
-                            headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Set-Cookie", description = "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=auth.sessionDays in seconds. Secure relaxed only for local HTTP.", schema = @Schema(type = "string"))),
+                            headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Set-Cookie", description = "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=the refresh token's lifetime in seconds: auth.sessionDays, at most until 12 hours after the sign-in for clubs-admin (AUTH-01). Secure relaxed only for local HTTP.", schema = @Schema(type = "string"))),
                     @ApiResponse(responseCode = "400", description = "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR; "
                             + "VALIDATION_ERROR with details.oauth2Error invalid_grant for an invalid authorization code or, on the console's product host, a club-bound refresh token or code"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS"),
