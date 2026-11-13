@@ -70,13 +70,35 @@ class BrevoWebhookIT extends AbstractIntegrationTest {
         assertThat(receipts.suppressed("RECIPIENT@example.test")).isTrue();
         assertThat(mongo.findAll(BrevoEmailSuppression.class)).singleElement().satisfies(item -> assertThat(item.id()).doesNotContain("@"));
     }
-    @ParameterizedTest @ValueSource(strings = {"spam", "hard_bounce", "invalid_email", "blocked"})
+    // AUTH-02 (owner decision 13-11-2026): `blocked` left this list; it is temporary (the test below).
+    @ParameterizedTest @ValueSource(strings = {"spam", "hard_bounce", "invalid_email"})
     void T_11_08_permanentFailuresSuppressAndKeepAccountSemantics(String event) throws Exception {
         send(event(event));
         assertThat(receipts.suppressed("recipient@example.test")).isTrue();
         assertThat(notifications.findSystem("brevo-notification").orElseThrow().status()).isEqualTo(Notification.Status.FAILED);
         assertThat(accounts.findById("brevo-account").orElseThrow().emailStatus()).isEqualTo(event.equals("spam")
                 ? NotificationAccounts.EmailStatus.COMPLAINED : NotificationAccounts.EmailStatus.BOUNCED);
+    }
+    /**
+     * AUTH-02 (owner decision 13-11-2026): Brevo's `blocked` is temporary, like `soft_bounce`: the address is not suppressed, the
+     * account's login e-mail keeps no mark (sign-in links and recovery still go out), the row stays accepted with a sanitized
+     * temporary diagnostic, and a later delivery is still recorded.
+     */
+    @Test void AUTH_02_blockedIsATemporaryFailureThatNeverSuppressesTheAddressOrTheAccount() throws Exception {
+        var payload = event("blocked");
+        payload.put("reason", "550 blocked: client host on blocklist https://private.example/reset?token=secret");
+        send(payload); send(payload);
+        assertThat(mongo.count(new Query(), BrevoWebhookReceipt.class)).isEqualTo(1);
+        assertThat(receipts.suppressed("recipient@example.test")).isFalse();
+        assertThat(mongo.count(new Query(), BrevoEmailSuppression.class)).isZero();
+        assertThat(accounts.findById("brevo-account").orElseThrow().emailStatus()).isNull();
+        var row = notifications.findSystem("brevo-notification").orElseThrow();
+        assertThat(row.status()).isEqualTo(Notification.Status.SENT);
+        assertThat(row.delivery().temporaryFailureAt()).isEqualTo(clock.instant());
+        assertThat(row.delivery().temporaryFailureReason()).isEqualTo("SENDING_IP_BLOCKED");
+        assertThat(mongo.getCollection("notifications").find().first().toJson()).doesNotContain("secret", "private.example");
+        send(event("delivered"));
+        assertThat(notifications.findSystem("brevo-notification").orElseThrow().status()).isEqualTo(Notification.Status.DELIVERED);
     }
     @Test void T_11_08_unsubscribeSuppressesWithoutCallingItABounceOrRegressingDelivered() throws Exception {
         send(event("delivered")); send(event("unsubscribed")); send(event("unsubscribed"));

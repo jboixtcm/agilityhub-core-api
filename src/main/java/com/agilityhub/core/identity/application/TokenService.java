@@ -47,6 +47,8 @@ public class TokenService {
     private final String issuer;
     private final SecurityEvents securityEvents;
     private final EventPublisher events;
+    /** AUTH-02 (S03 R-03-06b): applies an `EMAIL_CHANGE` link when it is redeemed. */
+    @org.springframework.beans.factory.annotation.Autowired private AccountEmailChangeService emailChanges;
 
     public TokenService(IdentityService identities, AccountRepository accounts, MembershipRepository memberships,
                         RefreshTokenRepository refreshTokens, AccountSessionRepository accountSessions, MagicLinkTokenRepository magicLinks,
@@ -82,7 +84,14 @@ public class TokenService {
             }
             var session = identities.current(token.accountId());
             accounts.touchSessions(token.accountId());
+            // AUTH-02 (S03 R-03-06b): a login e-mail change whose new address another account has taken since changes nothing.
+            boolean emailChange = token.purpose() == MagicLinkToken.Purpose.EMAIL_CHANGE;
+            if (emailChange && !emailChanges.applicable(token)) { return new Outcome(null, ErrorCode.MAGIC_LINK_INVALID, token.accountId()); }
             if (!magicLinks.consume(token.id(), clock.instant())) { return new Outcome(null, ErrorCode.MAGIC_LINK_INVALID, token.accountId()); }
+            if (emailChange) {
+                emailChanges.apply(token);
+                session = identities.current(token.accountId());
+            }
             accounts.verifyEmail(token.accountId(), clock.instant());
             accounts.lockout(token.accountId(), LoginLockout.empty());
             // S01 R-01-05 (E5-T27, ruling E49): «Recupera-la» may set a new password once without `current`, within 15 minutes.

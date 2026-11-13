@@ -42,7 +42,7 @@ Prefix `/me/...` per als recursos «del qui crida» (abonat/instructor actual): 
 ```
 S01  /auth/handoff · /me/sessions · /me/profile · /me/password · /platform/accounts · /accounts/{id}/password · /oauth2/userinfo · /connect/logout
 S02  /manifest.webmanifest · /club · /club/modules/{module} · /club/opening-hours · /club/holidays · /parameters/{key}/history · /country-profile/postal-codes/{code} · /platform/parameter-catalog
-S03  /members/{id}/booking-block · /members/{id}/access-resend · /members/{id}/impersonation-token · /members/{id}/payment-method · /dogs/{id}/level · /dogs/{id}/free-training · /dogs/{id}/transfer · /dogs/{id}/documents · /me/dogs/{id}/instructor-note · /members/filter-values
+S03  /members/{id}/booking-block · /members/{id}/access-resend · /members/{id}/login-email · /members/{id}/impersonation-token · /members/{id}/payment-method · /dogs/{id}/level · /dogs/{id}/free-training · /dogs/{id}/transfer · /dogs/{id}/documents · /me/dogs/{id}/instructor-note · /members/filter-values
 S04  /signup/identity-checks · /signup/family-group-lookups · /signup/upload-urls · /signup/towns · /members/{id}/signup · /members/{id}/validation?dryRun= · /members/{id}/rejection · /me/dogs/signup
 S05  /administrators · /public/{clubSlug}/plans
 S06  /weeks/{id}/calendar · /weeks/generation-candidates · /class-sessions/{id}/cancellation-preview · /class-sessions/{id}/risk-exemption · /coverage · /day-grid

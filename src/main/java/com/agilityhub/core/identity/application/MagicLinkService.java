@@ -81,6 +81,36 @@ public class MagicLinkService {
         if(!notifications.sent(deliveryId)) throw new IllegalStateException("Administrator invitation delivery deferred");
     }
 
+    /**
+     * AUTH-02 (S03 R-03-06b): the link that confirms the login e-mail change a club ADMIN asked for on D10. It goes to the NEW
+     * address only, as N-25's `EMAIL_CHANGE` variant, for the club app on the club's host, with the lifetime of the other links
+     * an admin sends from D10 (`auth.welcomeLinkDays`); it supersedes the account's earlier unused change links. An address that
+     * already belongs to another account gets nothing, and the caller is not told (CATALEG_ERRORS §3, rule 3). Runs outside the
+     * caller's transaction: the token is written in its own and the e-mail is sent after it.
+     */
+    public void sendEmailChange(String accountId, String email, String requestedByAccountId, String host) {
+        String clubId = TenantContext.require();
+        String normalized = Email.normalize(email);
+        if (!hosts.resolve(host).filter(clubId::equals).isPresent()) { return; }
+        String link = "https://" + URI.create("https://" + host).getHost() + "/activacio";
+        String value = TokenService.opaque();
+        int days = settings.integer("auth.welcomeLinkDays");
+        boolean issued = transactions.run(() -> {
+            var account = accounts.findById(accountId).filter(item -> item.status() == Account.Status.ACTIVE).orElse(null);
+            if (account == null || accounts.findByEmail(normalized).isPresent()) { return false; }
+            accounts.touchSessions(accountId);
+            var token = new MagicLinkToken(UUID.randomUUID().toString(), TokenService.digest(value), accountId, clubId, "clubs-app",
+                    MagicLinkToken.Purpose.EMAIL_CHANGE, null, clock.instant(), clock.instant().plus(Duration.ofDays(days)), null, null, null,
+                    normalized, requestedByAccountId);
+            tokens.insert(token);
+            tokens.supersede(accountId, MagicLinkToken.Purpose.EMAIL_CHANGE, clock.instant(), token.id());
+            events.publish(IdentityEvents.of(IdentityEvent.Kind.MagicLinkRequested, clubId, accountId, clock.instant(),
+                    Map.of("accountId", accountId, "clientId", "clubs-app", "purpose", MagicLinkToken.Purpose.EMAIL_CHANGE.name())));
+            return true;
+        });
+        if (issued) { notifications.sendEmailChange(accountId, normalized, link + "?t=" + value + "&purpose=email_change", days * 1440); }
+    }
+
     /** Identical request path for known/unknown emails; lookup, persistence and delivery run after enqueueing. */
     public void request(String email, MagicLinkToken.Purpose purpose, String clientId, String redirectUri, String host, String ip, String agent) {
         String normalized = Email.normalize(email);

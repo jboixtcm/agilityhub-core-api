@@ -16,6 +16,8 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 public class CensusQuery {
     private final CensusAccess access; private final DocumentService documents; private final AttachmentService attachments;
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<LifecycleViews> lifecycle;
+    /** AUTH-02 (S03 R-03-06b): the login e-mail of the member's account and its suppression mark, for D10. */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.identity.application.CensusIdentityService identities;
     private final ClubClock clock;
     public CensusQuery(CensusAccess access, DocumentService documents, AttachmentService attachments, ClubClock clock) {
         this.access = access; this.documents = documents; this.attachments = attachments; this.clock = clock;
@@ -46,6 +48,7 @@ public class CensusQuery {
                 "erasedAt", member.erasedAt, "erasureRequestId", member.erasureRequestId,
                 "mergedIntoMemberId", member.mergedIntoMemberId, "mergedAt", member.mergedAt,
                 "mergedMembers", access.members.matching(Criteria.where("mergedIntoMemberId").is(id)).stream().map(m -> object("id", m.id, "name", fullName(m))).toList()));
+        result.put("login", member.erasedAt == null ? identities.login(member.accountId) : null);
         if (access.enabled(Module.FAMILY_GROUP)) { result.putAll(object("familyGroupId", member.familyGroupId, "billedViaMemberId", access.billedViaMemberId(id))); }
         if (access.enabled(Module.BILLING)) {
             result.putAll(object("paymentMethod", payment(member), "maskedAccount", map(payment(member)).get("maskedAccount"),

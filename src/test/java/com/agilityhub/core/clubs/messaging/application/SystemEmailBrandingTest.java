@@ -53,6 +53,28 @@ class SystemEmailBrandingTest {
         }
     }
 
+    /** AUTH-02 (S03 R-03-06b): N-25's `EMAIL_CHANGE` variant asks to confirm the new address, with the link's own lifetime. */
+    @Test void AUTH_02_theEmailChangeVariantAsksToConfirmTheNewAddressInEveryLanguageWithItsOwnLifetime() throws Exception {
+        var link = "https://app.example.test/activacio?t=fictional&purpose=email_change";
+        var variables = Map.of("link", link, "variant", "EMAIL_CHANGE", "expires_minutes", 10080);
+        var subjects = Map.of("ca", "Confirma la teva adreça d’accés a Example Club", "es", "Confirma tu dirección de acceso a Example Club",
+                "en", "Confirm your Example Club sign-in address");
+        for (var entry : subjects.entrySet()) {
+            var locale = Locale.forLanguageTag(entry.getKey());
+            var message = renderer("").render("N-25", "new@example.test", locale, variables, SETTINGS, Map.of());
+            assertThat(message.subject()).isEqualTo(entry.getValue());
+            assertThat(message.text()).contains(link).doesNotContain("{brand}", "{");
+            var plain = renderer("").render("N-25", "new@example.test", locale, Map.of("link", link), SETTINGS, Map.of());
+            assertThat(message.subject()).isNotEqualTo(plain.subject());
+            assertThat(message.text()).isNotEqualTo(plain.text());
+        }
+        // The expiry line follows the link's own lifetime (7 days), not the 15 minutes of a sign-in link.
+        var english = renderer("").render("N-25", "new@example.test", Locale.ENGLISH, variables, SETTINGS, Map.of());
+        assertThat(english.text()).contains("This link expires in 168 h.");
+        assertThat(renderer("").render("N-25", "new@example.test", Locale.ENGLISH, Map.of("link", link), SETTINGS, Map.of()).text())
+                .contains("This link expires in 15 min.");
+    }
+
     private SystemEmailRenderer renderer(String brand) throws java.io.IOException {
         var resolver = new ClassLoaderTemplateResolver();
         resolver.setPrefix("templates/"); resolver.setSuffix(".html"); resolver.setTemplateMode(TemplateMode.HTML);

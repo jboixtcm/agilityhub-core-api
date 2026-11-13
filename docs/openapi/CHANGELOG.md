@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTH-02 · An administrator changes a member's login e-mail
+
+**1 operation added (`POST /members/{id}/login-email`); 2 schemas added (`LoginEmailChangeRequest`, `MemberLogin`); 1 schema property added (`Member.login`, optional, nullable); 1 enum value added (`AuditAction`: `ACCOUNT_EMAIL_CHANGED`); no error codes added.**
+
+- New `POST /members/{id}/login-email` (ADMIN; no impersonation, no support access: `403 SUPPORT_RESTRICTED`; body `{email}`, no `Idempotency-Key`; `202 AccessResendResponse {sentTo}` = the new address): mails a link to the NEW address only (N-25, variant `EMAIL_CHANGE`, `/activacio?t=…&purpose=email_change`, valid `auth.welcomeLinkDays`); nothing goes to the current address and nothing changes until the link is used through the magic-link grant. Then the account's login e-mail becomes the new address, verified, its `emailStatus` is cleared and `ACCOUNT_EMAIL_CHANGED` is audited as the requesting ADMIN's. A newer request ends an unused older link. `400 VALIDATION_ERROR` (invalid address; `fieldErrors[{field: email, code: UNCHANGED}]` for the current one) · `403 FORBIDDEN` (the account also belongs to another club or has a platform role) · `404 NOT_FOUND` · `409 MEMBER_ERASED | INVALID_STATE` · `422 MEMBER_NOT_ACTIVE` · `429 RATE_LIMITED`. An address of another account gets no link and the same `202`; a link whose address was taken in between answers `400 MAGIC_LINK_INVALID` at `/oauth2/token`.
+- `Member` (`GET`/`PATCH /members/{id}`) gains `login {email, emailStatus: BOUNCED | COMPLAINED | null}`, the account's login e-mail and its suppression mark; null without an account or after erasure.
+
 ## 2026-11-12 · REL-02 · The health names the build's commit
 
 **No operations or error codes added; 1 schema property added (`HealthResponse.commit`, required, `string | null`); 1 operation description changed.**

@@ -30,6 +30,11 @@ public enum AuditAction {
     ONBOARDING_COMPLETED,
     IMPERSONATION_STARTED,
     ACCOUNT_EMAIL_STATUS_CHANGED,
+    /**
+     * S03 R-03-06b (AUTH-02, owner decision 13-11-2026): a member's login e-mail changed by an ADMIN from D10, written when the
+     * link mailed to the new address is used (`entityType = Account`, `changes[]` of `email` and `emailStatus`; the ADMIN's entry).
+     */
+    ACCOUNT_EMAIL_CHANGED,
     PARAMETER_CHANGED,
     CLUB_UPDATED,
     CLUB_MODULES_CHANGED,

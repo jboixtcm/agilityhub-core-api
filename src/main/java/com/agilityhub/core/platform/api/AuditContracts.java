@@ -55,6 +55,8 @@ public final class AuditContracts {
         CARD_CHARGES_STARTED,
         IMPERSONATION_STARTED,
         ACCOUNT_EMAIL_STATUS_CHANGED,
+        /** AUTH-02 (owner decision, 13-11-2026): a member's login e-mail changed by an ADMIN from D10, once confirmed by its link. */
+        ACCOUNT_EMAIL_CHANGED,
         PLATFORM_ROLES_CHANGED,
         BOOKING_CREATED_BY_CLUB,
         BOOKING_CANCELLED_BY_CLUB,

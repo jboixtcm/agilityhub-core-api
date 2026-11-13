@@ -134,6 +134,31 @@ public class MembersController {
             responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse"))
     public AccessResendResponse resendAccess(@PathVariable String id, jakarta.servlet.http.HttpServletRequest http) { return new AccessResendResponse(transactions.run(() -> members.resend(id, http.getRemoteAddr()))); }
 
+    @PostMapping("/api/v1/members/{id}/login-email")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
+    @com.agilityhub.core.shared.application.SupportRestricted
+    @ContractErrors({VALIDATION_ERROR, MEMBER_NOT_ACTIVE, FORBIDDEN, SUPPORT_RESTRICTED, RATE_LIMITED, MEMBER_ERASED, INVALID_STATE})
+    @Operation(summary = "Change login e-mail",
+            description = "S03 R-03-06b (AUTH-02). Tenant comes from the JWT. ADMIN endpoints reject impersonation; a support access is refused "
+                    + "(403 SUPPORT_RESTRICTED, S17 R-17-10); erased members reject mutations. Mails a link to the NEW address only (N-25, variant "
+                    + "EMAIL_CHANGE, valid auth.welcomeLinkDays); nothing is sent to the current one and nothing changes yet. When the link is "
+                    + "used (the magic-link grant, /activacio), the account's login e-mail becomes the new address, verified, its emailStatus is "
+                    + "cleared and ACCOUNT_EMAIL_CHANGED is audited as the requesting ADMIN's. A newer request supersedes an unused one. "
+                    + "Only an ACTIVE member with an account (422 MEMBER_NOT_ACTIVE); only an account that is this club's alone, without a "
+                    + "platform role (403 FORBIDDEN); the new address must differ from the current one (400 VALIDATION_ERROR, fieldErrors "
+                    + "email · UNCHANGED); the magic-link limits of the resend apply to the new address (429 RATE_LIMITED). An address that "
+                    + "already belongs to another account gets no link, with the same 202 (no existence is revealed); a link whose address "
+                    + "was taken in between answers MAGIC_LINK_INVALID and changes nothing.",
+            responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse: sentTo is the new address"))
+    public AccessResendResponse changeLoginEmail(@PathVariable String id, @Valid @RequestBody LoginEmailChangeRequest request,
+            jakarta.servlet.http.HttpServletRequest http) {
+        var change = transactions.run(() -> members.loginEmail(id, request.email(), http.getRemoteAddr()));
+        members.sendLoginEmail(change);
+        return new AccessResendResponse(change.email());
+    }
+
     @PutMapping("/api/v1/members/{id}/roles")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

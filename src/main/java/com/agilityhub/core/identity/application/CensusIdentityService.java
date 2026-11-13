@@ -39,6 +39,42 @@ public class CensusIdentityService {
                 .filter(item -> item.status() == Membership.Status.ACTIVE).isEmpty()) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
         return account.email();
     }
+    /**
+     * AUTH-02 (S03 R-03-06b): the login e-mail of the member's account as D10 shows it, with its suppression mark (`BOUNCED`,
+     * `COMPLAINED`, S11 R-11-08) so that staff see why mail does not arrive; null without an account.
+     */
+    public Map<String, Object> login(String accountId) {
+        if (accountId == null) { return null; }
+        return accounts.findById(accountId).map(account -> {
+            var login = new java.util.LinkedHashMap<String, Object>();
+            login.put("email", account.email());
+            login.put("emailStatus", account.emailStatus() == null ? null : account.emailStatus().name());
+            return (Map<String, Object>) login;
+        }).orElse(null);
+    }
+    /**
+     * AUTH-02 (S03 R-03-06b): the checks of an ADMIN's request to change a member's login e-mail, before any link is made. The
+     * account must be active with an active membership here (`422 MEMBER_NOT_ACTIVE`); a club changes only an account that is
+     * its own alone, as R-01-14 renames only such an account: not one with another club's membership or a platform role
+     * (`403 FORBIDDEN`); the new address must differ from the current one (`400 VALIDATION_ERROR`, `email` · `UNCHANGED`); and the
+     * resend's magic-link limits apply to the new address. Returns the normalised new address.
+     */
+    public String checkLoginEmailChange(String accountId, String email, String ip) {
+        String current = accessEmail(accountId);
+        var account = accounts.findById(accountId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
+        if (!account.platformRoles().isEmpty() || clubsOfAccount.countNotErased(accountId) != 1) { throw new ApiException(ErrorCode.FORBIDDEN); }
+        String normalized = com.agilityhub.core.identity.domain.Email.normalize(email);
+        if (normalized.equals(current)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("fieldErrors", java.util.List.of(Map.of("field", "email", "code", "UNCHANGED"))));
+        }
+        limitResend(normalized, ip);
+        return normalized;
+    }
+    /** AUTH-02: mails the confirmation link of a checked change to the new address, after the request's transaction. */
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    public void sendLoginEmailChange(String accountId, String email, String requestedByAccountId) {
+        links.sendEmailChange(accountId, email, requestedByAccountId, clubs.appHost());
+    }
     public void limitResend(String email, String ip) {
         long retry = Math.max(limits.retryAfter(RateLimits.Route.MAGIC_LINK_EMAIL, TokenService.digest(email)),
                 limits.retryAfter(RateLimits.Route.MAGIC_LINK_IP, ip == null ? "census" : ip));

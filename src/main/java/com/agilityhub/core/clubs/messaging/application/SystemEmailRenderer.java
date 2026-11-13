@@ -33,6 +33,8 @@ public final class SystemEmailRenderer {
                                ClubEmailSettings.Settings settings, Map<String, String> tags) {
         if (!CODES.contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
         boolean welcome = code.equals("N-27") && "ADMIN_WELCOME".equals(variables.get("variant"));
+        // AUTH-02 (S03 R-03-06b): N-25's confirmation of a new login e-mail, valid for the link's own lifetime.
+        boolean emailChange = code.equals("N-25") && "EMAIL_CHANGE".equals(variables.get("variant"));
         String link = null;
         String expiry = null;
         if (Set.of("N-02","N-25","N-27","N-39","N-53").contains(code)) {
@@ -47,7 +49,7 @@ public final class SystemEmailRenderer {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "link"));
             }
             expiry = messages.format("email.layout.expiry", Map.of("duration",
-                    formats.formatDuration(Duration.ofMinutes((welcome || Set.of("N-02","N-39").contains(code)) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
+                    formats.formatDuration(Duration.ofMinutes((welcome || emailChange || Set.of("N-02","N-39").contains(code)) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
         }
         String brand = welcome || brandOverride.isBlank() ? settings.brand() : brandOverride;
         var copy = new java.util.HashMap<String, Object>(variables);
@@ -55,6 +57,7 @@ public final class SystemEmailRenderer {
         String key = "notif." + code;
         if (code.equals("N-02") && "MIGRATED".equals(variables.get("variant"))) { key += ".migrated"; }
         if (welcome) { key += ".welcome"; }
+        if (emailChange) { key += ".emailChange"; }
         String title = messages.format(key + ".title", copy, locale);
         String body = messages.format(key + ".body", copy, locale);
         String action = messages.format("email.layout.signIn", copy, locale);

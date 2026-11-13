@@ -23,7 +23,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class BrevoWebhookService {
     private static final Set<String> EVENTS = Set.of("delivered", "hard_bounce", "invalid_email", "blocked", "spam", "unsubscribed", "error", "soft_bounce", "deferred");
-    private static final Set<String> PERMANENT = Set.of("hard_bounce", "invalid_email", "blocked", "spam", "unsubscribed");
+    /**
+     * AUTH-02 (owner decision 13-11-2026, S11 R-11-08): Brevo's `blocked` (the provider or the receiving server refused the message,
+     * often for the sending IP's reputation) is temporary like `soft_bounce`/`deferred`: it never suppresses the address, marks the
+     * member's contact e-mail as bounced or the account's login e-mail as suppressed.
+     */
+    private static final Set<String> TEMPORARY = Set.of("soft_bounce", "deferred", "blocked");
+    private static final Set<String> PERMANENT = Set.of("hard_bounce", "invalid_email", "spam", "unsubscribed");
     private final NotificationRepository notifications;
     private final BrevoWebhookRepository receipts;
     private final NotificationAccounts accounts;
@@ -70,7 +76,7 @@ public class BrevoWebhookService {
                     String storedReference = row.channel() == null ? delivery == null ? null : delivery.providerRef() : row.providerMessageId();
                     if (target == null || !target.equalsIgnoreCase(email) || storedReference != null && !reference.equals(storedReference)) { return; }
                     receipts.insert(new BrevoWebhookReceipt(receipt, clubId, notificationId, clock.instant()));
-                    if (event.equals("soft_bounce") || event.equals("deferred")) {
+                    if (TEMPORARY.contains(event)) {
                         notifications.temporaryEmailFailure(row.id(), target, temporaryReason(reason), clock.instant());
                         return;
                     }

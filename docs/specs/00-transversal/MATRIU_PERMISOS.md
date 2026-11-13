@@ -10,7 +10,7 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | `/signup` (alta pública) | W | W (afegir gos: `/me/dogs/signup`) | — | — | — |
 | `/oauth2/*`, `/auth/magic-link` | W | W | W | W | W |
 | `/me`, `/me/profile`, canvi de perfil actiu, contrasenya, idioma | — | RW | RW | RW | RW |
-| Abonats `/members` | — | R propi (via `/me`) · W dades de contacte (28) | R **tots** (fitxa d'alumne 22/D13: dades de contacte visibles, IBAN no) | RW + X (validar, rebutjar, bloquejar reserves, baixa, inactivitat, canvi de mètode de pagament, rols, reenviar accés, impersonar) | R (consola: recomptes, sense dades personals per defecte) |
+| Abonats `/members` | — | R propi (via `/me`) · W dades de contacte (28) | R **tots** (fitxa d'alumne 22/D13: dades de contacte visibles, IBAN no) | RW + X (validar, rebutjar, bloquejar reserves, baixa, inactivitat, canvi de mètode de pagament, rols, reenviar accés, canviar l'adreça d'accés (S03 R-03-06b; un token de suport, no: `403 SUPPORT_RESTRICTED`), impersonar) | R (consola: recomptes, sense dades personals per defecte) |
 | Gossos `/dogs` | — | R propi · W «notes als instructors», documents, foto | R tots · W observacions, nivell (proposta → l'ADMIN el fixa) | RW (nivell, «pot entrenar sol», transferir, baixa) | — |
 | Grup familiar | — | R propi | R | RW | — |
 | Catàlegs (`/levels`, `/rings`, `/instructors`, `/plans`, `/prices`) | R (`/public/*/plans`) | R | R | RW | RW (clonar catàlegs base) |

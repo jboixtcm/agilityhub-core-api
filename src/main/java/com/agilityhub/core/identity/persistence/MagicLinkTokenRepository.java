@@ -37,6 +37,11 @@ public class MagicLinkTokenRepository extends TenantRepository<MagicLinkToken> {
                     new Update().set("usedAt", now), MagicLinkToken.class);
         }
     }
+    /** AUTH-02 (S03 R-03-06b): only the newest login e-mail change of an account can be confirmed; the earlier unused ones end. */
+    public void supersede(String accountId, MagicLinkToken.Purpose purpose, Instant now, String newestId) {
+        mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("purpose").is(purpose).and("_id").ne(newestId)
+                .and("usedAt").is(null).and("expiresAt").gt(now)), new Update().set("usedAt", now), MagicLinkToken.class);
+    }
     /**
      * S01 R-01-05 (AUTH-06): a password change ends every link of the account still unused, of any purpose and any club, as `trim`
      * ends one; a link mailed before the change no longer opens a session.

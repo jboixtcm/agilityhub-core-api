@@ -225,6 +225,18 @@ public class MemberService {
         member.bookingBlock = object("active", false); access.members.save(member);
         events.emit("BookingBlockChanged", "Member", id, object("memberId", id, "active", false, "reason", lifted));
     }
+    /** AUTH-02 (S03 R-03-06b): an ADMIN's change of the member's login e-mail, checked; nothing changes until the link is used. */
+    public record LoginEmailChange(String accountId, String email, String requestedByAccountId) { }
+    @Transactional
+    public LoginEmailChange loginEmail(String id, String email, String ip) {
+        var member = access.mutableMember(id);
+        if (!"ACTIVE".equals(member.status) || member.accountId == null) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
+        return new LoginEmailChange(member.accountId, identities.checkLoginEmailChange(member.accountId, email, ip), CurrentUser.current().accountId());
+    }
+    /** AUTH-02: the confirmation link to the new address, outside the request's transaction (the token has its own). */
+    public void sendLoginEmail(LoginEmailChange change) {
+        identities.sendLoginEmailChange(change.accountId(), change.email(), change.requestedByAccountId());
+    }
     @Transactional
     @Audited(action = AuditAction.ACCESS_RESENT, entityType = "'Member'", entity = "#id", member = "#id", reason = "'ACCESS_RESENT'")
     public String resend(String id, String ip) {

@@ -347,6 +347,7 @@ POST /api/v1/members/{id}/dogs | hasRole('ADMIN') and principal.claims['imp'] !=
 POST /api/v1/members/{id}/erasure | hasRole('ADMIN') and principal.claims['imp'] != true | platform.api.AuditController.requestMemberErasure
 POST /api/v1/members/{id}/impersonation-token | isAuthenticated() | identity.api.AccountAdministrationController.impersonation
 POST /api/v1/members/{id}/leave | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.LeaveController.scheduleLeave
+POST /api/v1/members/{id}/login-email | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.MembersController.changeLoginEmail
 POST /api/v1/members/{id}/merge | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.AdminCensusActionsController.merge
 POST /api/v1/members/{id}/plan-change | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.MemberPlanChangeController.change
 POST /api/v1/members/{id}/reactivation | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.LeaveController.reactivateMember

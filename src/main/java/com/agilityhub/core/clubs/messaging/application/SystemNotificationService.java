@@ -65,6 +65,18 @@ public class SystemNotificationService {
                 sender.forAdminWelcome(TenantContext.require()));
     }
 
+    /**
+     * AUTH-02 (S03 R-03-06b): N-25's `EMAIL_CHANGE` variant, the confirmation link of a login e-mail change, to the NEW address
+     * only (nothing goes to the old one). The account's suppression mark belongs to its current address, so it does not stop
+     * this message; the provider's own suppression of the new address still applies.
+     */
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendEmailChange(String accountId, String newEmail, String link, int expiryMinutes) {
+        var account = accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return deliverTo(UUID.randomUUID().toString(), "N-25", new NotificationAccounts.Recipient(account.id(), newEmail, account.locale(), null),
+                Map.of("link", link, "variant", "EMAIL_CHANGE", "expires_minutes", expiryMinutes));
+    }
+
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }

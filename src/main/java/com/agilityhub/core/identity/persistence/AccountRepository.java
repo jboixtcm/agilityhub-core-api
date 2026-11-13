@@ -85,6 +85,15 @@ public class AccountRepository extends GlobalRepository<Account> {
                 .set("security.failedLoginWindowStartedAt", state.windowStartedAt()).set("security.lockedUntil", state.lockedUntil())
                 .set("security.lockoutLevel", state.level()), Account.class);
     }
+    /**
+     * AUTH-02 (S03 R-03-06b): the login e-mail an `EMAIL_CHANGE` link confirms. The new address is verified by the link itself, and
+     * the suppression mark of the old one (`emailStatus`, S11) no longer applies. The unique index `account_email` stays the last guard.
+     */
+    public boolean changeEmail(String id, String email, Instant now) {
+        return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("status").is(Account.Status.ACTIVE)),
+                new Update().set("email", Email.normalize(email)).set("emailVerifiedAt", now).unset("emailStatus"), Account.class)
+                .getModifiedCount() == 1;
+    }
     public void verifyEmail(String id, Instant now) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("emailVerifiedAt").is(null)),
                 new Update().set("emailVerifiedAt", now), Account.class);

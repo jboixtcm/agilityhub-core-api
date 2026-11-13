@@ -81,6 +81,17 @@ public class AuditWriter {
                 new AuditActor(null, null, "SYSTEM", null, null, null, null, UUID.randomUUID().toString()), Map.of("job", process), null);
     }
 
+    /**
+     * A change that takes effect outside the request of the person it belongs to, written with that person as its actor
+     * (AUTH-02: a login e-mail change an ADMIN asked for on D10 takes effect when the link mailed to the new address is used;
+     * the entry is the ADMIN's, with {@code origin}). The actor is given, never read from the request that applies the change.
+     */
+    public void writeAs(AuditCommand command, AuditActor actor, String origin) {
+        Objects.requireNonNull(actor, "Audit actor is required");
+        write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, actor, null, null);
+    }
+
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
                List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null); }
 

@@ -62,6 +62,10 @@ public final class CensusRequests {
             @Schema(requiredMode = REQUIRED) @NotBlank String channel) { }
     public record BookingBlockRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank @Size(max = 200) String reason) { }
+    /** AUTH-02 (S03 R-03-06b): the new login e-mail an ADMIN enters on D10. */
+    @Schema(name = "LoginEmailChangeRequest")
+    public record LoginEmailChangeRequest(
+            @Schema(requiredMode = REQUIRED, format = "email") @NotBlank @Email @Size(max = 254) String email) { }
     public record ReasonRequest(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record RolesRequest(

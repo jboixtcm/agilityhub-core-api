@@ -113,7 +113,15 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant erasedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String erasureRequestId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) PlanReference plan,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String billedViaMemberId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String billedViaMemberId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "S03 R-03-06b (AUTH-02): the login e-mail of the member's "
+                    + "account and its suppression mark; null without an account or after erasure") MemberLogin login) { }
+    /** AUTH-02 (S03 R-03-06b): the account's login e-mail on D10 and why mail may not reach it (S11 R-11-08). */
+    public record MemberLogin(
+            @Schema(requiredMode = REQUIRED, format = "email") String email,
+            @Schema(requiredMode = REQUIRED, nullable = true, description = "BOUNCED (hard bounce or invalid address) or COMPLAINED "
+                    + "(spam complaint): no system e-mail (sign-in links, recovery, welcome) reaches this address; null: none") LoginEmailStatus emailStatus) { }
+    public enum LoginEmailStatus { BOUNCED, COMPLAINED }
     public record LevelSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
