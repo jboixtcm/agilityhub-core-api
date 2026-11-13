@@ -126,6 +126,19 @@ class CalendarIT extends AbstractIntegrationTest {
     List<Document> notifications(String code) { return com.agilityhub.core.support.NotificationRows.rows(mongo,CLUB,code); }
     long events(String type) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)),"domain_events"); }
     void audit(AuditAction action) { assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is(action.name())),"audit_entries")).isPositive(); }
+    @Test void T_06_09_manualTimesAcceptQuarterHoursAndIndependentMinuteBounds() throws Exception {
+        parameter("classes.slotMinutes", 10, "int");
+        String id=session("2026-08-29", "10:15", "plan-ring");
+        assertThat(session(id).path("endTime").asText()).isEqualTo("11:15");
+        var changed=patch(id,Map.of("startTime","10:17","endTime","11:23"));
+        assertThat(changed.path("startTime").asText()).isEqualTo("10:17");
+        assertThat(changed.path("endTime").asText()).isEqualTo("11:23");
+        assertThat(changed.path("startsAt").asText()).isEqualTo("2026-08-29T08:17:00Z");
+        error("PATCH","/class-sessions/"+id,Map.of("version",changed.path("version").asLong(),"endTime","10:16"),ErrorCode.INVALID_TIME_RANGE);
+        error("PATCH","/class-sessions/"+id,Map.of("version",changed.path("version").asLong(),"startTime","00:01"),ErrorCode.OUTSIDE_OPENING_HOURS);
+        assertThat(session(id).path("endTime").asText()).isEqualTo("11:23");
+    }
+
     @Test @AuditCovers(AuditAction.WEEK_VALIDATED)
     void T_06_12_validateAtomicallyAndExposeDraftsOnlyAfterValidation() throws Exception {
         String id=session("2026-08-25","18:00","plan-ring"), week=session(id).path("weekId").asText();

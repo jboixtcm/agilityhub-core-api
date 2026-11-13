@@ -170,7 +170,8 @@ public final class BillingContracts {
     public record CardChargesResult(@Schema(minimum = "0") int submitted, List<CardChargeSkip> skipped) { }
     public record RollbackResult(@Schema(minimum = "0") int cancelledInvoices, @Schema(minimum = "0") int restoredMembers) { }
     @Schema(description = "GET /billing/periods/{period}: the simulation of D6's step 1")
-    public record PeriodSimulation(@Schema(format = "uuid") String id, Instant at, SimulationKpis kpis, List<BillingIncident> incidents, List<CashMember> cashMembers) { }
+    public record PeriodSimulation(@Schema(format = "uuid") String id, Instant at, SimulationKpis kpis, List<BillingIncident> incidents, List<CashMember> cashMembers,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Saved simulation details; reading the period never generates invoices") List<InvoicePreview> invoicesPreview) { }
     public record PeriodRun(@Schema(format = "uuid") String id, BillingRunStatus status, ByProvider byProvider, boolean rollbackable,
             List<RollbackBlocker> rollbackBlockers) { }
     @Schema(description = "requestedCollectionDate: the remittance's collection date (club-local). submissionDue (E147, E11-T15): still GENERATED and the "

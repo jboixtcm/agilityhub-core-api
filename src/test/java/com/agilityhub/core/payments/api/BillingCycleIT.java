@@ -62,6 +62,8 @@ class BillingCycleIT extends BillingItSupport {
         error(admin(post("/api/v1/billing/simulations").contentType("application/json").content("{\"period\":\"2026-12\"}")), 400, "VALIDATION_ERROR");
         var period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
         assertThat(period.at("/simulation/id").asText()).isEqualTo(again.path("id").asText());
+        assertThat(period.at("/simulation/invoicesPreview")).isEqualTo(again.path("invoicesPreview"));
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "invoices")).isZero();
         assertThat(period.path("run").isNull()).isTrue();
         assertThat(period.path("counts").path("all").asLong()).isZero();
     }

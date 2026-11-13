@@ -13,14 +13,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ClassSessionService {
-    private final DailyTimeBands dailyTimeBands;
     private final ClassSessionRepository classes; private final WeekRepository weeks; private final RingBlockRepository blocks;
     private final PlanningContext context; private final SchedulingTransactions transactions; private final SchedulingEvents events;
     private final SchedulingAudit audit; private final TrainingConflictPort training; private final Clock clock; private final ClassPlacements placements;
     public ClassSessionService(ClassSessionRepository classes, WeekRepository weeks, RingBlockRepository blocks, PlanningContext context,
             SchedulingTransactions transactions, SchedulingEvents events, SchedulingAudit audit, TrainingConflictPort training, Clock clock,
-            ClassPlacements placements, DailyTimeBands dailyTimeBands) {
-        this.dailyTimeBands=dailyTimeBands;
+            ClassPlacements placements) {
         this.classes = classes; this.weeks = weeks; this.blocks = blocks; this.context = context; this.transactions = transactions;
         this.events = events; this.audit = audit; this.training = training; this.clock = clock; this.placements = placements;
     }
@@ -47,9 +45,6 @@ public class ClassSessionService {
             Integer capacity, String description, boolean cancelBookings, String placementId) {
         return transactions.write(() -> {
             placements.check(placementId, ring);
-            var day=dailyTimeBands.get(date);
-            if (day.configured() && day.bands().stream().noneMatch(b -> b.startTime().equals(start)))
-                throw new ApiException(ErrorCode.INVALID_SLOT_GRANULARITY);
             var now = clock.instant(); var actor = events.actor(); var monday = WeekCalendarRules.monday(date);
             var week = weeks.forStart(monday).orElseGet(() -> weeks.getOrCreate(new Week(UUID.randomUUID().toString(), TenantContext.require(),
                     WeekCalendarRules.isoYear(monday), WeekCalendarRules.isoWeek(monday), monday, monday.plusDays(6), WeekState.PENDING,
@@ -127,7 +122,8 @@ public class ClassSessionService {
     private void validate(SessionEdit edit, boolean cancelBookings, boolean moving, TemplateClassRules.Kept kept) {
         var config = context.config(); var catalog = context.catalog();
         var start = WeekTemplateRules.time(edit.startTime); var end = WeekTemplateRules.time(edit.endTime);
-        ClassSessionRules.times(edit.before.date(), start, end, config.get("classes.slotMinutes", Integer.class), context.opening(config));
+        // Manual classes accept whole-minute times; the configured grid is a planning aid.
+        ClassSessionRules.times(edit.before.date(), start, end, 1, context.opening(config));
         // INC-40 (E11-T10, S05 R-05-03): an edit keeps the class's own inactive references; a newly chosen one must be active.
         ClassSessionRules.references(edit.instructors, edit.ringId, edit.levels, edit.description, config.get("classes.maxInstructorsPerClass", Integer.class), config.get("levels.enabled", Boolean.class), catalog, kept);
         edit.capacity = context.capacity(edit.levels, edit.capacityMode, edit.capacity, catalog, config);

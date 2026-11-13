@@ -64,7 +64,8 @@ public final class BookingContracts {
     public record BookableDog(String id, String name, @Schema(allowableValues = {"MALE", "FEMALE"}) String sex,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelName, boolean own) { }
-    public record PackCard(String planName, int sessionsTotal, int consumed, int available, LocalDate expiresOn, PackState state) { }
+    public record PackCard(String planName, int sessionsTotal, int consumed, int available,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "No expiry when the member has no issued pack") LocalDate expiresOn, PackState state) { }
     public record SingleClassTerms(ChargeMode chargeMode, Money pricePerClass) { }
     public record BookingBlockNotice(String reason) { }
     public record BookableActivity(String id, String title, @Schema(description = LOCAL) String startsAtLocal,

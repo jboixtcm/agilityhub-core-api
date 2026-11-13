@@ -1,0 +1,35 @@
+{
+  "status": "local_full_verify_running_ci_required_before_deployment",
+  "surefire": {
+    "totals": {
+      "tests": 5021,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": {
+      "TEST-com.agilityhub.core.configuration.E8ResponseContractTest.xml": {
+        "tests": "11",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    }
+  },
+  "failsafe": {
+    "totals": {
+      "tests": 665,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "changedClasses": {
+      "TEST-com.agilityhub.core.payments.api.BillingCycleIT.xml": {
+        "tests": "22",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    }
+  }
+}

@@ -101,3 +101,6 @@ __pycache__/
 
 # Validation evidence for the November 12 Josep feedback.
 !roadmap/evidence/feedback-20261112-*/*.log
+
+# Direct user feedback validation, November 13.
+!roadmap/evidence/feedback-20261113/*.log

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-13 — Class times and student/administration feedback
+
+- Accept whole-minute start/end times for manually created and edited classes, independently of generated time bands; retain opening-hour, conflict and version checks.
+- Expose saved invoice previews on billing-period reads without generating invoices or collections.
+- Describe empty packs without an expiry date in the booking contract.
+
 ## 2026-11-12 — Dog category drilldown and instructor links
 
 - Expose dog birth dates as a selectable list/export column with the existing tenant-scoped category/status filters and assignment-date sorting. Instructor access still excludes member birth dates.
