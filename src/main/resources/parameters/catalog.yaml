@@ -1448,6 +1448,19 @@ parameters:
     restartRequired: false
     documentType: "int (dia **del mes que es factura**: 1–28, o `0` = últim dia)"
     documentDefault: "**1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay`"
+  - key: "billing.sepa.settlementBusinessDays"
+    type: "int"
+    default: 5
+    block: "billing"
+    labelKey: "admin-settings:param.billing.sepa.settlementBusinessDays.label"
+    helpKey: "admin-settings:param.billing.sepa.settlementBusinessDays.help"
+    constraints: {"min": 0, "max": 40}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "5"
   - key: "billing.stripeMaxAttempts"
     type: "int"
     default: 3

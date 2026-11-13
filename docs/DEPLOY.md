@@ -1121,7 +1121,12 @@ runbook (E12-T02). They are rules of the specs, not defects:
 - **Mark the remittance as sent the day you upload it.** From its collection
   date on, a remittance still `GENERATED` blocks the rollback
   (`COLLECTION_DATE_PASSED`, E147). From the day before, D6 shows
-  `submissionDue`. P5i settles only a `SUBMITTED` remittance.
+  `submissionDue`. P5i settles only a `SUBMITTED` remittance, and only
+  `billing.sepa.settlementBusinessDays` (5) TARGET business days after its
+  collection date (SEPA-04): record the bank's returns in those days. A
+  remittance marked sent whose file the bank refused can be set back to
+  `GENERATED` before its collection date, while none of its receipts moved
+  (`POST /remittances/{id}/submission-undo`), and then rolled back.
 - **`--cut-over` is a day of the launch month**, never the rehearsal's today
   (`PlayoffCommand`: the club's today when omitted). It sets every monthly
   member's first `nextInvoiceDate` (01 of the next month, R-18-13).

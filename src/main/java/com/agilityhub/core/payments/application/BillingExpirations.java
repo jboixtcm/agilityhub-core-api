@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 /** P5a and P5i, behind the common job's application adapter. */
 @Service
 public class BillingExpirations {
+    /** SEPA-04 (c), R-12-15: how many TARGET business days after its collection date a submitted remittance is taken as collected. */
+    public static final String SETTLEMENT_DAYS = "billing.sepa.settlementBusinessDays";
     private final PackBalanceRepository packs; private final PackBalanceService balances;
     private final RemittanceRepository remittances; private final InvoiceRepository invoices;
     private final CollectionRepository collections; private final BillingEvents events; private final Clock clock;
@@ -35,13 +37,21 @@ public class BillingExpirations {
     }
     private static boolean expired(PackBalance pack, LocalDate today) { return LocalDate.parse(pack.expiresOn()).isBefore(today); }
     public List<JobItem> remittances(JobContext context) {
-        return remittances.findAll().stream().filter(r -> due(r, context.localDate())).map(r -> {
+        int margin = context.parameter(SETTLEMENT_DAYS, Integer.class);
+        return remittances.findAll().stream().filter(r -> due(r, context.localDate(), margin)).map(r -> {
             var due = unsettled(r); return new JobItem("Remittance", r.id(), "SETTLE",
                     Map.of("remittanceId", r.id(), "invoices", due.size()));
         }).filter(item -> (int) item.detail().get("invoices") > 0).toList();
     }
-    private boolean due(Remittance remittance, LocalDate today) {
-        return remittance.status() == RemittanceStatus.SUBMITTED && !LocalDate.parse(remittance.requestedCollectionDate()).isAfter(today);
+    /**
+     * P5i (R-12-15, SEPA-04 (c)): a `SUBMITTED` remittance is due from its settlement day on — {@code margin} TARGET business days
+     * after its requested collection date, so a bank return reported in those days is recorded before the receipts become `PAID`.
+     */
+    private boolean due(Remittance remittance, LocalDate today, int margin) {
+        return remittance.status() == RemittanceStatus.SUBMITTED && !settlementDay(remittance, margin).isAfter(today);
+    }
+    static LocalDate settlementDay(Remittance remittance, int margin) {
+        return TargetCalendar.plusBusinessDays(LocalDate.parse(remittance.requestedCollectionDate()), margin);
     }
     private List<com.agilityhub.core.payments.persistence.Collection> unsettled(Remittance remittance) {
         return remittance.collectionIds().stream().map(collections::findById).flatMap(Optional::stream)
@@ -62,7 +72,8 @@ public class BillingExpirations {
     }
     private JobEffect settle(JobContext context, JobItem item) {
         var remittance = remittances.findById(item.entityId()).orElse(null);
-        if (remittance == null || !due(remittance, context.localDate())) { return noEffect(); }
+        if (remittance == null || !due(remittance, context.localDate(), context.parameter(SETTLEMENT_DAYS, Integer.class))) { return noEffect(); }
+        // The receipts were collected on the collection date: `paidAt` stays that day, whenever the margin lets P5i record it.
         long count = 0; var paidAt = LocalDate.parse(remittance.requestedCollectionDate()).atStartOfDay(context.zone()).toInstant();
         for (var collection : unsettled(remittance)) {
             var invoice = invoices.findById(collection.invoiceId()).orElseThrow();
