@@ -139,7 +139,8 @@ public final class NotificationCatalog {
                 .vars("dog_name", "class_date", "changes").build());
         rows.add(code("N-09", PERSONAL, "DogLevelChanged").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "level_name")
                 .seed(TemplateIcon.up, TemplateColor.OK).build());
-        rows.add(code("N-10", OPERATIONAL, "InvoiceFailed").to(ADMINS, APP, EMAIL).action(OPEN_INVOICES)
+        // SEPA-04 (b): `InvoicesFailed` is the one N-10 of the returns of a remittance marked together.
+        rows.add(code("N-10", OPERATIONAL, "InvoiceFailed", "InvoicesFailed").to(ADMINS, APP, EMAIL).action(OPEN_INVOICES)
                 .vars("member_name", "invoice_number", "amount", "reason").modules(Module.BILLING).build());
         rows.add(code("N-11a", PERSONAL, "PackLowBalance").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "pack_remaining")
                 .modules(Module.BILLING, Module.PACKS).build());

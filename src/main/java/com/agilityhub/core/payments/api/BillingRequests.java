@@ -39,7 +39,16 @@ public final class BillingRequests {
     public record InvoicePaymentRequest(@NotNull LocalDate paidAt, @NotNull ManualChannel channel,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 140) String reference, @NotNull Long version) { }
     public record BulkPaymentRequest(@NotEmpty List<@NotBlank String> invoiceIds, @NotNull LocalDate paidAt, @NotNull ManualChannel channel) { }
-    public record InvoiceFailureRequest(@NotBlank @Size(max = 500) String reason, @NotNull LocalDate at, @NotNull Long version) { }
+    public record InvoiceFailureRequest(@NotBlank @Size(max = 500) String reason, @NotNull LocalDate at, @NotNull Long version,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = INCLUDE_RETURNED) Boolean includeInNextRun) {
+        public InvoiceFailureRequest(String reason, LocalDate at, Long version) { this(reason, at, version, null); }
+    }
+    /** SEPA-04 (b), R-12-17/19. */
+    static final String INCLUDE_RETURNED = "SEPA-04 (R-12-17, R-12-19): true → the returned periodic receipt waits, FAILED, for the next run's remittance, "
+            + "which presents it again with the member's current mandate; absent or false → it waits for no remittance (marked paid or cancelled by hand). "
+            + "true on a manual receipt → 400 VALIDATION_ERROR {field: includeInNextRun}";
+    public record RemittanceReturnsRequest(@NotEmpty List<@NotBlank String> invoiceIds, @NotBlank @Size(max = 500) String reason,
+            @NotNull LocalDate at, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = INCLUDE_RETURNED) Boolean includeInNextRun) { }
     public record InvoiceRetryRequest(@NotNull Long version) { }
     public record RefundRequest(@Schema(requiredMode = NOT_REQUIRED, description = "Partial amount; absent = what is left to refund") @Valid Money amount,
             @NotBlank @Size(max = 500) String reason) { }

@@ -8,7 +8,8 @@ import java.util.Map;
  * S12 §7 events (CATALEG_ESDEVENIMENTS «Facturació i pagaments» and Annex A), published through the outbox in the writing
  * transaction (E8-T02…T06 publish them; E8-T01 declares the contract). Payloads as S12 §7 writes them:
  * `InvoiceIssued{invoiceId, memberId, period, total, paymentMethodType, kind}` · `InvoiceCollecting{invoiceId, provider,
- * collectionId}` · `InvoicePaid{invoiceId, provider, paidAt}` · `InvoiceFailed{invoiceId, provider, reason}` ·
+ * collectionId}` · `InvoicePaid{invoiceId, provider, paidAt}` · `InvoiceFailed{invoiceId, provider, reason, summarized?}` ·
+ * SEPA-04's `InvoicesFailed{remittanceId, invoiceIds, provider, reason}` (the returns of a remittance marked in one request) ·
  * `InvoiceCancelled{invoiceId, reason}` · `RemittanceSimulated{simulationId, period, incidents, totals}` ·
  * `RemittanceGenerated{remittanceId, runId, invoiceIds, fileKey}` · `RemittanceRolledBack{remittanceId, runId, invoiceIds}` ·
  * `UpfrontPayment*{paymentId, …}` · `Pack*{packBalanceId, memberId, dogId, …}` · `StripeWebhookReceived{eventId, type,
@@ -23,7 +24,7 @@ public record BillingEvent(Kind kind, String clubId, String aggregateId, Instant
     @Override public String type() { return kind.name(); }
     @Override public String aggregateType() { return kind.aggregateType; }
     public enum Kind {
-        InvoiceIssued("Invoice"), InvoiceCollecting("Invoice"), InvoicePaid("Invoice"), InvoiceFailed("Invoice"), InvoiceCancelled("Invoice"),
+        InvoiceIssued("Invoice"), InvoiceCollecting("Invoice"), InvoicePaid("Invoice"), InvoiceFailed("Invoice"), InvoicesFailed("Remittance"), InvoiceCancelled("Invoice"),
         RemittanceSimulated("BillingSimulation"), RemittanceGenerated("Remittance"), RemittanceRolledBack("Remittance"),
         UpfrontPaymentRecorded("UpfrontPayment"), UpfrontPaymentSucceeded("UpfrontPayment"), UpfrontPaymentFailed("UpfrontPayment"), UpfrontRefundIntervention("UpfrontPayment"),
         PackOpened("PackBalance"), PackConsumed("PackBalance"), PackRefunded("PackBalance"), PackLowBalance("PackBalance"),

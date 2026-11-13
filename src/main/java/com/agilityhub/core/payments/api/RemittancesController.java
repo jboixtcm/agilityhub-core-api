@@ -34,10 +34,12 @@ public class RemittancesController {
     static final String SERVED = BillingController.SERVED;
     private final BillingContractAccess access; private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final RemittanceService remittances; private final BillingTransactions transactions; private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    private final com.agilityhub.core.payments.application.InvoiceActions actions;
     public RemittancesController(BillingContractAccess access, com.agilityhub.core.shared.application.lists.ListEngine lists, RemittanceService remittances,
-            BillingTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper, org.springframework.context.MessageSource messages) {
+            BillingTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper, org.springframework.context.MessageSource messages,
+            com.agilityhub.core.payments.application.InvoiceActions actions) {
         this.messages = messages;
-        this.access = access; this.lists = lists; this.remittances = remittances; this.transactions = transactions; this.mapper = mapper;
+        this.access = access; this.lists = lists; this.remittances = remittances; this.transactions = transactions; this.mapper = mapper; this.actions = actions;
     }
 
     @GetMapping(value="/api/v1/remittances/{id}/spreadsheet", produces="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -124,6 +126,30 @@ public class RemittancesController {
         access.remittance(id);
         var undone = transactions.keyed(200, () -> remittances.undoSubmission(id, request.reason()), result -> json(BillingViews.remittance(result)));
         return BillingViews.remittance(undone);
+    }
+
+    @PostMapping("/api/v1/remittances/{id}/returns")
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
+    @Operation(summary = "markRemittanceReturns", description = ROLES + "SEPA-04 (b), R-12-17 [Marca impagats (selecció)]: several bank returns of "
+            + "this remittance in one request, all or none — each receipt as POST /invoices/{id}/failure makes it (a COLLECTING SEPA receipt, or a "
+            + "PAID one with a SEPA collection: Collection FAILED{BANK_RETURN} appended, FAILED with the reason, InvoiceFailed{summarized: true}, "
+            + "its own INVOICE_MARKED_FAILED audit), and the admins get ONE N-10 for the request (InvoicesFailed) instead of one per receipt. "
+            + "A receipt whose SEPA collection is not of this remittance → 400 VALIDATION_ERROR {field: invoiceIds}; one in another state → "
+            + "409 INVALID_STATE {status}; another club's → 404. at is a club-local day, not after today. includeInNextRun true → the returned "
+            + "PERIODIC receipts wait, FAILED, for the next run's remittance (R-12-19); a manual one → 400 VALIDATION_ERROR {field: "
+            + "includeInNextRun}. The same Idempotency-Key answers the same result." + SERVED,
+            responses = @ApiResponse(responseCode = "200", description = "RemittanceReturnsResult", useReturnTypeSchema = true))
+    public RemittanceReturnsResult markRemittanceReturns(@PathVariable String id, @Valid @RequestBody RemittanceReturnsRequest request,
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        access.remittance(id);
+        access.invoices(request.invoiceIds());
+        var returned = transactions.keyed(200, () -> actions.markReturned(id, request.invoiceIds(), request.reason(), request.at(), request.includeInNextRun()),
+                result -> json(returns(result)));
+        return returns(returned);
+    }
+    private static RemittanceReturnsResult returns(java.util.List<com.agilityhub.core.payments.application.InvoiceActions.InvoiceDetail> details) {
+        return new RemittanceReturnsResult(details.size(), details.stream()
+                .map(detail -> BillingViews.invoice(detail.invoice(), detail.collections(), detail.rolledBack())).toList());
     }
 
     private byte[] json(Object body) {

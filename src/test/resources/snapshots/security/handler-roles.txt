@@ -376,6 +376,7 @@ POST /api/v1/platform/clubs/{id}/theme/upload-url | hasRole('AGILITYHUB_ADMIN') 
 POST /api/v1/platform/courses | hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true | courses.api.PlatformCoursesController.createPlatformCourse
 POST /api/v1/prices | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.catalogs.api.PricesController.createPrice
 POST /api/v1/push-subscriptions | hasAnyRole('MEMBER','INSTRUCTOR','ADMIN') | clubs.messaging.api.PushSubscriptionsController.subscribePush
+POST /api/v1/remittances/{id}/returns | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.RemittancesController.markRemittanceReturns
 POST /api/v1/remittances/{id}/submission | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.RemittancesController.submitRemittance
 POST /api/v1/remittances/{id}/submission-undo | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.RemittancesController.undoRemittanceSubmission
 POST /api/v1/ring-blocks | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.scheduling.api.SchedulingController.createBlock

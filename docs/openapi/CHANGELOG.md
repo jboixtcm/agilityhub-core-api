@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · SEPA-04 (b) · Bank returns of a remittance in one request; a returned receipt re-presented
+
+**1 operation added (`POST /remittances/{id}/returns`); 2 schemas added (`RemittanceReturnsRequest`, `RemittanceReturnsResult`); 1 schema property added (`InvoiceFailureRequest.includeInNextRun`, optional, `boolean | null`); no error codes added; 1 operation description changed.**
+
+- New `POST /remittances/{id}/returns` (ADMIN, module `BILLING`, no impersonation; `Idempotency-Key` required; body `{invoiceIds[], reason, at, includeInNextRun?}`; `200 RemittanceReturnsResult {returned, invoices[]}`): several bank returns of one remittance, all or none, each as `POST /invoices/{id}/failure` makes it (its own `INVOICE_MARKED_FAILED` entry), with ONE N-10 to the admins for the request (new event `InvoicesFailed{remittanceId, invoiceIds, provider, reason}`; each receipt's `InvoiceFailed` carries `summarized: true` and gives no N-10 of its own). `400 VALIDATION_ERROR` (`{field: invoiceIds}`: a receipt whose SEPA collection is not of this remittance; `{field: includeInNextRun}`; `at` after today) · `404 NOT_FOUND` · `409 INVALID_STATE {status}`.
+- `POST /invoices/{id}/failure` and the new route take `includeInNextRun`: `true` leaves a returned `PERIODIC` receipt `FAILED` waiting for the next run's remittance, which presents it again (a new `SEPA_XML` attempt with the member's current mandate; the simulation previews it); on a manual receipt → `400 VALIDATION_ERROR {field: includeInNextRun}`; absent or `false` → it waits for none. A rollback of that run puts it back `FAILED` in its earlier remittance, still waiting.
+
 ## 2026-11-13 · SEPA-04 (a) · Undo «sent to the bank»
 
 **1 operation added (`POST /remittances/{id}/submission-undo`); 1 schema added (`SubmissionUndoRequest`); 1 enum value added (`AuditAction`: `REMITTANCE_SUBMISSION_UNDONE`); no error codes added.**

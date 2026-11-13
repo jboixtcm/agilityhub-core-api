@@ -185,7 +185,8 @@ class E8ResponseContractTest {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ESDEVENIMENTS.md"));
         Map<String, String> fields = new LinkedHashMap<>();
         fields.put("InvoiceIssued", "invoiceId,memberId,period,total,paymentMethodType,kind"); fields.put("InvoiceCollecting", "invoiceId,provider,collectionId");
-        fields.put("InvoicePaid", "invoiceId,provider,paidAt"); fields.put("InvoiceFailed", "invoiceId,provider,reason"); fields.put("InvoiceCancelled", "invoiceId,reason");
+        fields.put("InvoicePaid", "invoiceId,provider,paidAt"); fields.put("InvoiceFailed", "invoiceId,provider,reason,summarized");
+        fields.put("InvoicesFailed", "remittanceId,invoiceIds,provider,reason"); /* SEPA-04 (b) */ fields.put("InvoiceCancelled", "invoiceId,reason");
         fields.put("RemittanceSimulated", "simulationId,period,incidents,totals"); fields.put("RemittanceGenerated", "remittanceId,runId,invoiceIds,fileKey");
         fields.put("RemittanceRolledBack", "remittanceId,runId,invoiceIds"); fields.put("UpfrontPaymentRecorded", "paymentId,memberId,concept,provider,amountPaid,bookingId");
         fields.put("UpfrontPaymentSucceeded", "paymentId,concept,provider,amountPaid,bookingId,packBalanceId,memberId"); fields.put("UpfrontPaymentFailed", "paymentId,memberId,concept,provider,bookingId,reason");
@@ -201,14 +202,14 @@ class E8ResponseContractTest {
         fields.put("InactivityChanged", "periodId,memberId,before,after,cancelledBookings"); fields.put("InactivityCancelled", "periodId,memberId,by,reason");
         fields.put("LeaveRequested", "requestId,memberId,requestedDate,reasonKey"); fields.put("LeaveResolved", "requestId,memberId,decision,source,effectiveDate,cancelledBookings");
         fields.put("LeaveCancelled", "requestId,memberId,by,reason");
-        assertThat(fields).hasSize(33);
+        assertThat(fields).hasSize(34);
         assertThat(fixtures.fieldNames()).toIterable().containsExactlyInAnyOrderElementsOf(fields.keySet());
         var kinds = new ArrayList<String>();
         for (var kind : BillingEvent.Kind.values()) { kinds.add(kind.name()); }
         for (var kind : CensusLifecycleEvent.Kind.values()) { kinds.add(kind.name()); }
         assertThat(kinds).containsExactlyInAnyOrderElementsOf(fields.keySet());
         Map<String, String> aggregates = Map.of("Invoice", "InvoiceIssued,InvoiceCollecting,InvoicePaid,InvoiceFailed,InvoiceCancelled",
-                "Remittance", "RemittanceGenerated,RemittanceRolledBack", "BillingSimulation", "RemittanceSimulated",
+                "Remittance", "RemittanceGenerated,RemittanceRolledBack,InvoicesFailed", "BillingSimulation", "RemittanceSimulated",
                 "UpfrontPayment", "UpfrontPaymentRecorded,UpfrontPaymentSucceeded,UpfrontPaymentFailed,UpfrontRefundIntervention",
                 "PackBalance", "PackOpened,PackConsumed,PackRefunded,PackLowBalance,PackExpiring,PackExpired,PackAdjusted",
                 "StripeEvent", "StripeWebhookReceived", "BillingRun", "BillingRunCreated,BillingRunCompleted", "Member", "MemberCardInvalidated", "Club", "RemittanceReminderDue",
@@ -249,7 +250,7 @@ class E8ResponseContractTest {
                 assertThat(payload).as(entry.getKey() + " main row lists " + field).containsPattern("(?<![A-Za-z])" + field + "(?![A-Za-z])");
             }
         }
-        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(25);
+        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(26);
         // The proposals of S12 §13 and S13 §13 are the Annex A rows.
         assertThat(row(catalog, "| `BillingRunCreated` ·")).contains("`BillingRunCompleted`", "`PackAdjusted{delta, reason}`", "`MemberCardInvalidated`");
         assertThat(row(catalog, "| `InactivityChanged` ·")).contains("`InactivityCancelled`", "`LeaveCancelled`", "`LeaveResolved{source, decision, cancelledBookings[]}`");

@@ -81,6 +81,8 @@ public final class BillingContracts {
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     @Schema(description = "POST /invoices/payments: how many invoices were marked paid")
     public record BulkPaymentResult(@Schema(minimum = "0") int paid, List<Invoice> invoices) { }
+    @Schema(description = "SEPA-04: POST /remittances/{id}/returns: how many receipts of the remittance were marked returned")
+    public record RemittanceReturnsResult(@Schema(minimum = "1") int returned, List<Invoice> invoices) { }
 
     // ---- The member's view (R-12-27): read only, no IBAN
     public record MeInvoiceLine(InvoiceLineOrigin origin, String description, Money total) { }

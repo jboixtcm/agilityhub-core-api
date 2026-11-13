@@ -61,7 +61,8 @@
 | `InvoiceIssued` | invoiceId, memberId, period, total, paymentMethodType, kind (PERIODIC · MANUAL · MIGRATED) | S12 | comptadors D6 |
 | `InvoiceCollecting` | invoiceId, provider, collectionId | S12 | D6 |
 | `InvoicePaid` | invoiceId, provider, paidAt | S12 | N-30 (`STRIPE`), D6 |
-| `InvoiceFailed` | invoiceId, provider, reason | S12 | N-10, N-35 (`STRIPE`), D6 |
+| `InvoiceFailed` | invoiceId, provider, reason, summarized? (SEPA-04: `true` per a cada devolució marcada en bloc, que no dona N-10 pròpia) | S12 | N-10 (llevat de `summarized`), N-35 (`STRIPE`), D6 |
+| `InvoicesFailed` | remittanceId, invoiceIds[], provider, reason (SEPA-04, 13-11-2026: les devolucions d'una remesa marcades en una sola petició, `POST /remittances/{id}/returns`; `provider = SEPA_XML`, `reason = BANK_RETURN`) | S12 | N-10 (un sol avís resum) |
 | `InvoiceCancelled` | invoiceId, reason | S12 | D6 |
 | `RemittanceSimulated` | simulationId, period, incidents[{memberId, code}], totals{count, total} | S12 | D6 |
 | `RemittanceGenerated` | remittanceId, runId, invoiceIds[], fileKey | S12 | avança proper rebut, auditoria |
