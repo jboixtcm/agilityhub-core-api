@@ -61511,7 +61511,7 @@
     },
     "/api/v1/me/password" : {
       "put" : {
-        "description" : "Account token, never impersonated. R-01-05: current is required only when a password already exists, except once in a session opened by a RESET magic link, within 15 minutes of the link's exchange (ruling E49); a LOGIN link never allows it.",
+        "description" : "Account token, never impersonated. R-01-05: current is required only when a password already exists, except once in a session opened by a RESET magic link, within 15 minutes of the link's exchange (ruling E49); a LOGIN link never allows it. AUTH-01: the new password has at least auth.passwordMinLength characters (code points), and at least 12 for a staff account (ADMIN or INSTRUCTOR in a club, or AGILITYHUB_ADMIN); PASSWORD_TOO_SHORT carries details.minLength, the account's minimum. Existing passwords stay valid.",
         "operationId" : "password",
         "requestBody" : {
           "content" : {
@@ -61535,7 +61535,7 @@
                 }
               }
             },
-            "description" : "PASSWORD_TOO_SHORT, PASSWORD_MISMATCH, PASSWORD_COMPROMISED"
+            "description" : "PASSWORD_TOO_SHORT {minLength}, PASSWORD_MISMATCH, PASSWORD_COMPROMISED"
           },
           "401" : {
             "content" : {

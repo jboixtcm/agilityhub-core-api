@@ -283,6 +283,8 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         var first = login();
         int minimum;
         try (var scope = TenantContext.open("club-a")) { minimum = authSettings.integer("auth.passwordMinLength"); }
+        // AUTH-01 (S01 R-01-05): admin@example.test is the club's ADMIN, so its minimum is the staff one (12), not the members' (8).
+        minimum = Math.max(minimum, com.agilityhub.core.identity.application.PasswordService.STAFF_PASSWORD_MIN_LENGTH);
         var request = put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json");
         String shortPassword = "x".repeat(minimum - 2) + "🐕";
         mvc.perform(request.content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", shortPassword, "repeat", shortPassword))))

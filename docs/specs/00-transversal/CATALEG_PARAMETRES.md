@@ -10,7 +10,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `auth.sessionDays` | int | 30 | refresh token lliscant (ADR-004); el backoffice (`clubs-admin`) caduca, a més, 12 h després de l'inici de sessió (S01 R-01-06, AUTH-01) |
 | `auth.magicLinkMinutes` | int | 15 | caducitat de l'enllaç màgic |
 | `auth.impersonationMinutes` | int | 60 | «Entra com l'abonat» |
-| `auth.passwordMinLength` | int | 8 | |
+| `auth.passwordMinLength` | int | 8 | els comptes de personal (`ADMIN`, `INSTRUCTOR`, `AGILITYHUB_ADMIN`) en necessiten com a mínim 12 (S01 R-01-05, AUTH-01) |
 
 ## Alta (`signup.*`) — bloc Alta i consentiments
 | Clau | Tipus | Cànic | Notes |

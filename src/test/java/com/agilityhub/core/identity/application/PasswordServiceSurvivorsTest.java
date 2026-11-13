@@ -42,8 +42,9 @@ class PasswordServiceSurvivorsTest {
     final IdentityTransactions transactions = mock(IdentityTransactions.class);
     final EventPublisher events = mock(EventPublisher.class);
     final SystemNotificationService notifications = mock(SystemNotificationService.class);
+    final com.agilityhub.core.identity.persistence.AccountMembershipRepository staffRoles = mock(com.agilityhub.core.identity.persistence.AccountMembershipRepository.class);
     final PasswordService service = new PasswordService(identities, accounts, sessions, magicLinks, tokens, passwords, compromised, settings, transactions,
-            events, notifications, Clock.fixed(NOW, ZoneOffset.UTC));
+            events, notifications, staffRoles, Clock.fixed(NOW, ZoneOffset.UTC));
     final Account account = new Account("acc-1", "laura@example.test", "Laura Example", "ca", OLD_HASH, Set.of(), Account.Status.ACTIVE,
             new Account.Security(0, null, NOW.minus(Duration.ofDays(60)), 0), Map.of(), false, NOW.minus(Duration.ofDays(400)));
 
@@ -89,6 +90,43 @@ class PasswordServiceSurvivorsTest {
         change("Kq7#mZ2p-longer");
 
         verify(magicLinks).revokeUnused("acc-1", NOW);
+    }
+
+    /** AUTH-01 (S01 R-01-05): an account with ADMIN or INSTRUCTOR in a club needs 12 characters; the refusal says how many. */
+    @Test void AUTH_01_aStaffAccountsNewPasswordNeedsTwelveCharacters() {
+        when(staffRoles.holdsStaffRole("acc-1")).thenReturn(true);
+        assertThat("Kq7#mZ2pAb1").hasSize(11);
+
+        assertThatThrownBy(() -> change("Kq7#mZ2pAb1")).isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class, refused -> {
+            assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.PASSWORD_TOO_SHORT);
+            assertThat(refused.details()).containsEntry("minLength", 12);
+        });
+        verify(accounts, never()).password(any(), any(), any());
+
+        change("Kq7#mZ2pAb1!");
+        verify(accounts).password("acc-1", NEW_HASH, NOW);
+    }
+
+    @Test void AUTH_01_aPlatformAdministratorsNewPasswordNeedsTwelveCharacters() {
+        var platform = new Account("acc-1", "laura@example.test", "Laura Example", "ca", OLD_HASH, Set.of(Account.PlatformRole.AGILITYHUB_ADMIN),
+                Account.Status.ACTIVE, new Account.Security(0, null, NOW.minus(Duration.ofDays(60)), 0), Map.of(), false, NOW.minus(Duration.ofDays(400)));
+        when(identities.current("acc-1")).thenReturn(new IdentityService.Session(platform, null));
+
+        assertThatThrownBy(() -> change("Kq7#mZ2pAb1")).hasMessage("PASSWORD_TOO_SHORT");
+        assertThat(service.minimumLength(platform)).isEqualTo(12);
+    }
+
+    @Test void AUTH_01_aMemberKeepsTheClubMinimumAndItsRefusalSaysSo() {
+        assertThat(service.minimumLength(account)).isEqualTo(8);
+        assertThatThrownBy(() -> change("Kq7#mZ2")).isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                refused -> assertThat(refused.details()).containsEntry("minLength", 8));
+    }
+
+    @Test void AUTH_01_aHigherClubMinimumStillAppliesToStaff() {
+        when(staffRoles.holdsStaffRole("acc-1")).thenReturn(true);
+        when(settings.integer("auth.passwordMinLength")).thenReturn(14);
+
+        assertThat(service.minimumLength(account)).isEqualTo(14);
     }
 
     @Test void AUTH_06_aRefusedChangeLeavesTheMagicLinksAlone() {

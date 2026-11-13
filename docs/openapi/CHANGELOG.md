@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTH-01 (b) · Staff passwords of 12 characters at least
+
+**No operations, schemas or error codes added; `PASSWORD_TOO_SHORT` gains `details.minLength`; 1 operation description changed (`PUT /me/password`).**
+
+- `PUT /me/password`: a staff account (ADMIN or INSTRUCTOR in any club, in any membership status but ERASED, or AGILITYHUB_ADMIN) sets or changes its password to 12 characters (code points) at least, or `auth.passwordMinLength` when that is higher; a member keeps `auth.passwordMinLength` (8). `400 PASSWORD_TOO_SHORT` now carries `details.minLength`, the account's minimum. Existing passwords stay valid.
+
 ## 2026-11-13 · AUTH-01 (a) · Back-office sessions end 12 hours after sign-in
 
 **No operations, schemas or error codes added; 1 operation description changed (`POST /oauth2/token`, and its `Set-Cookie` header).**
