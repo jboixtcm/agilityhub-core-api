@@ -77,7 +77,9 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         }
         assertThat(operations).isEqualTo(6);
         // INC-53 point 11 (E11-T02): the trigger declares its optional Idempotency-Key, and with it IDEMPOTENCY_KEY_REUSED.
-        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText()).isEqualTo("JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED, STALE_VERSION");
+        // PRIV-02: and SIMULATION_STALE, a manual retention sweep without its confirmed dry run.
+        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText())
+                .isEqualTo("JOB_ALREADY_RUNNING, SIMULATION_STALE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION");
         assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1runs/get/responses/404/description").asText()).isEqualTo("JOB_UNKNOWN, MODULE_DISABLED");
     }
 
@@ -109,9 +111,9 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
             }
         }
         assertThat(keyed).isGreaterThan(60);
-        // A keyed route keeps its own 409 codes next to STALE_VERSION.
+        // A keyed route keeps its own 409 codes next to STALE_VERSION (PRIV-02: SIMULATION_STALE among them).
         assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText())
-                .isEqualTo("JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED, STALE_VERSION");
+                .isEqualTo("JOB_ALREADY_RUNNING, SIMULATION_STALE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION");
         var file = document.at("/paths/~1api~1v1~1public~1{clubSlug}~1activities~1{slug}~1files~1{fileId}/get/responses");
         assertThat(names(file)).contains("200", "206", "302", "416");
         assertThat(file.at("/206/headers/Content-Range").isMissingNode()).isFalse();

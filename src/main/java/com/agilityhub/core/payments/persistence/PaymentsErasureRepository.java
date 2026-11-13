@@ -17,6 +17,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class PaymentsErasureRepository {
+    /** A remittance not yet submitted to the bank: the retention sweep never deletes its file (PRIV-02). */
+    static final String NOT_SUBMITTED = com.agilityhub.core.payments.domain.RemittanceStatus.GENERATED.name();
     private final MongoTemplate mongo;
     public PaymentsErasureRepository(MongoTemplate mongo) { this.mongo = mongo; }
     private Criteria club() { return Criteria.where("clubId").is(TenantContext.require()); }
@@ -49,19 +51,23 @@ public class PaymentsErasureRepository {
         return mongo.updateMulti(Query.query(club().and("memberId").in(memberIds)), new Update().unset("providerRequest"), "checkout_sessions").getModifiedCount();
     }
 
-    /** R-14-16 (c): the remittances of the club whose XML file (debtor names and IBANs) is older than the cut-off and still stored. */
+    /**
+     * R-14-16 (c): the remittances of the club whose XML file (debtor names and IBANs) is older than the cut-off and still stored.
+     * PRIV-02 (owner's decision of 13-11): never one still `GENERATED`, a file not yet submitted to the bank.
+     */
     public List<String> remittanceFilesBefore(Instant cutoff) {
-        var query = Query.query(club().and("creationAt").lt(cutoff).and("fileKey").ne(null));
+        var query = Query.query(club().and("creationAt").lt(cutoff).and("fileKey").ne(null).and("status").ne(NOT_SUBMITTED));
         query.fields().include("_id");
         return mongo.find(query, org.bson.Document.class, "remittances").stream().map(document -> document.getString("_id")).toList();
     }
+    /** The stored file of a remittance the sweep may delete: null when it has none, or while it is still `GENERATED` (PRIV-02). */
     public String remittanceFile(String remittanceId) {
-        var document = mongo.findOne(Query.query(club().and("_id").is(remittanceId)), org.bson.Document.class, "remittances");
+        var document = mongo.findOne(Query.query(club().and("_id").is(remittanceId).and("status").ne(NOT_SUBMITTED)), org.bson.Document.class, "remittances");
         return document == null ? null : document.getString("fileKey");
     }
     /** The remittance keeps everything but its file reference; `filePurgedAt` records when the XML left the store. */
     public boolean remittanceFilePurged(String remittanceId, Instant at) {
-        return mongo.updateFirst(Query.query(club().and("_id").is(remittanceId).and("fileKey").ne(null)),
+        return mongo.updateFirst(Query.query(club().and("_id").is(remittanceId).and("fileKey").ne(null).and("status").ne(NOT_SUBMITTED)),
                 new Update().unset("fileKey").set("filePurgedAt", at), "remittances").getModifiedCount() == 1;
     }
 

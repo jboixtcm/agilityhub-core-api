@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * S14 WP-14-D, the payments side: R-14-14's `INVOICES_OPEN` (an invoice `PENDING`, `COLLECTING` or `FAILED`) and `UPFRONT_OPEN`
  * (`DUE`, `PARTIAL`, `CHECKOUT_PENDING`); R-14-15's invoice snapshots and S12's `forgetCustomer` for a card member (queued in the
  * erasure's transaction, before the census drops the customer reference: this step runs first); and R-14-16 (c), the remittance
- * XML files older than `rgpd.retentionYearsAfterLeave`.
+ * XML files older than `rgpd.retentionYearsAfterLeave`, never the file of a remittance still `GENERATED` (PRIV-02).
  */
 @Component
 @Order(10)

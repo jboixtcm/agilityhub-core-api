@@ -185,8 +185,8 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `inactivity.maxStartMonthsAhead` | int | 12 | Quotes i remesa | S13 |
 | `leave.packExpiryGraceDays` | int | 30 | Quotes i remesa | S13 |
 | `leave.reasons` (canvi de tipus) | json `[{key, label: localizedText, audience}]` | `[{"key": "LEARNED_ENOUGH", "label": {"ca": "Ja he après tot el que volia", "es": "Ya he aprendido todo lo que quería", "en": "I have already learned everything I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps per anar-hi", "es": "No encuentro tiempo para ir", "en": "I cannot find the time to go"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants meus aliens al club", "es": "Circunstancias mías ajenas al club", "en": "Personal circumstances unrelated to the club"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]` | Quotes i remesa | S13 |
-| `audit.retentionYears` | int | 6 | Privacitat i auditoria | S14 |
-| `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 6 · 365 | Privacitat i auditoria (retenció 6 anys: Jordi 06-09, A16, Codi de Comerç art. 30; abans 5) | S14 |
+| `audit.retentionYears` | int | 6 | Privacitat i auditoria (**mínim 6**: el club el pot allargar, mai escurçar per sota; PRIV-02, propietari 13-11) | S14 |
+| `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 6 · 365 | Privacitat i auditoria (retenció 6 anys: Jordi 06-09, A16, Codi de Comerç art. 30; abans 5; **mínims 30 · 1 · —**: marge de 30 dies i 1 any de retenció com a pisos, PRIV-02, propietari 13-11) | S14 |
 | `security.eventRetentionDays` | int | 90 | sistema | S14 |
 | `jobs.<nom>.enabled` (weekOpening · riskReview · noShowNotices · reminders · expirations · waitlistFifo · paymentTimeouts · classFinishing · cleanup · billingReminder) | bool | true | Processos automàtics | S15 |
 | `jobs.dailyTime` | time | 06:00 | Processos automàtics | S15 |
@@ -202,3 +202,5 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `learn.baseUrl` | string | `"https://learn.agilitydoghub.com"` | sistema | S19 |
 
 Bloc nou a D11: **«Privacitat i auditoria»** (S14) i **«Processos automàtics»** (S15).
+
+Pisos legals de la retenció (PRIV-02, decisió del propietari 13-11): un **mínim** de la columna de notes és el `min` del catàleg (`catalog.yaml`); el club edita la clau per sobre del pis. Un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (`ParameterInvalidOverride`): val el valor de producte.

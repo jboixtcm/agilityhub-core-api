@@ -1506,7 +1506,7 @@ parameters:
     block: "privacy"
     labelKey: "admin-settings:param.audit.retentionYears.label"
     helpKey: "admin-settings:param.audit.retentionYears.help"
-    constraints: {"min": 0}
+    constraints: {"min": 6}
     modules: []
     scope: "club"
     editableBy: "CLUB"
@@ -1519,7 +1519,7 @@ parameters:
     block: "privacy"
     labelKey: "admin-settings:param.rgpd.erasureMinDaysAfterLeave.label"
     helpKey: "admin-settings:param.rgpd.erasureMinDaysAfterLeave.help"
-    constraints: {"min": 0}
+    constraints: {"min": 30}
     modules: []
     scope: "club"
     editableBy: "CLUB"
@@ -1532,7 +1532,7 @@ parameters:
     block: "privacy"
     labelKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.label"
     helpKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.help"
-    constraints: {"min": 0}
+    constraints: {"min": 1}
     modules: []
     scope: "club"
     editableBy: "CLUB"

@@ -72,8 +72,9 @@ public class JobRunner {
         this.outside.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
+    /** {@code confirmedPlan}: PRIV-02, the plan counts a real manual run was confirmed for ({@link JobViews#plannedCounts}); null = none. */
     private record Request(String clubId, Job job, JobDefinition definition, ClubConfig config, ZoneId zone, Instant scheduledFor,
-            JobTrigger trigger, boolean dryRun, String actorAccountId, String requestRef) { }
+            JobTrigger trigger, boolean dryRun, String actorAccountId, String requestRef, Map<String, Long> confirmedPlan) { }
 
     /** Registered implementations in R-15-01 order; jobs outside the catalog (the test job) come last. */
     public List<Job> registered() {
@@ -106,7 +107,7 @@ public class JobRunner {
             if (!continuous && runs.occurrenceTaken(definition.name(), scheduledFor)) { return Optional.empty(); }
             var outcome = JobOccurrences.triggerFor(now, scheduledFor, definition.catchUpWindow(), zone);
             var request = new Request(clubId, job, definition, config, zone, scheduledFor,
-                    outcome == JobOccurrences.Outcome.SCHEDULE ? JobTrigger.SCHEDULE : JobTrigger.CATCH_UP, false, null, null);
+                    outcome == JobOccurrences.Outcome.SCHEDULE ? JobTrigger.SCHEDULE : JobTrigger.CATCH_UP, false, null, null, null);
             SkipReason skip = !clubActive ? SkipReason.CLUB_INACTIVE
                     : !moduleOn(job, config) ? SkipReason.MODULE_OFF
                     : !enabled(definition, config) ? SkipReason.DISABLED
@@ -123,9 +124,18 @@ public class JobRunner {
      * first write, so the retry after a lost answer finds it ({@code JobRunRepository.forRequest}); null without a key.
      */
     public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef) {
-        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId, requestRef));
+        return manual(clubId, name, dryRun, actorAccountId, requestRef, null);
     }
-    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef) {
+    /**
+     * PRIV-02 (owner's decision of 13-11): {@code confirmedPlan} is the plan a real run was confirmed for, the {@link
+     * JobViews#plannedCounts} of the dry run the caller saw. Under the lock, before anything is written, a plan made now must count
+     * the same, or nothing runs: {@code 409 SIMULATION_STALE {reason: PLAN_CHANGED}}. Null (a dry run, a process that needs no
+     * confirmation, the operator's CLI) checks nothing.
+     */
+    public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef, Map<String, Long> confirmedPlan) {
+        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId, requestRef, dryRun ? null : confirmedPlan));
+    }
+    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef, Map<String, Long> confirmedPlan) {
         try (var scope = TenantContext.open(clubId)) {
             var job = registered(name).orElseThrow(() -> new ApiException(ErrorCode.JOB_UNKNOWN));
             var config = configs.get(clubId);
@@ -133,7 +143,7 @@ public class JobRunner {
             reap(clubId, name);
             Instant now = clock.instant().truncatedTo(ChronoUnit.MINUTES);
             var request = new Request(clubId, job, job.definition(), config, ZoneId.of(config.club().timeZone()), now,
-                    JobTrigger.MANUAL, dryRun, actorAccountId, requestRef);
+                    JobTrigger.MANUAL, dryRun, actorAccountId, requestRef, confirmedPlan);
             return execute(request, now).orElseThrow(() -> new ApiException(ErrorCode.JOB_ALREADY_RUNNING));
         }
     }
@@ -179,6 +189,9 @@ public class JobRunner {
             return skip(request, SkipReason.LOCKED, now);
         }
         try {
+            if (request.confirmedPlan() != null && !request.confirmedPlan().equals(plannedNow(request))) {
+                throw new ApiException(ErrorCode.SIMULATION_STALE, Map.of("reason", "PLAN_CHANGED"));
+            }
             boolean exclusive = !request.dryRun() && request.trigger() != JobTrigger.MANUAL;
             var running = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request),
                     request.zone().getId(), request.trigger(), request.dryRun(), JobStatus.RUNNING, null, clock.instant(), null, null,
@@ -189,6 +202,20 @@ public class JobRunner {
         } finally {
             locks.release(lock, holder);
         }
+    }
+
+    /**
+     * PRIV-02: the plan counts a dry run started now would show the club, made with the same occurrence, parameters and code as
+     * the run (a plan only reads, R-15-08); the platform pass's items are left out, as {@link JobViews#forClub} does.
+     */
+    private Map<String, Long> plannedNow(Request request) {
+        var recorder = new Recorder(baseSnapshot(request));
+        var context = new JobContext(request.clubId(), request.zone(), request.scheduledFor(),
+                request.scheduledFor().atZone(request.zone()).toLocalDate(), true, request.config(), recorder, null);
+        for (JobItem item : request.job().plan(context)) {
+            if (!JobViews.platformItem(item.entityType())) { recorder.count("WOULD_" + item.action(), 1); }
+        }
+        return JobViews.plannedCounts(recorder.counters);
     }
 
     private JobRun run(Request request, JobRun running, String lock, String holder) {

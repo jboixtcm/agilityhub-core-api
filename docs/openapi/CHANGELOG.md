@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · PRIV-02 · A manual retention sweep needs a confirmed dry run
+
+**No operations added; 1 schema added (`JobRunConfirmation`); 1 schema property added (`JobTriggerRequest.confirmation`, optional, nullable); 1 error code added to 2 operations (`409 SIMULATION_STALE`); 2 operation descriptions changed.**
+
+- `POST /jobs/{name}/trigger` (ADMIN) and `POST /platform/clubs/{clubId}/jobs/{name}/trigger` (AGILITYHUB_ADMIN): a real run (`dryRun: false`) of `retention-sweep` must carry `confirmation {dryRunId, counters}`: the `runId` of a `SUCCEEDED` dry run of the same process in the same club started at most 30 minutes before, and the `effects.counters` it returned. Only the `WOULD_*` counters other than zero are compared: with the dry run's, and, under the process lock before anything is written, with those of a plan made at that moment. Otherwise nothing runs and nothing is audited: `409 SIMULATION_STALE {reason: DRY_RUN_REQUIRED | COUNTS_MISMATCH | PLAN_CHANGED}`. A dry run and the other processes ignore `confirmation`. The sweep's dry run also counts the audit entries its purge would remove (`WOULD_PURGE_AUDIT_ENTRIES`).
+- Not in the contract but visible through it: `audit.retentionYears`, `rgpd.retentionYearsAfterLeave` and `rgpd.erasureMinDaysAfterLeave` have catalogue minimums 6, 1 and 30 (`constraints.min` of `GET /parameters`); a lower value is `400 PARAMETER_INVALID`. The sweep never deletes the XML file of a remittance still `GENERATED`.
+
 ## 2026-11-13 · WEB-01 · The D10 welcome is limited per club
 
 **No operations, schemas or error codes added; 1 operation description changed.**

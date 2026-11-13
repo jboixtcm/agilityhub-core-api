@@ -91,6 +91,28 @@ class PrivacyJobsTest {
         verify(recorder).count("remittanceFilesDeleted", 0);
     }
 
+    /**
+     * PRIV-02 (owner's decision of 13-11): a dry run of the sweep also counts the audit entries its single `PURGE_AUDIT` item would
+     * remove (a real run's plan does not), and a manual run of the sweep needs a confirmed dry run; the calendar's does not ask.
+     */
+    @Test void PRIV_02_theSweepsDryRunCountsTheAuditEntriesAndItsManualRunNeedsAConfirmedDryRun() {
+        var job = new RetentionSweepJob(directory, requests, erasures, executor, audit, List.of());
+        when(directory.retentionDue(any(), any())).thenReturn(List.of());
+        Instant auditCutoff = LocalDate.of(2020, 10, 1).atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant();
+        when(audit.countBefore(auditCutoff)).thenReturn(40L);
+        assertThat(job.plan(context(true))).extracting(JobItem::action).containsExactly("PURGE_AUDIT");
+        verify(recorder).count("WOULD_PURGE_AUDIT_ENTRIES", 40L);
+        reset(recorder);
+        assertThat(job.plan(context(false))).extracting(JobItem::action).containsExactly("PURGE_AUDIT");
+        verify(recorder, never()).count(eq("WOULD_PURGE_AUDIT_ENTRIES"), anyLong());
+        // Nothing past the retention: no item and no count.
+        when(audit.countBefore(auditCutoff)).thenReturn(0L);
+        assertThat(job.plan(context(true))).isEmpty();
+        verify(recorder, never()).count(eq("WOULD_PURGE_AUDIT_ENTRIES"), anyLong());
+        assertThat(job.manualRunNeedsConfirmedDryRun()).isTrue();
+        assertThat(new ErasuresJob(requests, executor, cleanup).manualRunNeedsConfirmedDryRun()).isFalse();
+    }
+
     @Test void T_14_20_eachSweepItemErasesPurgesOrRunsItsTask() {
         var job = new RetentionSweepJob(directory, requests, erasures, executor, audit, List.of(remittances));
         var member = left("left-2020", LocalDate.of(2020, 8, 31), "LEAVE_REQUEST");
