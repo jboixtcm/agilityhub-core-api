@@ -12,7 +12,7 @@ Jordi explicitly requested the November 12-2/13 corrections and freely editable 
 
 `./mvnw -q clean verify` is running locally. Surefire completed 5,021 tests with zero failures/errors/skips. Integration-test progress and changed-class results are in `local-validation-progress.json`. The running full log is retained privately in the release operations folder to avoid publishing a changing file. `clean-verify-progress.log` contains the last 40 lines at publication preparation. This report does not claim a full local pass. The exact published commit must pass the complete CI Build and tests job, both image scans, dependency/secret checks and image publication before deployment. Final local/CI evidence is recorded in SOFTWARE_CANIC/ops/evidence/2026-11-13-josep-feedback.
 
-`bin/openapi-snapshot` completed with exit 0 (openapi-final.log); the web adopts the generated snapshot and generated TypeScript, not handwritten contract types.
+`bin/openapi-snapshot` completed with exit 0 (openapi.log); the web adopts the generated snapshot and generated TypeScript, not handwritten contract types.
 
 Earlier attempts: the contract round-trip exposed a missing NON_NULL serialization annotation on the optional preview; corrected. A subsequent clean run hit the existing timing-sensitive password test under concurrent host load. The current complete rerun has passed all 5,021 unit tests without changing that test. Logs of both attempts are retained.
 
