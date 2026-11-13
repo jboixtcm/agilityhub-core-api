@@ -356,7 +356,8 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(erased.path("accountMissing").asBoolean()).isFalse();
         assertThat(erased.at("/paymentMethod/type").asText()).isEqualTo("SEPA_DD");
         assertThat(erased.at("/displayStatus/kind").asText()).isEqualTo("ERASED");
-        assertThat(json(call(get("/api/v1/members/montse"), CLUB, "instructor-account", "INSTRUCTOR"), 200).has("address")).isFalse();
+        // AUTHZ-02 (S03 R-03-31): an INSTRUCTOR no longer reads an ex-member (Montse is LEFT); before, the record came without its address.
+        assertThat(json(call(get("/api/v1/members/montse"), CLUB, "instructor-account", "INSTRUCTOR"), 404).path("code").asText()).isEqualTo("NOT_FOUND");
         var overview = json(admin(get("/api/v1/members/montse/overview")), 200);
         assertThat(overview.path("dogs").findValuesAsText("name")).containsOnly("Gos suprimit");
         assertThat(overview.path("dogs")).hasSize(2);

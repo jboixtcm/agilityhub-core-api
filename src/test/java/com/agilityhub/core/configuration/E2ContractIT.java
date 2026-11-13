@@ -226,8 +226,11 @@ class E2ContractIT extends AbstractIntegrationTest {
         assertThat(api.path("paths").path("/api/v1/me/profile").has("put")).isTrue();
         assertThat(api.path("paths").path("/api/v1/me/profile").has("patch")).isTrue();
         assertThat(api.path("paths").path("/api/v1/me/profile").has("get")).isTrue();
-        assertThat(schemas.path("MemberInstructorView").path("properties").fieldNames()).toIterable()
-                .doesNotContain("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "bookingBlock");
+        // AUTHZ-02 (S03 R-03-31): nor the postal address, in the record and in the list row.
+        for (String instructorSchema : List.of("MemberInstructorView", "MemberInstructorListItem")) {
+            assertThat(schemas.path(instructorSchema).path("properties").fieldNames()).toIterable().as(instructorSchema)
+                    .doesNotContain("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "bookingBlock", "address");
+        }
         assertThat(schemas.path("MeDog").path("properties").fieldNames()).toIterable().doesNotContain("chip", "remarks", "memberId");
         for (String levelSchema : List.of("Level", "LevelReaderView", "LevelCreate", "LevelPatch")) {
             assertThat(schemas.path(levelSchema).path("properties").has("agilityhubLevel")).isFalse();

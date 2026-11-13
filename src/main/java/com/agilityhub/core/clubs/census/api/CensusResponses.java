@@ -132,7 +132,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level) { }
-    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
+    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.")
     public record MemberInstructorView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
@@ -142,7 +142,6 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = REQUIRED) List<ContactEmail> contactEmails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones,
-            @Schema(requiredMode = NOT_REQUIRED) Address address,
             @Schema(requiredMode = REQUIRED) MemberStatus status,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
             @Schema(requiredMode = REQUIRED) List<DogSummary> dogs,
@@ -152,11 +151,11 @@ public final class CensusResponses {
      * An INSTRUCTOR row of `GET /members` (E5-T22, CONVENCIONS_API §4): {@link MemberInstructorView}'s keys; `fields` makes it
      * sparse, so only `id` is required. `GET /members/{id}` keeps {@link MemberInstructorView} whole.
      */
-    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
+    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.")
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record MemberInstructorListItem(
             @Schema(format = "uuid") String id, Integer memberNumber, String firstName, String lastName1, String lastName2, String fullName,
-            List<ContactEmail> contactEmails, List<Phone> phones, Address address, MemberStatus status, DisplayStatus displayStatus,
+            List<ContactEmail> contactEmails, List<Phone> phones, MemberStatus status, DisplayStatus displayStatus,
             List<DogSummary> dogs, boolean bookingBlocked, long version) { }
     public record NamedReference(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,

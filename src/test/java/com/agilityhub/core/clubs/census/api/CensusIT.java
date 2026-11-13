@@ -788,6 +788,42 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(json(call(get("/api/v1/dogs/dog-one"), CLUB, "one", "INSTRUCTOR"), 200).path("dog").path("chip").asText()).isEqualTo("941000000100001");
     }
     /**
+     * AUTHZ-02 (S03 R-03-31, MATRIU_PERMISOS «Abonats»): an INSTRUCTOR reads ACTIVE and PENDING members only, never an ex-member
+     * (LEFT, or a migrated INACTIVE record), and never the postal address, in the list, its filter values and the record; the
+     * ADMIN's views are unchanged.
+     */
+    static List<String> ids(JsonNode page) { var ids = new ArrayList<String>(); page.path("items").forEach(item -> ids.add(item.path("id").asText())); return ids; }
+    @Test void AUTHZ_02_anInstructorReadsActiveAndPendingMembersWithoutTheirPostalAddress() throws Exception {
+        member(CLUB, "pending", "PENDING", 4, "Y1234567X", Set.of(Role.MEMBER));
+        member(CLUB, "left", "LEFT", 5, "11111111H", Set.of(Role.MEMBER));
+        member(CLUB, "inactive", "INACTIVE", 6, "22222222J", Set.of(Role.MEMBER));
+        var instructor = json(call(get("/api/v1/members").param("size", "200"), CLUB, "admin", "INSTRUCTOR"), 200);
+        assertThat(ids(instructor)).containsExactlyInAnyOrder("one", "two", "admin", "pending");
+        assertThat(instructor.path("totalItems").asLong()).isEqualTo(4);
+        assertThat(instructor.toString()).doesNotContain("\"address\"", "1 Example Street", "Example Town", "08349", "\"city\"", "\"postalCode\"");
+        assertThat(json(call(get("/api/v1/members").param("filter", "status:eq:LEFT"), CLUB, "admin", "INSTRUCTOR"), 200).path("totalItems").asLong()).isZero();
+        assertThat(json(call(get("/api/v1/members").param("q", "left"), CLUB, "admin", "INSTRUCTOR"), 200).path("totalItems").asLong()).isZero();
+        var statuses = json(call(get("/api/v1/members/filter-values").param("field", "status"), CLUB, "admin", "INSTRUCTOR"), 200).path("values");
+        assertThat(statuses.findValuesAsText("value")).containsExactlyInAnyOrder("ACTIVE", "PENDING");
+        for (var request : List.of(get("/api/v1/members").param("fields", "address"), get("/api/v1/members").param("fields", "city"),
+                get("/api/v1/members").param("filter", "city:eq:Example Town"), get("/api/v1/members").param("filter", "postalCode:eq:08349"),
+                get("/api/v1/members").param("sort", "city,asc"), get("/api/v1/members/filter-values").param("field", "city"))) {
+            error(call(request, CLUB, "admin", "INSTRUCTOR"), ErrorCode.INVALID_FILTER);
+        }
+        for (String id : List.of("one", "pending")) {
+            var record = json(call(get("/api/v1/members/" + id), CLUB, "admin", "INSTRUCTOR"), 200);
+            assertThat(record.has("address")).as(id).isFalse(); assertThat(record.has("contactEmails")).as(id).isTrue();
+            assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(record, "MemberInstructorView")).as(id).isEmpty();
+        }
+        for (String id : List.of("left", "inactive")) { error(call(get("/api/v1/members/" + id), CLUB, "admin", "INSTRUCTOR"), ErrorCode.NOT_FOUND); }
+        // An ADMIN who is also an INSTRUCTOR keeps the ADMIN's view.
+        assertThat(json(call(get("/api/v1/members/left"), CLUB, "admin", "ADMIN", "INSTRUCTOR"), 200).at("/address/city").asText()).isEqualTo("Example Town");
+        var everyone = json(admin(get("/api/v1/members").param("size", "200").param("fields", "city,postalCode")), 200);
+        assertThat(ids(everyone)).containsExactlyInAnyOrder("one", "two", "admin", "pending", "left", "inactive");
+        assertThat(everyone.at("/items/0/city").asText()).isEqualTo("Example Town");
+        assertThat(json(admin(get("/api/v1/members/left")), 200).at("/address/street").asText()).isEqualTo("1 Example Street");
+    }
+    /**
      * E5-T29 step 13 (web E6-W01 question 2, ruling E71): the instructor's projection of `GET /dogs` names the owner's first name
      * (`owner.firstName`), a compound one whole, so the web writes «{guia} + {gos}» as S10 R-10-00 says; the dog's detail too.
      */

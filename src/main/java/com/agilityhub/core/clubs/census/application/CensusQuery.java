@@ -5,6 +5,8 @@ import com.agilityhub.core.clubs.census.persistence.*;
 import com.agilityhub.core.clubs.followup.application.AttachmentService;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.*;
+import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import java.time.*;
 import java.util.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -35,10 +37,14 @@ public class CensusQuery {
     }
     public Map<String,Object> member(String id, boolean admin) {
         var member = access.members.require(id);
+        // AUTHZ-02 (S03 R-03-31): an INSTRUCTOR reads ACTIVE and PENDING members only; an ex-member's record is not found for them.
+        if (!admin && !CensusRules.visibleToInstructor(member.status)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         var result = object("id", id, "memberNumber", member.memberNumber, "firstName", member.firstName, "lastName1", member.lastName1,
                 "lastName2", member.lastName2, "fullName", fullName(member), "contactEmails", contacts(member), "phones", phones(member),
                 "address", member.erasedAt == null ? address(member) : null, "status", member.status, "displayStatus", status(member), "version", member.version());
         if (!admin) {
+            // AUTHZ-02 (S03 R-03-31): never the postal address.
+            result.remove("address");
             result.put("dogs", ownerDogs(id).stream().map(dog -> object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "level", level(dog.levelId))).toList());
             result.put("bookingBlocked", Boolean.TRUE.equals(map(member.bookingBlock).get("active"))); return result;
         }
@@ -57,8 +63,7 @@ public class CensusQuery {
             var plan = access.references.plan(member.planId);
             if (!plan.isEmpty()) { result.put("plan", object("id", member.planId, "name", localized(plan.get("name")), "type", plan.get("type"), "billingMode", plan.get("billingMode"))); }
         }
-        // INC-53 point 10 (E11-T01): R-14-15 removed the birth date and the address; Member declares both nullable for this case
-        // (the instructor view, where the address is optional, leaves it out).
+        // INC-53 point 10 (E11-T01): R-14-15 removed the birth date and the address; Member declares both nullable for this case.
         if (member.erasedAt != null) { result.put("birthDate", null); result.put("address", null); }
         return result;
     }

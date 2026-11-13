@@ -135,15 +135,21 @@ class UniversalListsIT extends AbstractIntegrationTest {
         var row = json(admin(get("/api/v1/members")), 200).path("items").get(0);
         assertThat(row.has("plan")).isFalse(); assertThat(row.has("paymentMethod")).isFalse(); assertThat(row.has("familyGroup")).isFalse(); assertThat(row.has("freeTraining")).isFalse();
     }
-    /** AUTHZ-01 (R-03-22, R-03-31): an INSTRUCTOR's `q` never matches the ID number, which the instructor view withholds. */
+    /**
+     * AUTHZ-01 (R-03-22, R-03-31): an INSTRUCTOR's `q` never matches the ID number, which the instructor view withholds. Run on
+     * member-8 (ACTIVE): since AUTHZ-02 the instructor no longer lists member-7 (LEFT) at all, which the last lines check.
+     */
     @Test void AUTHZ_01_instructorSearchMatchingOnlyAnIdNumberReturnsNoRows() throws Exception {
-        admin(get("/api/v1/members").param("q", "AB000007")).andExpect(jsonPath("$.totalItems").value(1)).andExpect(jsonPath("$.items[0].id").value("member-7"));
-        call(get("/api/v1/members").param("q", "AB000007"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(0));
-        call(get("/api/v1/members").param("filter", "id:eq:member-7").param("q", "ab0"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(0));
-        call(get("/api/v1/members/filter-values").param("field", "status").param("q", "AB000007"), CLUB, "instructor-a", "INSTRUCTOR")
+        admin(get("/api/v1/members").param("q", "AB000008")).andExpect(jsonPath("$.totalItems").value(1)).andExpect(jsonPath("$.items[0].id").value("member-8"));
+        call(get("/api/v1/members").param("q", "AB000008"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(0));
+        call(get("/api/v1/members").param("filter", "id:eq:member-8").param("q", "ab0"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(0));
+        call(get("/api/v1/members/filter-values").param("field", "status").param("q", "AB000008"), CLUB, "instructor-a", "INSTRUCTOR")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.values.length()").value(0));
-        call(get("/api/v1/members").param("q", "Example 007"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(1));
-        call(get("/api/v1/members").param("q", "person7@example.test"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(1));
+        call(get("/api/v1/members").param("q", "Example 008"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(1));
+        call(get("/api/v1/members").param("q", "person8@example.test"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(1));
+        // AUTHZ-02 (R-03-31): an ex-member is not found by the instructor, whatever the search; the ADMIN still finds it.
+        call(get("/api/v1/members").param("q", "Example 007"), CLUB, "instructor-a", "INSTRUCTOR").andExpect(jsonPath("$.totalItems").value(0));
+        admin(get("/api/v1/members").param("q", "Example 007")).andExpect(jsonPath("$.totalItems").value(1));
     }
     Map<String, Object> view(String name, boolean shared) { return Map.of("listKey", "members", "name", name, "columns", List.of("fullName"), "filters", List.of(Map.of("field", "status", "op", "eq", "value", "ACTIVE")), "sort", List.of("lastName,asc"), "shared", shared); }
     @Test void T_03_10_savedViewsOwnershipSharingUniquenessVersionAndTenantIsolation() throws Exception {

@@ -110,7 +110,7 @@ public class ExportsController {
             columns = {"fullName*", "dogs*", "plan*", "displayStatus*", "memberNumber", "contact", "paymentMethod@BILLING", "nextInvoiceDate@BILLING", "familyGroup@FAMILY_GROUP", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining@FREE_TRAINING", "birthDate", "gender", "idDocument", "leaveSource", "inactivityUntil@INACTIVITY", "hasPendingRequest"}, paged = true, exportable = false,
             fields = {"id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked",
                     "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup",
-                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest"})
+                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "status", "leaveSource", "inactivityUntil", "hasPendingRequest"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export members",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",

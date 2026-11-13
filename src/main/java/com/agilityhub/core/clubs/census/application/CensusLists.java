@@ -67,6 +67,8 @@ public class CensusLists implements ListProvider {
             filters.keySet().removeAll(List.of("planId", "priceId", "paymentMethodType", "nextInvoiceDate")); sorts.remove("nextInvoiceDate");
         }
         if (!ListAccess.admin()) { columns.removeAll(List.of("imageRights", "idDocument", "birthDate", "gender", "roles")); filters.keySet().removeAll(List.of("imageRightsGranted", "birthDate", "gender", "roles")); }
+        // AUTHZ-02 (S03 R-03-31): the INSTRUCTOR never reads the postal address, nor its city and postal code.
+        if (members && !ListAccess.admin()) { columns.removeAll(List.of("city", "postalCode")); filters.keySet().removeAll(List.of("city", "postalCode")); sorts.remove("city"); }
         // AUTHZ-01: `q` must not reach a field the reader cannot see; a match on the ID number would be a yes/no oracle on it.
         if (!ListAccess.admin()) { searchable.remove("idDocument.number"); }
         if (!config.modules().contains(Module.FAMILY_GROUP)) { columns.remove("familyGroup"); columns.remove("familyGroupHolder"); filters.remove("familyGroupId"); }
@@ -79,7 +81,7 @@ public class CensusLists implements ListProvider {
         var fields = new HashSet<>(columns); fields.addAll(List.of("id", "version"));
         if (!members) { fields.addAll(Set.of("handlerName", "handlerIsMember", "photoUrl")); }
         if (members && ListAccess.admin()) { fields.addAll(List.of("signupPending","pendingDogs","warnings","signup")); }
-        if (members && !ListAccess.admin()) { fields.addAll(List.of("firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status")); }
+        if (members && !ListAccess.admin()) { fields.addAll(List.of("firstName", "lastName1", "lastName2", "contactEmails", "phones", "status")); }
         var definition = new ListDefinition(key, filters, sorts, List.copyOf(searchable),
                 columns, defaults, members ? List.of("lastName,asc", "firstName,asc") : List.of("name,asc"), fields);
         return projection.dataset(definition, members, ListAccess.admin());

@@ -10,7 +10,7 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | `/signup` (alta pública) | W | W (afegir gos: `/me/dogs/signup`) | — | — | — |
 | `/oauth2/*`, `/auth/magic-link` | W | W | W | W | W |
 | `/me`, `/me/profile`, canvi de perfil actiu, contrasenya, idioma | — | RW | RW | RW | RW |
-| Abonats `/members` | — | R propi (via `/me`) · W dades de contacte (28) | R **tots** (fitxa d'alumne 22/D13: dades de contacte visibles, IBAN no) | RW + X (validar, rebutjar, bloquejar reserves, baixa, inactivitat, canvi de mètode de pagament (amb «no avisis» opcional, COMM-03), rols, reenviar accés, canviar l'adreça d'accés (S03 R-03-06b; un token de suport, no: `403 SUPPORT_RESTRICTED`), impersonar) | R (consola: recomptes, sense dades personals per defecte) |
+| Abonats `/members` | — | R propi (via `/me`) · W dades de contacte (28) | R abonats `ACTIVE` i `PENDING`, mai els exabonats (`LEFT`, `INACTIVE`: llistat i facetes no els compten, la fitxa → `404`) (fitxa d'alumne 22/D13: dades de contacte visibles; IBAN i adreça postal (carrer, codi postal, població, província, país) no; AUTHZ-02) | RW + X (validar, rebutjar, bloquejar reserves, baixa, inactivitat, canvi de mètode de pagament (amb «no avisis» opcional, COMM-03), rols, reenviar accés, canviar l'adreça d'accés (S03 R-03-06b; un token de suport, no: `403 SUPPORT_RESTRICTED`), impersonar) | R (consola: recomptes, sense dades personals per defecte) |
 | Gossos `/dogs` | — | R propi · W «notes als instructors», documents, foto | R tots · W observacions, nivell (proposta → l'ADMIN el fixa) | RW (nivell, amb «no avisis» opcional — COMM-03 —, «pot entrenar sol», transferir, baixa) | — |
 | Grup familiar | — | R propi | R | RW | — |
 | Catàlegs (`/levels`, `/rings`, `/instructors`, `/plans`, `/prices`) | R (`/public/*/plans`) | R | R | RW | RW (clonar catàlegs base) |
@@ -42,7 +42,7 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 
 ## Regles transversals
 
-1. **Instructor = visió global** (Q-08 de la spec): veu totes les classes, alumnes i gossos del club, mai dades bancàries.
+1. **Instructor = visió global** (Q-08 de la spec): veu totes les classes, alumnes i gossos del club, mai dades bancàries. Dels abonats (`/members`), només els `ACTIVE` i `PENDING` (cap exabonat) i mai l'adreça postal (AUTHZ-02, 13-11-2026).
 2. **Abonat**: només el seu abonat i els gossos propis i del grup familiar; les reserves d'un gos del grup les pot fer qualsevol membre del grup (v1.6).
 3. **Impersonació**: el token porta `impersonatedMemberId`; l'API el tracta com a `MEMBER` d'aquell abonat; les respostes inclouen `impersonation: {actorName}` perquè la PWA mostri el bàner; **prohibit** usar-lo en endpoints `ADMIN`.
 4. **Plataforma**: `AGILITYHUB_ADMIN` no entra a dades personals de cap club llevat que tingui també `ADMIN` en aquell club (membresia) — la consola treballa amb configuració i agregats.

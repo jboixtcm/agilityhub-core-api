@@ -23,6 +23,11 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     }
     public ListDataset dataset(ListDefinition definition, boolean members, boolean admin) {
         var stages = members ? memberStages() : dogStages(true);
+        // AUTHZ-02 (S03 R-03-31): an INSTRUCTOR's members are the ACTIVE and PENDING ones, for the page, the counts and the filter
+        // values alike; first, so that no ex-member reaches a join.
+        if (members && !admin) {
+            stages.addFirst(new Document("$match", new Document("status", new Document("$in", com.agilityhub.core.clubs.census.domain.CensusRules.INSTRUCTOR_VISIBLE_STATUSES))));
+        }
         Map<String, Object> fields = members ? memberFields(admin) : dogFields();
         fields.keySet().retainAll(definition.fields());
         var dataset = new ListDataset(definition, members ? "members" : "dogs", stages, fields, members ? Set.of() : Set.of("freeTraining.override"), this::label, this::signPhotos);
@@ -151,9 +156,9 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         }
         if (!admin) {
             fields.putAll(fields("firstName", "lastName1", "lastName2", "status"));
+            // AUTHZ-02 (S03 R-03-31): never the postal address, nor its city and postal code columns.
             fields.put("contactEmails", emails()); fields.put("phones", phones());
-            fields.put("address", new Document("street", "$address.street").append("postalCode", "$address.postalCode")
-                    .append("city", "$address.city").append("province", "$address.province").append("country", "$address.country"));
+            fields.remove("city"); fields.remove("postalCode");
         }
         return fields;
     }

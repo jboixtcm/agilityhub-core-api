@@ -7,6 +7,12 @@ import java.util.*;
 public final class CensusRules {
     private CensusRules() { }
     public record DisplayStatus(String kind, LocalDate date) { }
+    /**
+     * AUTHZ-02 (S03 R-03-31, MATRIU_PERMISOS «Abonats»): the member statuses an INSTRUCTOR reads in `/members` and
+     * `/members/{id}`. An ex-member (LEFT, or a migrated INACTIVE record) is the ADMIN's alone.
+     */
+    public static final List<String> INSTRUCTOR_VISIBLE_STATUSES = List.of("ACTIVE", "PENDING");
+    public static boolean visibleToInstructor(String status) { return status != null && INSTRUCTOR_VISIBLE_STATUSES.contains(status); }
     public static DisplayStatus status(String status, LocalDate leave, LocalDate inactivityEnd, Instant erased, LocalDate today) {
         if (erased != null) { return new DisplayStatus("ERASED", null); }
         if ("ACTIVE".equals(status)) {

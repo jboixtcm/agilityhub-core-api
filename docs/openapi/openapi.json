@@ -14771,11 +14771,8 @@
         "type" : "object"
       },
       "MemberInstructorListItem" : {
-        "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.",
+        "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.",
         "properties" : {
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
-          },
           "bookingBlocked" : {
             "type" : "boolean"
           },
@@ -14833,11 +14830,8 @@
         "type" : "object"
       },
       "MemberInstructorView" : {
-        "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.",
+        "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.",
         "properties" : {
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
-          },
           "bookingBlocked" : {
             "type" : "boolean"
           },
@@ -63004,7 +62998,7 @@
     },
     "/api/v1/members" : {
       "get" : {
-        "description" : "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields. S13 R-13-17 (E8-T01): the ADMIN-only filters leaveSource (MEMBER · ADMIN · PACK_EXPIRED · MIGRATED), inactivityUntil (date; with INACTIVITY) and hasPendingRequest are published; they are evaluated from the tenant-scoped lifecycle documents.",
+        "description" : "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. AUTHZ-02: an INSTRUCTOR lists ACTIVE and PENDING members only (pages, counts and filter values) and never the postal address: no address key, and the city and postalCode columns and filters and the city sort are refused (400 INVALID_FILTER). Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields. S13 R-13-17 (E8-T01): the ADMIN-only filters leaveSource (MEMBER · ADMIN · PACK_EXPIRED · MIGRATED), inactivityUntil (date; with INACTIVITY) and hasPendingRequest are published; they are evaluated from the tenant-scoped lifecycle documents.",
         "operationId" : "listMembers",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -63281,7 +63275,7 @@
           "key" : "hasPendingRequest"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -63605,7 +63599,7 @@
           "key" : "hasPendingRequest"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -63927,7 +63921,7 @@
           "key" : "hasPendingRequest"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -63938,7 +63932,7 @@
     },
     "/api/v1/members/filter-values" : {
       "get" : {
-        "description" : "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply.",
+        "description" : "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply (AUTHZ-02: an INSTRUCTOR counts ACTIVE and PENDING members only).",
         "operationId" : "memberFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -64110,7 +64104,7 @@
     },
     "/api/v1/members/{id}" : {
       "get" : {
-        "description" : "S03 §6, R-03-31. ADMIN: Member; INSTRUCTOR: MemberInstructorView. Other-club resources return NOT_FOUND.",
+        "description" : "S03 §6, R-03-31. ADMIN: Member; INSTRUCTOR: MemberInstructorView, without the postal address; an ex-member (status LEFT or INACTIVE) is NOT_FOUND for an INSTRUCTOR (AUTHZ-02). Other-club resources return NOT_FOUND.",
         "operationId" : "getMember",
         "parameters" : [ {
           "in" : "path",

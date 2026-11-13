@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTHZ-02 · The instructor's members: ACTIVE and PENDING only, without the postal address
+
+**No operations added; 2 schema properties removed (`address` of `MemberInstructorView` and `MemberInstructorListItem`); `address` removed from the `x-fields` of `GET /members` and `GET`/`POST /members/export`; no error codes added; 3 operation descriptions changed.**
+
+- `GET /members` and `GET /members/filter-values` as an INSTRUCTOR: only ACTIVE and PENDING members are listed and counted; `fields=address`, `fields=city|postalCode`, the `city`/`postalCode` filters and `sort=city` → `400 INVALID_FILTER`. The ADMIN's list is unchanged.
+- `GET /members/{id}` as an INSTRUCTOR: `MemberInstructorView` without `address`; a member whose status is LEFT or INACTIVE → `404 NOT_FOUND`. The ADMIN's `Member` is unchanged.
+
 ## 2026-11-13 · PAY-02 · Failed Stripe events retried for about a day and listed to the admin
 
 **1 operation added (`GET /billing/stripe-events`); 2 schemas added (`StripeEventListItem`, `StripeEventPage`); no error codes added; 1 operation description changed (`POST /webhooks/stripe/{clubId}`).**
