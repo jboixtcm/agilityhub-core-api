@@ -110,7 +110,7 @@ public class TrainingBookingService {
         // (7) memory of the last dog, outbox, then the audit that links the event (R-14-10)
         census.lastDogForTraining(actor.memberId(), dog.id());
         String event = events.booked(booking, actor);
-        if (actor.impersonated()) { audit.bookedByClub(booking, override == null ? null : override.reason(), event); }
+        if (actor.impersonated()) { audit.bookedByClub(booking, override == null ? null : override.reason(), event, actor.notifies()); }
         return new Booked(booking, new Counter(counted.size() + 1, limit, week.start(), week.end()));
     }
     private static ApiException slotTaken(String ringId, Instant startsAt, Map<String, TrainingGrid.Cell> cells, TrainingGrid.Cell cell) {
@@ -174,7 +174,7 @@ public class TrainingBookingService {
             }
             var after = transition(b, TrainingBookingState.CANCELLED, by, cancelReason, reason, actor.accountId(), now);
             String event = events.cancelled(after, actor.as(by), late);
-            if (actor.impersonated()) { audit.cancelledByClub(b, after, reason, event); }
+            if (actor.impersonated()) { audit.cancelledByClub(b, after, reason, event, actor.notifies()); }
             return after;
         });
     }
@@ -201,7 +201,7 @@ public class TrainingBookingService {
             var after = transition(b, TrainingBookingState.CANCELLED_BY_CLUB, TrainingCancelledBy.ADMIN, reason, note, actor.accountId(), now);
             // R-14-10 (E11-T17): each entry of the batch links its own TrainingCancelled, published first.
             String event = events.cancelled(after, actor, false);
-            audit.cancelledByClub(b, after, reason.name(), event); result.add(after);
+            audit.cancelledByClub(b, after, reason.name(), event, actor.notifies()); result.add(after);
         }
         return result;
     }

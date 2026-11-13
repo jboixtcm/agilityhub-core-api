@@ -134,14 +134,14 @@ public class BookingsController {
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({OVERRIDE_NOT_ALLOWED, VALIDATION_ERROR, NOT_FOUND, SEAT_HOLD_EXPIRED, SWAP_NOT_ALLOWED, CLASS_FULL, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_LIMIT_REACHED,
-            BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, ALREADY_BOOKED, PACK_EMPTY, SEAT_TAKEN, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "confirmBooking", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId). Idempotency-Key (R-08-08): one client UUID per request body. A retry of the same body reuses its key and returns the same response, a stored 409 or 422 included; a different body, such as another swapBookingId chosen after a failed attempt, takes a new key; the same key with another body → 409 IDEMPOTENCY_KEY_REUSED. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
+            BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, ALREADY_BOOKED, PACK_EMPTY, SEAT_TAKEN, IDEMPOTENCY_KEY_REUSED, FORBIDDEN})
+    @Operation(summary = "confirmBooking", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). COMM-03: notifyMember false (an ADMIN's impersonation token only, otherwise 403 FORBIDDEN) books without N-36 to the member, also for a swap's cancellation; recorded in BOOKING_CREATED_BY_CLUB details.notifyMember. R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId). Idempotency-Key (R-08-08): one client UUID per request body. A retry of the same body reuses its key and returns the same response, a stored 409 or 422 included; a different body, such as another swapBookingId chosen after a failed attempt, takes a new key; the same key with another body → 409 IDEMPOTENCY_KEY_REUSED. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "Booking", useReturnTypeSchema = true))
     public Booking confirmBooking(@Valid @RequestBody BookingRequest request,
             @io.swagger.v3.oas.annotations.Parameter(description = "One client UUID per request body (R-08-08): reused by a retry of the same body, new for a different body")
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        var actor = actors.member(memberId(jwt));
+        var actor = actors.member(memberId(jwt)).notifying(request.notifyMember());
         return confirmed(confirmations.classes(request.seatHoldId(), request.swapBookingId()),
                 () -> confirmations.confirm(actor, request.seatHoldId(), request.swapBookingId(), Boolean.TRUE.equals(request.overrideWeeklyLimit())));
     }
@@ -213,14 +213,14 @@ public class BookingsController {
     @PostMapping("/api/v1/bookings/{id}/cancellation")
     @PreAuthorize("(hasRole('INSTRUCTOR') and principal.claims['imp'] != true) or (" + MEMBER + ")")
     @AllowsImpersonation
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, BOOKING_NOT_CANCELLABLE})
-    @Operation(summary = "cancelBooking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation and without MEMBER → 403. An account with MEMBER and INSTRUCTOR cancels its own (or its family group's) booking as a member (origin APP, cancelReason MEMBER; R-08-19) and another member's as an instructor (origin INSTRUCTOR) (R-01-07). R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, BOOKING_NOT_CANCELLABLE, FORBIDDEN})
+    @Operation(summary = "cancelBooking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). COMM-03: notifyMember false (an ADMIN's impersonation token only, otherwise 403 FORBIDDEN) cancels without N-36 to the member; recorded in BOOKING_CANCELLED_BY_CLUB details.notifyMember. ADMIN without impersonation and without MEMBER → 403. An account with MEMBER and INSTRUCTOR cancels its own (or its family group's) booking as a member (origin APP, cancelReason MEMBER; R-08-19) and another member's as an instructor (origin INSTRUCTOR) (R-01-07). R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "Booking", useReturnTypeSchema = true))
     public Booking cancelBooking(@PathVariable String id, @Valid @RequestBody(required = false) BookingCancellationRequest request, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         boolean instructor = instructorOnly() && !(member() && queries.reachable(id, memberId(jwt)));
         queries.visible(id, memberId(jwt), instructor);
-        var actor = instructor ? actors.instructor() : actors.member(memberId(jwt));
+        var actor = (instructor ? actors.instructor() : actors.member(memberId(jwt))).notifying(request == null ? null : request.notifyMember());
         var cancelled = cancellations.cancel(id, actor, request == null ? null : request.message());
         return view(views.booking(cancelled, instructor, null), Booking.class);
     }
@@ -308,14 +308,14 @@ public class BookingsController {
     @RequiresModule(Module.WAITLIST)
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({OVERRIDE_NOT_ALLOWED, VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, SEAT_TAKEN, SEAT_HOLD_EXPIRED, WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED,
-            BOOKING_LIMIT_REACHED, INACTIVITY_PERIOD, MEMBER_LEAVING, SWAP_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "claimSeat", description = "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: as R-08-08's, one UUID per request body (a swap included); a repeated key returns the same response, also a 409/422 (INC-42). Requires WAITLIST. Tenant comes from the JWT.",
+            BOOKING_LIMIT_REACHED, INACTIVITY_PERIOD, MEMBER_LEAVING, SWAP_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED, FORBIDDEN})
+    @Operation(summary = "claimSeat", description = "Roles: MEMBER (own or family group, also the impersonation token). COMM-03: notifyMember as POST /bookings. R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: as R-08-08's, one UUID per request body (a swap included); a repeated key returns the same response, also a 409/422 (INC-42). Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "Booking", useReturnTypeSchema = true))
     public Booking claimSeat(@PathVariable String id, @Valid @RequestBody ClaimRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         waitlist.visible(id, memberId(jwt), false);
-        var actor = actors.member(memberId(jwt));
+        var actor = actors.member(memberId(jwt)).notifying(request.notifyMember());
         return confirmed(waitlist.classes(id, request.swapBookingId()), () -> waitlist.claim(actor, id, request.seatHoldId(), request.swapBookingId(), Boolean.TRUE.equals(request.overrideWeeklyLimit())));
     }
 

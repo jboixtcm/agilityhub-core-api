@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · COMM-03 · Staff actions may skip the member's notice
+
+**No operations added; 1 schema added (`PaymentMethodUpdate`); 6 schema properties added (`notifyMember`, optional, `boolean | null`, on `BookingRequest`, `ClaimRequest`, `BookingCancellationRequest`, `TrainingBookingRequest`, `TrainingCancellationRequest`, `DogLevelRequest`); 1 error code added to 5 operations (`403 FORBIDDEN`); 7 operation descriptions changed.**
+
+- `POST /bookings`, `POST /waitlist-entries/{id}/claim`, `POST /bookings/{id}/cancellation`, `POST /training-bookings` and `POST /training-bookings/{id}/cancellation`: `notifyMember: false` books or cancels for the member without its notice (N-36, N-47; also the cancellation of a swap). Only an ADMIN's impersonation token may send it; the member's own token, an instructor's booking delegation or the instructor's notice get `403 FORBIDDEN` and nothing changes. Absent or `true` notifies as before.
+- `PATCH /dogs/{id}/level` (`DogLevelRequest.notifyMember`) and `PATCH /members/{id}/payment-method` (body schema now `PaymentMethodUpdate` = `PaymentMethodPatch` + `notifyMember`; a non-boolean value is `400 VALIDATION_ERROR`): `false` makes the change without N-09 / N-38.
+- The events (`BookingCreated`, `BookingCancelled`, `TrainingBooked`, `TrainingCancelled`, `DogLevelChanged`, `MemberPaymentMethodChanged`) carry `notifyMember: false` and the action's audit entry `details.notifyMember: false`.
+
 ## 2026-11-13 · PRIV-02 · A manual retention sweep needs a confirmed dry run
 
 **No operations added; 1 schema added (`JobRunConfirmation`); 1 schema property added (`JobTriggerRequest.confirmation`, optional, nullable); 1 error code added to 2 operations (`409 SIMULATION_STALE`); 2 operation descriptions changed.**

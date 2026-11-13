@@ -13,8 +13,10 @@ public final class TrainingRequests {
     private TrainingRequests() { }
     public record TrainingBookingRequest(@NotBlank String dogId, @NotNull Instant startsAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Absent = «Qualsevol»: first FREE ring by catalog order (R-09-07)") String ringId,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Impersonation only (R-09-16); otherwise 403 OVERRIDE_NOT_ALLOWED") @Valid TrainingOverride override) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Impersonation only (R-09-16); otherwise 403 OVERRIDE_NOT_ALLOWED") @Valid TrainingOverride override,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "COMM-03: false = do not notify the member (no N-47); only an ADMIN acting for the member (impersonation token), otherwise 403 FORBIDDEN. Absent or true: notify. Recorded in the audit entry") Boolean notifyMember) { }
     public record TrainingOverride(@NotNull Boolean limit, @NotBlank @Size(max = 500) String reason) { }
     public record TrainingCancellationRequest(@Schema(requiredMode = NOT_REQUIRED, nullable = true,
-            description = "Required for a late cancellation with the impersonation token (ADMIN_LATE, R-09-10)") @Size(max = 500) String reason) { }
+            description = "Required for a late cancellation with the impersonation token (ADMIN_LATE, R-09-10)") @Size(max = 500) String reason,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "COMM-03: false = do not notify the member (no N-47); only an ADMIN acting for the member (impersonation token), otherwise 403 FORBIDDEN. Absent or true: notify. Recorded in the audit entry") Boolean notifyMember) { }
 }

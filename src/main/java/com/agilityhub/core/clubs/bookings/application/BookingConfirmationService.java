@@ -95,7 +95,8 @@ public class BookingConfirmationService {
             }
             var booking = bookings.insert(new Booking(id, TenantContext.require(), s.id(), subject.dog().id(), subject.owner().id(),
                     payToBook ? BookingState.PAYMENT_PENDING : BookingState.ACTIVE, actor.origin(), now,
-                    new Booking.Actor(actor.accountId(), actor.impersonatedMemberId(), actor.impersonated() ? actor.displayName() : subject.booker().firstName()),
+                    new Booking.Actor(actor.accountId(), actor.impersonatedMemberId(), actor.impersonated() ? actor.displayName() : subject.booker().firstName(),
+                            actor.notifies() ? null : Boolean.FALSE),
                     s.startsAt(), s.endsAt(), subject.week().key(), null, null, null, null, null, null,
                     swapped == null ? null : swapped.id(), null, entry, movement, null, charge, null,
                     null, now, actor.accountId(), now, actor.accountId()));
@@ -106,7 +107,7 @@ public class BookingConfirmationService {
             events.publish(BookingEvent.Kind.SeatHoldReleased, hold.id(), SeatHoldService.payload(hold), actor);
             counters.recount(s.id(), false, actor);
             waitlist.demoteIfFull(s.id(), actor); // R-08-13: the last seat is gone → the other NOTIFIED entries go back to ACTIVE
-            if (actor.impersonated()) { audit.createdByClub(booking); }
+            if (actor.impersonated()) { audit.createdByClub(booking, actor.notifies()); }
             return new Confirmed(booking, null, checkout);
         });
     }
@@ -188,7 +189,9 @@ public class BookingConfirmationService {
                     b.bookedAt(), b.bookedBy(), b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), null, null, null, null, null, null,
                     b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(), b.packMovementId(), b.packRefundMovementId(), charge,
                     b.reminderSentAt(), b.version() + 1, b.createdAt(), b.createdByAccountId(), now, null), b.version());
-            var actor = new BookingActor(b.bookedBy().accountId(), null, null, b.bookedBy().impersonatedMemberId(), b.origin(), ActorRole.SYSTEM);
+            // COMM-03: a PAY_TO_BOOK booking the club made without notifying keeps that choice for its BookingCreated (N-36).
+            var actor = new BookingActor(b.bookedBy().accountId(), null, null, b.bookedBy().impersonatedMemberId(), b.origin(), ActorRole.SYSTEM,
+                    !Boolean.FALSE.equals(b.bookedBy().notifyMember()));
             created(after, actor);
             counters.recount(b.classSessionId(), false, BookingActor.system());
             return null;

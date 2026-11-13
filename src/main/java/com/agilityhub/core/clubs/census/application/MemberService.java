@@ -142,12 +142,20 @@ public class MemberService {
                 "address", person.address, "paymentMethod", person.paymentMethod == null ? null : CensusAudit.bank(person.paymentMethod), "signup", member.signup,
                 "remarks", member.remarks, "internalNotes", member.internalNotes, "consents", member.consents);
     }
+    /**
+     * D10 payment-method edit (ADMIN). COMM-03 (owner's decision of 13-11): `notifyMember: false` changes it without N-38 to the member:
+     * `MemberPaymentMethodChanged` carries `notifyMember: false` and the entry records it (`details.notifyMember`).
+     */
     @Transactional
-    @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id")
+    @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id",
+            details = "#request['notifyMember'] == false ? {notifyMember: false} : null")
     public void payment(String id, Map<String,Object> request) {
         // R-04-06 (INC-39): a pending readmission's method waits in its request (D2 edits it with PATCH /members/{id}).
         var member = CensusAccess.unfrozen(access.mutableMember(id)); access.require(Module.BILLING);
-        allow(request, Set.of("type", "sepa", "card", "manual"));
+        allow(request, Set.of("type", "sepa", "card", "manual", "notifyMember"));
+        Object notifyValue = request.get("notifyMember");
+        if (notifyValue != null && !(notifyValue instanceof Boolean)) { throw invalid("notifyMember", "INVALID_VALUE"); }
+        boolean notify = !Boolean.FALSE.equals(notifyValue);
         String type = string(request.get("type"));
         String provider = PaymentProviderFlags.provider(type);
         if (provider == null) { throw invalid("type", "INVALID_VALUE"); }
@@ -204,8 +212,10 @@ public class MemberService {
         if (payment.equals(member.paymentMethod)) { return; }
         member.paymentMethod = payment; access.members.save(member);
         String last4 = string(payment.get("ibanLast4"));
-        events.emit("MemberPaymentMethodChanged", "Member", id, object("memberId", id, "type", type,
-                "masked", com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(last4 != null ? last4 : string(payment.get("iban")))));
+        var changed = object("memberId", id, "type", type,
+                "masked", com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(last4 != null ? last4 : string(payment.get("iban"))));
+        if (!notify) { changed.put("notifyMember", false); } // COMM-03: no N-38
+        events.emit("MemberPaymentMethodChanged", "Member", id, changed);
     }
     @Transactional
     @Audited(action = AuditAction.BOOKING_BLOCK_SET, entityType = "'Member'", entity = "#id", member = "#id", reason = "#reason")

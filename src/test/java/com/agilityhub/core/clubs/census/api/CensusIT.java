@@ -440,6 +440,35 @@ class CensusIT extends AbstractIntegrationTest {
         error(admin(body(patch("/api/v1/dogs/dog-one/level"), Map.of("levelId", "level-d"))), ErrorCode.LEVEL_UNCHANGED);
         parameter("levels.enabled", false); error(admin(body(patch("/api/v1/dogs/dog-one/level"), Map.of("levelId", "level-c"))), ErrorCode.LEVELS_DISABLED);
     }
+    /**
+     * COMM-03 (owner's decision of 13-11): from D10 the ADMIN may change a dog's level or a member's payment method without notifying
+     * the member: the event carries notifyMember: false, the audit entry records it, and the census notice facts give N-09 / N-38
+     * nothing to send for it; the default still notifies. A non-boolean notify is refused.
+     */
+    @Test @AuditCovers({AuditAction.DOG_LEVEL_CHANGED, AuditAction.MEMBER_PAYMENT_METHOD_CHANGED})
+    void COMM_03_levelAndPaymentMethodChangesCanSkipTheMembersNotice() throws Exception {
+        change("dogs/dog-one/level", Map.of("levelId", "level-d", "notifyMember", false));
+        change("dogs/dog-one/level", Map.of("levelId", "level-c"));
+        change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer"), "notifyMember", false));
+        change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "cash"), "notifyMember", true));
+        error(admin(body(patch("/api/v1/members/one/payment-method"), Map.of("type", "MANUAL", "manual", Map.of("channel", "bizum"), "notifyMember", "no"))), ErrorCode.VALIDATION_ERROR);
+        var levels = events("DogLevelChanged"); var methods = events("MemberPaymentMethodChanged");
+        assertThat(levels).extracting(event -> event.payload().get("notifyMember")).containsExactly(false, null);
+        assertThat(methods).extracting(event -> event.payload().get("notifyMember")).containsExactly(false, null);
+        assertThat(audit(AuditAction.DOG_LEVEL_CHANGED)).extracting(AuditEntry::details).containsExactly(Map.of("notifyMember", false), null);
+        assertThat(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED)).extracting(AuditEntry::details).containsExactly(Map.of("notifyMember", false), null);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(censusFacts.facts(trigger(levels.get(0)), "N-09")).as("silenced level change").isEmpty();
+            assertThat(censusFacts.facts(trigger(levels.get(1)), "N-09")).as("notified level change").isPresent();
+            assertThat(censusFacts.facts(trigger(methods.get(0)), "N-38")).as("silenced payment-method change").isEmpty();
+            assertThat(censusFacts.facts(trigger(methods.get(1)), "N-38")).as("notified payment-method change").isPresent();
+        }
+    }
+    @Autowired com.agilityhub.core.clubs.census.application.CensusNotificationFacts censusFacts;
+    static com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger trigger(DomainEventRecord event) {
+        return new com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger(event.id(), event.type(), event.clubId(), event.aggregateType(),
+                event.aggregateId(), event.occurredAt(), event.payload(), event.actorAccountId(), event.impersonatedMemberId(), event.origin());
+    }
     @Test @AuditCovers(AuditAction.DOG_FREE_TRAINING_CHANGED)
     void T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges() throws Exception {
         change("dogs/dog-two/free-training", Map.of("override", true)); assertThat(events("DogFreeTrainingChanged")).isEmpty();

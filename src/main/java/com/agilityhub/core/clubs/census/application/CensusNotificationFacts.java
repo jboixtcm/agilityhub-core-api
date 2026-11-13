@@ -58,9 +58,15 @@ public class CensusNotificationFacts implements NotificationFactsPort {
     }
 
     @Override public Set<String> eventTypes() { return TYPES; }
+    /** COMM-03: N-09 and N-38 are not sent for a `DogLevelChanged` / `MemberPaymentMethodChanged` with `notifyMember: false`. */
+    static boolean silenced(NotificationTrigger trigger) {
+        return Set.of("DogLevelChanged", "MemberPaymentMethodChanged").contains(trigger.type()) && "false".equals(trigger.text("notifyMember"));
+    }
 
     @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
         if (Set.of("N-11a", "N-11b", "N-14", "N-18a", "N-18b", "N-18c", "N-18d", "N-28").contains(code)) { return lifecycle(trigger, code); }
+        // COMM-03 (owner's decision of 13-11): the ADMIN changed the level or the payment method without notifying the member.
+        if (silenced(trigger)) { return Optional.empty(); }
         return switch (trigger.type()) {
             case "SignupSubmitted", "SignupRejected", "MemberValidated" -> signup(trigger);
             case "DogLevelChanged" -> dog(trigger, trigger.text("dogId")).map(builder -> builder.value("level_name", level(trigger.text("after"))).build());

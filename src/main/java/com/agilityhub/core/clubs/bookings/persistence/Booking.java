@@ -23,7 +23,15 @@ public record Booking(@Id String id, String clubId, String classSessionId, Strin
         String swapFromBookingId, String swapToBookingId, String waitlistEntryId, String packMovementId, String packRefundMovementId,
         Charge charge, Instant reminderSentAt,
         @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) implements TenantEntity {
-    public record Actor(String accountId, String impersonatedMemberId, String displayName) { }
+    /**
+     * `notifyMember`: COMM-03, false when the club made the booking for the member without notifying (kept for the `BookingCreated` of a
+     * PAY_TO_BOOK booking, published when it is paid); null otherwise.
+     */
+    public record Actor(String accountId, String impersonatedMemberId, String displayName, Boolean notifyMember) {
+        @org.springframework.data.annotation.PersistenceCreator
+        public Actor { }
+        public Actor(String accountId, String impersonatedMemberId, String displayName) { this(accountId, impersonatedMemberId, displayName, null); }
+    }
     public record Canceller(String accountId, ActorRole role, String displayName, String impersonatedMemberId) { }
     /** `checkoutUrl` is the provider's checkout of a PAY_TO_BOOK booking, kept only while it is PAYMENT_PENDING (S08 §6, E5-T10). */
     public record Charge(ChargeMode mode, Money price, String chargeInvoiceLineRef, String checkoutSessionId, String paymentIntentId, Instant paidAt,

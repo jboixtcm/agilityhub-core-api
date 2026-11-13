@@ -109,13 +109,13 @@ public class TrainingController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, DOG_NOT_ACCESSIBLE, SLOT_TAKEN, TRAINING_LIMIT_REACHED, DOG_ALREADY_BOOKED, SLOT_NOT_ON_GRID,
             DOG_NOT_ALLOWED, RING_NOT_RESERVABLE, SLOT_OUT_OF_WINDOW, CLUB_CLOSED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, DOG_NOT_ACTIVE,
-            OVERRIDE_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "bookTraining", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE, override{limit, reason} allowed). R-09-06 transaction; the partial unique index {clubId, ringId, startsAt, seatIndex} on ACTIVE is the final guard; without ringId («Qualsevol») the first FREE ring in catalog order. details: TRAINING_LIMIT_REACHED{limit, used, weekStart, weekEnd, cancellableBookings[]}, SLOT_TAKEN{ringId, startsAt, reason, freeRings[]}, SLOT_OUT_OF_WINDOW{from, to}. A repeated Idempotency-Key returns the same response, also a 409/422. Requires FREE_TRAINING. Tenant comes from the JWT.",
+            OVERRIDE_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED, FORBIDDEN})
+    @Operation(summary = "bookTraining", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE, override{limit, reason} allowed). COMM-03: notifyMember false (an ADMIN's impersonation token only, otherwise 403 FORBIDDEN) books without N-47 to the member; recorded in TRAINING_BOOKED_BY_CLUB details.notifyMember. R-09-06 transaction; the partial unique index {clubId, ringId, startsAt, seatIndex} on ACTIVE is the final guard; without ringId («Qualsevol») the first FREE ring in catalog order. details: TRAINING_LIMIT_REACHED{limit, used, weekStart, weekEnd, cancellableBookings[]}, SLOT_TAKEN{ringId, startsAt, reason, freeRings[]}, SLOT_OUT_OF_WINDOW{from, to}. A repeated Idempotency-Key returns the same response, also a 409/422. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "TrainingBooking", useReturnTypeSchema = true))
     public TrainingBooking bookTraining(@Valid @RequestBody TrainingBookingRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        var actor = TrainingActor.member(memberId(jwt));
+        var actor = TrainingActor.member(memberId(jwt)).notifying(request.notifyMember());
         var override = request.override() == null ? null : new TrainingBookingService.Override(Boolean.TRUE.equals(request.override().limit()), request.override().reason());
         return idempotent(service.lanes(request.dogId(), actor.memberId(), request.startsAt()), 201, () -> view(queries.view(
                 service.book(actor, request.dogId(), request.startsAt(), request.ringId(), override, idempotencyKey.toString())), TrainingBooking.class));
@@ -136,14 +136,14 @@ public class TrainingController {
     @PostMapping("/api/v1/training-bookings/{id}/cancellation")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, TRAINING_CANCEL_TOO_LATE, INVALID_STATE, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "cancelTraining", description = "Roles: MEMBER (own or family group, also the impersonation token). R-09-10: until startsAt - training.cancelThresholdMinutes; later only with the impersonation token and a reason (ADMIN_LATE, audited). A booking block never prevents it; a second call is INVALID_STATE. details TRAINING_CANCEL_TOO_LATE{thresholdMinutes, minutesBefore}. An optional Idempotency-Key replays the same 200. Requires FREE_TRAINING. Tenant comes from the JWT.",
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, TRAINING_CANCEL_TOO_LATE, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, FORBIDDEN})
+    @Operation(summary = "cancelTraining", description = "Roles: MEMBER (own or family group, also the impersonation token). COMM-03: notifyMember false (an ADMIN's impersonation token only, otherwise 403 FORBIDDEN) cancels without N-47 to the member; recorded in TRAINING_CANCELLED_BY_CLUB details.notifyMember. R-09-10: until startsAt - training.cancelThresholdMinutes; later only with the impersonation token and a reason (ADMIN_LATE, audited). A booking block never prevents it; a second call is INVALID_STATE. details TRAINING_CANCEL_TOO_LATE{thresholdMinutes, minutesBefore}. An optional Idempotency-Key replays the same 200. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "TrainingBooking", useReturnTypeSchema = true))
     public TrainingBooking cancelTraining(@PathVariable String id, @Valid @RequestBody(required = false) TrainingCancellationRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         var booking = queries.visible(id, memberId(jwt), false);
-        var actor = TrainingActor.member(memberId(jwt));
+        var actor = TrainingActor.member(memberId(jwt)).notifying(request == null ? null : request.notifyMember());
         return idempotent(java.util.List.of("dog:" + booking.dogId(), "member:" + booking.memberId()), 200,
                 () -> view(queries.view(service.cancel(id, actor, request == null ? null : request.reason())), TrainingBooking.class));
     }

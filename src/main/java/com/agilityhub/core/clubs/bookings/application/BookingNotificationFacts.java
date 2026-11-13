@@ -84,7 +84,8 @@ public class BookingNotificationFacts implements NotificationFactsPort, Waitlist
             case "N-04" -> created && Set.of("APP", "INSTRUCTOR").contains(origin);
             case "N-05" -> !created && (Set.of("MEMBER", "INSTRUCTOR").contains(by) || "INSTRUCTOR".equals(origin)) && !"BACKOFFICE".equals(origin)
                     && !"PAYMENT_TIMEOUT".equals(reason);
-            case "N-36" -> "BACKOFFICE".equals(origin);
+            // COMM-03: an ADMIN acting for the member may have asked not to notify (`notifyMember: false`).
+            case "N-36" -> "BACKOFFICE".equals(origin) && !"false".equals(trigger.text("notifyMember"));
             case "N-40" -> !created && "PAYMENT_TIMEOUT".equals(reason) && !trigger.flag("checkoutFailed");
             default -> false;
         };

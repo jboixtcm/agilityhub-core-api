@@ -41,7 +41,7 @@ public class TrainingNotificationFacts implements NotificationFactsPort, Booking
         boolean club = "BACKOFFICE".equals(trigger.text("origin")) || "ADMIN".equals(trigger.text("by"));
         return switch (code) {
             case "N-06" -> booked && !club; // a club booking gets N-47 instead (S09 §8, ruling E150), as N-07 for a club cancellation
-            case "N-47" -> club;
+            case "N-47" -> club && !"false".equals(trigger.text("notifyMember")); // COMM-03: unless the ADMIN acting for the member chose not to notify
             case "N-07" -> !booked && !club && !"MEMBER_LEFT".equals(trigger.text("cancelReason"));
             default -> false;
         };

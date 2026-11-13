@@ -52,7 +52,7 @@ public class DemoCastSeeder implements DemoSeedStep {
             String memberId = input.member(c.member());
             String dogId = dog(memberId, level(levels, c.dogLevel() == null ? c.level() : c.dogLevel()));
             if (c.dogLevel() != null && !c.dogLevel().equals(c.level())) {
-                dogs.level(dogId, level(levels, c.level())); counts.merge("attendanceLevelChanges", 1, Integer::sum);
+                dogs.level(dogId, level(levels, c.level()), true); counts.merge("attendanceLevelChanges", 1, Integer::sum);
             }
             rename(memberId, c.name());
             var dog = query.dog(dogId);

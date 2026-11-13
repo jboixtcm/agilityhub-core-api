@@ -23,7 +23,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-07 | Entrenament anul·lat | `TrainingCancelled` | OPERATIONAL | MEMBER → APP | idem | — | S09 |
 | N-08a | **Classe anul·lada pel club** | `ClassCancelledByClub` | CLUB_CHANGES | MEMBER (inscrits) → APP+EMAIL+**SMS** · INSTRUCTORS → APP+EMAIL · ADMINS → APP | dog_name, class_date, class_time, class_description, **admin_text** | CHANGE_CLASS | S06 |
 | N-08b | Classe modificada pel club (hora/pista/instructor) | `ClassSessionUpdated{diff ∋ startTime·ringId·instructorIds, booked > 0}` | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS · INSTRUCTORS → APP | dog_name, class_date, changes | OPEN_BOOKING | S06 |
-| N-09 | Canvi de nivell | `DogLevelChanged` | PERSONAL | MEMBER → APP+EMAIL | dog_name, level_name | OPEN_DOG | S03 |
+| N-09 | Canvi de nivell | `DogLevelChanged` (no amb `notifyMember: false`, COMM-03) | PERSONAL | MEMBER → APP+EMAIL | dog_name, level_name | OPEN_DOG | S03 |
 | N-10 | Rebut impagat / cobrament fallit | `InvoiceFailed` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, invoice_number, amount, reason | OPEN_INVOICES | S12 |
 | N-11a | Pack a punt d'esgotar-se | `PackLowBalance` | PERSONAL | MEMBER → APP+EMAIL | dog_name, pack_remaining | OPEN_DOG | S12 |
 | N-11b | Pack a punt de caducar / caducat | `PackExpiring` · `PackExpired` | PERSONAL | MEMBER → APP+EMAIL | dog_name, pack_expiry, pack_remaining | OPEN_DOG | S12 |
@@ -54,9 +54,9 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-33 | Ja pots reservar la setmana vinent | `WeekOpened` (si `messaging.notifyWeekOpening`) | OPERATIONAL | MEMBER → APP+PUSH | week_start | OPEN_BOOKING | S15 |
 | N-34 | Sol·licituds d'alta pendents des de fa dies | `SignupPendingAging` (diari) | OPERATIONAL | ADMINS → APP | count, oldest_days | OPEN_SIGNUP | S15 |
 | N-35 | Cobrament fallit (targeta) | `InvoiceFailed{STRIPE}` · `MemberCardInvalidated` (R-12-22, `retry_link = /me/card-setup`) | PERSONAL | MEMBER → APP+EMAIL | amount, reason, retry_link | OPEN_INVOICES | S12 |
-| N-36 | Reserva feta/anul·lada pel club en nom teu | `BookingCreated/Cancelled{origin=BACKOFFICE}` | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS | dog_name, class_date, class_time, actor: «el club», change | OPEN_BOOKING | S08 |
+| N-36 | Reserva feta/anul·lada pel club en nom teu | `BookingCreated/Cancelled{origin=BACKOFFICE}` (no amb `notifyMember: false`, COMM-03) | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS | dog_name, class_date, class_time, actor: «el club», change | OPEN_BOOKING | S08 |
 | N-37 | Nou gos afegit / gos donat de baixa | `DogRegistered` · `DogDeactivated` | PERSONAL | MEMBER → APP | dog_name | OPEN_DOG | S03 |
-| N-38 | Canvi de mètode de pagament / IBAN | `MemberPaymentMethodChanged` | PERSONAL | MEMBER → EMAIL | masked_account | — | S12 |
+| N-38 | Canvi de mètode de pagament / IBAN | `MemberPaymentMethodChanged` (no amb `notifyMember: false`, COMM-03) | PERSONAL | MEMBER → EMAIL | masked_account | — | S12 |
 
 ## Variables disponibles (claus de codi; etiqueta en l'idioma de l'admin a D9)
 
@@ -89,7 +89,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-44 | Nou challenge disponible (R2) | `ChallengePublished` | CLUB_NEWS | MEMBER amb nivell mapejat → APP | challenge_title, level | OPEN_CHALLENGE | S19 |
 | N-45 | Intent de challenge validat (R2) | `ChallengeAttemptValidated` | PERSONAL | MEMBER → APP+EMAIL | challenge_title, score | OPEN_CHALLENGE | S19 |
 | N-46 | La plaça ja s'ha ocupat | `WaitlistNotified` revertit (`NOTIFIED → ACTIVE`, `ALL_AT_ONCE`), només a les entrades que van rebre l'N-15 d'aquella oferta; també quan una reserva `PAYMENT_PENDING` (S08 R-08-18) ocupa la plaça: el porta el `SeatHoldReleased` de la confirmació, que per si sol no notifica | OPERATIONAL | MEMBER → APP | dog_name, class_date, class_time | — | S08 |
-| N-47 | Entrenament reservat / anul·lat pel club en nom teu | `TrainingBooked/Cancelled{origin: BACKOFFICE ∨ by = ADMIN}` | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS | dog_name, date, time, ring_name, admin_text, change | OPEN_BOOKING | S09 |
+| N-47 | Entrenament reservat / anul·lat pel club en nom teu | `TrainingBooked/Cancelled{origin: BACKOFFICE ∨ by = ADMIN}` (no amb `notifyMember: false`, COMM-03) | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS | dog_name, date, time, ring_name, admin_text, change | OPEN_BOOKING | S09 |
 | N-48 | Ara ets instructor / administrador del club (opcional, fora de R1) | `MembershipChanged{roles +}` | PERSONAL | compte → APP+EMAIL | club_name, role | — | S05 |
 | N-49 | Límit mensual d'SMS assolit | `SmsCapReached` (un cop per mes) | OPERATIONAL | ADMINS → APP+EMAIL | month, cap | — | S11 |
 | N-50 | Les teves dades estan a punt | `ExportJob{MEMBER_DATA} → READY` | PERSONAL | MEMBER → APP+EMAIL | link, expires_days | OPEN_EXPORT | S14 |
@@ -98,5 +98,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-54 | **Classe amb pocs alumnes** (per sota del mínim) | `ClassBelowMinimum` (anul·lació dins termini) | OPERATIONAL | INSTRUCTORS de la classe + ADMINS → APP+EMAIL | class_date, class_time, class_description, ring_name, dogs_count | CHANGE_CLASS | S15 |
 | N-53 | Invitació com a administrador del club | `POST /platform/clubs/{id}/admins` | SYSTEM | compte convidat → EMAIL | club_name, link, inviter_name | — | S17 |
 | N-55 | Reemborsament a fer a mà (E101, aprovat 09-10) | `UpfrontRefundIntervention` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, amount, reason | OPEN_MEMBER | S12 |
+
+«No avisis» (COMM-03, decisió del propietari 13-11): una acció de l'ADMIN per a un abonat — reserva o anul·lació de classe o d'entrenament feta impersonant (N-36, N-47), canvi de nivell (N-09) o de mètode de pagament (N-38) — pot portar `notifyMember: false`; llavors aquell avís no es crea (cap canal) i l'entrada d'auditoria de l'acció porta `details.notifyMember = false`. Per defecte s'avisa; un instructor no ho pot fer.
 
 Variants: N-02 `MIGRATED` (S18, benvinguda dels abonats migrats) · N-27 `ADMIN_WELCOME` (S03 R-03-06, WEB-01 del 13-11-2026: la benvinguda que l'ADMIN envia des de D10 a un abonat ja registrat, només manual, enllaç `auth.welcomeLinkDays`) · N-25 `EMAIL_CHANGE` (S03 R-03-06b, AUTH-02 del 13-11-2026: confirmació de l'adreça d'accés nova que l'ADMIN ha demanat des de D10; va només a l'adreça nova, amb `link` i `expires_minutes` = `auth.welcomeLinkDays`) · N-32b amb `origin=BACKOFFICE` → CLUB_CHANGES (S07) · N-36 cobreix també les reserves de classe fetes/anul·lades pel club. Accions natives noves: `OPEN_JOBS`, `OPEN_EXPORT` (amb el paràmetre `jobId`, l'`ExportJob` de N-50, que l'app obre a 12 `/perfil?jobId=`; E11-T17), `OPEN_CHALLENGE`, `OPEN_MEMBER`, `OPEN_SIGNUP`. Variables noves: `upfront_total`, `payment_instructions`, `pay_link` (N-01), `member_last_names`, `dog_name_article`, `kind` (N-13), `class_description` (N-13/N-15/N-16/N-19), `admin_text`/`cancelled_count` (N-18b/N-28), `decision`, `source`, `member_first_name`, `dog_name` (N-28), `gender` (N-21/N-22), `auto_cancel` (N-16/N-17). Origen: `decision` i `source` de N-28 venen de S13 §13-7 i de la revisió global del 26-09; `class_description` de N-13, N-15 i N-16, `member_first_name` i `dog_name` de N-28 i `gender` de N-21 i N-22, de les verificacions d'E7-T01 i d'E6-T03 del 27-09, decisió E66.

@@ -85,7 +85,7 @@ class BookingsControllerSurvivorsTest {
             assertCode(() -> controller.bookableClasses(null, jwt));
             assertCode(() -> controller.holdSeat(new BookingRequests.SeatHoldRequest("class-1", "dog-1", null), jwt));
             assertCode(() -> controller.releaseSeat("hold-1", jwt));
-            assertCode(() -> controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null), UUID.randomUUID(), jwt));
+            assertCode(() -> controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null, null), UUID.randomUUID(), jwt));
             assertCode(() -> controller.memberBookings(null, null, null, null, jwt));
             assertCode(() -> controller.booking("booking-1", jwt));
             assertCode(() -> controller.cancelBooking("booking-1", null, jwt));
@@ -94,7 +94,7 @@ class BookingsControllerSurvivorsTest {
             assertCode(() -> controller.joinWaitlist(new BookingRequests.WaitlistEntryRequest("class-1", "dog-1"), null, jwt));
             assertCode(() -> controller.waitlistEntry("entry-1", jwt));
             assertCode(() -> controller.leaveWaitlist("entry-1", jwt));
-            assertCode(() -> controller.claimSeat("entry-1", new BookingRequests.ClaimRequest("hold-1", null, null), UUID.randomUUID(), jwt));
+            assertCode(() -> controller.claimSeat("entry-1", new BookingRequests.ClaimRequest("hold-1", null, null, null), UUID.randomUUID(), jwt));
             assertCode(() -> controller.classBookings("class-1"));
             assertCode(() -> controller.classWaitlist("class-1"));
         }
@@ -187,7 +187,7 @@ class BookingsControllerSurvivorsTest {
         when(actors.member("member-a")).thenReturn(member);
 
         try (var user = signedIn(DomainEvent.Origin.APP)) {
-            controller.cancelBooking("booking-1", new BookingRequests.BookingCancellationRequest("Fictional message"), jwt);
+            controller.cancelBooking("booking-1", new BookingRequests.BookingCancellationRequest("Fictional message", null), jwt);
             controller.cancelBooking("booking-2", null, jwt);
         }
 
@@ -239,7 +239,7 @@ class BookingsControllerSurvivorsTest {
 
         try (var user = signedIn(DomainEvent.Origin.APP);
              var scope = IdempotentOperation.open(() -> events.add("lock"), (status, body) -> events.add("complete:" + status))) {
-            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null), UUID.randomUUID(), jwt);
+            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null, null), UUID.randomUUID(), jwt);
         }
 
         assertThat(events).containsExactly("lock", "confirm", "complete:201");
@@ -263,7 +263,7 @@ class BookingsControllerSurvivorsTest {
 
         try (var user = signedIn(DomainEvent.Origin.APP);
              var scope = IdempotentOperation.open(() -> events.add("lock"), (status, body) -> events.add("complete:" + status))) {
-            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null), UUID.randomUUID(), jwt);
+            controller.confirmBooking(new BookingRequests.BookingRequest("hold-1", null, null, null), UUID.randomUUID(), jwt);
         }
 
         assertThat(events).containsExactly("lock", "confirm", "checkout", "lock", "complete:201");

@@ -18,8 +18,15 @@ public class BookingEvents {
     private final EventPublisher publisher; private final AuditActorProvider actors; private final BookingContext context;
     public BookingEvents(EventPublisher publisher, AuditActorProvider actors, BookingContext context) { this.publisher = publisher; this.actors = actors; this.context = context; }
     public String publish(BookingEvent.Kind kind, String aggregateId, Map<String, Object> payload, BookingActor actor) {
-        return publisher.publish(new BookingEvent(kind, TenantContext.require(), aggregateId, context.now(), payload,
+        return publisher.publish(new BookingEvent(kind, TenantContext.require(), aggregateId, context.now(), silenced(kind, payload, actor),
                 actor.isSystem() ? null : actor.accountId(), actor.impersonatedMemberId(), origin(actor)));
+    }
+    /** COMM-03: the booking or cancellation of an actor that asked not to notify the member carries `notifyMember: false` (N-36 reads it). */
+    static Map<String, Object> silenced(BookingEvent.Kind kind, Map<String, Object> payload, BookingActor actor) {
+        if (actor.notifies() || kind != BookingEvent.Kind.BookingCreated && kind != BookingEvent.Kind.BookingCancelled) { return payload; }
+        var silenced = new java.util.LinkedHashMap<String, Object>(payload);
+        silenced.put("notifyMember", false);
+        return silenced;
     }
     /** S15 R-15-12b `ClassBelowMinimum` (catalog payload `classId, countedDogs, minDogs`); N-54 is E5-T05. */
     public String belowMinimum(String classId, int countedDogs, int minDogs, BookingActor actor) {

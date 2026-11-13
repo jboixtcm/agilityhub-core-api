@@ -525,6 +525,52 @@ class BookingsIT extends BookingFixtures {
         assertThat(count("notifications", Criteria.where("code").is("N-36").and("channel").is("SMS").and("status").is("SKIPPED_MODULE_OFF"))).isEqualTo(1);
     }
 
+    /**
+     * COMM-03 (owner's decision of 13-11): an ADMIN booking or cancelling for a member («Entra com l'abonat») may choose not to
+     * notify it: no N-36 in any channel, the events carry notifyMember: false and the club's audit entries record it. The default
+     * still notifies. A member, an instructor's booking delegation or the instructor's notice asking it get 403 and change nothing.
+     */
+    @Test @AuditCovers({AuditAction.BOOKING_CREATED_BY_CLUB, AuditAction.BOOKING_CANCELLED_BY_CLUB})
+    void COMM_03_anAdminBooksAndCancelsForAMemberWithoutNotifyingIt() throws Exception {
+        var admin = impersonating("admin", "s08-m-laura");
+        var silent = new LinkedHashMap<String, Object>(); silent.put("seatHoldId", hold(admin, "wed", "s08-d-duna", 201).path("id").asText()); silent.put("notifyMember", false);
+        var booking = call(POST, "/bookings", silent, admin, 201, UUID.randomUUID().toString());
+        String id = booking.path("id").asText();
+        assertThat(booking.path("origin").asText()).isEqualTo("BACKOFFICE");
+        assertThat(eventsOf("BookingCreated").getFirst().get("payload", Document.class)).containsEntry("notifyMember", false);
+        var created = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("BOOKING_CREATED_BY_CLUB").and("entityId").is(id)), Document.class, "audit_entries");
+        assertThat(created.get("details", Document.class)).containsEntry("notifyMember", false);
+        call(POST, "/bookings/" + id + "/cancellation", Map.of("notifyMember", false), impersonating("admin", "s08-m-laura"), 200);
+        assertThat(eventsOf("BookingCancelled").getFirst().get("payload", Document.class)).containsEntry("notifyMember", false).containsEntry("origin", "BACKOFFICE");
+        var cancelled = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("BOOKING_CANCELLED_BY_CLUB").and("entityId").is(id)), Document.class, "audit_entries");
+        assertThat(cancelled.get("details", Document.class)).containsEntry("notifyMember", false);
+        dispatch();
+        assertThat(count("notifications", Criteria.where("code").is("N-36"))).as("silenced: no N-36 in any channel").isZero();
+        assertThat(count("notifications", Criteria.where("code").in("N-04", "N-05"))).isZero();
+
+        // The default (no notify, or true) still notifies, and its entries say nothing about it.
+        var again = impersonating("admin", "s08-m-laura");
+        var notified = new LinkedHashMap<String, Object>(); notified.put("seatHoldId", hold(again, "thu", "s08-d-duna", 201).path("id").asText()); notified.put("notifyMember", true);
+        String second = call(POST, "/bookings", notified, again, 201, UUID.randomUUID().toString()).path("id").asText();
+        dispatch();
+        assertThat(com.agilityhub.core.support.NotificationRows.find(mongo, Criteria.where("clubId").is(CLUB).and("code").is("N-36")))
+                .extracting(n -> n.getString("channel")).containsExactlyInAnyOrder("APP", "EMAIL", "SMS");
+        assertThat(mongo.findOne(Query.query(Criteria.where("action").is("BOOKING_CREATED_BY_CLUB").and("entityId").is(second)), Document.class, "audit_entries"))
+                .doesNotContainKey("details");
+
+        // Only an ADMIN acting for the member may silence a notice: the member, the instructor's delegation and its notice → 403.
+        var own = new LinkedHashMap<String, Object>(); own.put("seatHoldId", hold(as("pere"), "wed", "s08-d-nit", 201).path("id").asText()); own.put("notifyMember", false);
+        assertThat(code(call(POST, "/bookings", own, as("pere"), 403, UUID.randomUUID().toString()))).isEqualTo("FORBIDDEN");
+        String pere = book(as("pere"), "wed", "s08-d-nit").path("id").asText();
+        assertThat(code(call(POST, "/bookings/" + pere + "/cancellation", Map.of("notifyMember", false), as("pere"), 403))).isEqualTo("FORBIDDEN");
+        com.agilityhub.core.identity.application.ImpersonationService.Issued delegation;
+        try (var tenant = TenantContext.open(CLUB)) { delegation = impersonations.createForBookings("s08-inst", "s08-m-pere", "Fictional S08 booking support"); }
+        var instructor = jwt().jwt(delegation.token()).authorities(() -> "ROLE_MEMBER");
+        assertThat(code(call(POST, "/bookings/" + pere + "/cancellation", Map.of("notifyMember", false), instructor, 403))).isEqualTo("FORBIDDEN");
+        assertThat(code(call(POST, "/bookings/" + pere + "/cancellation", Map.of("notifyMember", false), as("inst"), 403))).isEqualTo("FORBIDDEN");
+        assertThat(booking(pere).getString("state")).isEqualTo("ACTIVE");
+    }
+
     @Test void T_08_28_theInstructorNoticeCancelsWithOriginInstructorAndN05WithoutSms() throws Exception {
         var early = book(as("laura"), "wed", "s08-d-duna"); var late = book(as("pere"), "wed", "s08-d-nit");
         var instructor = cancel(as("inst"), early.path("id").asText(), 200);

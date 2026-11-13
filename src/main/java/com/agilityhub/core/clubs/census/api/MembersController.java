@@ -100,9 +100,10 @@ public class MembersController {
                     + "SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` "
                     + "and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account "
                     + "(«Compte no informat»). Another `type` replaces the method. A pending readmission's method is edited with PATCH /members/{id}."
-                    + "A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+                    + "A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING. "
+                    + "COMM-03: notifyMember false changes the method without N-38 to the member; recorded in MEMBER_PAYMENT_METHOD_CHANGED details.notifyMember.",
             responses = @ApiResponse(responseCode = "200", description = "PaymentMethodView", content = @Content(schema = @Schema(implementation = PaymentMethodView.class))))
-    public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
+    public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodUpdate.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
 
     @PostMapping("/api/v1/members/{id}/booking-block")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")

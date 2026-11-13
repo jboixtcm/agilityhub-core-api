@@ -36,7 +36,7 @@ public class DogService {
         dog.status = "ACTIVE"; dog.registeredAt = clock.instant(); dog.licenses = List.of();
         dog.freeTrainingOverride = Boolean.TRUE.equals(request.get("freeTrainingAllowed")); dog.freeTrainingAllowed = dog.freeTrainingOverride;
         access.dogs.insert(dog);
-        if (request.get("levelId") != null) { assignLevel(dog.id, text(request.get("levelId"), "levelId", 100, true), true); }
+        if (request.get("levelId") != null) { assignLevel(dog.id, text(request.get("levelId"), "levelId", 100, true), true, true); }
         events.emit("DogUpdated", "Dog", dog.id, object("dogId", dog.id, "memberId", memberId, "diff", object("status", object("before", null, "after", "ACTIVE"))));
         return dog.id;
     }
@@ -119,13 +119,17 @@ public class DogService {
         return object("name", values.name, "breed", values.breed, "sex", values.sex, "birthDate", values.birthDate, "chip", dog.chip,
                 "handlerName", dog.handlerName, "handlerIsMember", dog.handlerIsMember, "licenses", dog.licenses, "instructorNote", values.instructorNote);
     }
+    /**
+     * D10 level change (ADMIN). COMM-03 (owner's decision of 13-11): `notifyMember` false changes the level without N-09 to the member:
+     * `DogLevelChanged` carries `notifyMember: false` and the entry records it (`details.notifyMember`).
+     */
+    @Transactional
+    @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)", details = "#notify ? null : {notifyMember: false}")
+    public void level(String id, String levelId, boolean notify) { assignLevel(id,levelId,false,notify); }
     @Transactional
     @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
-    public void level(String id, String levelId) { assignLevel(id,levelId,false); }
-    @Transactional
-    @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
-    public void signupLevel(String id,String levelId) { assignLevel(id,levelId,true); }
-    private void assignLevel(String id,String levelId,boolean signup) {
+    public void signupLevel(String id,String levelId) { assignLevel(id,levelId,true,true); }
+    private void assignLevel(String id,String levelId,boolean signup,boolean notify) {
         // The validation's first level (`signup`) comes after the readmission is applied; a D2 change of a reused dog's is frozen.
         var dog = access.mutableDog(id); if (!signup) { CensusAccess.unfrozen(dog); }
         if (!access.levels()) { throw new ApiException(ErrorCode.LEVELS_DISABLED); }
@@ -141,7 +145,11 @@ public class DogService {
         dog.freeTrainingAllowed = access.free(dog).allowed(); access.dogs.save(dog);
         // S04 (E3-T10): the level given at validation is the first assignment, not a change: no DogLevelChanged, so N-09
         // never fires for a validation. The history, the audit and the free-training recalculation stay.
-        if (!signup) { events.emit("DogLevelChanged", "Dog", id, object("dogId", id, "before", old, "after", levelId)); }
+        if (!signup) {
+            var payload = object("dogId", id, "before", old, "after", levelId);
+            if (!notify) { payload.put("notifyMember", false); } // COMM-03: no N-09
+            events.emit("DogLevelChanged", "Dog", id, payload);
+        }
         freeEvent(dog, previous);
     }
     @Transactional
