@@ -128,7 +128,9 @@ class HealthIndependenceIT {
             var body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(down.getContentAsString());
             assertThat(body.path("status").asText()).isEqualTo("DOWN");
             assertThat(body.path("version").asText()).isNotEmpty(); assertThat(body.path("builtAt").asText()).isNotEmpty();
-            assertThat(body.size()).isEqualTo(3);
+            // REL-02: the envelope also carries the build's commit (a string, or null when the build recorded none).
+            assertThat(body.has("commit")).isTrue();
+            assertThat(body.size()).isEqualTo(4);
             assertThat(elapsed).as("the ping is bounded to 1 s").isLessThan(3000);
             String traceId = RequestTraceFilter.traceId(result.getRequest());
             assertThat(output.getAll()).contains("Health DOWN").contains("traceId=" + traceId);
