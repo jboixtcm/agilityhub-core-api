@@ -174,6 +174,23 @@ class LoginEmailChangeIT extends AbstractIntegrationTest {
         assertThat(audit()).hasSize(1);
     }
 
+    /**
+     * AUTH-03 (S03 R-03-06b): D10's login block carries `accessEmailFailedAt` when the account's last access e-mail finally failed
+     * (null otherwise); a change of the login address clears it with the suppression mark, as both belong to the old address.
+     */
+    @Test void AUTH_03_theRecordShowsTheAccessEmailFailureMarkUntilTheAddressChanges() throws Exception {
+        assertThat(member("one").at("/login").has("accessEmailFailedAt")).isTrue();
+        assertThat(member("one").at("/login/accessEmailFailedAt").isNull()).isTrue();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("one-account")),
+                new org.springframework.data.mongodb.core.query.Update().set("accessEmailFailedAt", clock.instant()), "accounts");
+        assertThat(java.time.Instant.parse(member("one").at("/login/accessEmailFailedAt").asText())).isEqualTo(clock.instant());
+        change("one", "new-one@example.test").andExpect(status().isAccepted());
+        assertThat(java.time.Instant.parse(member("one").at("/login/accessEmailFailedAt").asText())).isEqualTo(clock.instant());
+        redeem(linkTo("new-one@example.test")).andExpect(status().isOk());
+        assertThat(member("one").at("/login/accessEmailFailedAt").isNull()).isTrue();
+        assertThat(mongo.getCollection("accounts").find(new org.bson.Document("_id", "one-account")).first()).doesNotContainKey("accessEmailFailedAt");
+    }
+
     @Test void AUTH_02_aNewerRequestSupersedesAnUnusedOneAndATakenAddressChangesNothing() throws Exception {
         change("one", "first-one@example.test").andExpect(status().isAccepted());
         String first = linkTo("first-one@example.test");

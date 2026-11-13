@@ -65,6 +65,20 @@ public class AccountRepository extends GlobalRepository<Account> {
                 .and("emailStatus").ne(com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus.COMPLAINED));
         mongo.updateFirst(query, new Update().set("emailStatus", status), Account.class);
     }
+    /**
+     * AUTH-03 (S03 R-03-06b): `accessEmailFailedAt`, when the account's last access or recovery e-mail finally failed; null
+     * unsets it. Only while {@code email} is still the account's address: a failure of an address the account no longer has
+     * says nothing about the current one.
+     */
+    public void markAccessEmailFailure(String id, String email, Instant failedAt) {
+        var query = Query.query(Criteria.where("_id").is(id).and("email").is(email));
+        mongo.updateFirst(query, failedAt == null ? new Update().unset("accessEmailFailedAt") : new Update().set("accessEmailFailedAt", failedAt), Account.class);
+    }
+    public Instant accessEmailFailedAt(String id) {
+        var query = Query.query(Criteria.where("_id").is(id)); query.fields().include("accessEmailFailedAt");
+        var row = mongo.findOne(query, org.bson.Document.class, mongo.getCollectionName(Account.class));
+        return row == null || row.getDate("accessEmailFailedAt") == null ? null : row.getDate("accessEmailFailedAt").toInstant();
+    }
     public boolean createIfAbsent(Account account) {
         var update = new Update().setOnInsert("_id", account.id()).setOnInsert("email", account.email())
                 .setOnInsert("name", account.name()).setOnInsert("locale", account.locale())
@@ -87,11 +101,12 @@ public class AccountRepository extends GlobalRepository<Account> {
     }
     /**
      * AUTH-02 (S03 R-03-06b): the login e-mail an `EMAIL_CHANGE` link confirms. The new address is verified by the link itself, and
-     * the suppression mark of the old one (`emailStatus`, S11) no longer applies. The unique index `account_email` stays the last guard.
+     * the suppression mark of the old one (`emailStatus`, S11) no longer applies, nor its access e-mail failure mark
+     * (`accessEmailFailedAt`, AUTH-03). The unique index `account_email` stays the last guard.
      */
     public boolean changeEmail(String id, String email, Instant now) {
         return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("status").is(Account.Status.ACTIVE)),
-                new Update().set("email", Email.normalize(email)).set("emailVerifiedAt", now).unset("emailStatus"), Account.class)
+                new Update().set("email", Email.normalize(email)).set("emailVerifiedAt", now).unset("emailStatus").unset("accessEmailFailedAt"), Account.class)
                 .getModifiedCount() == 1;
     }
     public void verifyEmail(String id, Instant now) {

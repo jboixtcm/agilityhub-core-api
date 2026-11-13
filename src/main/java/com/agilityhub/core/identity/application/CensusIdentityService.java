@@ -41,7 +41,8 @@ public class CensusIdentityService {
     }
     /**
      * AUTH-02 (S03 R-03-06b): the login e-mail of the member's account as D10 shows it, with its suppression mark (`BOUNCED`,
-     * `COMPLAINED`, S11 R-11-08) so that staff see why mail does not arrive; null without an account.
+     * `COMPLAINED`, S11 R-11-08) so that staff see why mail does not arrive; null without an account. AUTH-03: and when the
+     * account's last access or recovery e-mail finally failed (`accessEmailFailedAt`, null otherwise).
      */
     public Map<String, Object> login(String accountId) {
         if (accountId == null) { return null; }
@@ -49,6 +50,7 @@ public class CensusIdentityService {
             var login = new java.util.LinkedHashMap<String, Object>();
             login.put("email", account.email());
             login.put("emailStatus", account.emailStatus() == null ? null : account.emailStatus().name());
+            login.put("accessEmailFailedAt", accounts.accessEmailFailedAt(accountId));
             return (Map<String, Object>) login;
         }).orElse(null);
     }

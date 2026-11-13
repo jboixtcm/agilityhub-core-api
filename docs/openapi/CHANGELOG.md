@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTH-03 · The member record shows a failed access e-mail
+
+**No operations added; 1 schema property added (`MemberLogin.accessEmailFailedAt`, required, `date-time | null`); no error codes added.**
+
+- `GET /members/{id}` (ADMIN), `login` block: `accessEmailFailedAt` is the instant the account's last access or recovery e-mail (N-25 `LOGIN`/`RESET`, N-27) finally failed, after its single retry on a provider timeout or 5xx; `null` when none failed, or once a later one was accepted by the provider or the login address changed. Nothing else changes; `POST /auth/magic-link` still answers `202`.
+
 ## 2026-11-13 · AUTHZ-02 · The instructor's members: ACTIVE and PENDING only, without the postal address
 
 **No operations added; 2 schema properties removed (`address` of `MemberInstructorView` and `MemberInstructorListItem`); `address` removed from the `x-fields` of `GET /members` and `GET`/`POST /members/export`; no error codes added; 3 operation descriptions changed.**

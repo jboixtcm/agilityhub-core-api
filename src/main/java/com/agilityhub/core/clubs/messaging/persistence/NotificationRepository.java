@@ -236,13 +236,17 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     public record DeliveryStatusChange(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus status, String error, Instant at) { }
     public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at) {
+        return finish(id, status, providerId, error, at, 1);
+    }
+    /** {@code attempts}: the provider calls this settlement records (AUTH-03: 2 when an access e-mail was sent once more). */
+    public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at, int attempts) {
         var query = scoped(id).addCriteria(Criteria.where("status").is(Notification.Status.QUEUED));
         boolean transitioned = move(query, update -> {
             update.set("status", status).set("providerMessageId", providerId).set("error", error);
             if (status == Notification.Status.SENT) { update.set("sentAt", at); }
         }, update -> {
             update.set("deliveries.0.status", status.name()).set("deliveries.0.providerRef", providerId).set("deliveries.0.lastError", error);
-            if (status == Notification.Status.SENT || status == Notification.Status.FAILED) { update.inc("deliveries.0.attempts", 1); }
+            if (status == Notification.Status.SENT || status == Notification.Status.FAILED) { update.inc("deliveries.0.attempts", attempts); }
             if (status == Notification.Status.SKIPPED_NOT_ALLOWED) { update.unset("deliveries.0.nextAttemptAt"); }
             if (status == Notification.Status.SENT) { update.set("deliveries.0.sentAt", at); }
             if (status == Notification.Status.FAILED) { update.set("deliveries.0.failedAt", at); }

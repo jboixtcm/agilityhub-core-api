@@ -15044,6 +15044,11 @@
       },
       "MemberLogin" : {
         "properties" : {
+          "accessEmailFailedAt" : {
+            "description" : "AUTH-03 (S03 R-03-06b): when the account's last access or recovery e-mail (N-25, N-27) finally failed, after its one retry; null: none, or a later one was accepted by the provider",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
           "email" : {
             "format" : "email",
             "type" : "string"

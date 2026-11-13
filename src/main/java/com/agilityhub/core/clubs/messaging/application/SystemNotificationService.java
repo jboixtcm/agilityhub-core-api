@@ -14,7 +14,9 @@ import com.agilityhub.core.shared.domain.ErrorCode;
 import java.time.Clock;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -27,6 +29,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * (`NotificationEngine`); E7-T02 removed the E3–E6 row helpers.
  */
 public class SystemNotificationService {
+    /** AUTH-03 (S01 R-01-04): the access and recovery e-mails, sent once more after a provider timeout or 5xx. */
+    static final Set<String> ACCESS_CODES = Set.of("N-25", "N-27");
+    private static final Pattern RETRYABLE = Pattern.compile("\\btimeout\\b|\\bHTTP 5\\d\\d\\b");
     private final NotificationAccounts accounts;
     private final ClubEmailSettings clubs;
     private final ParameterCatalog parameters;
@@ -129,14 +134,33 @@ public class SystemNotificationService {
                 events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued, clubId, id, clock.instant()));
             }
         });
-        var result = account.emailStatus() == null ? deliverySender.send(email) : EmailSender.SendResult.failed("Recipient email suppressed");
+        var first = account.emailStatus() == null ? deliverySender.send(email) : EmailSender.SendResult.failed("Recipient email suppressed");
+        boolean access = access(code, variables);
+        // AUTH-03 (S01 R-01-04): one more attempt, at once, when the provider timed out or answered 5xx. A timeout is ambiguous:
+        // the provider may have accepted the first one, and the member then gets the same link twice.
+        boolean retried = access && retryable(first);
+        if (retried) {
+            org.slf4j.LoggerFactory.getLogger(SystemNotificationService.class).warn("Access e-mail {} sent once more after a provider failure ({})", code, first.error());
+        }
+        var result = retried ? deliverySender.send(email) : first;
         transactions.executeWithoutResult(tx -> {
             if (notifications.finish(id, result.sent() ? Notification.Status.SENT : Notification.Status.FAILED,
-                    result.providerMessageId(), result.error(), clock.instant())) {
+                    result.providerMessageId(), result.error(), clock.instant(), retried ? 2 : 1)) {
                 events.publish(new NotificationEvent(result.sent() ? NotificationEvent.Kind.NotificationSent : NotificationEvent.Kind.NotificationFailed,
                         clubId, id, clock.instant()));
             }
+            // AUTH-03 (S03 R-03-06b): the mark on the member's record, from the provider's answer to this call, also when its
+            // callback already moved the row (R-11-08); a later access e-mail that the provider accepts clears it.
+            if (access) { accounts.markAccessEmailFailure(account.id(), account.email(), result.sent() ? null : clock.instant()); }
         });
         return id;
+    }
+    /** N-25 and N-27, the sign-in, recovery, access-resend and admin-welcome links; not N-25's `EMAIL_CHANGE` confirmation. */
+    static boolean access(String code, Map<String, ?> variables) {
+        return ACCESS_CODES.contains(code) && !"EMAIL_CHANGE".equals(variables.get("variant"));
+    }
+    /** A provider timeout or 5xx (the senders' `… timeout` and `… HTTP 5xx` errors); never a 4xx, a suppression or a refusal. */
+    static boolean retryable(EmailSender.SendResult result) {
+        return !result.sent() && result.error() != null && RETRYABLE.matcher(result.error()).find();
     }
 }

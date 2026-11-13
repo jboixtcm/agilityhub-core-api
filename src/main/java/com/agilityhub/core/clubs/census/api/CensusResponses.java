@@ -120,7 +120,9 @@ public final class CensusResponses {
     public record MemberLogin(
             @Schema(requiredMode = REQUIRED, format = "email") String email,
             @Schema(requiredMode = REQUIRED, nullable = true, description = "BOUNCED (hard bounce or invalid address) or COMPLAINED "
-                    + "(spam complaint): no system e-mail (sign-in links, recovery, welcome) reaches this address; null: none") LoginEmailStatus emailStatus) { }
+                    + "(spam complaint): no system e-mail (sign-in links, recovery, welcome) reaches this address; null: none") LoginEmailStatus emailStatus,
+            @Schema(requiredMode = REQUIRED, nullable = true, description = "AUTH-03 (S03 R-03-06b): when the account's last access or "
+                    + "recovery e-mail (N-25, N-27) finally failed, after its one retry; null: none, or a later one was accepted by the provider") Instant accessEmailFailedAt) { }
     public enum LoginEmailStatus { BOUNCED, COMPLAINED }
     public record LevelSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,

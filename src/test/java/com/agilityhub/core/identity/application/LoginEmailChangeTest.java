@@ -102,6 +102,13 @@ class LoginEmailChangeTest {
         assertThat(census.login(null)).isNull();
     }
 
+    /** AUTH-03 (S03 R-03-06b): the same block carries when the account's last access e-mail finally failed. */
+    @Test void AUTH_03_theLoginOfD10CarriesTheAccessEmailFailureMark() {
+        assertThat(census.login("acc-1")).containsEntry("accessEmailFailedAt", null);
+        when(accounts.accessEmailFailedAt("acc-1")).thenReturn(java.time.Instant.parse("2026-11-13T10:00:00Z"));
+        assertThat(census.login("acc-1")).containsEntry("accessEmailFailedAt", java.time.Instant.parse("2026-11-13T10:00:00Z"));
+    }
+
     @Test void AUTH_02_theLinkGoesOutForTheClubsAppHost() {
         when(clubs.appHost()).thenReturn("club-a.example.test");
         census.sendLoginEmailChange("acc-1", "new@example.test", "admin-1");
