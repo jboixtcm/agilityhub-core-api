@@ -214,6 +214,30 @@ class InvoiceActionsIT extends BillingItSupport {
         try (var tenant = TenantContext.open(CLUB)) { assertThat(invoiceRepository.forNextRun()).extracting(Invoice::id).doesNotContain(puig, mas); }
     }
 
+    /**
+     * SEPA-04 (b), review: a periodic receipt that P5i settled (its September debit SUCCEEDED, the receipt PAID) and the bank
+     * returned later re-enters October's remittance; that earlier, returned debit is not one of October's, so October's run can
+     * still be rolled back (R-12-14), and the rollback puts the receipt back FAILED in September's remittance.
+     */
+    @Test void SEPA_04_b_aRunThatRePresentsAPaidThenReturnedReceiptCanStillBeRolledBack() throws Exception {
+        clock.setInstant(java.time.Instant.parse("2026-09-10T09:00:00Z"));
+        String september = byMember.get("puig").getString("remittanceId"), puig = id("puig");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(collections(puig).getFirst().get("_id"))),
+                new org.springframework.data.mongodb.core.query.Update().set("status", "SUCCEEDED"), "collections");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(puig)), new org.springframework.data.mongodb.core.query.Update().set("status", "PAID")
+                .set("paidAt", java.util.Date.from(java.time.Instant.parse("2026-08-31T22:00:00Z"))), "invoices");
+        ok(admin(keyed(post("/api/v1/remittances/" + september + "/returns"), Map.of("invoiceIds", List.of(puig), "reason", "Fons insuficients",
+                "at", "2026-09-10", "includeInNextRun", true))), 200);
+        var october = run("2026-10", simulate("2026-10").path("id").asText());
+        String octoberRun = october.at("/run/id").asText();
+        assertThat(stored(puig).getString("remittanceId")).isEqualTo(october.at("/remittance/id").asText());
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-10")), 200).at("/run/rollbackable").asBoolean()).isTrue();
+        ok(admin(keyed(post("/api/v1/billing/runs/" + octoberRun + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        assertThat(stored(puig).getString("status")).isEqualTo("FAILED");
+        assertThat(stored(puig).getString("remittanceId")).isEqualTo(september);
+        assertThat(stored(puig).getBoolean("includeInNextRun")).isTrue();
+    }
+
     @Test @AuditCovers({AuditAction.INVOICE_CREATED_MANUAL, AuditAction.INVOICE_CANCELLED})
     void T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled() throws Exception {
         var adjustment = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "serra-laura", "lines", List.of(Map.of("description", "Ajust quota setembre",

@@ -273,7 +273,11 @@ public class BillingRunService {
         // The manual receipts the run put into its remittance (R-12-19) count as the run's for a collection or a payment.
         var touched = new ArrayList<>(issued);
         if (remittance != null) { touched.addAll(invoices.includedIn(remittance.id(), run.id())); }
-        var attempts = collections.forInvoices(touched.stream().map(Invoice::id).toList());
+        // SEPA-04 (b): of a receipt the run did not issue, only its attempts in this remittance count — a re-presented periodic
+        // receipt's earlier debit (settled, then returned) belongs to its earlier remittance, not to this run.
+        var issuedIds = issued.stream().map(Invoice::id).collect(java.util.stream.Collectors.toSet());
+        var attempts = collections.forInvoices(touched.stream().map(Invoice::id).toList()).stream()
+                .filter(attempt -> issuedIds.contains(attempt.invoiceId()) || remittance != null && remittance.id().equals(attempt.remittanceId())).toList();
         if (run.status() == BillingRunStatus.COMPLETED || attempts.stream().anyMatch(attempt -> attempt.provider() != CollectionProvider.MANUAL
                 && (attempt.status() == CollectionStatus.SUBMITTED || attempt.status() == CollectionStatus.SUCCEEDED))) {
             reasons.add(RollbackBlocker.COLLECTION_SUBMITTED);
