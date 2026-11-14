@@ -128,6 +128,41 @@ class ClubAppTest(unittest.TestCase):
                           if re.match(r'(https?://|\{\$)', block) and ('import api_proxy' in block or 'reverse_proxy core:8080' in block)]
         self.assertEqual(['{$CORE_HOST}', 'https://'], sites_with_api)
 
+    def test_CFG_05_the_core_host_answers_robots_txt_itself_and_proxies_the_rest(self):
+        # Owner decision of 13 Nov 2026: `Disallow: /` on every host. The Core's host serves no bundle, so Caddy answers it.
+        core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
+        port = free_port()
+        core = core.replace('{$CORE_HOST} {', 'http://:8080 {').replace('reverse_proxy core:8080', 'reverse_proxy 127.0.0.1:9091')
+        snippets = self.caddy[self.caddy.index('(planned_maintenance) {'):self.caddy.index('(spa) {')]
+        stub = 'http://:9091 {\n respond "fictional core" 200\n}\n'
+        with tempfile.TemporaryDirectory(prefix='cfg05-caddy-') as directory:
+            path = Path(directory) / 'Caddyfile'
+            path.write_text('{\n admin off\n}\n' + snippets + core + stub)
+            container = subprocess.check_output(['docker', 'run', '--rm', '-d', '-p', f'127.0.0.1:{port}:8080',
+                                                 '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE], text=True).strip()
+            try:
+                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+                def get(route):
+                    request = urllib.request.Request(f'http://127.0.0.1:{port}{route}', headers={'Host': 'core.example.test'})
+                    with opener.open(request, timeout=3) as response:
+                        return response.read().decode(), response.headers
+
+                for attempt in range(50):
+                    try:
+                        get('/api/v1/health')
+                        break
+                    except OSError:
+                        time.sleep(0.1)
+                for route in ('/robots.txt', '/robots.txt?from=crawler'):
+                    body, headers = get(route)
+                    self.assertEqual('User-agent: *\nDisallow: /\n', body, route)
+                    self.assertEqual('text/plain; charset=utf-8', headers['Content-Type'])
+                self.assertEqual('fictional core', get('/api/v1/health')[0])
+                self.assertEqual('fictional core', get('/robots.txt.bak')[0])
+            finally:
+                subprocess.run(['docker', 'rm', '-f', container], check=True, capture_output=True)
+
     def test_INC_64_production_caddyfile_validates(self):
         flags = [part for key, value in PRODUCTION_ENV.items() for part in ('-e', f'{key}={value}')]
         subprocess.run(['docker', 'run', '--rm', '-v', f'{ROOT / "deploy/Caddyfile"}:/etc/caddy/Caddyfile:ro', *flags, IMAGE,

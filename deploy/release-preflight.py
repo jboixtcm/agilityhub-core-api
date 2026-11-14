@@ -25,6 +25,9 @@ MOCK_WORKER = 'mockServiceWorker.js'
 POLICY_FILE = 'content-security-policy.txt'
 INLINE_SCRIPT = re.compile(r'<script\b([^>]*)>([\s\S]*?)</script\s*>', re.I)
 SRC_ATTRIBUTE = re.compile(r'(?:^|\s)src\s*=', re.I)
+# CFG-05: every host serves its bundle's robots.txt; the web build writes exactly these two lines.
+ROBOTS_FILE = 'robots.txt'
+ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
 
 
 class PreflightError(Exception):
@@ -236,6 +239,9 @@ def check_dist(directory):
         require(asset.is_relative_to(directory) and asset.is_file() and asset.suffix == '.js',
                 'SPA module is missing, outside its dist directory or not compiled JavaScript')
     check_policy(directory, html)
+    robots = directory / ROBOTS_FILE
+    require(robots.is_file() and not robots.is_symlink() and robots.read_bytes() == ROBOTS_TXT.encode('ascii'),
+            'SPA dist must carry the robots.txt that disallows every robot (User-agent: * / Disallow: /)')
     digest, count = hashlib.sha256(), 0
     for file in sorted(directory.rglob('*')):
         require(not file.is_symlink(), 'SPA release artifacts must not contain symlinks')

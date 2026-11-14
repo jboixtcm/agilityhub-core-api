@@ -134,7 +134,8 @@
 # CFG-05: the static answers of an SPA (never the proxied API, which keeps its own headers). They are compressed and
 # revalidated on every load, the entry document at `/` included, except an existing file under /assets/ (Vite names them by
 # content hash), cached for a year. A dot path (`/.env`, `/.git/…`) is a 404, and so is a missing file with one of the listed
-# extensions (`/robots.txt`, `/old.js`): only a path that looks like a route falls back to index.html with 200.
+# extensions (`/sitemap.xml`, `/old.js`): only a path that looks like a route falls back to index.html with 200. An existing
+# file is served: the bundle's own `robots.txt` (CFG-05), `content-security-policy.txt` (CFG-04) and `version.json` (REL-02).
 # CFG-04 (owner decision of 13 Nov 2026): every static answer carries the Content-Security-Policy of the bundle it comes from:
 # the one line its build wrote to `content-security-policy.txt` in the served root, with the sha256 of each inline script of that
 # build's index.html, so the policy and the boot script cannot drift (the web checks the file at build time, release preflight
@@ -193,6 +194,16 @@
     import gateway_unavailable
     @private path /internal/* /actuator/*
     respond @private 404
+    # CFG-05 (owner decision of 13 Nov 2026): every host answers robots.txt with `Disallow: /`. The SPA hosts and club aliases
+    # serve the one their bundle carries (each build writes it; release preflight refuses a bundle without it); the Core's own
+    # host serves no bundle and answers the same two lines here.
+    @robots path /robots.txt
+    header @robots Content-Type "text/plain; charset=utf-8"
+    respond @robots <<TXT
+        User-agent: *
+        Disallow: /
+
+        TXT 200
     import api_body_limit
     # CFG-03: the anonymous webhooks (Stripe, Brevo, SendGrid) never send more than the 1 MiB the Core reads of them.
     request_body /webhooks/* {

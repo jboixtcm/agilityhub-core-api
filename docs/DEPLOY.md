@@ -134,9 +134,10 @@ publication. A local image ID is not a registry digest. The command rejects
 `:main`, local/CI tags, absent or mismatched registry digests, local proof profiles,
 exposed database/API ports, broad proxy trust, reused Mongo passwords, placeholders,
 missing backup configuration, proof HTML in place of the built SPAs and a dist
-holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03), and a dist whose
+holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03), a dist whose
 `content-security-policy.txt` is missing, not one line, or does not allow an inline
-script of its `index.html` by its `sha256` (CFG-04). It also
+script of its `index.html` by its `sha256` (CFG-04), and one without the `robots.txt`
+that disallows every robot (CFG-05). It also
 checks each mounted SPA's compiled entry module exists and fingerprints every
 file of its distinct read-only dist directory. Its JSON output contains only image
 identifiers and artifact hashes, suitable for the release record. Keep the reviewed
@@ -1694,6 +1695,10 @@ its `index.html`. The policy allows only each host's own origin: with `FILE_STOR
 downloads go to the bucket's origin, so the web's policy must name it (a new bundle) before such a deployment. API
 JSON, errors, OAuth and files keep the Spring Security baseline and E71 download policies. API HSTS is enabled only
 for HTTPS requests under `prod`.
+
+Every host answers `/robots.txt` with `User-agent: *` and `Disallow: /` (CFG-05): the product hosts, the identity
+host and every club alias serve the file their bundle carries (`bin/release-preflight` refuses a bundle without
+exactly those two lines), and the Core host's site block answers the same two lines itself.
 
 Caddy caps request bodies before they reach the Core (CFG-03, snippet `api_body_limit`): 2 MB (2,000,000 bytes)
 for `/api/*` and `/oauth2/*` on every site that proxies them (the three product hosts, the club catch-all and the Core

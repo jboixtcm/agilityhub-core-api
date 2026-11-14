@@ -37,6 +37,7 @@ class ReleasePreflightTest(unittest.TestCase):
             (directory / 'index.html').write_text('<!doctype html><script type="module" src="/assets/index-hash.js"></script>')
             (directory / 'assets/index-hash.js').write_text('document.body.textContent="application";')
             (directory / 'content-security-policy.txt').write_text(POLICY)
+            (directory / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
             mounts.append({'type': 'bind', 'source': str(directory), 'target': target, 'read_only': True})
         self.config = {'services': {
             'core': {'image': IMAGE, 'environment': {'SPRING_PROFILES_ACTIVE': 'prod', 'TRUSTED_PROXY_PATTERN': r'172\.30\.240\.10'}},
@@ -372,11 +373,26 @@ class ReleasePreflightTest(unittest.TestCase):
                 self.assertIn('inline script', str(caught.exception))
         policy.write_text(POLICY.replace("script-src 'self'", f"script-src 'self' {digest}"))
         record = PREFLIGHT.check_spas(self.config)
-        self.assertEqual(3, record['/srv/clubs']['files'])  # the policy is part of the release record's digest
+        self.assertEqual(4, record['/srv/clubs']['files'])  # the policy is part of the release record's digest
         # Once the boot script changes, the policy built for the old one no longer fits.
         index.write_text(f'<!doctype html><script>{boot} </script><script type="module" src="/assets/index-hash.js"></script>')
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_spas(self.config)
+
+    def test_CFG_05_a_dist_without_the_robots_txt_that_disallows_everything_is_refused(self):
+        PREFLIGHT.check_spas(self.config)
+        robots = self.directory / 'id/robots.txt'
+        for content in (None, '', 'User-agent: *\nDisallow:\n', 'User-agent: *\nAllow: /\n', 'User-agent: *\r\nDisallow: /\r\n'):
+            with self.subTest(content=content):
+                if content is None:
+                    robots.unlink()
+                else:
+                    robots.write_text(content, newline='')
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('robots.txt', str(caught.exception))
+        robots.write_text('User-agent: *\nDisallow: /\n')
+        PREFLIGHT.check_spas(self.config)
 
     def test_path_escape_and_artifact_symlinks_are_refused(self):
         outside = self.directory / 'outside.js'

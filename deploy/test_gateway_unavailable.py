@@ -21,6 +21,8 @@ APP_JS = 'console.log("fictional");\n' * 200
 POLICIES = {app: f"default-src 'self'; script-src 'self' 'sha256-fictional-{app}'; object-src 'none'; frame-ancestors 'none'"
             for app in ('id', 'clubs', 'clubsadmin')}
 API_POLICY = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+# CFG-05: the robots.txt every bundle's build writes.
+ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
 
 def port():
     with socket.socket() as sock:
@@ -45,6 +47,7 @@ class GatewayUnavailableTest(unittest.TestCase):
             (root / app / 'assets/app.css').write_text('body{color:navy}')
             (root / app / 'assets/app.js').write_text(APP_JS)
             (root / app / 'content-security-policy.txt').write_text(POLICIES[app])
+            (root / app / 'robots.txt').write_text(ROBOTS_TXT)
         conf = '''{ admin off }
 ''' + snippets.replace('core:8080', '127.0.0.1:9090') + club + dead + '''
 http://:8080 {
@@ -210,8 +213,9 @@ http://:9090 {
                     self.assertEqual((200, 'no-cache', '<h1>Fictional clubs</h1>'), (status, headers['Cache-Control'], body), path)
                 status, headers, _ = self.request(endpoint, 'members.example.test', '/assets/old.css', 'text/css')
                 self.assertEqual((404, 'no-cache'), (status, headers['Cache-Control']))
-                # A dot path or a missing file is a 404, never the SPA shell with 200.
-                for path in ('/.env', '/.git/config', '/assets/.hidden', '/robots.txt', '/app.js.map', '/wp-login.php'):
+                # A dot path or a missing file is a 404, never the SPA shell with 200. (CFG-05 pass 2: every real bundle now
+                # carries robots.txt, so the missing text file of this list is another one; robots.txt is checked below.)
+                for path in ('/.env', '/.git/config', '/assets/.hidden', '/humans.txt', '/sitemap.xml', '/app.js.map', '/wp-login.php'):
                     status, _, body = self.request(endpoint, 'members.example.test', path, '*/*')
                     self.assertEqual(404, status, path)
                     self.assertNotIn('Fictional', body, path)
@@ -220,6 +224,17 @@ http://:9090 {
                 with self.opener.open(request, timeout=3) as response:
                     self.assertEqual('gzip', response.headers['Content-Encoding'])
                     self.assertEqual(APP_JS, gzip.decompress(response.read()).decode())
+
+    def test_CFG_05_every_spa_host_serves_its_bundles_robots_txt(self):
+        # Owner decision of 13 Nov 2026: `Disallow: /` on every host. The product hosts, the identity host and the club aliases
+        # (both apps) each serve the robots.txt of their bundle, never the SPA shell.
+        for endpoint, host in ((self.product, 'clubs.example.test'), (self.identity, 'id.example.test'),
+                               (self.normal, 'members.example.test'), (self.normal, 'office.example.test')):
+            with self.subTest(host=host):
+                status, headers, body = self.request(endpoint, host, '/robots.txt', 'text/plain')
+                self.assertEqual((200, ROBOTS_TXT), (status, body))
+                self.assertTrue(headers['Content-Type'].startswith('text/plain'))
+                self.assertEqual('no-cache', headers['Cache-Control'])
 
     def test_CFG_04_every_static_answer_carries_its_bundles_policy_and_the_api_keeps_its_own(self):
         # The product sites (`spa`) and the club catch-all (`club_spa`, the root the Core names) send the served root's policy.
