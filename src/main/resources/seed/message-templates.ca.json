@@ -813,6 +813,21 @@
           "SMS": false
         }
       }
+    },
+    {
+      "code": "N-56",
+      "name": "Disputa d'un pagament amb targeta",
+      "title": "Pagament amb targeta disputat",
+      "body": "{member_name} ha disputat al banc un pagament amb targeta de {amount} ({reason, select, fraudulent {frau} duplicate {cobrament duplicat} unrecognized {no el reconeix} product_not_received {servei no rebut} credit_not_processed {abonament no fet} general {motiu general} other {motiu: {reason}}}). El pagament queda marcat a l’app. Respon la disputa des del tauler de Stripe abans que venci el termini.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
     }
   ]
 }

@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PAY-06 · A Stripe dispute flags the card payment it disputes
+
+**No operations or error codes added; 1 schema added (`PaymentDispute`); `UpfrontPayment` and `Collection` gain an optional, nullable `dispute`.**
+
+- Every response that carries an `UpfrontPayment` (`GET /upfront-payments`, D10's «Pagaments a l'acte»; `POST /upfront-payments`) or a `Collection` (the invoice's `collections[]`: `GET /invoices/{id}`, D6's drawer, and the invoice actions that answer the invoice): `dispute {providerRef, status, reason?, amount, openedAt, closedAt?}` (`providerRef` is Stripe's dispute id), null without one. It is set by the Stripe webhook's `charge.dispute.created`, `.updated` and `.closed` (S12 R-12-21) on every up-front payment a Checkout settled with the disputed PaymentIntent, or on the invoice's card collection; `status` and `reason` are Stripe's, `closedAt` is set when Stripe closes it (`won`, `lost`, `warning_closed`). No status, pack, booking or invoice changes with it. The first event of a dispute notifies the admins (N-56, new `PaymentDisputed` event).
+
 ## 2026-11-14 · PAY-04 · An applicant who backs out of Stripe Checkout can pay again at once
 
 **No operations, schemas or error codes added; 1 operation description changed (`POST /checkout-sessions`).**

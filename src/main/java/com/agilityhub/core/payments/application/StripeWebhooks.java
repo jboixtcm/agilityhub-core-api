@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
  * not the club's {@code billing.stripeMaxAttempts}, which is R-12-18's card retries — over about 24 hours; an outage of the
  * provider ({@link StripeCalls#outage}) spends no attempt; Stripe delivering again an event recorded as FAILED puts it back in
  * the queue; a FAILED event keeps its recovery data until the retention cleanup.
+ * <p>
+ * PAY-06: `charge.dispute.created`, `.updated` and `.closed` flag the disputed card payment ({@link PaymentDisputes}).
  */
 @Service
 public class StripeWebhooks {
@@ -43,6 +45,7 @@ public class StripeWebhooks {
     private final BillingCensusAccess census; private final BillingEvents events; private final Clock clock; private final ObjectMapper mapper;
     private final PaymentProviderRegistry provider;
     @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
+    @org.springframework.beans.factory.annotation.Autowired private PaymentDisputes disputes;
     public StripeWebhooks(StripeInbox inbox, BillingTransactions tx, CardPayments cards, PaymentRefunds refunds, CheckoutService checkouts,
             SignupCheckoutRepository sessions, UpfrontPaymentRepository upfront, BillingCensusAccess census, BillingEvents events, Clock clock,
             ObjectMapper mapper, PaymentProviderRegistry provider) {
@@ -146,6 +149,8 @@ public class StripeWebhooks {
                 }
                 yield changed;
             }
+            // PAY-06: a dispute (chargeback) flags the card payment it disputes and, the first time, tells the admins (N-56).
+            case "charge.dispute.created", "charge.dispute.updated", "charge.dispute.closed" -> disputes.record(object, at);
             default -> false;
         };
     }

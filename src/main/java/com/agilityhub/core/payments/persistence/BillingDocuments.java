@@ -238,6 +238,10 @@ public final class BillingDocuments {
             mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refunds.providerRef").is(refundId)),
                     new Update().pull("refunds", new Document("providerRef", refundId)).set("status", "SUCCEEDED"), Collection.class);
         }
+        /** PAY-06: flags a card attempt that a Stripe dispute (chargeback) disputes; like a refund, a later fact about the same attempt. */
+        public void dispute(String id, PaymentDispute dispute) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("dispute", dispute), Collection.class);
+        }
         /** The invoice's attempts, oldest first (the detail's `collections[]`). */
         public List<Collection> forInvoice(String invoiceId) {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("invoiceId").is(invoiceId))

@@ -49,7 +49,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class TemplateClubCatalogsIT extends AbstractIntegrationTest {
     static final String BASE = "/api/v1/platform/clubs";
     static final List<String> PARTS = List.of("LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES");
-    static final Map<String, Integer> SIZES = Map.of("LEVELS", 6, "RINGS", 2, "PLANS", 5, "FAQ", 3, "MESSAGE_TEMPLATES", 52);
+    static final Map<String, Integer> SIZES = Map.of("LEVELS", 6, "RINGS", 2, "PLANS", 5, "FAQ", 3, "MESSAGE_TEMPLATES", 53); // PAY-06: + N-56
     /** The starter prices (amountMinor, EUR): the Cànic's current amounts; the single class is a tenth of the 10-session pack. */
     static final Map<String, Integer> PRICES = Map.of("MONTHLY", 6000, "MONTHLY_FAMILY", 9000, "PACK10", 18000, "SINGLE_CLASS", 1800, "THERAPY", 1000);
     @Autowired MockMvc mvc;
@@ -137,7 +137,7 @@ class TemplateClubCatalogsIT extends AbstractIntegrationTest {
             });
         }
         System.out.println("E11-T18 template club: levels " + levels.size() + ", rings " + rings.size() + ", plans " + offered.size()
-                + " with current prices " + currentPrices(template) + ", FAQ " + faq.size() + ", message templates 52; second apply and export round trip: 0 changes");
+                + " with current prices " + currentPrices(template) + ", FAQ " + faq.size() + ", message templates 53; second apply and export round trip: 0 changes");
     }
 
     @Test void T_17_07_R_17_08_theTemplateClonesPartByPartIntoAnEmptyClubAndOnlyOnce() throws Exception {
@@ -162,8 +162,9 @@ class TemplateClubCatalogsIT extends AbstractIntegrationTest {
         assertThat(admin("template-target", "/rings").findValuesAsText("name")).containsExactly("Pista 1", "Pista 2");
         assertThat(currentPrices("template-target")).isEqualTo(PRICES);
         assertThat(admin("template-target", "/faq-entries").findValuesAsText("category")).containsExactly("Convivència al club", "Reserves de classe", "Competicions");
+        // PAY-06: the template club lists 53 templated codes (+ N-56).
         try (var tenant = TenantContext.open("template-target")) {
-            assertThat(templates.findAll()).hasSize(52).allSatisfy(t -> assertThat(t.body().values().keySet()).as(t.code()).containsExactlyInAnyOrder("ca", "es"));
+            assertThat(templates.findAll()).hasSize(53).allSatisfy(t -> assertThat(t.body().values().keySet()).as(t.code()).containsExactlyInAnyOrder("ca", "es"));
         }
         for (String part : PARTS) {
             var refused = console(post(BASE + "/template-target/catalog-clone"), Map.of("fromClubId", template, "parts", List.of(part)), 409);

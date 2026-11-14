@@ -24,6 +24,8 @@
   "BillingRunCompleted": {"runId": "run-a", "period": "2026-09"},
   "MemberCardInvalidated": {"memberId": "member-a", "reason": "payment_method.detached"},
   "RemittanceReminderDue": {"period": "2026-10", "pendingMembers": 168},
+  "PaymentDisputed": {"disputeId": "dp_e8_fixture", "memberId": "member-a", "amount": {"amountMinor": 12000, "currency": "EUR"}, "reason": "fraudulent",
+                      "upfrontPaymentIds": ["payment-a"], "invoiceId": null},
   "InactivityRequested": {"periodId": "period-a", "memberId": "member-a", "from": "2026-10", "to": null},
   "InactivityResolved": {"periodId": "period-a", "memberId": "member-a", "decision": "APPROVED", "from": "2026-11", "to": "2026-12",
                          "fee": {"firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "followingMonths": {"amountMinor": 1000, "currency": "EUR"}},

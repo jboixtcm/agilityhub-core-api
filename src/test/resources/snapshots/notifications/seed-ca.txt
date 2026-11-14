@@ -321,4 +321,8 @@ body: Club Agility Exemple: dimecres 12 · 18:50 · B+C (Central) ha quedat per 
 title: Reemborsament a fer a mà
 body: Cal revisar el reemborsament de Laura Serra Puig: 45,00 €.
 
-# 52 codes, 21 staff texts
+## N-56 ADMINS
+title: Pagament amb targeta disputat
+body: Laura Serra Puig ha disputat al banc un pagament amb targeta de 45,00 € (motiu: Documentació pendent). El pagament queda marcat a l’app. Respon la disputa des del tauler de Stripe abans que venci el termini.
+
+# 53 codes, 22 staff texts

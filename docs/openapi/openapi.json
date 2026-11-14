@@ -6933,6 +6933,14 @@
             "format" : "date-time",
             "type" : "string"
           },
+          "dispute" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PaymentDispute"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "PAY-06: the Stripe dispute (chargeback) of this card attempt; null without one"
+          },
           "failureCode" : {
             "type" : [ "string", "null" ]
           },
@@ -17069,6 +17077,33 @@
         "required" : [ "new", "repeat" ],
         "type" : "object"
       },
+      "PaymentDispute" : {
+        "description" : "PAY-06 (S12 R-12-21): the Stripe dispute (chargeback) of a card payment, the flag D6 and D10 show, as the last charge.dispute.* event left it. providerRef is Stripe's dispute id (dp_…); status and reason are Stripe's (status: warning_needs_response · warning_under_review · warning_closed · needs_response · under_review · won · lost; reason: fraudulent, duplicate, product_not_received, …). openedAt is when Core learnt of it, closedAt when Stripe closed it (won, lost, warning_closed). The club answers it in Stripe's dashboard; no payment, pack, booking or invoice state changes with it.",
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "closedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "openedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "providerRef" : {
+            "type" : "string"
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "amount", "openedAt", "providerRef", "status" ],
+        "type" : "object"
+      },
       "PaymentMethodPatch" : {
         "properties" : {
           "card" : {
@@ -24871,6 +24906,14 @@
           "createdAt" : {
             "format" : "date-time",
             "type" : "string"
+          },
+          "dispute" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PaymentDispute"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "PAY-06: the Stripe dispute (chargeback) of this card payment; null without one"
           },
           "dogId" : {
             "format" : "uuid",

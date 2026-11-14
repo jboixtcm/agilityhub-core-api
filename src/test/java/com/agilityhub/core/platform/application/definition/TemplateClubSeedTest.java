@@ -147,7 +147,7 @@ class TemplateClubSeedTest {
     @Test void T_17_14_E11_T18_theTemplateListsExactlyTheTemplatedCodesOfTheNotificationCatalog() throws Exception {
         var listed = seed().path("messageTemplates").findValuesAsText("code");
         var document = templatedCodesOfTheDocument();
-        assertThat(document).hasSize(52).contains("N-02", "N-55").doesNotContain("N-25", "N-26", "N-27", "N-39", "N-43", "N-44", "N-45", "N-48", "N-52", "N-53");
+        assertThat(document).hasSize(53).contains("N-02", "N-55", "N-56").doesNotContain("N-25", "N-26", "N-27", "N-39", "N-43", "N-44", "N-45", "N-48", "N-52", "N-53");
         assertThat(listed).as("parity with CATALEG_NOTIFICACIONS.md, in its order").containsExactlyElementsOf(document);
         assertThat(listed).containsExactlyElementsOf(MessageTemplateSeed.eligible().stream().map(spec -> spec.code()).toList());
         System.out.println("E11-T18 template messageTemplates: " + listed.size() + " codes, parity with CATALEG_NOTIFICACIONS.md: " + listed.equals(document));

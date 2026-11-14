@@ -105,7 +105,7 @@ No text names a club; the club's name in the message templates is their `[[club_
 | `RINGS` | 2: «Pista 1» (P1) and «Pista 2» (P2), free training on both, no geometry (a ring's name is one text) |
 | `PLANS` | 5 plans with one current price each (EUR, tax 0, from 2026-01-01): monthly membership 60 €, monthly · 2 dogs (family fare, admin-assigned) 90 €, 10-session pack (es «Bono», 5 months) 180 €, single class (charged on attendance) 18 €, therapy (`MAINTENANCE`, 50 % entry fee) 10 €/month. The entry fee is `billing.entryFeePerDog` (product default 100 €) |
 | `FAQ` | 3 categories (Convivència al club · Reserves de classe · Competicions), one active entry each whose answer is the R-05-21b marker |
-| `MESSAGE_TEMPLATES` | the 52 templated codes, with the product texts |
+| `MESSAGE_TEMPLATES` | the 53 templated codes, with the product texts |
 
 Its modules are those of its catalogs (`FREE_TRAINING`, `BILLING`, `PACKS`, `SINGLE_CLASS`, plus `WAITLIST`, `FAQ`, `PUSH`).
 A club that clones `PLANS` needs `PACKS` and `SINGLE_CLASS` on first: a plan of a disabled module is refused (S05 T-05-17),
@@ -126,13 +126,13 @@ and overlap validation. Team rows require census members and belong to `seed:dem
 
 Each entry `{code: "N-xx"}` names a notification code whose **product seed** the club gets as its `CATALOG` template
 (D9): `src/main/resources/seed/message-templates.{ca,es,en}.json`, one template per catalog code of stage R1 that is not
-`SYSTEM` (52 codes; N-25, N-26, N-27, N-39, N-43, N-52, N-53 are account e-mails without a template, and N-44, N-45, N-48
+`SYSTEM` (53 codes; N-25, N-26, N-27, N-39, N-43, N-52, N-53 are account e-mails without a template, and N-44, N-45, N-48
 are not R1), with the catalog's icon, colour and default channels. Only the club's languages are stored. A code the club
 already has a template of is **kept as it is** (D9 is the source of truth once seeded; «Restaura el text per defecte»
 brings the seed back), so re-applying changes nothing. A code the definition leaves out is seeded on its first use, or
 when D9 lists the templates. An unknown, `SYSTEM` or later-stage code is `VALIDATION_ERROR`. The export lists the club's
-catalog templates. The Cànic lists 51 (its CANIC preset has `SMS` and `PUSH` on; N-55, added by E8, is seeded on its first
-use); the template club lists all 52 (below); the other definitions list none.
+catalog templates. The Cànic lists 51 (its CANIC preset has `SMS` and `PUSH` on; N-55, added by E8, and N-56, added by PAY-06, are seeded on
+their first use); the template club lists all 53 (below); the other definitions list none.
 The `ca` texts of N-02, N-04, N-06, N-08a, N-09, N-13, N-15, N-16, N-19 and N-28 are S11 §8's; the rest are product copy.
 Each entry's `name` is the product name D9 lists (INC-53): `ca` is `CATALEG_NOTIFICACIONS`' «Nom» column (without its
 spec notes), `es` and `en` translate it and are reviewed with the other texts.

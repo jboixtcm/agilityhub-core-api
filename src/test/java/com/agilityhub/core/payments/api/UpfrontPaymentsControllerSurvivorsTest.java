@@ -100,6 +100,6 @@ class UpfrontPaymentsControllerSurvivorsTest {
 
     static BillingContracts.UpfrontPayment payment(String id, UpfrontStatus status) {
         return new BillingContracts.UpfrontPayment(id, "member-1", null, UpfrontConcept.ENTRY_FEE, null, new Money(3000, "EUR"), new Money(3000, "EUR"),
-                status, null, null, null, null, List.of(), null, null, null);
+                status, null, null, null, null, List.of(), null, null, null, null);
     }
 }

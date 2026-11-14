@@ -686,7 +686,11 @@ Stripe API key environment setting and no Connect account header. Key rotation
 means re-encrypting the club's secrets; lookups bypass the config cache.
 
 Register `/webhooks/stripe/{clubId}` for the Checkout, PaymentIntent, refund,
-SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21.
+SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21,
+and for `charge.dispute.created`, `charge.dispute.updated` and
+`charge.dispute.closed` (PAY-06: a dispute flags the card payment and notifies the
+club's admins, N-56; it changes nothing else, and the dispute is answered in the
+Stripe dashboard).
 Receipts are signature-checked, stored uniquely, then processed transactionally;
 failed work and durable provider commands retry internally. A webhook event whose
 processing fails is retried for about 24 hours (1 min up to 8 h apart, ten attempts;

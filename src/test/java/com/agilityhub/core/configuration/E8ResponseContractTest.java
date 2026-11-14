@@ -46,7 +46,7 @@ class E8ResponseContractTest {
             var fields = fixture(group).fields();
             while (fields.hasNext()) { var entry = fields.next(); roundTrip(entry.getKey(), entry.getValue(), type(entry.getKey())); forms++; }
         }
-        assertThat(forms).isEqualTo(43); // E90: + BillingIncident#waitingReceipt
+        assertThat(forms).isEqualTo(44); // E90: + BillingIncident#waitingReceipt; PAY-06: + Collection#disputed
         // A provider the club does not use, and a counter of a module that is off, are absent; nothing else is.
         var byProvider = mapper.valueToTree(new BillingContracts.ByProvider(null, null, null));
         assertThat(byProvider.size()).isZero();
@@ -197,12 +197,13 @@ class E8ResponseContractTest {
         fields.put("PackAdjusted", "packBalanceId,memberId,dogId,delta,reason,remaining,expiresOn"); fields.put("StripeWebhookReceived", "eventId,type,outcome");
         fields.put("BillingRunCreated", "runId,period,simulationId,invoiceCount"); fields.put("BillingRunCompleted", "runId,period");
         fields.put("MemberCardInvalidated", "memberId,reason"); fields.put("RemittanceReminderDue", "period,pendingMembers");
+        fields.put("PaymentDisputed", "disputeId,memberId,amount,reason,upfrontPaymentIds,invoiceId"); // PAY-06, S12 R-12-21
         fields.put("InactivityRequested", "periodId,memberId,from,to"); fields.put("InactivityResolved", "periodId,memberId,decision,from,to,fee,cancelledBookings");
         fields.put("InactivityStarted", "periodId,memberId,from,to"); fields.put("InactivityEnded", "periodId,memberId,from,to,finishReason");
         fields.put("InactivityChanged", "periodId,memberId,before,after,cancelledBookings"); fields.put("InactivityCancelled", "periodId,memberId,by,reason");
         fields.put("LeaveRequested", "requestId,memberId,requestedDate,reasonKey"); fields.put("LeaveResolved", "requestId,memberId,decision,source,effectiveDate,cancelledBookings");
         fields.put("LeaveCancelled", "requestId,memberId,by,reason");
-        assertThat(fields).hasSize(34);
+        assertThat(fields).hasSize(35);
         assertThat(fixtures.fieldNames()).toIterable().containsExactlyInAnyOrderElementsOf(fields.keySet());
         var kinds = new ArrayList<String>();
         for (var kind : BillingEvent.Kind.values()) { kinds.add(kind.name()); }
@@ -212,7 +213,7 @@ class E8ResponseContractTest {
                 "Remittance", "RemittanceGenerated,RemittanceRolledBack,InvoicesFailed", "BillingSimulation", "RemittanceSimulated",
                 "UpfrontPayment", "UpfrontPaymentRecorded,UpfrontPaymentSucceeded,UpfrontPaymentFailed,UpfrontRefundIntervention",
                 "PackBalance", "PackOpened,PackConsumed,PackRefunded,PackLowBalance,PackExpiring,PackExpired,PackAdjusted",
-                "StripeEvent", "StripeWebhookReceived", "BillingRun", "BillingRunCreated,BillingRunCompleted", "Member", "MemberCardInvalidated", "Club", "RemittanceReminderDue",
+                "StripeEvent", "StripeWebhookReceived", "BillingRun", "BillingRunCreated,BillingRunCompleted", "Member", "MemberCardInvalidated,PaymentDisputed", "Club", "RemittanceReminderDue",
                 "InactivityPeriod", "InactivityRequested,InactivityResolved,InactivityStarted,InactivityEnded,InactivityChanged,InactivityCancelled");
         for (var entry : fields.entrySet()) {
             String name = entry.getKey();
@@ -250,7 +251,7 @@ class E8ResponseContractTest {
                 assertThat(payload).as(entry.getKey() + " main row lists " + field).containsPattern("(?<![A-Za-z])" + field + "(?![A-Za-z])");
             }
         }
-        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(26);
+        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(27); // PAY-06: + PaymentDisputed
         // The proposals of S12 §13 and S13 §13 are the Annex A rows.
         assertThat(row(catalog, "| `BillingRunCreated` ·")).contains("`BillingRunCompleted`", "`PackAdjusted{delta, reason}`", "`MemberCardInvalidated`");
         assertThat(row(catalog, "| `InactivityChanged` ·")).contains("`InactivityCancelled`", "`LeaveCancelled`", "`LeaveResolved{source, decision, cancelledBookings[]}`");
@@ -276,7 +277,7 @@ class E8ResponseContractTest {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_NOTIFICACIONS.md"));
         var fixtures = fixture("e8-notifications");
         assertThat(fixtures.fieldNames()).toIterable().containsExactly("N-10", "N-11a", "N-11b", "N-14", "N-18a", "N-18b", "N-18c", "N-18d", "N-28", "N-30",
-                "N-35", "N-38", "N-41", "N-55");
+                "N-35", "N-38", "N-41", "N-55", "N-56");
         var closing = catalog.lines().filter(line -> line.startsWith("Variants:")).findFirst().orElseThrow();
         fixtures.fields().forEachRemaining(entry -> {
             String code = entry.getKey();

@@ -16,18 +16,27 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * are `checkoutSessionId` + `stripe {paymentIntentId, chargeId}`, its MANUAL ones `channel` (`CASH` · `TRANSFER` · `BIZUM`),
  * `paidAt` and `reference`; `activityRegistrationId` and `packBalanceId` link the S07 registration and the S12 pack it
  * paid; `refunds[]` (R-12-20) and the admin's `note`. `concept` and `status` take the S12 values (`UpfrontConcept`,
- * `UpfrontStatus`), stored as their names.
+ * `UpfrontStatus`), stored as their names. `dispute` (PAY-06, S12 R-12-21) flags a Stripe dispute (chargeback) of the payment
+ * ({@link PaymentDispute}); it changes nothing else.
  */
 @Document("upfront_payments")
 public record UpfrontPayment(@Id String id,String clubId,String memberId,String dogId,String concept,String signupConcept,
         Money amountDue,Money amountPaid,String status,String provider,String checkoutSessionId,Instant createdAt,Instant paidAt,String bookingId,
         String submissionId,String correctionOf,String activityRegistrationId,String packBalanceId,StripeRefs stripe,String channel,String reference,
-        List<Refund> refunds,String note) implements TenantEntity {
+        List<Refund> refunds,String note,PaymentDispute dispute) implements TenantEntity {
+    /** The row before PAY-06: no dispute. */
+    public UpfrontPayment(String id,String clubId,String memberId,String dogId,String concept,String signupConcept,
+            Money amountDue,Money amountPaid,String status,String provider,String checkoutSessionId,Instant createdAt,Instant paidAt,String bookingId,
+            String submissionId,String correctionOf,String activityRegistrationId,String packBalanceId,StripeRefs stripe,String channel,String reference,
+            List<Refund> refunds,String note) {
+        this(id,clubId,memberId,dogId,concept,signupConcept,amountDue,amountPaid,status,provider,checkoutSessionId,createdAt,paidAt,bookingId,submissionId,
+                correctionOf,activityRegistrationId,packBalanceId,stripe,channel,reference,refunds,note,null);
+    }
     /** The S04 signup row (E3-T03…E5-T31): no S12 field yet. */
     public UpfrontPayment(String id,String clubId,String memberId,String dogId,String concept,String signupConcept,Money amountDue,Money amountPaid,
             String status,String provider,String checkoutSessionId,Instant createdAt,Instant paidAt,String bookingId,String submissionId,String correctionOf) {
         this(id,clubId,memberId,dogId,concept,signupConcept,amountDue,amountPaid,status,provider,checkoutSessionId,createdAt,paidAt,bookingId,submissionId,
-                correctionOf,null,null,null,null,null,null,null);
+                correctionOf,null,null,null,null,null,null,null,null);
     }
     /** The provider's references of a paid Stripe Checkout (R-12-21): the refund goes to `chargeId` (R-12-20). */
     public record StripeRefs(String paymentIntentId, String chargeId) { }

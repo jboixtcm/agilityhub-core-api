@@ -41,7 +41,20 @@ public final class BillingContracts {
             CollectionStatus status, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String providerRef,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String remittanceId, @Schema(minimum = "1") int attempt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String failureCode, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String failureMessage,
-            List<CollectionRefund> refunds, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant resolvedAt) { }
+            List<CollectionRefund> refunds, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant resolvedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "PAY-06: the Stripe dispute (chargeback) of this card attempt; null without one")
+            PaymentDispute dispute) { }
+    @Schema(description = "PAY-06 (S12 R-12-21): the Stripe dispute (chargeback) of a card payment, the flag D6 and D10 show, as the last "
+            + "charge.dispute.* event left it. providerRef is Stripe's dispute id (dp_…); status and reason are Stripe's (status: warning_needs_response · warning_under_review · "
+            + "warning_closed · needs_response · under_review · won · lost; reason: fraudulent, duplicate, product_not_received, …). openedAt is "
+            + "when Core learnt of it, closedAt when Stripe closed it (won, lost, warning_closed). The club answers it in Stripe's dashboard; "
+            + "no payment, pack, booking or invoice state changes with it.")
+    public record PaymentDispute(String providerRef, String status, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String reason, Money amount,
+            Instant openedAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant closedAt) {
+        static PaymentDispute of(com.agilityhub.core.payments.persistence.PaymentDispute dispute) {
+            return dispute == null ? null : new PaymentDispute(dispute.providerRef(), dispute.status(), dispute.reason(), dispute.amount(), dispute.openedAt(), dispute.closedAt());
+        }
+    }
     @Schema(description = "S12 §3 Invoice (receipt), immutable once issued (R-12-10): only its state fields change. GET /invoices/{id} adds its collections[] "
             + "(oldest first); refundedTotal = total reads «reemborsat» (PAID, no state of its own). runId is null for MANUAL and MIGRATED invoices.")
     public record Invoice(@Schema(format = "uuid") String id, String series, @Schema(minimum = "1") long number,
@@ -233,7 +246,9 @@ public final class BillingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String bookingId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String activityRegistrationId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String packBalanceId, List<CollectionRefund> refunds,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "PAY-06: the Stripe dispute (chargeback) of this card payment; null without one")
+            PaymentDispute dispute) { }
     public record UpfrontPayments(List<UpfrontPayment> items) { }
     @Schema(description = "202 of a refund (R-12-20): the provider confirms it by webhook (charge.refunded)")
     public record RefundAccepted(@Schema(format = "uuid") String id, Money amount, @Schema(description = "The refund's provider reference, null until the provider answers",

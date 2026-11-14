@@ -14,7 +14,8 @@ import java.util.Map;
  * `RemittanceGenerated{remittanceId, runId, invoiceIds, fileKey}` · `RemittanceRolledBack{remittanceId, runId, invoiceIds}` ·
  * `UpfrontPayment*{paymentId, …}` · `Pack*{packBalanceId, memberId, dogId, …}` · `StripeWebhookReceived{eventId, type,
  * outcome}` · the S12 §13 proposals `BillingRunCreated`, `BillingRunCompleted`, `PackAdjusted{…, delta, reason}`,
- * `MemberCardInvalidated` · S15's `RemittanceReminderDue{period, pendingMembers}` (P10, N-41). The signup rows of S04 keep
+ * `MemberCardInvalidated` · S15's `RemittanceReminderDue{period, pendingMembers}` (P10, N-41) · PAY-06's `PaymentDisputed{disputeId,
+ * memberId, amount, reason, upfrontPaymentIds, invoiceId}` (a Stripe dispute flagged a card payment of the member, N-56). The signup rows of S04 keep
  * {@link SignupPaymentEvent} for `UpfrontPaymentRecorded/Succeeded` (E3-T03).
  */
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,7 +31,7 @@ public record BillingEvent(Kind kind, String clubId, String aggregateId, Instant
         PackOpened("PackBalance"), PackConsumed("PackBalance"), PackRefunded("PackBalance"), PackLowBalance("PackBalance"),
         PackExpiring("PackBalance"), PackExpired("PackBalance"), PackAdjusted("PackBalance"),
         StripeWebhookReceived("StripeEvent"), BillingRunCreated("BillingRun"), BillingRunCompleted("BillingRun"),
-        MemberCardInvalidated("Member"), RemittanceReminderDue("Club");
+        MemberCardInvalidated("Member"), RemittanceReminderDue("Club"), PaymentDisputed("Member");
         private final String aggregateType;
         Kind(String aggregateType) { this.aggregateType = aggregateType; }
     }

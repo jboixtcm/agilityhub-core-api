@@ -229,6 +229,9 @@ public final class NotificationCatalog {
         rows.add(code("N-53", SYSTEM).to(APPLICANT, EMAIL).vars("club_name", "link", "inviter_name").build());
         rows.add(code("N-55", OPERATIONAL, "UpfrontRefundIntervention").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER)
                 .vars("member_name", "amount", "reason").modules(Module.BILLING).build());
+        // PAY-06 (owner decision of 13 Nov 2026): a Stripe dispute (chargeback) flagged a card payment of the member.
+        rows.add(code("N-56", OPERATIONAL, "PaymentDisputed").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER)
+                .vars("member_name", "amount", "reason").modules(Module.BILLING).build());
         return rows;
     }
 

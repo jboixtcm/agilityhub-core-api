@@ -41,7 +41,8 @@ final class BillingViews {
         return new BillingContracts.Collection(collection.id(), collection.invoiceId(), collection.provider(), collection.amount(), collection.status(),
                 collection.publishedReference(), collection.remittanceId(), collection.attempt(), collection.failureCode(), collection.failureMessage(),
                 collection.refunds() == null ? List.of() : collection.refunds().stream().map(refund -> new CollectionRefund(refund.amount(), refund.providerRef(),
-                        refund.at(), refund.reason(), refund.byAccountId())).toList(), collection.createdAt(), collection.resolvedAt());
+                        refund.at(), refund.reason(), refund.byAccountId())).toList(), collection.createdAt(), collection.resolvedAt(),
+                BillingContracts.PaymentDispute.of(collection.dispute()));
     }
 
     static BillingContracts.BillingSimulation simulation(BillingSimulation simulation) {

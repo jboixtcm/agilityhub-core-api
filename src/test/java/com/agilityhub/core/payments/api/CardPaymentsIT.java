@@ -282,6 +282,73 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(pack.path("provider").path("type").asText()).isEqualTo("STRIPE");
         assertThat(pack.path("refunds")).hasSize(2);
     }
+    /**
+     * PAY-06 (owner decision of 13 Nov 2026, S12 R-12-21): a Stripe dispute (chargeback) flags the card payment it disputes — a pack
+     * paid through Checkout and an invoice's card collection — and its first event tells the admins (N-56); later events only bring
+     * the flag up to date. No pack, booking or invoice state changes, and the flag shows in D10's list and in the invoice's drawer.
+     * A dispute of a payment Core does not hold is stored IGNORED.
+     */
+    @Test void PAY_06_aStripeDisputeFlagsTheCardPaymentAndTellsTheAdminsWithoutAnyOtherEffect() throws Exception {
+        admin("bill-admin-disputes", CLUB);
+        mongo.insert(new UpfrontPayment("pay06-pack", CLUB, "card-member", "pay06-dog", "PACK", null, new Money(12000, "EUR"), new Money(12000, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), null, null, null, null, "pay06-pack-balance",
+                new UpfrontPayment.StripeRefs("pi_pay06_pack", null), null, null, List.of(), null));
+        var before = paymentRow("pay06-pack");
+        var eventsBefore = mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "domain_events").stream().map(e -> e.get("_id")).toList();
+        webhook("evt_pay06_created", "charge.dispute.created", disputeObject("dp_pay06_pack", "pi_pay06_pack", 12000, "needs_response"));
+        assertThat(mongo.findById("evt_pay06_created", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
+        var flagged = paymentRow("pay06-pack");
+        var flag = flagged.get("dispute", Document.class);
+        assertThat(flag.getString("providerRef")).isEqualTo("dp_pay06_pack"); assertThat(flag.getString("status")).isEqualTo("needs_response");
+        assertThat(flag.getString("reason")).isEqualTo("fraudulent");
+        assertThat(flag.get("amount", Document.class).get("amountMinor", Number.class).longValue()).isEqualTo(12000);
+        assertThat(flag.get("closedAt")).isNull();
+        // Nothing else of the payment changed; the only events are the flag's and the webhook's.
+        flagged.remove("dispute"); assertThat(flagged).isEqualTo(before);
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "domain_events").stream().filter(e -> !eventsBefore.contains(e.get("_id")))
+                .map(e -> e.getString("type"))).containsExactlyInAnyOrder("PaymentDisputed", "StripeWebhookReceived");
+        assertThat(events("PaymentDisputed")).singleElement().satisfies(e -> {
+            var payload = e.get("payload", Document.class);
+            assertThat(payload.getString("memberId")).isEqualTo("card-member"); assertThat(payload.getList("upfrontPaymentIds", String.class)).containsExactly("pay06-pack");
+        });
+        outbox.dispatch();
+        var notices = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-56")), Document.class, "notifications");
+        assertThat(notices).isNotEmpty().allSatisfy(notice -> assertThat(notice.getString("body")).contains("Card Example"));
+        // Under review, then lost: the flag follows; no second notice.
+        webhook("evt_pay06_updated", "charge.dispute.updated", disputeObject("dp_pay06_pack", "pi_pay06_pack", 12000, "under_review"));
+        clock.setInstant(clock.instant().plusSeconds(86400));
+        webhook("evt_pay06_closed", "charge.dispute.closed", disputeObject("dp_pay06_pack", "pi_pay06_pack", 12000, "lost"));
+        var listed = ok(admin(get("/api/v1/upfront-payments").param("memberId", "card-member")), 200).path("items");
+        var pack = java.util.stream.StreamSupport.stream(listed.spliterator(), false).filter(p -> p.path("id").asText().equals("pay06-pack")).findFirst().orElseThrow();
+        assertThat(pack.path("status").asText()).isEqualTo("PAID");
+        assertThat(pack.path("dispute").path("status").asText()).isEqualTo("lost");
+        assertThat(pack.path("dispute").path("closedAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(events("PaymentDisputed")).hasSize(1);
+        outbox.dispatch();
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-56")), Document.class, "notifications")).hasSameSizeAs(notices);
+        // An invoice charged by card: its collection is flagged, the invoice stays PAID, and its drawer shows the dispute.
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_pay06_invoice_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        webhook("evt_pay06_invoice_dispute", "charge.dispute.created", disputeObject("dp_pay06_invoice", intent(invoice), 4500, "warning_needs_response"));
+        var drawer = detail(invoice);
+        assertThat(drawer.path("status").asText()).isEqualTo("PAID");
+        var disputed = java.util.stream.StreamSupport.stream(drawer.path("collections").spliterator(), false).filter(c -> !c.path("dispute").isNull()).toList();
+        assertThat(disputed).singleElement().satisfies(c -> {
+            assertThat(c.path("providerRef").asText()).isEqualTo(intent(invoice)); assertThat(c.path("status").asText()).isEqualTo("SUCCEEDED");
+            assertThat(c.path("dispute").path("providerRef").asText()).isEqualTo("dp_pay06_invoice");
+            assertThat(c.path("dispute").path("amount").path("amountMinor").asLong()).isEqualTo(4500);
+        });
+        assertThat(events("PaymentDisputed")).hasSize(2).filteredOn(e -> "dp_pay06_invoice".equals(e.get("payload", Document.class).getString("disputeId")))
+                .singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).getString("invoiceId")).isEqualTo(invoice));
+        // A dispute of a payment Core does not hold.
+        webhook("evt_pay06_unknown", "charge.dispute.created", disputeObject("dp_pay06_unknown", "pi_pay06_unknown", 1000, "needs_response"));
+        assertThat(mongo.findById("evt_pay06_unknown", Document.class, "stripe_events").getString("outcome")).isEqualTo("IGNORED");
+        assertThat(events("PaymentDisputed")).hasSize(2);
+    }
+    Map<String, Object> disputeObject(String id, String intent, long amount, String status) {
+        return Map.of("id", id, "object", "dispute", "charge", "ch_" + id, "payment_intent", intent, "amount", amount, "currency", "eur",
+                "reason", "fraudulent", "status", status, "metadata", Map.of());
+    }
     @Test void T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails() throws Exception {
         for (int i = 0; i < 25; i++) { member("batch-" + i, 400 + i, "Batch", "Example" + i, validCard("batch-" + i), "abonat"); }
         fake.requireAction();

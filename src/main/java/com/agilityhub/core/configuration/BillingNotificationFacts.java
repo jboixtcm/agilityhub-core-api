@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
  * listed, `amount` their sum — and none from each receipt's `InvoiceFailed{summarized}`.</li>
  * <li>N-35 to the member, only for a card (`provider = STRIPE`, which the engine's condition checks too): `amount`, `reason`
  * and `retry_link`, the app's receipts screen where the card banner is (R-12-22; the card-setup session itself is E8-T04's).</li>
+ * <li>N-56 to the admins (PAY-06): a Stripe dispute flagged a card payment of the member (`PaymentDisputed`): `member_name`,
+ * `amount` (the disputed amount) and `reason` (Stripe's), opening the member's record.</li>
  * </ul>
  * E8-T04 also owns Stripe receipts, upfront receipts and card-invalid notifications. Manual invoice payments emit no N-30.
  */
@@ -31,10 +33,13 @@ public class BillingNotificationFacts implements NotificationFactsPort {
     private final InvoiceActions invoices; private final CensusClubSettings settings;
     public BillingNotificationFacts(InvoiceActions invoices, CensusClubSettings settings) { this.invoices = invoices; this.settings = settings; }
 
-    @Override public Set<String> eventTypes() { return Set.of("InvoiceFailed", "InvoicesFailed", "InvoicePaid", "UpfrontPaymentSucceeded", "MemberCardInvalidated", "UpfrontRefundIntervention"); }
+    @Override public Set<String> eventTypes() {
+        return Set.of("InvoiceFailed", "InvoicesFailed", "InvoicePaid", "UpfrontPaymentSucceeded", "MemberCardInvalidated", "UpfrontRefundIntervention", "PaymentDisputed");
+    }
 
     @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
-        if (trigger.type().equals("UpfrontRefundIntervention") && code.equals("N-55")) {
+        // N-55 (E101) and PAY-06's N-56 (a Stripe dispute flagged a card payment): the member, the amount and the reason, to the admins.
+        if (trigger.type().equals("UpfrontRefundIntervention") && code.equals("N-55") || trigger.type().equals("PaymentDisputed") && code.equals("N-56")) {
             String member = trigger.text("memberId");
             var contact = member == null ? null : members.find(member).orElse(null);
             if (contact == null) { return Optional.empty(); }

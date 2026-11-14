@@ -98,6 +98,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-54 | **Classe amb pocs alumnes** (per sota del mínim) | `ClassBelowMinimum` (anul·lació dins termini) | OPERATIONAL | INSTRUCTORS de la classe + ADMINS → APP+EMAIL | class_date, class_time, class_description, ring_name, dogs_count | CHANGE_CLASS | S15 |
 | N-53 | Invitació com a administrador del club | `POST /platform/clubs/{id}/admins` | SYSTEM | compte convidat → EMAIL | club_name, link, inviter_name | — | S17 |
 | N-55 | Reemborsament a fer a mà (E101, aprovat 09-10) | `UpfrontRefundIntervention` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, amount, reason | OPEN_MEMBER | S12 |
+| N-56 | Disputa d'un pagament amb targeta (PAY-06, decisió del propietari 13-11-2026) | `PaymentDisputed` (la primera notícia de cada disputa de Stripe; ni l'actualització ni el tancament avisen) | OPERATIONAL | ADMINS → APP+EMAIL | member_name, amount, reason | OPEN_MEMBER | S12 |
 
 «No avisis» (COMM-03, decisió del propietari 13-11): una acció de l'ADMIN per a un abonat — reserva o anul·lació de classe o d'entrenament feta impersonant (N-36, N-47), canvi de nivell (N-09) o de mètode de pagament (N-38) — pot portar `notifyMember: false`; llavors aquell avís no es crea (cap canal) i l'entrada d'auditoria de l'acció porta `details.notifyMember = false`. Per defecte s'avisa; un instructor no ho pot fer.
 

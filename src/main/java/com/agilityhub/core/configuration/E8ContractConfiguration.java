@@ -35,7 +35,8 @@ public class E8ContractConfiguration implements WebMvcConfigurer {
     /** The E8 forms with a nullable object or enum reference: published as the union `anyOf [$ref, null]`. */
     static final List<String> NULLABLE_REFERENCES = List.of("InvoicePaymentMethod", "BillingRunResult", "BillingPeriod", "UpfrontPayment",
             "UpfrontPaymentProvider", "InactivityPeriod", "InactivityPeriodListItem", "MeInactivityPeriod", "MeInactivityContext", "LeaveMember",
-            "LeaveRequest", "MeLeaveRequest", "MeLeaveContext", "MemberListItem", "MemberOverview", "SimulationComparison");
+            "LeaveRequest", "MeLeaveRequest", "MeLeaveContext", "MemberListItem", "MemberOverview", "SimulationComparison",
+            "Collection");
     static final List<Class<?>> DETAILS = List.of(BillingContracts.RunNotRollbackableDetails.class, BillingContracts.CollectionDateTooSoonDetails.class,
             BillingContracts.MaxAttemptsDetails.class, LifecycleContracts.InactivityDeadlineDetails.class, LifecycleContracts.InactivityOverlapDetails.class,
             LifecycleContracts.MemberLeavingDetails.class);
