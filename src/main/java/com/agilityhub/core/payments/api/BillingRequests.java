@@ -21,7 +21,9 @@ public final class BillingRequests {
 
     public record SimulationRequest(@NotBlank @Schema(pattern = BillingContracts.MONTH, description = "The month to bill, YYYY-MM") String period) { }
     public record BillingRunRequest(@NotBlank @Schema(pattern = BillingContracts.MONTH) String period, @NotBlank @Schema(format = "uuid") String simulationId,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Default: billing.sepa.collectionDayOfMonth of the billed month (R-12-12)") LocalDate collectionDate) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Default: billing.sepa.collectionDayOfMonth of the billed month, moved to the next TARGET "
+                    + "business day when it is not one (R-12-12, SEPA-05). A date given must be a TARGET business day and leave two TARGET business days "
+                    + "after today") LocalDate collectionDate) { }
     public record RollbackRequest(@NotBlank @Size(max = 500) String reason,
             @NotBlank @Schema(description = "The word D6's confirmation dialog asks to type (R-12-14): RETROCEDIR, or FITXER_NO_ENVIAT when the "
                     + "file was never sent to the bank — it lifts only COLLECTION_DATE_PASSED (E156)") String confirmation) { }

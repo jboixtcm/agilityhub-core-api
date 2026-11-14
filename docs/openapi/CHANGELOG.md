@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · SEPA-05 · The collection date follows the TARGET calendar
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /billing/runs`), 2 schema descriptions changed (`BillingRunRequest.collectionDate`, `SimulationKpis.collectionDate`).**
+
+- `POST /billing/runs`: the default `collectionDate` (`billing.sepa.collectionDayOfMonth` of the billed month) moves to the next TARGET business day when it falls on a weekend, 1 January, Good Friday, Easter Monday, 1 May, 25 or 26 December; `kpis.collectionDate` of the simulation shows the same date. A `collectionDate` the admin gives must be a TARGET business day, otherwise `400 VALIDATION_ERROR {field: collectionDate, fieldErrors: [{field: collectionDate, code: NOT_BUSINESS_DAY}], nextBusinessDay}`; nothing is written. The two business days of lead time are TARGET business days, so `422 COLLECTION_DATE_TOO_SOON`'s `earliest` is always one (a run on 30-12-2026 gives 2027-01-04, it was 2027-01-01).
+
 ## 2026-11-13 · AUTHZ-05 · Every write of a support access is audited
 
 **No operations, schemas or error codes added; 1 enum value added (`AuditAction`: `SUPPORT_WRITE`).**

@@ -716,7 +716,8 @@ class BillingCycleIT extends BillingItSupport {
         parameter(CLUB, "billing.sepa.collectionDayOfMonth", 28);
         mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("nextInvoiceDate").is("2026-10-01")), new Update().set("nextInvoiceDate", "2027-02-01"), "members");
         var february = run("2027-02", simulate("2027-02").path("id").asText());
-        assertThat(february.at("/run/collectionDate").asText()).isEqualTo("2027-02-28");
+        // SEPA-05: 28-02-2027 is a Sunday, so it rolls to Monday 01-03 (before SEPA-05 the run asked for the Sunday).
+        assertThat(february.at("/run/collectionDate").asText()).isEqualTo("2027-03-01");
         // An explicit date wins, and a date that leaves less than two business days is refused with the earliest one.
         clock.setInstant(Instant.parse("2027-02-26T09:00:00Z")); // Friday
         String march = simulate("2027-03").path("id").asText();
@@ -727,6 +728,35 @@ class BillingCycleIT extends BillingItSupport {
         assertThat(json(tooSoon).at("/details/earliest").asText()).isEqualTo("2027-03-02");
         var explicit = ok(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2027-03", "simulationId", march, "collectionDate", "2027-03-05"))), 201);
         assertThat(explicit.at("/run/collectionDate").asText()).isEqualTo("2027-03-05");
+    }
+
+    @Test void SEPA_05_aDefaultDateOffTheTargetCalendarRollsForwardAndAChosenDateMustBeABusinessDay() throws Exception {
+        // The January-2027 run on Wednesday 30-12-2026 with the club's day 1: 01-01 is a TARGET holiday, then the weekend.
+        clock.setInstant(Instant.parse("2026-12-30T09:00:00Z"));
+        mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("nextInvoiceDate").is("2026-09-01")), new Update().set("nextInvoiceDate", "2027-01-01"), "members");
+        var simulation = simulate("2027-01");
+        assertThat(simulation.at("/kpis/collectionDate").asText()).isEqualTo("2027-01-04");
+        String id = simulation.path("id").asText();
+        // A chosen Saturday, or the holiday itself, is refused with the next business day; nothing is written.
+        for (String chosen : List.of("2027-01-02", "2027-01-01")) {
+            var refused = call(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2027-01", "simulationId", id, "collectionDate", chosen))));
+            assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(400);
+            assertThat(json(refused).path("code").asText()).isEqualTo("VALIDATION_ERROR");
+            assertThat(json(refused).at("/details/field").asText()).isEqualTo("collectionDate");
+            assertThat(json(refused).at("/details/fieldErrors/0/code").asText()).isEqualTo("NOT_BUSINESS_DAY");
+            assertThat(json(refused).at("/details/nextBusinessDay").asText()).isEqualTo("2027-01-04");
+        }
+        // Thursday 31-12 is a business day but leaves no two TARGET business days: the earliest is Monday 04-01, not the holiday.
+        var tooSoon = call(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2027-01", "simulationId", id, "collectionDate", "2026-12-31"))));
+        assertThat(tooSoon.getStatus()).as(tooSoon.getContentAsString()).isEqualTo(422);
+        assertThat(json(tooSoon).path("code").asText()).isEqualTo("COLLECTION_DATE_TOO_SOON");
+        assertThat(json(tooSoon).at("/details/earliest").asText()).isEqualTo("2027-01-04");
+        assertThat(invoices()).isEmpty();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "remittances")).isZero();
+        // Without a date the run takes the rolled default, and so do its remittance and its pain.008.
+        var result = run("2027-01", id);
+        assertThat(result.at("/run/collectionDate").asText()).isEqualTo("2027-01-04");
+        assertThat(result.at("/remittance/requestedCollectionDate").asText()).isEqualTo("2027-01-04");
     }
 
     @Test void T_12_32_aManualOnlyClubGetsPendingInvoicesWithoutRemittanceAndTheTextsAreFrozenInTheClubsLanguage() throws Exception {

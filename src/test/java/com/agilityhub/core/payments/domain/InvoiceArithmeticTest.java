@@ -71,9 +71,39 @@ class InvoiceArithmeticTest {
     @Test void T_12_29b_theCollectionDayIsADayOfTheBilledMonthAndZeroIsItsLastDay() {
         assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 9), 1)).isEqualTo(LocalDate.of(2026, 9, 1));
         assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 9), 0)).isEqualTo(LocalDate.of(2026, 9, 30));
-        assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 2), 28)).isEqualTo(LocalDate.of(2026, 2, 28));
+        // SEPA-05: 28-02-2026 is a Saturday, so the default rolls to Monday 02-03 (before SEPA-05 it stayed on the Saturday).
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 2), 28)).isEqualTo(LocalDate.of(2026, 3, 2));
         assertThat(CollectionDates.defaultDate(YearMonth.of(2028, 2), 0)).isEqualTo(LocalDate.of(2028, 2, 29));
         assertThatThrownBy(() -> CollectionDates.defaultDate(YearMonth.of(2026, 9), 29)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test void SEPA_05_aDefaultDayOffTheTargetCalendarRollsForwardToTheNextBusinessDay() {
+        // 01-01-2027 is a Friday and a TARGET holiday: Monday 04-01.
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 1), 1)).isEqualTo(LocalDate.of(2027, 1, 4));
+        // 01-05-2027 is a Saturday and a holiday, 01-08-2027 a Sunday: the Monday after.
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 5), 1)).isEqualTo(LocalDate.of(2027, 5, 3));
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 8), 1)).isEqualTo(LocalDate.of(2027, 8, 2));
+        // Good Friday 26-03-2027 and Easter Monday 29-03-2027: the Tuesday after.
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 3), 26)).isEqualTo(LocalDate.of(2027, 3, 30));
+        // 25-12 (Friday 2026) and 26-12 then the weekend: Monday 28-12; the last day of a month that ends on a Saturday: the next month's Monday.
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 12), 25)).isEqualTo(LocalDate.of(2026, 12, 28));
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 7), 0)).isEqualTo(LocalDate.of(2027, 8, 2));
+        // A business day stays as it is.
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 2), 1)).isEqualTo(LocalDate.of(2027, 2, 1));
+        assertThat(CollectionDates.businessDay(LocalDate.of(2027, 1, 4))).isTrue();
+        assertThat(CollectionDates.businessDay(LocalDate.of(2027, 1, 1))).isFalse();
+        assertThat(CollectionDates.businessDay(LocalDate.of(2027, 1, 2))).isFalse();
+    }
+
+    @Test void SEPA_05_theTwoBusinessDaysOfLeadTimeSkipTheTargetHolidays() {
+        // Wednesday 23-12-2026 → Thursday 24-12, then 25-12, 26-12 and the weekend are closed: Monday 28-12 (it was 25-12).
+        assertThat(CollectionDates.earliest(LocalDate.of(2026, 12, 23))).isEqualTo(LocalDate.of(2026, 12, 28));
+        // Wednesday 30-12-2026 → Thursday 31-12, then 01-01 and the weekend: Monday 04-01-2027 (it was 01-01).
+        assertThat(CollectionDates.earliest(LocalDate.of(2026, 12, 30))).isEqualTo(LocalDate.of(2027, 1, 4));
+        assertThat(CollectionDates.tooSoon(LocalDate.of(2027, 1, 1), LocalDate.of(2026, 12, 30))).isTrue();
+        assertThat(CollectionDates.tooSoon(LocalDate.of(2027, 1, 4), LocalDate.of(2026, 12, 30))).isFalse();
+        // Wednesday 24-03-2027 → Thursday 25, then Good Friday, the weekend and Easter Monday: Tuesday 30-03.
+        assertThat(CollectionDates.earliest(LocalDate.of(2027, 3, 24))).isEqualTo(LocalDate.of(2027, 3, 30));
     }
 
     @Test void T_12_29b_twoBusinessDaysAfterTheGenerationDay() {

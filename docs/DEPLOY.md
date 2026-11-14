@@ -1119,10 +1119,14 @@ runbook (E12-T02). They are rules of the specs, not defects:
 - **The series is the year of the issue date** (`InvoiceNumbering.series`, S12
   R-12-08). The January-2027 run, issued around 26-12-2026, is numbered
   `2026-NNNN`. This is what the spec says; tell the bookkeeper.
-- **Count TARGET holidays yourself.** `CollectionDates.earliest` counts Monday to
-  Friday only (two business days, R-12-12). The bank also closes on TARGET
-  holidays (25-12 and 01-01 around the first runs). Choose a collection date at
-  least two TARGET business days after the run.
+- **The collection date follows the TARGET calendar** (SEPA-05, R-12-12). The
+  default day of the billed month moves to the next TARGET business day when it
+  falls on a weekend, 01-01, Good Friday, Easter Monday, 01-05, 25-12 or 26-12
+  (with the club's day 1: January 2027 asks for 04-01, May 2027 for 03-05,
+  August 2027 for 02-08). The two business days of lead time are counted on the
+  same calendar. A date chosen in D6's generate dialog must be a TARGET business
+  day (`400 VALIDATION_ERROR {field: collectionDate}` names the next one) and
+  leave the two days (`422 COLLECTION_DATE_TOO_SOON` names the earliest).
 - **Mark the remittance as sent the day you upload it.** From its collection
   date on, a remittance still `GENERATED` blocks the rollback
   (`COLLECTION_DATE_PASSED`, E147). From the day before, D6 shows

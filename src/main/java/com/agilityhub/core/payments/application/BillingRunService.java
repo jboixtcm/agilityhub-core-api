@@ -99,6 +99,12 @@ public class BillingRunService {
         LocalDate collectionDate = null;
         if (sepa) {
             collectionDate = requestedCollectionDate != null ? requestedCollectionDate : BillingSimulationService.collectionDate(plan);
+            // SEPA-05: the default already rolls to a TARGET business day; a date the admin chose must be one.
+            if (!CollectionDates.businessDay(collectionDate)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "collectionDate",
+                        "fieldErrors", List.of(Map.of("field", "collectionDate", "code", "NOT_BUSINESS_DAY")),
+                        "nextBusinessDay", TargetCalendar.onOrAfter(collectionDate).toString()));
+            }
             if (CollectionDates.tooSoon(collectionDate, issueDate)) {
                 throw new ApiException(ErrorCode.COLLECTION_DATE_TOO_SOON, Map.of("requested", collectionDate.toString(),
                         "earliest", CollectionDates.earliest(issueDate).toString()));

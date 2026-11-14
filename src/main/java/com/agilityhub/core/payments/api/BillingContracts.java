@@ -166,7 +166,8 @@ public final class BillingContracts {
     public record InactivityFees(@Schema(minimum = "0") int count, Money firstMonth, Money following) { }
     public record SimulationKpis(@Schema(minimum = "0") int count, Money total, ByProvider byProvider, @Schema(minimum = "0") int cashPending,
             InactivityFees inactivityFees,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Default collection date in the billed month, club-local; null for a simulation stored before E90") LocalDate collectionDate) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Default collection date: the day of the billed month, or the next TARGET business day when that day is not one "
+                    + "(SEPA-05), club-local; null for a simulation stored before E90") LocalDate collectionDate) { }
     @Schema(description = "S12 §6 simulation JSON (R-12-07) plus its id, which POST /billing/runs names; only the last one per month is kept")
     public record BillingSimulation(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String period, Instant at, List<BillingIncident> incidents,
             List<CashMember> cashMembers, SimulationKpis kpis, List<InvoicePreview> invoicesPreview) { }

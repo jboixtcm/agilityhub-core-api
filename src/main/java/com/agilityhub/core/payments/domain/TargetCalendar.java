@@ -19,6 +19,13 @@ public final class TargetCalendar {
         return !day.equals(easter.minusDays(2)) && !day.equals(easter.plusDays(1));
     }
 
+    /** SEPA-05: {@code day} when it is a TARGET business day, otherwise the next one. */
+    public static LocalDate onOrAfter(LocalDate day) {
+        var found = day;
+        while (!businessDay(found)) { found = found.plusDays(1); }
+        return found;
+    }
+
     /** The {@code days}-th TARGET business day after {@code from}; {@code from} itself when {@code days} is 0. */
     public static LocalDate plusBusinessDays(LocalDate from, int days) {
         if (days < 0) { throw new IllegalArgumentException("days must not be negative"); }
