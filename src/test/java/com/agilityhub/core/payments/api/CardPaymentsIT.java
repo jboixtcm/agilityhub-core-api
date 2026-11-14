@@ -224,6 +224,64 @@ class CardPaymentsIT extends BillingItSupport {
         }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "stripe_events")).isEqualTo(1);
     }
+    /**
+     * PAY-05 (owner decision of 13 Nov 2026, S12 §2 D10 and R-12-20): the back office refunds a card payment taken for a pack or a
+     * single class (a signup row too, T_12_17_refundMetadata…) through the existing route: ADMIN only, a reason always, part of it
+     * or what is left, the provider refund through the refund pipeline, settled by the webhook with the reason and the admin on the
+     * refund and a PAYMENT_REFUNDED audit entry. No pack or booking is touched by the refund itself.
+     */
+    @Test @AuditCovers(AuditAction.PAYMENT_REFUNDED) void PAY_05_anAdminRefundsACardPaymentForAPackOrASingleClassInPartOrInFullWithAReason() throws Exception {
+        mongo.insert(new UpfrontPayment("pay05-pack", CLUB, "card-member", "pay05-dog", "PACK", null, new Money(12000, "EUR"), new Money(12000, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), null, null, null, null, "pay05-pack-balance",
+                new UpfrontPayment.StripeRefs("pi_pay05_pack", null), null, null, List.of(), null));
+        mongo.insert(new UpfrontPayment("pay05-class", CLUB, "card-member", null, "SINGLE_CLASS", null, new Money(1200, "EUR"), new Money(1200, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), "pay05-booking", null, null, null, null,
+                new UpfrontPayment.StripeRefs("pi_pay05_class", null), null, null, List.of(), null));
+        String route = "/api/v1/upfront-payments/pay05-pack/refund";
+        // ADMIN only; a reason always.
+        for (String role : List.of("MEMBER", "INSTRUCTOR")) {
+            error(as(keyed(post(route), Map.of("reason", "Pack bought twice")), CLUB, role, "card-member"), 403, "FORBIDDEN");
+        }
+        error(admin(keyed(post(route), Map.of("reason", " "))), 400, "VALIDATION_ERROR");
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).isEmpty();
+        // Part of the pack: 40,00 € of 120,00 €.
+        var part = ok(admin(keyed(post(route), Map.of("amount", Map.of("amountMinor", 4000, "currency", "EUR"), "reason", "Pack bought twice"))), 202);
+        assertThat(part.path("amount").path("amountMinor").asLong()).isEqualTo(4000);
+        var call = fake.calls().stream().filter(c -> c.operation().equals("refund")).toList().getLast();
+        assertThat(((Map<?, ?>) call.request()).get("chargeId")).isEqualTo("pi_pay05_pack");
+        assertThat(((Map<?, ?>) call.request()).get("reason")).isEqualTo("Pack bought twice");
+        String refund = mongo.findById(part.path("id").asText(), Document.class, "payment_operations").getString("resultId");
+        webhook("evt_pay05_part", "refund.updated", refundEvent("pi_pay05_pack", refund, 4000, "succeeded", part.path("id").asText()));
+        assertThat(paymentRow("pay05-pack").getString("status")).isEqualTo("PAID");
+        assertThat(paymentRow("pay05-pack").getList("refunds", Document.class)).singleElement().satisfies(r -> {
+            assertThat(r.get("amount", Document.class).get("amountMinor", Number.class).longValue()).isEqualTo(4000);
+            assertThat(r.getString("reason")).isEqualTo("Pack bought twice"); assertThat(r.getString("byAccountId")).isEqualTo("bill-admin");
+        });
+        // More than is left is refused; without an amount, what is left (80,00 €) is refunded and the row is REFUNDED.
+        error(admin(keyed(post(route), Map.of("amount", Map.of("amountMinor", 8001, "currency", "EUR"), "reason", "Pack bought twice"))), 422, "REFUND_EXCEEDS_PAID");
+        var rest = ok(admin(keyed(post(route), Map.of("reason", "Pack cancelled by the club"))), 202);
+        assertThat(rest.path("amount").path("amountMinor").asLong()).isEqualTo(8000);
+        String second = mongo.findById(rest.path("id").asText(), Document.class, "payment_operations").getString("resultId");
+        webhook("evt_pay05_rest", "refund.updated", refundEvent("pi_pay05_pack", second, 8000, "succeeded", rest.path("id").asText()));
+        assertThat(paymentRow("pay05-pack").getString("status")).isEqualTo("REFUNDED");
+        error(admin(keyed(post(route), Map.of("reason", "Again"))), 409, "INVALID_STATE");
+        // A single class, in full.
+        var single = ok(admin(keyed(post("/api/v1/upfront-payments/pay05-class/refund"), Map.of("reason", "Class charged by mistake"))), 202);
+        assertThat(single.path("amount").path("amountMinor").asLong()).isEqualTo(1200);
+        String third = mongo.findById(single.path("id").asText(), Document.class, "payment_operations").getString("resultId");
+        webhook("evt_pay05_class", "refund.updated", refundEvent("pi_pay05_class", third, 1200, "succeeded", single.path("id").asText()));
+        assertThat(paymentRow("pay05-class").getString("status")).isEqualTo("REFUNDED");
+        assertThat(paymentRow("pay05-class").getString("bookingId")).isEqualTo("pay05-booking");
+        // Each settled refund is audited with its reason; the list D10 reads shows the refunds.
+        var audits = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), Document.class, "audit_entries");
+        assertThat(audits).extracting(a -> a.getString("entityId") + ":" + a.getString("reason"))
+                .containsExactlyInAnyOrder("pay05-pack:Pack bought twice", "pay05-pack:Pack cancelled by the club", "pay05-class:Class charged by mistake");
+        var listed = ok(admin(get("/api/v1/upfront-payments").param("memberId", "card-member")), 200).path("items");
+        var pack = java.util.stream.StreamSupport.stream(listed.spliterator(), false).filter(p -> p.path("id").asText().equals("pay05-pack")).findFirst().orElseThrow();
+        assertThat(pack.path("status").asText()).isEqualTo("REFUNDED");
+        assertThat(pack.path("provider").path("type").asText()).isEqualTo("STRIPE");
+        assertThat(pack.path("refunds")).hasSize(2);
+    }
     @Test void T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails() throws Exception {
         for (int i = 0; i < 25; i++) { member("batch-" + i, 400 + i, "Batch", "Example" + i, validCard("batch-" + i), "abonat"); }
         fake.requireAction();
