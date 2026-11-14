@@ -628,7 +628,8 @@ class ErasureIT extends PrivacyItFixtures {
     void sepaCollection(String id, String invoiceId, String provider, String remittanceId, String remittanceStatus, String collectionDate) {
         raw("collections", "_id", id, "clubId", CLUB, "invoiceId", invoiceId, "provider", provider, "status", "SUCCEEDED", "attempt", 1, "remittanceId", remittanceId);
         if (mongo.findById(remittanceId, Document.class, "remittances") == null) {
-            raw("remittances", "_id", remittanceId, "clubId", CLUB, "status", remittanceStatus, "requestedCollectionDate", collectionDate);
+            raw("remittances", "_id", remittanceId, "clubId", CLUB, "messageId", "rgpd-" + remittanceId, "status", remittanceStatus,
+                    "requestedCollectionDate", collectionDate);
         }
     }
 
@@ -638,13 +639,13 @@ class ErasureIT extends PrivacyItFixtures {
      * own SEPA debits of a remittance not rolled back count, and only for 8 weeks.
      */
     @Test void PRIV_04_aRequestWaitsBlockedWhileASepaCollectionIsRefundableAndRunsWhenTheWindowCloses() throws Exception {
-        raw("invoices", "_id", "invoice-august", "clubId", CLUB, "memberId", "montse", "status", "PAID");
+        raw("invoices", "_id", "invoice-august", "clubId", CLUB, "memberId", "montse", "status", "PAID", "series", "2026", "number", 901);
         sepaCollection("collection-august", "invoice-august", "SEPA_XML", "remittance-august", "SUBMITTED", "2026-08-27");
-        raw("invoices", "_id", "invoice-other", "clubId", CLUB, "memberId", "montse", "status", "PAID");
+        raw("invoices", "_id", "invoice-other", "clubId", CLUB, "memberId", "montse", "status", "PAID", "series", "2026", "number", 902);
         sepaCollection("collection-rolled-back", "invoice-other", "SEPA_XML", "remittance-rolled-back", "ROLLED_BACK", "2026-09-03");
         sepaCollection("collection-card", "invoice-other", "STRIPE", "remittance-september", "SUBMITTED", "2026-09-04");
         sepaCollection("collection-july", "invoice-other", "SEPA_XML", "remittance-july", "SUBMITTED", "2026-07-10");
-        raw("invoices", "_id", "invoice-active", "clubId", CLUB, "memberId", "active", "status", "PAID");
+        raw("invoices", "_id", "invoice-active", "clubId", CLUB, "memberId", "active", "status", "PAID", "series", "2026", "number", 903);
         sepaCollection("collection-active", "invoice-active", "SEPA_XML", "remittance-september", "SUBMITTED", "2026-09-04");
 
         var created = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201);
@@ -676,7 +677,7 @@ class ErasureIT extends PrivacyItFixtures {
         var created = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201);
         assertThat(created.path("status").asText()).isEqualTo("SCHEDULED");
         String id = created.path("id").asText();
-        raw("invoices", "_id", "invoice-last", "clubId", CLUB, "memberId", "montse", "status", "PAID");
+        raw("invoices", "_id", "invoice-last", "clubId", CLUB, "memberId", "montse", "status", "PAID", "series", "2026", "number", 904);
         sepaCollection("collection-last", "invoice-last", "SEPA_XML", "remittance-last", "SUBMITTED", "2026-09-20");
         clock.setInstant(DUE);
         runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
