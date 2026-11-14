@@ -192,6 +192,35 @@ class CardPaymentsIT extends BillingItSupport {
         }
         assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class).getBoolean("invalid")).isTrue();
     }
+    /**
+     * PAY-09 (owner decision of 13 Nov 2026, S12 R-12-22): only a member who pays by card opens their own card setup. A SEPA, cash or
+     * method-less member gets 409 INVALID_STATE and nothing is written or asked of the provider; the admin's card-setup link still moves
+     * the cash member to card, and from then on the member opens their own setup.
+     */
+    @Test void PAY_09_onlyACardPayerOpensTheirOwnCardSetupAndTheAdminsLinkMovesAnyOtherMember() throws Exception {
+        Map<String, Object> urls = Map.of("successUrl", "https://" + HOST + "/ok", "cancelUrl", "https://" + HOST + "/ko");
+        var member = Query.query(Criteria.where("_id").is("card-member"));
+        var refused = new ArrayList<Map<String, Object>>(List.of(sepa(IBAN), cash()));
+        refused.add(null);
+        for (var method : refused) {
+            mongo.updateFirst(member, method == null ? new Update().unset("paymentMethod") : new Update().set("paymentMethod", method), "members");
+            error(as(keyed(post("/api/v1/me/card-setup"), urls), CLUB, "MEMBER", "card-member"), 409, "INVALID_STATE");
+        }
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "checkout_sessions")).isZero();
+        assertThat(fake.calls()).isEmpty();
+        assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod")).isNull();
+        mongo.updateFirst(member, new Update().set("paymentMethod", cash()), "members");
+        var link = ok(admin(keyed(post("/api/v1/members/card-member/card-setup-link"), urls)), 201);
+        String session = link.path("checkoutUrl").asText().replace("https://checkout.test/", "");
+        fake.card("pm_pay09", new BillingCensusAccess.Card("cus_card-member", "pm_pay09", "1881", "visa", false));
+        webhook("evt_pay09_setup", "setup_intent.succeeded", Map.of("id", "seti_pay09", "customer", "cus_card-member", "payment_method", "pm_pay09",
+                "metadata", Map.of("memberId", "card-member", "operationId", session)));
+        var method = mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class);
+        assertThat(method.getString("type")).isEqualTo("CARD");
+        assertThat(method.get("card", Document.class).getString("last4")).isEqualTo("1881");
+        var own = ok(as(keyed(post("/api/v1/me/card-setup"), urls), CLUB, "MEMBER", "card-member"), 201);
+        assertThat(own.path("checkoutUrl").asText()).startsWith("https://checkout.test/");
+    }
     @Test void T_12_32_tenantRoleModuleAndManualGuards() throws Exception {
         String run = runId(generated()), invoice = invoiceId();
         error(as(keyed(post("/api/v1/billing/runs/" + run + "/card-charges"), Map.of()), OTHER, "ADMIN", null), 404, "NOT_FOUND");

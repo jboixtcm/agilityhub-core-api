@@ -56974,7 +56974,7 @@
     },
     "/api/v1/me/card-setup" : {
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. Only a caller whose current payment method is CARD (PAY-09); SEPA_DD, MANUAL or no method → 409 INVALID_STATE (they move to card through the admin's card-setup link). STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "myCardSetup",
         "parameters" : [ {
           "in" : "header",
@@ -57048,7 +57048,7 @@
           },
           "409" : {
             "$ref" : "#/components/responses/StaleVersion",
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
+            "description" : "MEMBER_ERASED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {

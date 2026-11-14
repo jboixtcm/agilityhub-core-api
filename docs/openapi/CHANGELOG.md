@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PAY-09 · Only a card payer opens their own card setup
+
+**No operations, schemas or error codes added; 1 operation description and its 409 error list changed (`POST /me/card-setup`).**
+
+- `POST /me/card-setup`: only a caller whose current payment method is `CARD` (a usable card or one marked invalid) opens a setup session; a `SEPA_DD`, `MANUAL` or method-less caller gets `409 INVALID_STATE` (now listed with the route's 409 codes), with nothing written and no provider call. `POST /members/{id}/card-setup-link` (ADMIN) is unchanged and still moves any member to card. The member app shows the entry only to card payers.
+
 ## 2026-11-14 · PAY-06 · A Stripe dispute flags the card payment it disputes
 
 **No operations or error codes added; 1 schema added (`PaymentDispute`); `UpfrontPayment` and `Collection` gain an optional, nullable `dispute`.**

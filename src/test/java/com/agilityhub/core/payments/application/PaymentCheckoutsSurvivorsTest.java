@@ -7,6 +7,7 @@ import com.agilityhub.core.payments.persistence.UpfrontPayment;
 import com.agilityhub.core.payments.persistence.UpfrontPaymentRepository;
 import com.agilityhub.core.platform.application.ClubConfig;
 import com.agilityhub.core.platform.application.ClubConfigService;
+import com.agilityhub.core.shared.application.BillingCensusAccess;
 import com.agilityhub.core.shared.application.BookingOwnerAccess;
 import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -245,6 +246,65 @@ class PaymentCheckoutsSurvivorsTest {
         assertThat(request.setupFutureUsage()).isNull();
         verify(sessions).markStandaloneCardSetup(request.sessionId());
         verify(payments).pending("member-1", List.of(), request.sessionId());
+    }
+
+    // --- PAY-09: the member's own card setup (POST /me/card-setup) -------------------------------------------------------------
+
+    private CheckoutService.Result ownCardSetup() {
+        return checkouts.createOwnCardSetup("member-1", SUCCESS, CANCEL, result -> { answered.add(result); return new byte[] {1}; });
+    }
+    private static BillingCensusAccess.BillingMember paying(String type, boolean cardInvalid) {
+        var method = type == null ? null : new BillingCensusAccess.PaymentMethod(type, "SEPA_DD".equals(type), null, null, null, null,
+                "CARD".equals(type) ? "4242" : null, cardInvalid, "MANUAL".equals(type) ? "cash" : null, null);
+        return new BillingCensusAccess.BillingMember("member-1", 7, "Laia", "Example", null, "ACTIVE", "plan-1", null, null, null, method, null, "ca", NOW);
+    }
+
+    /**
+     * PAY-09 (owner decision of 13 Nov 2026, S12 R-12-22): a member who pays by SEPA, in cash or has no method cannot move themself to
+     * card: 409 INVALID_STATE under both locks, before any session, row or provider call. The admin's link (create) is not asked.
+     */
+    @Test void PAY_09_aMemberWhoDoesNotPayByCardCannotOpenTheirOwnCardSetup() {
+        var census = mock(BillingCensusAccess.class); ReflectionTestUtils.setField(checkouts, "census", census);
+        for (var member : List.of(Optional.of(paying("SEPA_DD", false)), Optional.of(paying("MANUAL", false)), Optional.of(paying(null, false)),
+                Optional.<BillingCensusAccess.BillingMember>empty())) {
+            when(census.member("member-1")).thenReturn(member);
+            try (var scope = IdempotentOperation.open(() -> { }, (status, body) -> { }, "request-1")) {
+                assertThatThrownBy(this::ownCardSetup).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.INVALID_STATE));
+            }
+        }
+        verify(members, times(4)).lock();
+        verify(sessions, never()).openFor(any(), any(), any());
+        verify(sessions, never()).insert(any());
+        verify(payments, never()).pending(any(), any(), any());
+        verify(provider, never()).createCheckoutSession(any());
+        assertThat(answered).isEmpty();
+    }
+
+    /** PAY-09: a card payer, also one whose card is marked invalid (the banner of screen 12), opens their own setup as before. */
+    @Test void PAY_09_aCardPayerOpensTheirOwnCardSetupAlsoWithAnInvalidCard() {
+        var census = mock(BillingCensusAccess.class); ReflectionTestUtils.setField(checkouts, "census", census);
+        for (boolean invalid : List.of(false, true)) {
+            when(census.member("member-1")).thenReturn(Optional.of(paying("CARD", invalid)));
+            assertThat(ownCardSetup().checkoutUrl()).isEqualTo(URL);
+        }
+        var requests = ArgumentCaptor.forClass(PaymentProvider.Request.class);
+        verify(provider, times(2)).createCheckoutSession(requests.capture());
+        assertThat(requests.getAllValues()).allSatisfy(request -> {
+            assertThat(request.mode()).isEqualTo("setup");
+            assertThat(request.lines()).isEmpty();
+        });
+        verify(sessions, times(2)).markStandaloneCardSetup(any());
+    }
+
+    /** PAY-09: the admin's card-setup link (and S12's checkouts) never read the member's method: a SEPA member is moved to card there. */
+    @Test void PAY_09_theAdminsCardSetupLinkStillServesAMemberWhoDoesNotPayByCard() {
+        var census = mock(BillingCensusAccess.class); ReflectionTestUtils.setField(checkouts, "census", census);
+        when(census.member("member-1")).thenReturn(Optional.of(paying("SEPA_DD", false)));
+
+        create(null, null, true);
+
+        assertThat(sent().mode()).isEqualTo("setup");
+        verifyNoInteractions(census);
     }
 
     @Test void T_12_16_aRetriedRequestSendsTheFrozenProviderRequestAgain() {
