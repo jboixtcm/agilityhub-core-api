@@ -204,6 +204,8 @@
   "messaging.email.replyTo": "",
   "messaging.sms.senderId": "AgilityHub",
   "messaging.sms.monthlyCap": 1000,
+  "messaging.sms.quietHoursStart": "22:00",
+  "messaging.sms.quietHoursEnd": "08:00",
   "messaging.notifyWeekOpening": false,
   "messaging.notifyNewRingSetup": false,
   "messaging.documentReminderDays": 0,

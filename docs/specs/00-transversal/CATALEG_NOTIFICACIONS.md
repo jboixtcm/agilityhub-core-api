@@ -8,7 +8,7 @@ Públics: `MEMBER` (alumne), `INSTRUCTORS` (tots els instructors del club, o els
 
 Numeració: no hi ha cap N-12; el salt de N-11b a N-13 és històric (organitzador 27-09).
 
-Canals: `APP` (feed 11 + badge) · `EMAIL` · `SMS` (a tots els telèfons de l'abonat) · `PUSH` (web push, si subscrit). Regla del Josep (18-08): **tot missatge sobre una acció de l'alumne que no és a iniciativa seva porta SMS** → categoria `CLUB_CHANGES`.
+Canals: `APP` (feed 11 + badge) · `EMAIL` · `SMS` (a tots els mòbils de l'abonat; COMM-06) · `PUSH` (web push, si subscrit). Regla del Josep (18-08): **tot missatge sobre una acció de l'alumne que no és a iniciativa seva porta SMS** → categoria `CLUB_CHANGES`.
 
 Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) · `CLAIM_SEAT` (POST claim de la llista d'espera) · `OPEN_BOOKING` · `OPEN_DOG` · `OPEN_TASKS` · `OPEN_INVOICES` · `OPEN_ACTIVITY` · `OPEN_SETUP`. Les plantilles admeten variables però **no** accions (R28-08): l'acció la fixa el codi per `code`.
 
@@ -68,11 +68,11 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 
 1. **Idioma**: el del destinatari (`Account.locale`); si la plantilla no té aquest idioma, fallback al `defaultLocale` del club.
 2. **Preferències** (12/D10): només apliquen al públic MEMBER i només poden **treure** canals que la plantilla permet (mai afegir-ne). L'`APP` és sempre actiu. El recordatori (N-13) només existeix si l'abonat ha triat antelació. N-13 i N-15 també van per correu segons la preferència `OPERATIONAL`; un codi `mandatory` no la salta (COMM-02, decisió del propietari 13-11-2026).
-3. **SMS**: a tots els telèfons de l'abonat; comptador per club (`usage.smsSentMonth`) i `messaging.sms.monthlyCap`; el text SMS és una versió curta de la plantilla (camp `smsBody`, màx. 160 caràcters GSM-7, sense enllaços llargs).
+3. **SMS**: a tots els **mòbils** de l'abonat (un fix no en rep cap: l'entrega queda `SKIPPED_NO_CONTACT` amb el número i el motiu; COMM-06, decisió del propietari 13-11-2026); hores de silenci a l'hora del club (`messaging.sms.quietHoursStart`–`messaging.sms.quietHoursEnd`, 22:00–08:00): un SMS no urgent espera fins al final de la franja, l'oferta d'una plaça amb termini (N-15 FIFO) no; comptador per club (`usage.smsSentMonth`) i `messaging.sms.monthlyCap`; el text SMS és una versió curta de la plantilla (camp `smsBody`, màx. 160 caràcters GSM-7, sense enllaços llargs).
 4. **Push**: només si hi ha subscripció activa; error 410 → es dona de baixa la subscripció.
 5. **Correu**: proveïdor per ADR-005; bounce/complaint → marca a `Member.contactEmails[].bounced` i avís a l'admin.
 6. **Idempotència**: una notificació per (`eventId`, `recipient`, `channel`); els reintents no dupliquen.
-7. **Log** (`notifications`): estat per canal (`QUEUED`, `SENT`, `DELIVERED`, `FAILED`, `SKIPPED_BY_PREFERENCE`, `SKIPPED_MODULE_OFF`, `SKIPPED_NO_CONTACT` —sense adreça ni telèfon—, `SKIPPED_CAP` —límit mensual d'SMS—, `SKIPPED_STALE` —l'avís ja no és rellevant quan s'envia— i `SKIPPED_NOT_ALLOWED` —fora de producció, un número que no és a `SMS_ALLOWED_NUMBERS`—; 27-09, E66; 28-09, E69), `readAt` per a l'app.
+7. **Log** (`notifications`): estat per canal (`QUEUED`, `SENT`, `DELIVERED`, `FAILED`, `SKIPPED_BY_PREFERENCE`, `SKIPPED_MODULE_OFF`, `SKIPPED_NO_CONTACT` —sense adreça ni telèfon, o un telèfon que no és mòbil (COMM-06)—, `SKIPPED_CAP` —límit mensual d'SMS—, `SKIPPED_STALE` —l'avís ja no és rellevant quan s'envia— i `SKIPPED_NOT_ALLOWED` —fora de producció, un número que no és a `SMS_ALLOWED_NUMBERS`—; 27-09, E66; 28-09, E69), `readAt` per a l'app.
 8. Tests: per a cada codi, la matriu canals×públics amb preferències ON/OFF i mòduls ON/OFF (PLA_BACKEND §9.8).
 
 ## Annex A — codis afegits el 03-09 a partir de les specs (numeració tancada)

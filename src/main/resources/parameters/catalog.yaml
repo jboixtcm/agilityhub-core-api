@@ -898,6 +898,32 @@ parameters:
     restartRequired: false
     documentType: "int"
     documentDefault: "1000"
+  - key: "messaging.sms.quietHoursStart"
+    type: "time"
+    default: "22:00"
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.quietHoursStart.label"
+    helpKey: "admin-settings:param.messaging.sms.quietHoursStart.help"
+    constraints: {}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "22:00"
+  - key: "messaging.sms.quietHoursEnd"
+    type: "time"
+    default: "08:00"
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.quietHoursEnd.label"
+    helpKey: "admin-settings:param.messaging.sms.quietHoursEnd.help"
+    constraints: {}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "08:00"
   - key: "messaging.notifyWeekOpening"
     type: "bool"
     default: false

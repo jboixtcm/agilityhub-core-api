@@ -14,7 +14,8 @@ import static com.agilityhub.core.clubs.messaging.domain.NotificationChannel.*;
  * with and their initial status. A matrix cell that is off (or outside the code's caps) gives no delivery at all; the
  * notification is still stored (R-11-10). Preferences only concern `MEMBER` and never a `SYSTEM` category; they can remove
  * EMAIL (per category) and the PUSH of `CLUB_NEWS` and of every announcement ({@link #pushClubNews}), never APP nor SMS
- * («+SMS» is fixed, Josep 18-08). `APPLICANT` is EMAIL
+ * («+SMS» is fixed, Josep 18-08). An SMS goes to every mobile of the recipient; a phone that is not one ({@link MobileNumbers})
+ * is recorded `SKIPPED_NO_CONTACT` with its number (COMM-06). `APPLICANT` is EMAIL
  * only. The monthly SMS cap is applied by the dispatcher right before each send (R-11-06, S11 §6 `dispatch`), see
  * {@link #capReached}.
  */
@@ -41,8 +42,13 @@ public final class ChannelResolver {
     }
     /** The club's `SMS` and `PUSH` modules (R-11-17). */
     public record Modules(boolean sms, boolean push) { }
-    /** A delivery to create: channel, destination (account, address, phone or subscription id; `null` when skipped without one) and status. */
-    public record Planned(NotificationChannel channel, String target, DeliveryStatus status) { }
+    /**
+     * A delivery to create: channel, destination (account, address, phone or subscription id; `null` when skipped without one),
+     * status and, for a skip that keeps its destination, why (its `lastError`: a landline, COMM-06).
+     */
+    public record Planned(NotificationChannel channel, String target, DeliveryStatus status, String reason) {
+        public Planned(NotificationChannel channel, String target, DeliveryStatus status) { this(channel, target, status, null); }
+    }
 
     /**
      * @param matrixRow the template's row for the audience (`MessageTemplate.matrix[audience]`); ignored for `APPLICANT`,
@@ -72,7 +78,9 @@ public final class ChannelResolver {
         if (on(row, caps, SMS)) {
             if (!modules.sms()) { planned.add(new Planned(SMS, null, SKIPPED_MODULE_OFF)); }
             else if (contact.phones().isEmpty()) { planned.add(new Planned(SMS, null, SKIPPED_NO_CONTACT)); }
-            else { contact.phones().forEach(phone -> planned.add(new Planned(SMS, phone, QUEUED))); }
+            // COMM-06: a mobile only; a landline is recorded as skipped, with its number and the reason.
+            else { contact.phones().forEach(phone -> planned.add(MobileNumbers.mobile(phone) ? new Planned(SMS, phone, QUEUED)
+                    : new Planned(SMS, phone, SKIPPED_NO_CONTACT, MobileNumbers.NOT_MOBILE))); }
         }
         if (spec.push().contains(audience)) {
             if (!modules.push()) { planned.add(new Planned(PUSH, null, SKIPPED_MODULE_OFF)); }

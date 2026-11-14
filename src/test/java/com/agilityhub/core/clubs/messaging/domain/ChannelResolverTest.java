@@ -90,6 +90,20 @@ class ChannelResolverTest {
                         new ChannelResolver.Planned(SMS, "+34600000001", QUEUED), new ChannelResolver.Planned(PUSH, null, SKIPPED_NO_CONTACT));
     }
 
+    /**
+     * COMM-06 (owner decision of 13 Nov 2026, R-11-06): an SMS goes to every mobile of the member; a landline gets none and is
+     * recorded (`SKIPPED_NO_CONTACT` with its number and the reason). Before the decision every stored number was `QUEUED`.
+     */
+    @Test void T_11_06_COMM_06_aLandlineGetsNoSmsAndIsRecordedWhileTheMobileGetsIt() {
+        var n08a = spec("N-08a"); var on = new ChannelResolver.Modules(true, true);
+        assertThat(ChannelResolver.resolve(n08a, MEMBER, n08a.defaultMatrix().get(MEMBER), on, laura(NotificationPreference.DEFAULTS, List.of("+34931234567", "+34600000001"))))
+                .containsExactly(new ChannelResolver.Planned(APP, "account-laura", DELIVERED), new ChannelResolver.Planned(EMAIL, "laura@example.test", QUEUED),
+                        new ChannelResolver.Planned(SMS, "+34931234567", SKIPPED_NO_CONTACT, MobileNumbers.NOT_MOBILE), new ChannelResolver.Planned(SMS, "+34600000001", QUEUED));
+        // Only a landline: no SMS at all, the number recorded.
+        assertThat(ChannelResolver.resolve(n08a, MEMBER, n08a.defaultMatrix().get(MEMBER), on, laura(NotificationPreference.DEFAULTS, List.of("+34931234567"))))
+                .filteredOn(planned -> planned.channel() == SMS).containsExactly(new ChannelResolver.Planned(SMS, "+34931234567", SKIPPED_NO_CONTACT, MobileNumbers.NOT_MOBILE));
+    }
+
     @Test void T_11_03_preferencesOnlyRemoveWhatTheTemplateAllowsAndOnlyForMembers() {
         var on = new ChannelResolver.Modules(true, true); var phones = List.of("+34600000001");
         // emailByCategory.CLUB_CHANGES = false removes EMAIL and never SMS («+SMS» is fixed).

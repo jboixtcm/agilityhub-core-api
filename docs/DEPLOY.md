@@ -1277,6 +1277,15 @@ such as the Cànic, gets the e-mail only once an admin ticks «Correu» for «Al
 «S'ha alliberat una plaça!» in D9 (`/comunicats`); a club seeded afterwards gets it
 ticked.
 
+COMM-06 (owner decision of 13 November 2026): an SMS goes only to a mobile number
+(a Spanish one starts with 6 or 7; another country's must be a valid mobile); a
+landline gets none and its delivery is recorded `SKIPPED_NO_CONTACT` with the
+number and «Not a mobile number». Between `messaging.sms.quietHoursStart` (22:00)
+and `messaging.sms.quietHoursEnd` (08:00), in the club's time zone, a non-urgent SMS
+stays `QUEUED` until 08:00 (`lastError` «SMS quiet hours», nothing counted); a seat
+offer with a deadline (FIFO) is sent at once. The app, e-mail and push copies are
+not delayed. Equal bounds switch the quiet hours off for a club.
+
 The dispatcher sends right after each notice is stored and polls every 5 s for
 retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS state
 (no Twilio delivery callback at R1). The real Twilio and VAPID sends are verified
@@ -1304,6 +1313,9 @@ Run from the API checkout with Docker, Compose, Python 3 and curl:
 bin/e7-smoke
 bin/e7-smoke     # a fresh stack per run: re-runnable
 ```
+
+Run it in the daytime (Madrid): its class cancellation uses the real clock and waits for every SMS to settle, and
+between 22:00 and 08:00 the SMS quiet hours (COMM-06) keep that SMS queued until 08:00.
 
 P4 `reminders` runs **every minute** on the single scheduler (switch `jobs.reminders.enabled`, on by default; at most one
 `SKIPPED{DISABLED}` per hour while off) and reminds each booking once, at the lead its dog's owner chose

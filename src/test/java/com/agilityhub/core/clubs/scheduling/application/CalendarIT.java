@@ -48,6 +48,7 @@ class CalendarIT extends AbstractIntegrationTest {
     @Autowired ClassSessionService service; @Autowired RingBlockService blocks; @Autowired ClassCancellationUseCase cancellations;
     @Autowired SchedulingTransactions transactions; @Autowired Doubles doubles; @Autowired OutboxDispatcher dispatcher;
     @Autowired EmailSender sender; @Autowired TransactionTemplate tx;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
     @BeforeEach void prepare() {
         doubles=org.springframework.test.util.AopTestUtils.getTargetObject(doubles); doubles.clear();
         clock.setInstant(Instant.parse("2026-08-24T04:00:00Z"));
@@ -249,6 +250,12 @@ class CalendarIT extends AbstractIntegrationTest {
         assertThat(events("PackRefunded")).isEqualTo(2);assertThat(events("ClassCancelledByClub")).isEqualTo(1);assertThat(doubles.activeBookings(id)).isEmpty();assertThat(doubles.liveWaitlist(id)).isEmpty();assertThat(doubles.holds).doesNotContainKey(id);
         // 6 dogs × (APP + EMAIL + SMS to each of 2 phones) + the instructor (APP + EMAIL) + the admin (APP); a second dispatch adds nothing.
         dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(27);dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(27);
+        // COMM-06 (owner decision of 13 Nov 2026): 06:00 in Madrid is inside the SMS quiet hours (22:00–08:00): the 12 SMS wait for
+        // 08:00 (06:00 UTC), nothing sent before, and then go.
+        var queued=notifications("N-08a").stream().filter(n -> n.getString("channel").equals("SMS")).toList();assertThat(queued).hasSize(12).allSatisfy(n -> {
+            assertThat(n.getString("status")).isEqualTo("QUEUED");assertThat(n.getString("lastError")).isEqualTo(com.agilityhub.core.clubs.messaging.domain.SmsQuietHours.QUIET);});
+        clock.setInstant(Instant.parse("2026-08-24T06:00:00Z"));
+        try (var tenant = TenantContext.open(CLUB)) { notificationDispatcher.dispatch(queued.stream().map(n -> n.getString("_id")).distinct().toList()); }
         var sms=notifications("N-08a").stream().filter(n -> n.getString("channel").equals("SMS")).toList();assertThat(sms).hasSize(12).allSatisfy(n -> {assertThat(n.getString("status")).isEqualTo("SENT");assertThat(n.getString("body").length()).isLessThanOrEqualTo(160);assertThat(n.getString("target")).startsWith("+");});
         var english=((FakeEmailSender)sender).messages().stream().filter(m -> m.to().equals("student-0@example.test")).findFirst().orElseThrow();
         // R-11-05: the class is the next day of the club, so «Tomorrow» (capitalised), in the recipient's language.

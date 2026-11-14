@@ -113,6 +113,8 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `messaging.email.replyTo` | string | `""` | buit = correu de contacte del club en enviar |
 | `messaging.sms.senderId` | string | `"AgilityHub"` | Twilio (pendent §3) |
 | `messaging.sms.monthlyCap` | int | 1000 | límit de seguretat; en arribar-hi, avís a l'admin i el canal cau a correu |
+| `messaging.sms.quietHoursStart` | time | 22:00 | hores de silenci d'SMS, a l'hora del club (COMM-06, propietari 13-11-2026): un SMS no urgent que toca dins la franja espera fins a `quietHoursEnd`; l'oferta d'una plaça amb termini (N-15 FIFO) no espera; inici = final → sense franja |
+| `messaging.sms.quietHoursEnd` | time | 08:00 | final de les hores de silenci d'SMS (COMM-06); la franja pot passar la mitjanit |
 | `messaging.notifyWeekOpening` | bool | false | «Ja pots reservar la setmana vinent» (N-33) |
 | `messaging.notifyNewRingSetup` | bool | false | N-31 |
 | `messaging.documentReminderDays` | int | 0 | 0 = recordatori de cartilla pendent només manual |
