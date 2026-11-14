@@ -16,8 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * COMM-07 (owner decision of 13 Nov 2026, S11 R-11-13): «Reenvia els fallits» of an announcement. In one transaction, every
  * e-mail of the batch that ended `FAILED` goes back to `QUEUED`, due now and with a fresh R-11-09 budget; the dispatcher's poll
- * sends them at the announcements' pace, with every check of a send (a suppressed address ends `SKIPPED_NO_CONTACT`, a member
- * the notice no longer applies to `SKIPPED_STALE`). Only e-mail: the APP copy never fails, an SMS or a push is not resent. An
+ * sends them at the announcements' pace, with every check of a send (a suppressed address ends `SKIPPED_NO_CONTACT`; an
+ * announcement has no staleness check, so a member who left or turned the e-mail off since the send is still written to). A
+ * delivery an erasure left without a target stays `FAILED`. Only e-mail: the APP copy never fails, an SMS or a push is not resent. An
  * `ANNOUNCEMENT_RESENT` audit entry on the batch's template, `details {batchId, resent}`, when at least one was put back; with
  * none there is nothing to resend and nothing is written. Another club's or an unknown batch is `NOT_FOUND`.
  */

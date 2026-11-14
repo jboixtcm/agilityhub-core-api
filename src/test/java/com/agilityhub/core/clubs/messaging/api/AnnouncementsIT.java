@@ -393,6 +393,15 @@ class AnnouncementsIT extends AbstractIntegrationTest {
         // Nothing left to resend: 0, and no entry.
         assertThat(call(as(post(path), "ADMIN").header("Idempotency-Key", UUID.randomUUID().toString()), 202).path("resent").asInt()).isZero();
         assertThat(count("audit_entries", Criteria.where("action").is("ANNOUNCEMENT_RESENT"))).isEqualTo(1);
+        // Review correction: a failed e-mail whose target an erasure removed (S14 R-14-15) is not put back (the poll never claims a
+        // delivery without a target, so it would stay QUEUED for ever) and is not counted.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(laura.id()).and("deliveries.channel").is("EMAIL")), new org.springframework.data.mongodb.core.query.Update()
+                .set("deliveries.$.status", "FAILED").unset("deliveries.$.target"), "notifications");
+        assertThat(call(as(post(path), "ADMIN").header("Idempotency-Key", UUID.randomUUID().toString()), 202).path("resent").asInt()).isZero();
+        assertThat(mongo.findById(laura.id(), com.agilityhub.core.clubs.messaging.persistence.Notification.class).deliveries())
+                .filteredOn(d -> d.channel() == com.agilityhub.core.clubs.messaging.domain.NotificationChannel.EMAIL).singleElement()
+                .satisfies(d -> assertThat(d.status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.FAILED));
+        assertThat(count("audit_entries", Criteria.where("action").is("ANNOUNCEMENT_RESENT"))).isEqualTo(1);
     }
 
     /** A CUSTOM template's matrix: the members' row (APP, and EMAIL when asked); staff never receive a CUSTOM notice (S11 §13-6). */

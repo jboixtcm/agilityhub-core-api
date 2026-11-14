@@ -217,19 +217,20 @@ public class NotificationRepository extends TenantRepository<Notification> {
      * COMM-07 (owner decision of 13 Nov 2026): «Reenvia els fallits» of an announcement batch — every `FAILED` EMAIL delivery of
      * the tenant's notices of the batch (`AnnouncementSent`, `dedupKey` `{batchId}:{memberId}`) back to `QUEUED`, due now, with
      * its attempts at zero (a fresh R-11-09 budget) and its `failedAt` removed; its last error stays until the next attempt.
-     * Returns how many deliveries were put back. Nothing else is touched: the other channels and the other states.
+     * Returns how many deliveries were put back. Nothing else is touched: the other channels and the other states. A delivery
+     * without a target (an erased member's, S14 R-14-15) stays `FAILED`: the poll never claims one, so it would wait for ever.
      */
     public long requeueFailedAnnouncementEmails(String batchId, Instant now) {
-        var failed = Criteria.where("channel").is("EMAIL").and("status").is("FAILED");
+        var failed = Criteria.where("channel").is("EMAIL").and("status").is("FAILED").and("target").ne(null);
         var query = tenantQuery().addCriteria(Criteria.where("eventType").is("AnnouncementSent")
                 .and("dedupKey").regex("^" + java.util.regex.Pattern.quote(batchId) + ":").and("deliveries").elemMatch(failed));
         long deliveries = mongo.find(query, Notification.class).stream().flatMap(n -> n.deliveries().stream())
                 .filter(d -> d.channel() == com.agilityhub.core.clubs.messaging.domain.NotificationChannel.EMAIL
-                        && d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.FAILED).count();
+                        && d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.FAILED && d.target() != null).count();
         if (deliveries == 0) { return 0; }
         var update = new Update().set("deliveries.$[failed].status", "QUEUED").set("deliveries.$[failed].attempts", 0)
                 .set("deliveries.$[failed].nextAttemptAt", now).unset("deliveries.$[failed].failedAt")
-                .filterArray(Criteria.where("failed.channel").is("EMAIL").and("failed.status").is("FAILED"));
+                .filterArray(Criteria.where("failed.channel").is("EMAIL").and("failed.status").is("FAILED").and("failed.target").ne(null));
         mongo.updateMulti(query, update, Notification.class);
         return deliveries;
     }
