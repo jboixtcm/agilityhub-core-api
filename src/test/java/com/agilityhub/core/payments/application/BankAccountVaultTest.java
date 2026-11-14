@@ -130,4 +130,89 @@ class BankAccountVaultTest {
             assertThat(TestBankVaults.of(unusable).configured()).as(unusable).isFalse();
         }
     }
+
+    static final String THIRD_KEY = Base64.getEncoder().encodeToString("priv-11-a-third-fictional-key-32".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+
+    static String keyId(String key) throws Exception {
+        return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(Base64.getDecoder().decode(key)), 0, 4);
+    }
+
+    /** A value as every release sealed it before PRIV-11: the Base64 of nonce and ciphertext, without a key id. */
+    static String sealedBeforePriv11(String key, String iban, String clubId, String memberId) {
+        return new AesGcmCipher(key, "BILLING_BANK_KEY", "Bank account").encrypt(iban, clubId + ":" + memberId);
+    }
+
+    /** PRIV-11: a new value starts with the id of its key (8 hex of its SHA-256); a value sealed before, without one, is still read. */
+    @Test void PRIV_11_aNewValueCarriesTheIdOfItsKeyAndAValueSealedBeforeWithoutOneIsStillRead() throws Exception {
+        var vault = TestBankVaults.of(KEY);
+        assertThat(vault.keyId()).isEqualTo(keyId(KEY)).matches("[0-9a-f]{8}").isNotEqualTo(keyId(OTHER_KEY));
+        assertThat(vault.previousKeyId()).isNull();
+        String sealed = vault.encrypt(IBAN, "club-a", "member-a");
+        assertThat(sealed).startsWith(keyId(KEY) + ":").doesNotContain(IBAN, "1234");
+        assertThat(Base64.getDecoder().decode(sealed.substring(9))).hasSizeGreaterThan(12);
+        assertThat(vault.decrypt(sealed, "club-a", "member-a")).isEqualTo(IBAN);
+        assertThat((String) vault.seal(IBAN, "club-a", "member-a").get("ibanEncrypted")).startsWith(keyId(KEY) + ":");
+        String before = sealedBeforePriv11(KEY, IBAN, "club-a", "member-a");
+        assertThat(before).doesNotContain(":");
+        assertThat(vault.resolve(Map.of("ibanEncrypted", before), "club-a", "member-a")).isEqualTo(IBAN);
+        assertThat(vault.same(Map.of("ibanEncrypted", before), Map.of("ibanEncrypted", sealed), "club-a", "member-a")).isTrue();
+        assertThat(vault.sealedWithCurrentKey(sealed)).isTrue();
+        assertThat(vault.sealedWithCurrentKey(before)).isFalse();
+        assertThat(vault.sealedWithCurrentKey(TestBankVaults.of(OTHER_KEY).encrypt(IBAN, "club-a", "member-a"))).isFalse();
+        assertThat(vault.sealedWithCurrentKey(null)).isFalse();
+        // The prefix binds nothing but the key: the associated data is still the member's, and another key id is not read.
+        assertThatThrownBy(() -> vault.decrypt(sealed, "club-a", "member-b")).isInstanceOf(IllegalStateException.class).hasMessage("Bank account decryption failed");
+        assertThatThrownBy(() -> vault.decrypt("0badc0de" + sealed.substring(8), "club-a", "member-a")).isInstanceOf(IllegalStateException.class)
+                .hasMessage("Bank account decryption failed");
+    }
+
+    /**
+     * PRIV-11: during a rotation `BILLING_BANK_KEY_PREVIOUS` reads what it sealed, with or without a key id, and never seals;
+     * {@link BankAccountVault#reseal} seals the same IBAN with the new key, which alone reads it afterwards.
+     */
+    @Test void PRIV_11_duringARotationThePreviousKeyReadsItsValuesAndResealUsesTheNewKey() throws Exception {
+        var old = TestBankVaults.of(KEY);
+        String prefixed = old.encrypt(IBAN, "club-a", "member-a"), before = sealedBeforePriv11(KEY, IBAN, "club-a", "member-a");
+        var rotating = TestBankVaults.of(OTHER_KEY, KEY);
+        assertThat(rotating.keyId()).isEqualTo(keyId(OTHER_KEY));
+        assertThat(rotating.previousKeyId()).isEqualTo(keyId(KEY));
+        for (String stored : java.util.List.of(prefixed, before)) {
+            assertThat(rotating.resolve(Map.of("ibanEncrypted", stored), "club-a", "member-a")).isEqualTo(IBAN);
+            assertThat(rotating.sealedWithCurrentKey(stored)).isFalse();
+            String resealed = rotating.reseal(stored, "club-a", "member-a");
+            assertThat(resealed).startsWith(keyId(OTHER_KEY) + ":").doesNotContain(IBAN).isNotEqualTo(stored);
+            assertThat(rotating.sealedWithCurrentKey(resealed)).isTrue();
+            // Once the previous key is gone, the new key alone reads the resealed value and no longer the old one.
+            var after = TestBankVaults.of(OTHER_KEY);
+            assertThat(after.decrypt(resealed, "club-a", "member-a")).isEqualTo(IBAN);
+            assertThatThrownBy(() -> after.decrypt(stored, "club-a", "member-a")).isInstanceOf(IllegalStateException.class).hasMessage("Bank account decryption failed");
+            assertThatThrownBy(() -> after.reseal(stored, "club-a", "member-a")).isInstanceOf(IllegalStateException.class).hasMessage("Bank account decryption failed");
+        }
+        // The vault seals with the new key only, and a value of a third key is read by neither.
+        assertThat(rotating.encrypt(IBAN, "club-a", "member-a")).startsWith(keyId(OTHER_KEY) + ":");
+        assertThat((String) rotating.seal(IBAN, "club-a", "member-a").get("ibanEncrypted")).startsWith(keyId(OTHER_KEY) + ":");
+        String third = TestBankVaults.of(THIRD_KEY).encrypt(IBAN, "club-a", "member-a");
+        assertThatThrownBy(() -> rotating.reseal(third, "club-a", "member-a")).isInstanceOf(IllegalStateException.class).hasMessage("Bank account decryption failed");
+        assertThatThrownBy(() -> rotating.reseal(sealedBeforePriv11(THIRD_KEY, IBAN, "club-a", "member-a"), "club-a", "member-a"))
+                .isInstanceOf(IllegalStateException.class).hasMessage("Bank account decryption failed").hasMessageNotContaining(IBAN);
+        // The previous key reads with the member's associated data only.
+        assertThatThrownBy(() -> rotating.decrypt(prefixed, "club-a", "member-b")).isInstanceOf(IllegalStateException.class).hasMessage("Bank account decryption failed");
+    }
+
+    /** PRIV-11: a previous key that is set must be usable and another key, in every profile, or the application does not start. */
+    @Test void PRIV_11_aMalformedOrRepeatedPreviousKeyStopsTheApplication() {
+        for (String profile : new String[]{"prod", "local"}) {
+            var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profile);
+            for (String previous : new String[]{"%%%", Base64.getEncoder().encodeToString(new byte[16]), KEY}) {
+                assertThatThrownBy(() -> new BankAccountVault(KEY, previous, environment)).as(profile + " " + previous).isInstanceOf(IllegalStateException.class)
+                        .hasMessage("BILLING_BANK_KEY_PREVIOUS, when set, must be Base64 of 32 bytes and another key than BILLING_BANK_KEY")
+                        .hasMessageNotContaining(KEY);
+            }
+            assertThat(new BankAccountVault(OTHER_KEY, KEY, environment).previousKeyId()).isEqualTo(TestBankVaults.of(KEY).keyId());
+            assertThat(new BankAccountVault(OTHER_KEY, "", environment).previousKeyId()).isNull();
+        }
+        var local = new org.springframework.mock.env.MockEnvironment(); local.setActiveProfiles("local");
+        assertThatThrownBy(() -> new BankAccountVault("", KEY, local)).isInstanceOf(IllegalStateException.class)
+                .hasMessage("BILLING_BANK_KEY_PREVIOUS, when set, must be Base64 of 32 bytes and another key than BILLING_BANK_KEY");
+    }
 }

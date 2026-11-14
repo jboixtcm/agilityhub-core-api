@@ -33,6 +33,15 @@ final class AesGcmCipher {
         catch (IllegalStateException missing) { return false; }
     }
 
+    /**
+     * PRIV-11: the key's id, the first 8 hex characters of the SHA-256 of its 32 bytes ({@code printf %s "$KEY" | base64 -d |
+     * sha256sum | cut -c1-8}). It names the key a value was sealed with and reveals nothing usable about the key itself.
+     */
+    String keyId() {
+        try { return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(key()), 0, 4); }
+        catch (java.security.NoSuchAlgorithmException unavailable) { throw new IllegalStateException("SHA-256 unavailable"); }
+    }
+
     String encrypt(String plain, String associatedData) {
         byte[] secretKey = key();
         try {

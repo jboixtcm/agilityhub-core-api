@@ -144,7 +144,10 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         var bank=(Document)member(50).get("paymentMethod"); assertThat(bank).containsKeys("ibanEncrypted","ibanLast4","mandateRef","mandateSignedAt").doesNotContainKey("iban");
         assertThat(bank).containsEntry("mandateRef",null).containsEntry("mandateSignedAt",null);
         assertThat(entries(report,50)).contains("members WARNING MANDATE_PENDING");
-        byte[] encrypted=Base64.getDecoder().decode(bank.getString("ibanEncrypted"));
+        // PRIV-11 changed this test: the stored value is `{keyId}:` (8 hex of the SHA-256 of BILLING_BANK_KEY) before the Base64 it decoded.
+        String keyId=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(Base64.getDecoder().decode(BANK_KEY)),0,4);
+        assertThat(bank.getString("ibanEncrypted")).startsWith(keyId+":");
+        byte[] encrypted=Base64.getDecoder().decode(bank.getString("ibanEncrypted").substring(keyId.length()+1));
         var cipher=javax.crypto.Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(javax.crypto.Cipher.DECRYPT_MODE,new javax.crypto.spec.SecretKeySpec(Base64.getDecoder().decode(BANK_KEY),"AES"),
                 new javax.crypto.spec.GCMParameterSpec(128,Arrays.copyOfRange(encrypted,0,12)));
         cipher.updateAAD((CLUB+":"+member(50).get("_id")).getBytes(java.nio.charset.StandardCharsets.UTF_8));

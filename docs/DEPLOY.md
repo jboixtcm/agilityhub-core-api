@@ -351,15 +351,49 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
   launch, and once on any database written by an earlier release, run
   `bin/core census:seal-ibans` (a dry run: it lists the members with an IBAN in
   clear, never the IBAN) and then `bin/core census:seal-ibans --apply`; a second
-  `--apply` reports `0` (idempotent). No online
-  re-encryption tool is provided here: keep it for every retained record and
-  backup, and rotate it only with a reviewed re-encryption. Never rotate it by
-  just editing env. Since E11-T11, Core does not start outside the `local` and
+  `--apply` reports `0` (idempotent). Keep the key for every retained record and
+  backup, and rotate it only with the procedure below (PRIV-11), never by just
+  editing env. Since E11-T11, Core does not start outside the `local` and
   `test` profiles when the key is missing or is not Base64 of 32 bytes (staging
   and `prod` included). A run with no active profile is the local stack by
   design (`spring.profiles.default: local` in `application.yml`, ruling E139): it
   starts without the key and keeps the IBAN in clear with the WARN, so every
   deployment sets its profile explicitly (`prod` in the production Compose).
+- **Rotating `BILLING_BANK_KEY` (PRIV-11).** Every IBAN sealed since PRIV-11
+  starts with the id of its key, `{keyId}:` — the first 8 hex characters of the
+  SHA-256 of the key's 32 bytes (`printf %s "$KEY" | base64 -d | sha256sum | cut -c1-8`);
+  values sealed before have no prefix and are read with the current key, then the
+  previous one. `BILLING_BANK_KEY_PREVIOUS` (empty outside a rotation) is the key
+  being replaced: Core reads with it and never seals with it, and does not start
+  when it is set but malformed or equal to `BILLING_BANK_KEY`.
+  `bin/core census:rekey-ibans` reads every sealed IBAN (payment method, flat or
+  under `sepa`, and a pending readmission's) with the configured keys and seals
+  it again with the current one; it prints member ids, clubs, places, key ids
+  and counts, never an IBAN or a ciphertext. Procedure, in one maintenance window,
+  with the bank key as the only key changed:
+  1. Take and verify a backup. Generate the new key (`openssl rand -base64 32`)
+     and escrow it next to the current one, off this host.
+  2. Run `bin/core census:seal-ibans` first: its count must be `0` (the re-key
+     does not touch an IBAN in clear).
+  3. Set `BILLING_BANK_KEY_PREVIOUS` to the current value and `BILLING_BANK_KEY`
+     to the new one in the deployment env; restart Core so that it and the CLI
+     read both. The header line `Current key: …, previous key: …` of the next
+     command shows the two ids.
+  4. `bin/core census:rekey-ibans` (dry run, writes nothing): `unreadable: 0` is
+     required; a member listed `UNREADABLE` has a value neither key reads (stop
+     and investigate; the command exits with an error).
+  5. `bin/core census:rekey-ibans --apply`, then again until it reports
+     `re-encrypted: 0, skipped …: 0` (idempotent; a member edited meanwhile is
+     `SKIPPED` and taken by the rerun). A last dry run reports `to re-encrypt: 0`.
+  6. Empty `BILLING_BANK_KEY_PREVIOUS` and restart Core; a dry run still reports
+     `to re-encrypt: 0, unreadable: 0` and `previous key: none`.
+  7. Keep the old key in escrow for as long as any backup taken before step 5
+     is retained: restoring such a backup needs it as `BILLING_BANK_KEY_PREVIOUS`
+     and a new `census:rekey-ibans --apply`.
+  The same command with no previous key set only adds the key id to the values
+  sealed before PRIV-11 (optional; they are read without it). The club's own
+  creditor IBAN is not under this key: it is a provider setting sealed with
+  `BILLING_SECRETS_KEY` (below).
 - `MIGRATION_BANK_KEY` is retired (ruling E85): Core no longer reads it. No
   release imported bank data with it; a local database imported before needs a
   new `migration:apply` with `BILLING_BANK_KEY`. The production Compose stops
@@ -592,7 +626,8 @@ and URIs are included because they must remain consistent across recovery.
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Retired (ruling E85): Core no longer reads it, and `migration:apply` encrypts with `BILLING_BANK_KEY`. Leave it empty; E11-T04 removes it from the production Compose. |
-| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); Core refuses to start without a usable one outside `local`/`test` (E11-T11); preserve and re-encrypt before rotation. |
+| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); Core refuses to start without a usable one outside `local`/`test` (E11-T11); preserve it, and rotate it only with `census:rekey-ibans` («Keys and provider rotation», PRIV-11). |
+| `BILLING_BANK_KEY_PREVIOUS` | Empty except during a `BILLING_BANK_KEY` rotation (PRIV-11): the key being replaced, read-only, until `bin/core census:rekey-ibans --apply` has re-encrypted every IBAN. When set it must be Base64 of 32 bytes and another key than `BILLING_BANK_KEY`, or Core does not start. |
 | `BILLING_SECRETS_KEY` | Operator-generated, escrowed base64 32 random bytes, `ProviderSecretVault`'s key for the clubs' encrypted Stripe secrets (ADR-009); without it every Stripe webhook answers 401. Required and forwarded by production Compose and the local rehearsal; rotation means re-entering every club's secrets. |
 | `FILE_STORAGE_MODE` | Default `s3`. Explicit `filesystem` is available only in hosted demo on a deployed profile; it uses the encrypted private volume and constructs no S3 clients. |
 | `FILE_STORAGE_ROOT`, `FILE_STORAGE_SIGNING_KEY` | Filesystem mode requires `/storage` and stable base64 of at least 32 random bytes. Back up the signing key privately; rotation invalidates existing signed links. |
