@@ -472,6 +472,72 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(sms.messages()).hasSize(1); assertThat(usage(CLUB)).containsEntry("smsSentMonth", 1L);
     }
 
+    /**
+     * COMM-10 (owner decision of 13 Nov 2026, R-11-07): the push TTL per code. A class reminder (N-13) is sent with the club's
+     * `messaging.push.ttlMinutes` cut at the class start and is never pushed once the class has started (`SKIPPED_STALE`, no call);
+     * a FIFO seat offer (N-15) lives until its confirm-by deadline, also beyond the club's TTL; an offer without a deadline and any
+     * other code keep the club's TTL. Before, every push had the club's TTL and a retry after the start was still pushed.
+     */
+    @Test void T_11_10_COMM_10_aReminderPushNeverOutlivesItsClassAndASeatOfferLivesUntilItsDeadline() {
+        subscribe(CLUB, "subscription-laura", "account-laura"); subscribe(CLUB, "subscription-pau", "account-pau");
+        engine = engine(idleDispatcher());
+        var seatDeadlines = new java.util.concurrent.ConcurrentHashMap<String, Instant>();
+        owners = List.of(new ReminderFacts(ports), new NotificationFactsPort() {
+            @Override public Set<String> eventTypes() { return Set.of("WaitlistNotified"); }
+            @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) { return Optional.empty(); }
+            @Override public Optional<Instant> pushDeadline(StoredNotification notification) { return Optional.ofNullable(seatDeadlines.get(notification.memberId())); }
+        });
+        var counting = new CountingPush(push);
+        var sending = dispatcher(sms, ports, usage, events, counting);
+        java.util.function.BiFunction<String, Instant, Notification> remind = (bookingId, startsAt) -> {
+            ports.activeBookings.put(bookingId, startsAt);
+            deliver(CLUB, "ReminderDue", Map.of("bookingId", bookingId, "memberId", "member-laura", "dogId", "dog-duna", "startsAt", startsAt.toString()));
+            return reload(stored(CLUB, "N-13").stream().filter(n -> n.dedupKey().equals("N-13:" + bookingId)).findFirst().orElseThrow());
+        };
+        java.util.function.Function<Notification, Long> pushedTtl = n -> {
+            assertThat(dispatch(sending, n)).isPositive();
+            assertThat(delivery(reload(n), NotificationChannel.PUSH).status()).isEqualTo(DeliveryStatus.SENT);
+            var last = push.sent().getLast(); assertThat(last.payload().notificationId()).isEqualTo(n.id());
+            return last.payload().ttlSeconds();
+        };
+        Instant now = clock.instant();
+        // N-13 two hours ahead: cut at the start (7,200 s < the club's 1,440 min); 26 hours ahead: the club's TTL.
+        assertThat(pushedTtl.apply(remind.apply("booking-soon", now.plus(Duration.ofHours(2))))).isEqualTo(7_200L);
+        assertThat(pushedTtl.apply(remind.apply("booking-tomorrow", now.plus(Duration.ofHours(26))))).isEqualTo(86_400L);
+        // A retry after the class start is not pushed: SKIPPED_STALE, no call to the push service, nothing left to retry.
+        push.answer(PushResult.of(PushResult.Status.RETRYABLE, "Push HTTP 503"));
+        var late = remind.apply("booking-late", now.plus(Duration.ofMinutes(30)));
+        assertThat(dispatch(sending, late)).isEqualTo(1);
+        assertThat(delivery(reload(late), NotificationChannel.PUSH)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(1); });
+        clock.advance(Duration.ofMinutes(30)); int calls = counting.calls.get();
+        assertThat(dispatch(sending, late)).isEqualTo(1);
+        assertThat(delivery(reload(late), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(d.lastError()).isEqualTo("Push deadline passed"); assertThat(d.attempts()).isEqualTo(1); });
+        assertThat(counting.calls).hasValue(calls);
+        clock.advance(Duration.ofHours(2)); assertThat(dispatch(sending, late)).isZero();
+        // A club that shortens its TTL: the reminder takes the shorter of the two.
+        parameter(CLUB, "messaging.push.ttlMinutes", 30, "int");
+        assertThat(pushedTtl.apply(remind.apply("booking-short", clock.instant().plus(Duration.ofHours(2))))).isEqualTo(1_800L);
+        // N-15 FIFO with its confirm-by 36 hours ahead: until the deadline, beyond the club's 30 minutes; ALL_AT_ONCE: the club's TTL.
+        seatDeadlines.put("member-laura", clock.instant().plus(Duration.ofHours(36)));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-laura", "dogId", "dog-duna", "mode", "FIFO", "confirmBy", clock.instant().plus(Duration.ofHours(36)).toString()));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-pau", "dogId", "dog-nit", "mode", "ALL_AT_ONCE"));
+        assertThat(pushedTtl.apply(memberNotice("N-15", "member-laura"))).isEqualTo(129_600L);
+        assertThat(pushedTtl.apply(memberNotice("N-15", "member-pau"))).isEqualTo(1_800L);
+        // A seat offer whose deadline has passed is not pushed.
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-15")), Notification.class);
+        seatDeadlines.put("member-pau", clock.instant().minusSeconds(1));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-pau", "dogId", "dog-nit", "mode", "FIFO", "confirmBy", clock.instant().minusSeconds(1).toString()));
+        var lapsed = memberNotice("N-15", "member-pau"); calls = counting.calls.get();
+        assertThat(dispatch(sending, lapsed)).isPositive();
+        assertThat(delivery(reload(lapsed), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(d.lastError()).isEqualTo("Push deadline passed"); });
+        assertThat(counting.calls).hasValue(calls);
+        // Any other code (a club announcement, N-24): the club's TTL.
+        announce(CLUB, "batch-ttl", "member-laura");
+        assertThat(pushedTtl.apply(memberNotice("N-24", "member-laura"))).isEqualTo(1_800L);
+    }
+
     @Test void T_11_10_goneExpiresTheSubscriptionRetryableRetriesAndThreeFailuresExpireIt() {
         var startsAt = Instant.parse("2026-10-08T16:50:00Z");
         subscribe(CLUB, "subscription-laura", "account-laura");

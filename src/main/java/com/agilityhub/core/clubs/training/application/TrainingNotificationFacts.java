@@ -68,6 +68,12 @@ public class TrainingNotificationFacts implements NotificationFactsPort, Booking
         return Optional.of(builder.build());
     }
 
+    /** COMM-10 (S11 R-11-07): a training reminder's push never reaches the device after the training starts. */
+    @Override public Optional<Instant> pushDeadline(StoredNotification notification) {
+        if (!"N-13".equals(notification.code()) || notification.subject().trainingBookingId() == null) { return Optional.empty(); }
+        return bookings.findById(notification.subject().trainingBookingId()).map(com.agilityhub.core.clubs.training.persistence.TrainingBooking::startsAt);
+    }
+
     /** R-11-16: the booking of a reminder is still `ACTIVE` and starts after now. */
     @Override public boolean stillActive(String bookingId, String trainingBookingId, Instant now) {
         if (trainingBookingId != null) {

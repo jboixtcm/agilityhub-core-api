@@ -245,6 +245,21 @@ public class BookingNotificationFacts implements NotificationFactsPort, Waitlist
     }
 
     /** R-11-11 `CLAIM_SEAT.enabled`: the entry is still `NOTIFIED` and, in FIFO, `confirmBy` is after now. */
+    /**
+     * COMM-10 (S11 R-11-07): a class reminder's push never reaches the device after the class start (`classStartsAt` of its
+     * booking); a FIFO seat offer's lives until the entry's `confirmBy`. An ALL_AT_ONCE offer has no deadline (the club's TTL).
+     */
+    @Override public Optional<Instant> pushDeadline(StoredNotification notification) {
+        var subject = notification.subject();
+        if ("N-13".equals(notification.code()) && subject.bookingId() != null) {
+            return bookings.findById(subject.bookingId()).map(com.agilityhub.core.clubs.bookings.persistence.Booking::classStartsAt);
+        }
+        if ("N-15".equals(notification.code()) && subject.waitlistEntryId() != null) {
+            return waitlist.findById(subject.waitlistEntryId()).map(com.agilityhub.core.clubs.bookings.persistence.WaitlistEntry::confirmBy);
+        }
+        return Optional.empty();
+    }
+
     @Override public boolean stillNotified(String waitlistEntryId, Instant now) {
         return waitlist.findById(waitlistEntryId).filter(e -> e.state() == WaitlistState.NOTIFIED && (e.confirmBy() == null || e.confirmBy().isAfter(now))).isPresent();
     }

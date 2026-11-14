@@ -341,9 +341,13 @@ public class NotificationDispatcher {
         // R-11-07 (E76): the device must still be the recipient's at every attempt, never the next account's on the same browser.
         String recipient = notification.recipient() == null ? null : notification.recipient().accountId();
         if (!subscription.accountId().equals(recipient)) { return Outcome.status(DeliveryStatus.FAILED, OTHER_OWNER); }
+        // COMM-10: the TTL per code — a reminder never past its class start, a seat offer until its deadline; past it, no push.
+        var ttl = com.agilityhub.core.clubs.messaging.domain.PushTtl.of(notification.code(), pushDeadline(notification),
+                Duration.ofMinutes(Objects.requireNonNullElse(configs.get(notification.clubId()).get("messaging.push.ttlMinutes", Integer.class), 1440)), clock.instant());
+        if (ttl.isEmpty()) { return Outcome.status(DeliveryStatus.SKIPPED_STALE, com.agilityhub.core.clubs.messaging.domain.PushTtl.PAST_DEADLINE); }
         String url = notification.action() == null ? "/notificacions" : "/notificacions?id=" + notification.id();
         var payload = new PushPayload(notification.id(), notification.title(), notification.body(), notification.icon() == null ? null : notification.icon().name(),
-                url, notification.code());
+                url, notification.code(), ttl.get().toSeconds());
         if (!leaseCoversCall(delivery)) { return Outcome.ABANDONED; }
         var result = push.send(subscription, payload);
         // The subscription's bookkeeping of the answer is the settlement's (E7-T05): it never turns the answer into another attempt.
@@ -604,6 +608,14 @@ public class NotificationDispatcher {
         if (notification.eventType() == null) { return true; }
         var view = view(notification);
         return owners.stream().filter(port -> port.eventTypes().contains(notification.eventType())).allMatch(port -> port.deliverable(view, delivery.channel().name()));
+    }
+
+    /** COMM-10: the earliest push deadline the notification's owners give ({@link NotificationFactsPort#pushDeadline}), or null. */
+    private Instant pushDeadline(Notification notification) {
+        if (notification.eventType() == null) { return null; }
+        var view = view(notification);
+        return owners.stream().filter(port -> port.eventTypes().contains(notification.eventType()))
+                .map(port -> port.pushDeadline(view)).flatMap(java.util.Optional::stream).min(Instant::compareTo).orElse(null);
     }
 
     private NotificationFactsPort owner(Notification notification) {

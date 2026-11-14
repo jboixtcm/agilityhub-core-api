@@ -41,7 +41,8 @@ import javax.crypto.spec.SecretKeySpec;
  * Web Push with the JDK's own cryptography: the payload is encrypted with `aes128gcm` (RFC 8291 over RFC 8188, one record)
  * for the subscription's `p256dh`/`auth` keys, and the request carries a VAPID JWT (RFC 8292, ES256, 12 h) signed with the
  * product key pair of `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (base64url: the uncompressed P-256 point and the 32-byte
- * scalar) and `VAPID_SUBJECT` (`mailto:` or `https:`). TTL = `messaging.push.ttlMinutes`. 201/202 → `OK`; 404/410 →
+ * scalar) and `VAPID_SUBJECT` (`mailto:` or `https:`). TTL = the payload's own (COMM-10, per code), else
+ * `messaging.push.ttlMinutes`. 201/202 → `OK`; 404/410 →
  * `GONE`; 429, 5xx, a timeout or a transport failure → `RETRYABLE`; anything else → `FAILED`. No endpoint or key is logged.
  */
 public final class WebPushSender implements PushSender {
@@ -76,7 +77,7 @@ public final class WebPushSender implements PushSender {
             var endpoint = URI.create(subscription.endpoint());
             var request = HttpRequest.newBuilder(endpoint).timeout(timeout)
                     .header("Content-Encoding", ENCODING).header("Content-Type", "application/octet-stream")
-                    .header("TTL", Integer.toString(Math.max(0, ttlSeconds.getAsInt())))
+                    .header("TTL", Long.toString(Math.max(0, payload.ttlSeconds() != null ? payload.ttlSeconds() : ttlSeconds.getAsInt())))
                     .header("Authorization", "vapid t=" + jwt(endpoint) + ", k=" + publicKey)
                     .POST(HttpRequest.BodyPublishers.ofByteArray(body)).build();
             int status = client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode();

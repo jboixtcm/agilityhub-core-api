@@ -94,7 +94,7 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         ports.classInstructors.put("e7t02-class-a", List.of("instructor-marta"));
         for (var member : ports.members.values()) { account(member.accountId(), member.locale()); }
         account("account-admin2", "es");
-        owners = List.of(scheduling, new MessagingNotificationFacts(ports, announcements), new ReminderFacts());
+        owners = List.of(scheduling, new MessagingNotificationFacts(ports, announcements), new ReminderFacts(ports));
         dispatcher = dispatcher(sms);
         engine = new NotificationEngine(configs, messages, templates, new RecipientResolver(ports, ports, ports), notifications, subscriptions, accounts, owners, ports,
                 events, dispatcher, clock, transactions);
@@ -260,7 +260,15 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
      * class or training values (date, time, ring, description) and the member with the dog.
      */
     static final class ReminderFacts implements NotificationFactsPort {
+        private final InMemoryMessagingPorts ports;
+        ReminderFacts(InMemoryMessagingPorts ports) { this.ports = ports; }
         @Override public Set<String> eventTypes() { return Set.of("ReminderDue"); }
+        /** COMM-10, as S08/S09 answer: a reminder's push never outlives the start of its (active) booking. */
+        @Override public Optional<Instant> pushDeadline(StoredNotification notification) {
+            var subject = notification.subject();
+            String id = subject.bookingId() != null ? subject.bookingId() : subject.trainingBookingId();
+            return id == null ? Optional.empty() : Optional.ofNullable(ports.activeBookings.get(id));
+        }
         @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
             var startsAt = Instant.parse(trigger.text("startsAt"));
             boolean training = trigger.text("trainingBookingId") != null;

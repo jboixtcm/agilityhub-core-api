@@ -31,6 +31,12 @@ public interface NotificationFactsPort {
      * delivery as `SKIPPED_STALE` and nothing is sent; a hook that throws is a transient failure of that attempt.
      */
     default boolean deliverable(StoredNotification notification, String channel) { return true; }
+    /**
+     * COMM-10 (S11 R-11-07): before every PUSH attempt of a notification this owner explained, outside any transaction, in the
+     * notification's club — the instant after which its push must no longer reach the device: a class reminder's class start
+     * (N-13), a seat offer's confirm-by deadline (N-15 in FIFO). Empty (the default) keeps the club's `messaging.push.ttlMinutes`.
+     */
+    default java.util.Optional<java.time.Instant> pushDeadline(StoredNotification notification) { return java.util.Optional.empty(); }
 
     /** A stored notification as its owner sees it: who, about what, and its deliveries. */
     record StoredNotification(String notificationId, String code, String eventType, String audience, String accountId,

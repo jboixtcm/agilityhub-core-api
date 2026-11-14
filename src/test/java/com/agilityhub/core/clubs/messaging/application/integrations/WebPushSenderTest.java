@@ -122,6 +122,17 @@ class WebPushSenderTest {
         assertThat(sender(Duration.ofSeconds(2)).publicKey()).isEqualTo(URL.encodeToString(point((ECPublicKey) vapid.getPublic())));
     }
 
+    /** COMM-10: a payload with its own TTL (per code: a reminder cut at its class start) sends that TTL, not the club's. */
+    @Test void T_11_10_COMM_10_thePayloadsOwnTtlIsTheRequestsTtl() throws Exception {
+        var reminder = new PushPayload("notification-b", "Recordatori", "Avui 18:00", "clock", "/notificacions", "N-13", 7_200L);
+        assertThat(sender(Duration.ofSeconds(2)).send(subscription(endpoint()), reminder)).isEqualTo(PushResult.ok());
+        assertThat(captured.get().ttl()).isEqualTo("7200");
+        assertThat(mapper.readTree(decrypt(captured.get().body())).has("ttlSeconds")).as("the TTL is a header, never in the payload").isFalse();
+        captured = new CompletableFuture<>();
+        assertThat(sender(Duration.ofSeconds(2)).send(subscription(endpoint()), new PushPayload("n", "t", "b", null, "/notificacions", "N-13", 0L))).isEqualTo(PushResult.ok());
+        assertThat(captured.get().ttl()).isEqualTo("0");
+    }
+
     @ParameterizedTest @CsvSource({"200,OK", "202,OK", "404,GONE", "410,GONE", "429,RETRYABLE", "500,RETRYABLE", "503,RETRYABLE", "400,FAILED", "413,FAILED"})
     void T_11_10_pushServiceAnswers(int status, PushResult.Status expected) {
         responseStatus = status;

@@ -145,6 +145,40 @@ class RetentionSweepIT extends PrivacyItFixtures {
                 .containsEntry("remittanceFilesDeleted", 0L).containsEntry("auditEntriesPurged", 0L);
     }
 
+    void pushSubscription(String clubId, String id, com.agilityhub.core.clubs.messaging.persistence.PushSubscription.Status status, Instant expiredAt) {
+        var keys = new com.agilityhub.core.clubs.messaging.persistence.PushSubscription.Keys(com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.p256dh(),
+                com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.auth());
+        mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.PushSubscription(id, clubId, "account-" + id, "https://push.example.test/" + id, null, keys,
+                "iPhone · Safari", "UA", status, 0, null, expiredAt, 0L, Instant.parse("2025-01-01T10:00:00Z"), "account-" + id, Instant.parse("2025-01-01T10:00:00Z"), "account-" + id));
+    }
+
+    /**
+     * COMM-10 (owner decision of 13 Nov 2026, S14 R-14-16 (h)): the sweep deletes the club's push subscriptions that have been
+     * `EXPIRED` for 90 days (endpoint, keys and device go); a more recent expiry, an `ACTIVE` subscription however old, and
+     * another club's are kept. The dry run counts them and deletes nothing; a second run finds nothing more.
+     */
+    @Test void T_14_20_COMM_10_theSweepPurgesPushSubscriptionsExpiredForNinetyDays() throws Exception {
+        var expired = com.agilityhub.core.clubs.messaging.persistence.PushSubscription.Status.EXPIRED;
+        pushSubscription(CLUB, "push-expired-200", expired, RUN.minus(Duration.ofDays(200)));
+        pushSubscription(CLUB, "push-expired-90", expired, RUN.minus(Duration.ofDays(90)));
+        pushSubscription(CLUB, "push-expired-89", expired, RUN.minus(Duration.ofDays(89)));
+        pushSubscription(CLUB, "push-active", com.agilityhub.core.clubs.messaging.persistence.PushSubscription.Status.ACTIVE, null);
+        pushSubscription(OTHER, "push-foreign", expired, RUN.minus(Duration.ofDays(200)));
+        var dry = runner.manual(CLUB, JobName.RETENTION_SWEEP, true, "admin-account");
+        assertThat(counters(dry)).containsEntry("WOULD_PURGE_EXPIRED_PUSH_SUBSCRIPTION", 2L);
+        assertThat(mongo.count(new Query(), "push_subscriptions")).isEqualTo(5);
+
+        var run = runner.manual(CLUB, JobName.RETENTION_SWEEP, false, "admin-account");
+        assertThat(run.errors()).isEmpty();
+        assertThat(counters(run)).containsEntry("expiredPushSubscriptionsPurged", 2L);
+        assertThat(run.items()).filteredOn(item -> item.entityType().equals("PushSubscription")).extracting(JobRun.Item::entityId, JobRun.Item::action)
+                .containsExactly(tuple("push-expired-200", "PURGE_EXPIRED_PUSH_SUBSCRIPTION"), tuple("push-expired-90", "PURGE_EXPIRED_PUSH_SUBSCRIPTION"));
+        assertThat(document("push_subscriptions", "push-expired-200")).isNull();
+        assertThat(document("push_subscriptions", "push-expired-90")).isNull();
+        for (String kept : java.util.List.of("push-expired-89", "push-active", "push-foreign")) { assertThat(document("push_subscriptions", kept)).as(kept).isNotNull(); }
+        assertThat(counters(runner.manual(CLUB, JobName.RETENTION_SWEEP, false, "admin-account"))).containsEntry("expiredPushSubscriptionsPurged", 0L);
+    }
+
     /**
      * PRIV-02 (owner's decision of 13-11, S14 R-14-16, S15 R-15-09): a manual sweep deletes nothing without a dry run made on the
      * server just before and the explicit confirmation of the counts it showed; and a plan that changed since refuses it too.
