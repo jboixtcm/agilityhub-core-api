@@ -120,6 +120,26 @@ and then marks the report purged while retaining the run/manifest/counters.
 Storage failure leaves it retryable. The job's dry run only lists the proposed
 deletions. Monitor failures and `migrationReportsPurged`/`WOULD_DELETE_migrationReports`.
 
+### Purge a report right after the run (MIG-13)
+
+Once the migration is done and the report has been read, purge it at once instead
+of waiting for the 30-day retention (owner decision of 13 Nov 2026):
+
+```sh
+bin/core migration:report-purge --club=canic --run=<recorded-run-id>
+```
+
+It deletes the object (`report.xlsx` on the volume or in S3) and then records
+`reportPurgedAt` (now) and removes the pointer, exactly as P9 does at the deadline;
+the run, its manifest and counters stay. It prints `Migration report purged for run
+<id>`, or `… was already purged` when run again (a repeat deletes the object again,
+which also removes a late upload, and changes nothing else). A storage failure
+exits 1 and leaves the run unpurged: fix the storage and run it again. Afterwards the
+download link is refused with `EXPORT_EXPIRED` and `migration:report` cannot publish
+the report again. Another club's, an unknown or a staging run is `NOT_FOUND`. The
+command writes no audit entry (P9's purge writes none either) and does not touch
+copies already in volume or database backups, which keep their own retention.
+
 Physical S3 deletion is asynchronous: P9 removes overdue bytes at its next
 successful execution, and the bucket lifecycle is an orphan backstop measured
 from **object upload time**. Republishing on day 29 does not change application

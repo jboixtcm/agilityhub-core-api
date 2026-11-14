@@ -135,4 +135,33 @@ class MigrationReportsTest {
         when(config.get("migration.exportRetentionDays",Integer.class)).thenReturn(31);
         assertThatThrownBy(reports::requireReady).isInstanceOf(IllegalStateException.class); verifyNoInteractions(store);
     }
+    /** MIG-13 (owner decision, 13-11-2026): the operator's purge deletes the object first, then marks the run purged; idempotent. */
+    @Test void MIG_13_theOperatorPurgesAReportBeforeItsDeadlineObjectFirstAndIdempotently() {
+        String key="migration-reports/club-1/run-1/report.xlsx";
+        when(runs.findById("run-1")).thenReturn(Optional.of(run(NOW.plus(Duration.ofDays(30)),key)));
+        when(runs.reportPurgedNow("run-1",NOW)).thenReturn(true);
+        assertThat(reports.purgeNow("run-1")).isTrue();
+        var order=inOrder(store,runs); order.verify(store).delete(key); order.verify(runs).reportPurgedNow("run-1",NOW);
+        // A storage failure leaves the run unpurged: the purge can be run again.
+        clearInvocations(store,runs);
+        doThrow(new IllegalStateException("fictional storage failure")).when(store).delete(key);
+        assertThatThrownBy(()->reports.purgeNow("run-1")).isInstanceOf(IllegalStateException.class);
+        verify(runs,never()).reportPurgedNow(anyString(),any());
+        // Already purged: the object is deleted again (a late upload) and nothing else changes.
+        doNothing().when(store).delete(key); clearInvocations(store,runs);
+        var purged=new MigrationRun("run-1","club-1","PLAYOFF","APPLY","PRODUCTION",2,"COMPLETED",NOW.minusSeconds(60),NOW,
+                Map.of(),manifest,List.of(),null,NOW.plus(Duration.ofDays(30)),NOW.minusSeconds(30));
+        when(runs.findById("run-1")).thenReturn(Optional.of(purged));
+        assertThat(reports.purgeNow("run-1")).isFalse();
+        verify(store).delete(key); verify(runs,never()).reportPurgedNow(anyString(),any());
+    }
+    @Test void MIG_13_onlyAKnownProductionRunOfTheClubCanBePurged() {
+        when(runs.findById("unknown")).thenReturn(Optional.empty());
+        var staging=new MigrationRun("run-2","club-1","PLAYOFF","APPLY","STAGING",2,"COMPLETED",NOW,NOW,Map.of(),manifest,List.of(),null,null,null);
+        when(runs.findById("run-2")).thenReturn(Optional.of(staging));
+        for(String id:List.of("unknown","run-2")) {
+            assertThatThrownBy(()->reports.purgeNow(id)).isInstanceOfSatisfying(ApiException.class,error->assertThat(error.code()).isEqualTo(ErrorCode.NOT_FOUND));
+        }
+        verifyNoInteractions(store);
+    }
 }
