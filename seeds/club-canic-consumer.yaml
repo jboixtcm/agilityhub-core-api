@@ -1,5 +1,5 @@
 # Local consumer variant of club-canic.yaml; only the two routing hosts differ.
-# Product defaults equal the Cànic catalog values; no parameter overrides are needed.
+# The local Cànic fixture uses the same scheduling and waiting-list parameters as the club.
 # Theme tokens: docs/pantalles/mobil/01-acces.html :root.
 apiVersion: "agilityhub.club/v1"
 club:
@@ -64,6 +64,10 @@ paymentProviders:
       ca: "Pots fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el teu nom i el del gos"
       es: "Puedes hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto tu nombre y el del perro"
 parameters:
+  classes.slotMinutes: 5
+  waitlist.mode: "FIFO"
+  waitlist.fifoConfirmMinutes: 15
+  waitlist.maxPerClass: 2
   signup.text.cashConditions:
     ca: "El pagament en efectiu es fa sempre per trimestres complets. Coordina amb el club l’import i forma de pagament."
     es: "El pago en efectivo se realiza siempre por trimestres completos. Coordina con el club el importe y la forma de pago."
