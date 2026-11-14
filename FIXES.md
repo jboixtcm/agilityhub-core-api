@@ -716,6 +716,7 @@ Pass 2 (owner decision of 13 Nov 2026): a real robots.txt with `Disallow: /` on 
 - Assumption: «every host» read literally, as the web did, so the Core's own host answers it too; the internal ask listener (`http://127.0.0.1:9080`, never published) is not a host anyone crawls and is unchanged. The preflight requires the exact two lines the web writes, so a different robots policy needs both repositories changed.
 - SPEC-CHANGE: docs/DEPLOY.md «Security hardening (E11-T03)»: every host answers `/robots.txt` with `Disallow: /` (bundles on the SPA hosts and aliases, Caddy on the Core host), and the `bin/release-preflight` paragraph: the new refusal.
 - No route, schema, error code, parameter, event, notification or audit action changes; no OpenAPI change.
+- Local proof: the fictional bundles under `deploy/local/{clubs,clubsadmin,id}/` now carry the same `robots.txt`, as real bundles do.
 - OTHER-REPO: none left (the web's side is done).
 
 ### CFG-06 — FIXED
