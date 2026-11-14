@@ -131,6 +131,13 @@ email settings before activation; never supply fake credentials to pass it.
    scheduled real-core run pulls it and runs the critical flows against it, so the
    GHCR package must grant the web repository read access (package settings,
    Actions access).
+   Once, at the release that brings the dog photos' list thumbnails (WEB-05) and on any
+   database with dog photos stored before it, make the missing ones club by club:
+   `bin/core census:photo-thumbnails --club=<slug> --dry-run` (one line per dog id,
+   writes nothing), then `bin/core census:photo-thumbnails --club=<slug>`; a second run
+   makes nothing new (idempotent, safe to repeat). A dog reported `NOT_MADE` (a WebP,
+   HEIC or damaged photo) keeps showing its original photo in the lists. New photos get
+   their thumbnail when they are claimed.
 6. Release rollback: restore the previous digest-pinned `IMAGE_TAG` **and**
    previous three `*_DIST_DIR` values (the previous release's directories, copied
    from its CI artifact; never a rebuild), then repeat `pull core`,
@@ -1142,8 +1149,12 @@ the deployment environment. Limit the export principal to Get/Put/DeleteObject
 under `exports/`; limit the attachment principal to Get/PutObject (including HEAD)
 under `attachments/` and `signup/`, plus `s3:DeleteObject` under `signup/`: the S15
 cleanup job (`CleanupJob`, `jobs.retention.orphanUploadsHours`) deletes the signup
-uploads that no submission claimed (R-04-08). A shared principal needs the union of
-those permissions, restricted to those three prefixes. Public access must remain disabled.
+uploads that no submission claimed (R-04-08); and `s3:DeleteObject` under `attachments/`:
+a replaced dog photo's list thumbnail is deleted there (WEB-05), as are the files the S14
+erasure deletes (R-14-15). Without it those deletes fail and are only logged: the
+thumbnail's upload record stays bound to its dog for the erasure. A shared principal
+needs the union of those permissions, restricted to those three prefixes. Public access
+must remain disabled.
 
 Example attachment policy (replace the fictional bucket name):
 
@@ -1154,7 +1165,7 @@ Example attachment policy (replace the fictional bucket name):
     {"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject"],
      "Resource": ["arn:aws:s3:::example-attachments/attachments/*", "arn:aws:s3:::example-attachments/signup/*"]},
     {"Effect": "Allow", "Action": ["s3:DeleteObject"],
-     "Resource": ["arn:aws:s3:::example-attachments/signup/*"]}
+     "Resource": ["arn:aws:s3:::example-attachments/attachments/*", "arn:aws:s3:::example-attachments/signup/*"]}
   ]
 }
 ```

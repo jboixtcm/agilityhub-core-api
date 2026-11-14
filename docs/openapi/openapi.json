@@ -1666,6 +1666,10 @@
           "dogName" : {
             "type" : "string"
           },
+          "dogPhotoThumbnailUrl" : {
+            "description" : "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for the row; null when there is none (no photo, or one the server cannot reduce, such as WebP): show dogPhotoUrl, which the enlarged photo keeps",
+            "type" : [ "string", "null" ]
+          },
           "dogPhotoUrl" : {
             "description" : "Short-lived signed URL",
             "type" : [ "string", "null" ]
@@ -8871,6 +8875,10 @@
             },
             "type" : "array"
           },
+          "photoThumbnailUrl" : {
+            "description" : "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl",
+            "type" : [ "string", "null" ]
+          },
           "photoUrl" : {
             "description" : "Short-lived signed dog photo URL",
             "type" : "string"
@@ -8967,6 +8975,10 @@
           },
           "name" : {
             "type" : "string"
+          },
+          "photoThumbnailUrl" : {
+            "description" : "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl",
+            "type" : [ "string", "null" ]
           },
           "photoUrl" : {
             "description" : "Short-lived signed dog photo URL",
@@ -16629,6 +16641,10 @@
               "type" : "string"
             },
             "type" : "array"
+          },
+          "photoThumbnailUrl" : {
+            "description" : "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl",
+            "type" : [ "string", "null" ]
           },
           "photoUrl" : {
             "description" : "Short-lived signed dog photo URL",
@@ -43682,7 +43698,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "photoThumbnailUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -43979,7 +43995,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "photoThumbnailUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -44274,7 +44290,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
+        "x-fields" : [ "id", "name", "photoUrl", "photoThumbnailUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],

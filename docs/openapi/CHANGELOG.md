@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · WEB-05 · A small thumbnail of the dog's photo beside its URL in the list rows
+
+**No operations or error codes added; 4 schemas gain an optional, nullable field (`DogListItem`, `DogSummary`, `OverviewDog`: `photoThumbnailUrl`; `AttendanceRow`: `dogPhotoThumbnailUrl`); `x-fields` of `GET /dogs` and `GET|POST /dogs/export` gain `photoThumbnailUrl`.**
+
+- When a dog photo is claimed (`PUT /me/dogs/{id}/photo`, `PUT /dogs/{id}/photo`, unchanged: `200 {photoUrl}`), when a migrated photo is bound and, once, through `bin/core census:photo-thumbnails`, the api stores a JPEG rendition (longest side 256 px, never enlarged, upright by the JPEG's EXIF orientation, no metadata) next to the original, for `image/jpeg` and `image/png` photos only. A replaced photo's rendition is deleted; the S14 erasure deletes it with the photo.
+- Its short-lived signed URL (five minutes, as the photo's) is returned as `photoThumbnailUrl` in the rows of `GET /dogs` (when `fields` asks for it, or without `fields`), in the `dogs[]` of `GET /members` rows (ADMIN and INSTRUCTOR), of the INSTRUCTOR's `GET /members/{id}` and of `GET /members/{id}/overview`, and as `dogPhotoThumbnailUrl` beside `dogPhotoUrl` in the rows of `GET|PUT /class-sessions/{id}/attendance` (21 and D12). It is absent (lists) or null (attendance) when the dog has no photo or no rendition (a WebP, HEIC or damaged photo, or one over the size bounds): clients show the photo's URL then. Detail responses (`GET /dogs/{id}`, `GET /me/dogs`, `GET /dogs/{id}/instructor-card`) keep the original only.
+
 ## 2026-11-14 · FE-03 · A handoff code of another account is refused on a host that holds a session
 
 **No operations or schemas added; 1 error code added (`HANDOFF_SESSION_CONFLICT`, 409); 1 response described (`POST /oauth2/token` 409).**

@@ -133,6 +133,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl") String photoThumbnailUrl,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level) { }
     @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.")
     public record MemberInstructorView(
@@ -309,6 +310,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl") String photoThumbnailUrl,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
@@ -390,6 +392,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl") String photoThumbnailUrl,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = REQUIRED) DogStatus status,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,

@@ -36,6 +36,8 @@ public class CensusAudit {
     static Map<String,Object> view(Object item, ObjectMapper mapper) {
         Map<String,Object> fields = mapper.convertValue(item, new TypeReference<>() { });
         for (String key : List.of("id", "clubId", "version", "createdAt", "updatedAt", "freeTrainingAllowed")) { fields.remove(key); }
+        // WEB-05: the photo's rendition is technical; the photo itself (`photoFileKey`) is what the audit records.
+        if (item instanceof Dog) { fields.remove("photoThumbnailFileKey"); }
         if (item instanceof Member member) {
             fields.put("paymentMethod", bank(member.paymentMethod));
             fields.put("idDocument", new IdentityDocument(string(map(member.idDocument).get("type")), string(map(member.idDocument).get("number"))));

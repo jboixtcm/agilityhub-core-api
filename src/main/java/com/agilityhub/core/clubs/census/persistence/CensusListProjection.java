@@ -132,7 +132,8 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private Map<String, Object> memberFields(boolean admin) {
         var fields = fields("memberNumber", "fullName", "displayStatus", "joinedAt", "leaveDate", "roles", "birthDate", "gender", "leaveSource", "inactivityUntil", "hasPendingRequest");
         fields.put("version", fallback("$version", 0));
-        fields.put("dogs", map("$dogs", "dog", new Document("id", "$$dog._id").append("name", "$$dog.name").append("photoUrl", photoReference("$$dog.")).append("level", level("$$dog.level"))));
+        fields.put("dogs", map("$dogs", "dog", new Document("id", "$$dog._id").append("name", "$$dog.name").append("photoUrl", photoReference("$$dog."))
+                .append("photoThumbnailUrl", thumbnailReference("$$dog.")).append("level", level("$$dog.level"))));
         fields.put("bookingBlocked", fallback("$bookingBlock.active", false));
         fields.put("contact", new Document("emails", emails()).append("phones", phones()));
         fields.put("plan", reference("$plan")); fields.put("familyGroup", reference("$familyGroup"));
@@ -165,6 +166,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private Map<String, Object> dogFields() {
         var fields = fields("name", "breed", "sex", "chip", "handlerName", "handlerIsMember", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
         fields.put("photoUrl", photoReference("$"));
+        fields.put("photoThumbnailUrl", thumbnailReference("$"));
         fields.put("version", fallback("$version", 0));
         fields.put("level", level("$level"));
         // E5-T29 (S10 R-10-00): the owner's first name whole, so the instructor's «{guia} + {gos}» never cuts «Joan Antoni».
@@ -190,6 +192,10 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private static Document photoReference(String prefix) {
         return new Document("key", prefix + "photoFileKey").append("name", prefix + "name");
     }
+    /** WEB-05: the photo's rendition for the list rows, signed like the photo (absent without one). */
+    private static Document thumbnailReference(String prefix) {
+        return new Document("key", prefix + "photoThumbnailFileKey").append("name", prefix + "name");
+    }
     /** Sign only the projected page, without another query per dog. Never return internal file keys. */
     private Map<String, Object> signPhotos(Map<String, Object> row) {
         signPhoto(row);
@@ -206,9 +212,11 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         return row;
     }
     private void signPhoto(Map<String, Object> row) {
-        Object reference = row.remove("photoUrl");
-        if (reference instanceof Map<?, ?> photo && photo.get("key") instanceof String key && !key.isBlank()) {
-            row.put("photoUrl", attachments.url(key, Objects.toString(photo.get("name"), "Dog photo")));
+        for (String field : List.of("photoUrl", "photoThumbnailUrl")) {
+            Object reference = row.remove(field);
+            if (reference instanceof Map<?, ?> photo && photo.get("key") instanceof String key && !key.isBlank()) {
+                row.put(field, attachments.url(key, Objects.toString(photo.get("name"), "Dog photo")));
+            }
         }
     }
     private Document join(String collection, Object local, String foreign, String as, List<Document> rest) {

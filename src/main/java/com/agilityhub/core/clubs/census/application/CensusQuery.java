@@ -45,7 +45,8 @@ public class CensusQuery {
         if (!admin) {
             // AUTHZ-02 (S03 R-03-31): never the postal address.
             result.remove("address");
-            result.put("dogs", ownerDogs(id).stream().map(dog -> object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "level", level(dog.levelId))).toList());
+            result.put("dogs", ownerDogs(id).stream().map(dog -> object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name),
+                    "photoThumbnailUrl", attachments.url(dog.photoThumbnailFileKey, dog.name), "level", level(dog.levelId))).toList());
             result.put("bookingBlocked", Boolean.TRUE.equals(map(member.bookingBlock).get("active"))); return result;
         }
         result.putAll(object("accountId", member.accountId, "idDocument", select(map(member.idDocument), "type", "number"), "gender", member.gender,
@@ -189,7 +190,8 @@ public class CensusQuery {
     public Map<String,Object> overview(String id) {
         var member = access.members.require(id);
         var result = object("member", member(id, true), "dogs", familyDogs(id).stream().map(dog -> {
-            var view = object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name), "breed", dog.breed, "status", dog.status, "level", level(dog.levelId), "pack", pack(dog.id), "pendingDocuments", documents.pending(dog.id));
+            var view = object("id", dog.id, "name", dog.name, "photoUrl", attachments.url(dog.photoFileKey, dog.name),
+                    "photoThumbnailUrl", attachments.url(dog.photoThumbnailFileKey, dog.name), "breed", dog.breed, "status", dog.status, "level", level(dog.levelId), "pack", pack(dog.id), "pendingDocuments", documents.pending(dog.id));
             if (access.enabled(Module.FREE_TRAINING)) { view.put("freeTrainingAllowed", access.free(dog).allowed()); } return view;
         }).toList(), "notificationPreferences", preferences(member), "recentAudit", access.references.recentAudit(id));
         result.put("plannedLeave", lifecycle.getObject().plannedLeave(id));

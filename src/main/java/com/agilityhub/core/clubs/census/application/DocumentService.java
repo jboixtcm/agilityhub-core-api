@@ -15,9 +15,10 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Service
 public class DocumentService {
     private final CensusAccess access; private final CensusRepository<DogDocument> documents;
-    private final AttachmentService attachments; private final CensusEvents events; private final Clock clock;
-    public DocumentService(CensusAccess access, CensusRepository<DogDocument> documents, AttachmentService attachments, CensusEvents events, Clock clock) {
-        this.access = access; this.documents = documents; this.attachments = attachments; this.events = events; this.clock = clock;
+    private final AttachmentService attachments; private final CensusEvents events; private final Clock clock; private final DogPhotoThumbnails thumbnails;
+    public DocumentService(CensusAccess access, CensusRepository<DogDocument> documents, AttachmentService attachments, CensusEvents events, Clock clock,
+            DogPhotoThumbnails thumbnails) {
+        this.access = access; this.documents = documents; this.attachments = attachments; this.events = events; this.clock = clock; this.thumbnails = thumbnails;
     }
     public String documentId(String dog, String type) {
         var existing = documents.matching(Criteria.where("dogId").is(dog).and("type").is(type));
@@ -126,10 +127,13 @@ public class DocumentService {
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#dogId", member = "owner(#dogId)")
     public String photo(String dogId, String key, boolean own) {
         var dog = CensusAccess.unfrozen(own ? access.ownDog(dogId, true) : access.mutableDog(dogId)); attachments.claim(key, "DOG_PHOTO", dogId);
-        if (!key.equals(dog.photoFileKey)) {
+        boolean changed = !key.equals(dog.photoFileKey);
+        if (changed) {
             String before = dog.photoFileKey; dog.photoFileKey = key; access.dogs.save(dog);
             events.emit("DogUpdated", "Dog", dogId, object("dogId", dogId, "memberId", dog.memberId, "diff", object("photoFileKey", object("before", before, "after", key))));
         }
+        // WEB-05: the lists' rendition, made once this claim commits (a re-claim makes a missing one); the replaced photo's goes.
+        thumbnails.photoSet(dogId, key, changed);
         return attachments.url(key, dog.name);
     }
     /** B29: recheck under the census lock after the download; a concurrent uploaded photo always wins. */
@@ -141,6 +145,7 @@ public class DocumentService {
         attachments.bindMigrationPhoto(file, dogId); dog.photoFileKey = file.fileKey(); access.dogs.save(dog);
         events.emit("DogUpdated", "Dog", dogId, object("dogId", dogId, "memberId", dog.memberId,
                 "diff", object("photoFileKey", object("before", null, "after", file.fileKey()))));
+        thumbnails.photoSet(dogId, file.fileKey(), true);
         return true;
     }
 }

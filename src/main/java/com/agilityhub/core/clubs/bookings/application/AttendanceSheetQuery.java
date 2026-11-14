@@ -72,6 +72,7 @@ public class AttendanceSheetQuery {
         for (var r : rows) {
             var b = r.booking(); var a = r.attendance(); var pair = pairs.get(b.dogId());
             var row = map("bookingId", b.id(), "dogId", b.dogId(), "dogName", pair == null ? null : pair.dogName(), "dogPhotoUrl", census.photoUrl(pair),
+                    "dogPhotoThumbnailUrl", census.photoThumbnailUrl(pair),
                     "memberId", b.memberId(), "memberFirstName", pair == null ? null : pair.memberFirstName(), "handlerName", pair == null ? null : pair.handlerName());
             if (pair != null && pair.differentHandler()) {
                 row.put("memberFullName", pair.memberFullName()); // R-10-00: «(abonat: {nom i cognom})» when someone else handles the dog

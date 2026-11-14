@@ -77,6 +77,7 @@ public final class InstructorContracts {
             @Schema(description = "messaging.noShowNoticeTime (HH:mm)") String noShowNoticeTime) { }
     public record AttendanceRow(String bookingId, String dogId, String dogName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Short-lived signed URL") String dogPhotoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for the row; null when there is none (no photo, or one the server cannot reduce, such as WebP): show dogPhotoUrl, which the enlarged photo keeps") String dogPhotoThumbnailUrl,
             String memberId, String memberFirstName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)") String handlerName,
             @JsonInclude(JsonInclude.Include.NON_NULL)
