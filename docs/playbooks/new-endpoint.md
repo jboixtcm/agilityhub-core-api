@@ -21,6 +21,11 @@ are verbatim excerpts, with imports and surrounding code in their linked files.
    `HandlerRolesSnapshotTest` then fails until you regenerate
    `src/test/resources/snapshots/security/handler-roles.txt` with
    `-Dsnapshots.update=true`; review the new or changed lines against the matrix (REL-06).
+   A route that needs a bearer must also be in a data-driven route fixture with the roles the
+   matrix gives it: its epic's `src/test/resources/fixtures/contracts/e*-routes.json`, or
+   `role-matrix-routes.json` (read by `RoleMatrixIT`: each matrix role passes the guard, every
+   other role gets 403, another club's token `TENANT_MISMATCH`, the impersonation token only where
+   rule 3 allows it). `RoleMatrixCoverageTest` fails on a published bearer operation in no fixture.
 4. Add `@RequiresModule` to gated controllers/methods. Both requirements apply
    when class and method are annotated. The MVC interceptor runs before JSON
    decoding/validation and returns `MODULE_DISABLED` (404). Application services
