@@ -449,7 +449,8 @@ never in the container log: client address, method, host, path, status, size,
 duration and request headers. The query string is dropped from the logged URI and
 from the `Referer` and `Location` values (codes, signatures, signed file URLs and
 the stream's `access_token` travel there); Caddy redacts `Authorization`, `Cookie`
-and `Set-Cookie`. The file rolls every 50 MiB; rolled files are compressed, at most
+and `Set-Cookie`, and the filter deletes the two other credential headers,
+`X-Signup-Token` (public signup) and `X-Api-Key` (a club's website key). The file rolls every 50 MiB; rolled files are compressed, at most
 30 are kept and none older than 30 days, so the client addresses (personal data)
 are kept about a month (the live file rolls by size only, so under very light
 traffic its oldest lines can be older). An erasure (S14 R-14-15) does not rewrite

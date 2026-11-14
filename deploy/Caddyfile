@@ -23,7 +23,8 @@
 # browser) as JSON to one rolled file in the `caddy-logs` volume, never to the container log. The query string is dropped from
 # every URL logged, the request's own and those of its Referer and of a Location answer: OAuth and handoff codes, signatures,
 # signed file URLs and the build-session stream's `?access_token=` (E9-T06) travel there. Caddy already redacts Authorization,
-# Cookie and Set-Cookie. Rotation: a new file every 50 MiB, rolled files compressed, at most 30 kept and none older than 30 days
+# Cookie and Set-Cookie; the two other credential headers, the anonymous signup's X-Signup-Token and a club website's X-Api-Key,
+# are deleted. Rotation: a new file every 50 MiB, rolled files compressed, at most 30 kept and none older than 30 days
 # (the addresses are personal data). The internal ask listener below is not a public site and is not logged.
 (access_log) {
     log {
@@ -38,6 +39,8 @@
                 request>uri regexp \?.*$ ""
                 request>headers>Referer regexp \?.*$ ""
                 resp_headers>Location regexp \?.*$ ""
+                request>headers>X-Signup-Token delete
+                request>headers>X-Api-Key delete
             }
         }
     }

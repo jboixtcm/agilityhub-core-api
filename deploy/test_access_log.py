@@ -83,7 +83,8 @@ class AccessLogTest(unittest.TestCase):
         for name in loggers:
             self.assertEqual({'output': 'file', 'filename': LOG_FILE, 'roll_size_mb': 50, 'roll_keep': 30, 'roll_keep_days': 30},
                              logs[name]['writer'], name)
-            self.assertEqual({'request>uri', 'request>headers>Referer', 'resp_headers>Location'}, set(logs[name]['encoder']['fields']))
+            self.assertEqual({'request>uri', 'request>headers>Referer', 'resp_headers>Location', 'request>headers>X-Signup-Token',
+                              'request>headers>X-Api-Key'}, set(logs[name]['encoder']['fields']))
             self.assertIn(f'http.log.access.{name}', logs['default']['exclude'])
         self.assertEqual([None], [server.get('logs') for server in servers.values() if server['listen'] == [':9080']])
 
@@ -174,6 +175,20 @@ http://:8080 {
             self.assertEqual('GET', entry['request']['method'])
             self.assertIn(entry['status'], (200, 302))
             self.assertIn('ts', entry)
+
+    def test_CFG_07_real_caddy_keeps_the_capability_headers_out_of_the_log(self):
+        # Review of p2-api-14-platform: Caddy redacts only Authorization, Cookie and Set-Cookie. The anonymous signup's
+        # `X-Signup-Token` (a capability, S04 R-04-26) and a club website's `X-Api-Key` (S17 R-17-11) are credentials too.
+        port, container = self.start('\nhttp://:8080 {\n import access_log\n respond "fictional answer" 200\n}\n')
+        self.assertEqual(200, self.get(port, '/api/v1/checkout/sessions/cs-1', headers=[('X-Signup-Token', 'fictional-signup-token')])[0])
+        self.assertEqual(200, self.get(port, '/api/v1/public/clubs/club-a/plans', headers=[('x-api-key', 'agh_pub_fictional-key')])[0])
+        text, access = self.entries(container, 2)
+        self.assertEqual(2, len(access), text)
+        for secret in ('fictional-signup-token', 'agh_pub_fictional-key'):
+            self.assertNotIn(secret, text)
+        for entry in access:
+            self.assertFalse({'X-Signup-Token', 'X-Api-Key'} & set(entry['request']['headers']), entry['request']['headers'])
+            self.assertTrue(entry['request']['headers'].get('User-Agent'))
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
