@@ -4,6 +4,7 @@
   "auth.impersonationMinutes": 60,
   "auth.passwordMinLength": 8,
   "signup.enabled": true,
+  "signup.cardEnabled": false,
   "signup.pendingExpiryDays": 30,
   "signup.requireDogDocumentAtSignup": false,
   "signup.firstMonthSplitDay": 16,
@@ -69,7 +70,7 @@
   "training.maxPerWeek": 3,
   "training.cancelThresholdMinutes": 120,
   "training.capacityPerRingSlot": 1,
-  "training.freeTrainingRequiresLicense": false,
+  "training.freeTrainingRequiresLicense": true,
   "club.openingHours": {
     "MONDAY": {
       "open": "07:00",
@@ -314,6 +315,7 @@
   "billing.sepa.useFrst": false,
   "billing.sepa.schema": "pain.008.001.02",
   "billing.sepa.collectionDayOfMonth": 1,
+  "billing.sepa.leadBusinessDays": 1,
   "billing.stripeMaxAttempts": 3,
   "billing.remittanceReminderDay": 22,
   "inactivity.maxStartMonthsAhead": 12,
