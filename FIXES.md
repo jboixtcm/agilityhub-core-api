@@ -548,6 +548,7 @@ Pass 2 (owner decision of 13 Nov 2026): send `expires_at` to Stripe Checkout so 
 - Assumption: the «otherwise» branch is every checkout that is not a PAY_TO_BOOK booking's: S12's checkouts and card setups take S04's 24 hours too, as Core already gives them (`PaymentCheckouts`).
 - SPEC-CHANGE: docs/specs/S04-alta-publica-i-validacio.md R-04-26: `expires_at` = Core's `expiresAt` (+24 h) minus a 5-minute clock margin, from the stored request (the retry sends it unchanged), and Stripe's expiry closes the session; Canvis.
 - SPEC-CHANGE: docs/specs/S08-reserves-de-classes-i-llista-espera.md R-08-18: the PAY_TO_BOOK Checkout's `expires_at` = the booking deadline, never below Stripe's 30 minutes nor above its 24 hours from the opening (5-minute margin), P7 expiring it when Core's deadline passes first; Canvis.
+- SPEC-CHANGE: docs/DEPLOY.md, Stripe providers: the runbook no longer says Stripe's default 24-hour expiry applies; it states the `expires_at` each Checkout session is sent (follow-up commit, same ID).
 - No catalogue, OpenAPI or other-repository change.
 
 ### PAY-09 — FIXED

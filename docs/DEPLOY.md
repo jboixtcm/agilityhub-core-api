@@ -697,8 +697,10 @@ processing fails is retried for about 24 hours (1 min up to 8 h apart, ten attem
 a Stripe outage, 401/403 or 429 spends none) and then stays `FAILED`, with the WARN
 `Stripe event recovery exhausted`; the club's admin sees the failed events in
 billing (`GET /billing/stripe-events`), and resending one from the Stripe dashboard
-processes it again (PAY-02). Stripe's default
-24-hour Checkout expiration is separate from Core's shorter booking deadline;
+processes it again (PAY-02). Every Checkout session is sent an `expires_at`
+(PAY-08): a signup or S12 checkout ends at Stripe 5 minutes before Core's 24 hours,
+a PAY_TO_BOOK one at the booking deadline but never sooner than Stripe's 30-minute
+minimum (P7 expires it at Stripe when Core's deadline passes first);
 late booking captures are refunded once per payment intent. `compose.yaml`
 forwards the billing key. The administrative credential-entry UI remains a
 platform-console concern; never put plaintext credentials into seed files.
