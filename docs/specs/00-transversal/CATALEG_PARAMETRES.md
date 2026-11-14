@@ -196,7 +196,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `classes.finishGraceMinutes` | int | 15 | Classes | S15 |
 | `courses.buildSessionMaxHours` | int | 12 | Recorreguts | S16 |
 | `files.allowedTypes` (+ `text/plain` per a Smarter) | list | — | sistema | S16 |
-| `platform.domainRecheckDays` · `platform.supportAccessMinutes` | int | 7 · 60 | sistema (consola) | S17 |
+| `platform.domainRecheckDays` · `platform.supportAccessMinutes` | int | 7 · 60 | sistema (consola) | S17 (R-17-10; **màxims — · 60**: un accés de suport no dura mai més d'una hora; AUTHZ-05, propietari 13-11) |
 | `migration.exportRetentionDays` · `migration.leftMaxYears` · `migration.reconciliationTolerancePct` · `migration.playoffReadOnlyMonths` | int | 30 · 5 · 1 · 3 | sistema | S18 |
 | `learn.linkText` | localizedText | `{"ca": "Aprèn amb AgilityHub", "es": "Aprende con AgilityHub", "en": "Learn with AgilityHub"}` | Club i pistes | S19 (es/en afegits 18-10, INC-38, E11-T10) |
 | `learn.recommendationsTtlMinutes` | int | 60 | sistema | S19 |
@@ -205,5 +205,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 Bloc nou a D11: **«Privacitat i auditoria»** (S14) i **«Processos automàtics»** (S15).
 
 Pisos legals de la retenció (PRIV-02, decisió del propietari 13-11): un **mínim** de la columna de notes és el `min` del catàleg (`catalog.yaml`); el club edita la clau per sobre del pis. Un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (`ParameterInvalidOverride`): val el valor de producte.
+
+Sostre de l'accés de suport (AUTHZ-05, decisió del propietari 13-11): `platform.supportAccessMinutes` té un **màxim** de 60 (el `max` del catàleg, a la columna «Spec» de l'annex): la consola el pot escurçar, mai allargar; un valor per sobre es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sobre s'ignora (val el valor de producte, 60).
 
 Pisos de l'accés (AUTH-08, decisió del propietari 13-11): `auth.passwordMinLength` (**mínim 8**), `auth.lockoutMinutes` i `auth.lockoutMaxAttempts` (**mínims 1 · 3**, a la columna «Spec» de l'annex) tenen el pis com a `min` del catàleg, amb el mateix tractament: la consola els edita per sobre del pis, un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (val el valor de producte).

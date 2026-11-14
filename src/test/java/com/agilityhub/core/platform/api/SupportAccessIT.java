@@ -175,6 +175,25 @@ class SupportAccessIT extends BillingItSupport {
         assertThat(shorter.path("expiresAt").asText()).isEqualTo(NOW.plus(Duration.ofMinutes(30)).toString());
     }
 
+    /**
+     * AUTHZ-05 (owner decision 13-11-2026, S17 R-17-10): a support access lasts 60 minutes at most. The console can shorten
+     * `platform.supportAccessMinutes`, never lengthen it, and an override stored above the ceiling is ignored.
+     */
+    @Test void AUTHZ_05_aSupportAccessNeverLastsMoreThanSixtyMinutes() throws Exception {
+        String path = "/api/v1/platform/clubs/" + CLUB + "/parameters/platform.supportAccessMinutes";
+        var longer = mvc.perform(console(put(path), ACTOR).contentType("application/json").content("{\"version\":0,\"value\":61}")).andReturn().getResponse();
+        assertThat(longer.getStatus()).as(longer.getContentAsString()).isEqualTo(400);
+        assertThat(code(longer)).isEqualTo("PARAMETER_INVALID");
+        var limit = mvc.perform(console(put(path), ACTOR).contentType("application/json").content("{\"version\":0,\"value\":60}")).andReturn().getResponse();
+        assertThat(limit.getStatus()).as(limit.getContentAsString()).isEqualTo(200);
+        // An override written before the ceiling existed (four hours) is ignored: the grant gets the product's 60 minutes.
+        mongo.updateFirst(Query.query(Criteria.where("clubId").is(CLUB).and("key").is("platform.supportAccessMinutes")),
+                new org.springframework.data.mongodb.core.query.Update().set("value", 240), "parameters");
+        configs.invalidate(CLUB);
+        var issued = mapper.readTree(start(CLUB, UUID.randomUUID().toString(), ACTOR).getContentAsString());
+        assertThat(issued.path("expiresAt").asText()).isEqualTo(NOW.plus(Duration.ofMinutes(60)).toString());
+    }
+
     @Test void T_17_10_R_17_12_onlyAnActivePlatformAccountStartsASupportAccess() throws Exception {
         // A token that claims the platform role, for an account that does not hold it (or no longer does).
         accounts.save(new Account("bill-not-platform", "plain@example.test", "Plain Account", "ca", null, Set.of(),

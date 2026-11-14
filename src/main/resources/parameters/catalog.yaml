@@ -1844,7 +1844,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.platform.supportAccessMinutes.label"
     helpKey: "admin-settings:param.platform.supportAccessMinutes.help"
-    constraints: {"min": 0}
+    constraints: {"min": 0, "max": 60}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"

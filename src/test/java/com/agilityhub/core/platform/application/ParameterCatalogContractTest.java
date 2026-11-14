@@ -145,6 +145,38 @@ class ParameterCatalogContractTest {
         // Members keep 8: the floor is the product default, not a higher minimum.
         assertThat(catalog.get("auth.passwordMinLength").defaultValue()).isEqualTo(8);
     }
+    /**
+     * AUTHZ-05 (owner's decision of 13-11): the support access's lifetime has a ceiling. Each «**màxim N**» / «**màxims a · b**» of a
+     * row's last column is the catalogue's `max`: `platform.supportAccessMinutes` 60, its product default. Above it is refused.
+     */
+    @Test void AUTHZ_05_theSupportAccessCeilingOfTheDocumentIsTheCatalogMaximum() throws Exception {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var ceilings = new LinkedHashMap<String, Integer>();
+        var ceiling = Pattern.compile("\\*\\*màxims? ([^*]+)\\*\\*");
+        for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {
+            if (!line.startsWith("| `")) { continue; }
+            String[] cells = Arrays.stream(line.split("\\|", -1)).map(String::strip).toArray(String[]::new);
+            var matcher = ceiling.matcher(cells[cells.length - 2]);
+            if (!matcher.find()) { continue; }
+            List<String> keys = new ArrayList<>();
+            var key = Pattern.compile("`([^`]+)`").matcher(cells[1]);
+            while (key.find()) { keys.add(key.group(1)); }
+            List<String> values = Arrays.asList(matcher.group(1).strip().split(" · "));
+            assertThat(values).as(line).hasSameSizeAs(keys);
+            for (int i = 0; i < keys.size(); i++) { if (!values.get(i).equals("—")) { ceilings.put(keys.get(i), Integer.valueOf(values.get(i))); } }
+        }
+        assertThat(ceilings).containsExactlyInAnyOrderEntriesOf(Map.of("platform.supportAccessMinutes", 60));
+        var entry = catalog.get("platform.supportAccessMinutes");
+        assertThat(((Number) entry.constraints().get("max")).intValue()).isEqualTo(60);
+        assertThat(entry.defaultValue()).isEqualTo(60);
+        assertThat(entry.editableBy()).isEqualTo("PLATFORM");
+        var validator = new ParameterValidator();
+        assertThatCode(() -> validator.validate(entry, 60, "ca", "EUR")).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(entry, 30, "ca", "EUR")).doesNotThrowAnyException();
+        assertThatThrownBy(() -> validator.validate(entry, 61, "ca", "EUR"))
+                .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                        refused -> assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.PARAMETER_INVALID));
+    }
     static final Map<String, String> BLOCKS = Map.ofEntries(Map.entry("sistema", "system"), Map.entry("Alta i consentiments", "signup"),
             Map.entry("Classes", "classes"), Map.entry("Llista d'espera", "waitlist"), Map.entry("Entrenaments", "training"),
             Map.entry("Club i pistes", "club"), Map.entry("Quotes i remesa", "billing"), Map.entry("Comunicacions", "messaging"),
