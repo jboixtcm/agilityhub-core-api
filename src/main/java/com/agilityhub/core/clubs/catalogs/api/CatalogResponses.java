@@ -121,6 +121,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) boolean active,
+            @Schema(requiredMode = NOT_REQUIRED, description = "True for scheduling-only support staff.") boolean schedulingOnly,
             @Schema(requiredMode = NOT_REQUIRED) InstructorUsage usage,
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
@@ -130,6 +131,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) boolean active,
+            @Schema(requiredMode = NOT_REQUIRED, description = "True for scheduling-only support staff.") boolean schedulingOnly,
             @Schema(requiredMode = REQUIRED) long version) { }
     @Schema(description = "Membership adminProfile projection; no separate administrator entity.")
     public record Administrator(

@@ -179,7 +179,8 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         // PackSummary, only for a dog with a pack (E5-T22: an empty `pack: {}` broke the schema). No stage sets `$pack` yet: the
         // pack balances are not stored before S12, as in the dog's detail.
         fields.put("pack", new Document("$cond", List.of(expr("$ne", fallback("$pack.id", ""), ""), new Document("id", "$pack.id")
-                .append("remaining", "$pack.remaining").append("total", "$pack.total").append("expiresOn", "$pack.expiresOn"), "$$REMOVE")));
+                .append("consumed", fallback("$pack.consumed", 0)).append("remaining", "$pack.remaining").append("total", "$pack.total")
+                .append("expiresOn", "$pack.expiresOn"), "$$REMOVE")));
         return fields;
     }
     private static Document photoReference(String prefix) {

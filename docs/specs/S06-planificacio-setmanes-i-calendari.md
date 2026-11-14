@@ -49,7 +49,7 @@ Només el que aquest vertical crea o modifica (noms del glossari §0). Tot amb `
 | Camp | Tipus | Oblig. | Validació · notes |
 |---|---|---|---|
 | `weekId` | id | sí | la setmana es crea (get-or-create) si no existeix |
-| `date`, `startTime`, `endTime` | date, HH:mm, HH:mm | sí | hora local del club; `startTime < endTime`; múltiples de `classes.slotMinutes`; dins `club.openingHours` del dia |
+| `date`, `startTime`, `endTime` | date, HH:mm, HH:mm | sí | hora local del club, al minut, amb `startTime < endTime` i dins de `club.openingHours` del dia |
 | `startsAt`, `endsAt` | instant UTC | derivats | R-06-14; recalculats a cada canvi d'hora |
 | `ringId` | id? | no | `null` = «sense pista» |
 | `levelIds[]` | id[] | segons `levels.enabled` | ≥ 1 si `levels.enabled`; buit permès si no |
@@ -81,7 +81,7 @@ Lectures d'altres verticals: `Ring` (`shortName`, `color`, `active`, `activeSetu
 
 ## 4. Regles de negoci
 
-**R-06-01 · Estructura de la plantilla.** Una plantilla té franges **homogènies** (`bands[]`): `startTime < endTime`, totes dues múltiples de `classes.slotMinutes` (= 10), **sense solapament** entre franges de la mateixa plantilla (400 `BAND_OVERLAP`) i dins de `club.openingHours` de tots els dies del `kind` (422 `OUTSIDE_OPENING_HOURS`). Esborrar una franja amb classes → 409 `BAND_NOT_EMPTY`. Canviar les hores d'una franja mou totes les seves classes (les setmanes ja generades **no** canvien). *Exemple:* franges 08:30–09:30 · 09:30–10:30 · 16:30–17:30 · 17:40–18:40 · 18:50–19:50 · 20:00–21:00; afegir 17:45–18:45 → 400 (`INVALID_SLOT_GRANULARITY`: 45 no és múltiple de 10); afegir 18:00–19:00 → 400 `BAND_OVERLAP`.
+**R-06-01 · Estructura de la plantilla.** Una plantilla té franges **homogènies** (`bands[]`): `startTime < endTime`, totes dues múltiples de `classes.slotMinutes` (5 minuts al Cànic), **sense solapament** entre franges de la mateixa plantilla (400 `BAND_OVERLAP`) i dins de `club.openingHours` de tots els dies del `kind` (422 `OUTSIDE_OPENING_HOURS`). Esborrar una franja amb classes → 409 `BAND_NOT_EMPTY`. Canviar les hores d'una franja mou totes les seves classes (les setmanes ja generades **no** canvien). *Exemple per a un club amb franges de 10 minuts:* franges 08:30–09:30 · 09:30–10:30 · 16:30–17:30 · 17:40–18:40 · 18:50–19:50 · 20:00–21:00; afegir 17:45–18:45 → 400 (`INVALID_SLOT_GRANULARITY`: 45 no és múltiple de 10); afegir 18:00–19:00 → 400 `BAND_OVERLAP`.
 
 **R-06-02 · Classe de plantilla.** `bandId` de la plantilla, **un sol** `dayOfWeek` ∈ `days`, `instructorIds` 1..`classes.maxInstructorsPerClass` (Cànic 1 → selector únic; 422 `TOO_MANY_INSTRUCTORS`; buit o amb repetits → 400 `VALIDATION_ERROR`), `ringId` opcional (actiu) o «Sense pista», `levelIds` ≥ 1 si `levels.enabled` (422 `LEVEL_REQUIRED`), `capacity` (R-06-04), `description` (R-06-03). Diverses classes poden compartir franja i dia (apilades). Cada canvi es desa a l'instant (un `PATCH` per canvi; `version`). Les incoherències **no** impedeixen desar (R-06-05).
 
@@ -112,6 +112,7 @@ Lectures d'altres verticals: `Ring` (`shortName`, `color`, `active`, `activeSetu
 **R-06-08 · Validació de la setmana.** [VALIDAR LA SETMANA] passa **totes** les classes `DRAFT` de la setmana a `ACTIVE` alhora (una transacció; `Week.state=VALIDATED`, `validatedAt`; `WeekValidated{classIds}`). Cal ≥ 1 esborrany (422 `NOTHING_TO_VALIDATE`) i cap incoherència entre esborranys i bloquejos (422 `WEEK_INCONSISTENT`). No existeix validació classe a classe. Els esborranys són **invisibles** per als alumnes (quadres, llistes i endpoints d'abonat els exclouen). Que la setmana sigui **reservable** depèn de `bookings.weekOpensAt` (S08): validar la setmana vinent el dijous no l'obre abans de diumenge 20:00.
 
 **R-06-09 · Cicle i edició d'una classe.**
+- En crear o editar una classe al calendari, l’inici i el final admeten qualsevol minut dins de l’horari d’obertura. El selector suggereix hores cada `classes.slotMinutes` (5 minuts al Cànic). L’administrador pot escriure, per exemple, 10.07 i 11.18.
 - Estat en crear-la solta ([Crear classe]): `ACTIVE` si la seva `Week` és `VALIDATED` (la UI avisa «Els alumnes la veuran de seguida»), si no `DRAFT`. La data pot ser festiva (decisió explícita de l'admin; la UI ho avisa).
 - Camps editables ([ACCEPTA]): `ringId`, `levelIds`, `instructorIds`, `capacity`, `startTime/endTime`, `description`, `notes`, `riskExempt`; la **data no** (es crea una classe nova). `version` obligatori (409 `STALE_VERSION`). `FINISHED` i `CANCELLED`: només `notes` (409 `INVALID_STATE`).
 - Si la classe és `ACTIVE` amb `counters.booked > 0` i el diff toca `startTime`, `ringId` o `instructorIds` → `ClassSessionUpdated{diff}` dispara **N-08b** als inscrits; canvis de nivells, aforament o descripció no avisen. Canviar nivells no toca les inscripcions existents (responsabilitat de l'admin).

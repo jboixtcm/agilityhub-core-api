@@ -10975,6 +10975,10 @@
             "format" : "uuid",
             "type" : "string"
           },
+          "schedulingOnly" : {
+            "description" : "True for scheduling-only support staff.",
+            "type" : "boolean"
+          },
           "shortName" : {
             "type" : "string"
           },
@@ -11041,6 +11045,10 @@
           "memberId" : {
             "minLength" : 1,
             "type" : "string"
+          },
+          "schedulingOnly" : {
+            "description" : "Support profile for class planning only.",
+            "type" : "boolean"
           },
           "shortName" : {
             "maxLength" : 12,
@@ -11232,6 +11240,10 @@
           "id" : {
             "format" : "uuid",
             "type" : "string"
+          },
+          "schedulingOnly" : {
+            "description" : "True for scheduling-only support staff.",
+            "type" : "boolean"
           },
           "shortName" : {
             "type" : "string"
@@ -16793,6 +16805,29 @@
         "required" : [ "available", "consumed", "planName", "sessionsTotal", "state" ],
         "type" : "object"
       },
+      "PackConsumptionCorrectionRequest" : {
+        "properties" : {
+          "consumed" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "expectedConsumed" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "expectedRemaining" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "reason" : {
+            "maxLength" : 500,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "consumed", "expectedConsumed", "expectedRemaining", "reason" ],
+        "type" : "object"
+      },
       "PackMovement" : {
         "properties" : {
           "at" : {
@@ -16826,7 +16861,7 @@
         "type" : "object"
       },
       "PackMovementType" : {
-        "enum" : [ "OPEN", "CONSUME", "REFUND", "ADJUST", "EXPIRE" ],
+        "enum" : [ "OPEN", "CONSUME", "REFUND", "ADJUST", "EXPIRE", "CONSUMPTION_CORRECTION" ],
         "type" : "string"
       },
       "PackSettings" : {
@@ -16845,6 +16880,11 @@
       },
       "PackSummary" : {
         "properties" : {
+          "consumed" : {
+            "description" : "Sessions charged to the pack, including manual consumption corrections",
+            "format" : "int32",
+            "type" : "integer"
+          },
           "expiresOn" : {
             "format" : "date",
             "type" : "string"
@@ -16862,7 +16902,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "id", "remaining", "total" ],
+        "required" : [ "consumed", "id", "remaining", "total" ],
         "type" : "object"
       },
       "Parameter" : {
@@ -71234,6 +71274,165 @@
           }
         },
         "summary" : "adjustPackBalance",
+        "tags" : [ "payments" ]
+      }
+    },
+    "/api/v1/pack-balances/{id}/consumption-corrections" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. Set the absolute consumed count, retaining previous balance adjustments and the expiry. Supply the consumed and remaining counts shown to the administrator. Changed counts return STALE_VERSION. The new count must cover the bookings still charged to this pack. The reason and correction are recorded in the pack history and audit.",
+        "operationId" : "correctPackConsumption",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PackConsumptionCorrectionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PackBalanceDetail"
+                }
+              }
+            },
+            "description" : "PackBalanceDetail"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "PACK_NEGATIVE"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "correctPackConsumption",
         "tags" : [ "payments" ]
       }
     },

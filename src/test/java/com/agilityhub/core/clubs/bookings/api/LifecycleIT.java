@@ -236,6 +236,42 @@ class LifecycleIT extends BookingFixtures {
     @Autowired com.agilityhub.core.clubs.common.application.SavedViewService savedViews;
     @Autowired com.agilityhub.core.clubs.census.application.LeaveRequestService leaves;
 
+    @Test void attendanceKeepsItsBookingChargeWhenAdminCorrectsHistoricalConsumption() throws Exception {
+        openPack("s08-m-laura", "s08-d-duna", 10, 2, LocalDate.parse("2026-11-11"));
+        String bookingId = book(as("laura"), "wed", "s08-d-duna").path("id").asText();
+        clock.setInstant(local("2026-10-07T19:15"));
+        String sheetPath = "/class-sessions/s08-wed/attendance";
+        var sheet = call(GET, sheetPath, null, as("inst"), 200);
+        var marked = call(PUT, sheetPath, Map.of("version", sheet.path("sheet").path("version").asLong(),
+                "items", List.of(Map.of("bookingId", bookingId, "state", "PRESENT"))), as("inst"), 200, UUID.randomUUID().toString());
+        assertThat(marked.path("applied").get(0).asText()).isEqualTo(bookingId);
+        var pack = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "pack_balances");
+        String path = "/pack-balances/"+pack.getString("_id")+"/consumption-corrections";
+        assertThat(call(POST, path, Map.of("consumed", 0, "expectedConsumed", 3, "expectedRemaining", 7, "reason", "Recount"),
+                as("admin"), 400, UUID.randomUUID().toString()).path("details").path("field").asText()).isEqualTo("consumed");
+        var corrected = call(POST, path, Map.of("consumed", 1, "expectedConsumed", 3, "expectedRemaining", 7, "reason", "Recount"),
+                as("admin"), 200, UUID.randomUUID().toString());
+        assertThat(corrected.path("remaining").asInt()).isEqualTo(9);
+        assertThat(corrected.path("movements").get(0).path("bookingId").asText()).isEqualTo(bookingId);
+    }
+    @Test void absolutePackCorrectionReplaysOnceAndRejectsAStaleEdit() throws Exception {
+        openPack("s08-m-laura", "s08-d-duna", 10, 2, LocalDate.parse("2026-11-11"));
+        var pack = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "pack_balances");
+        String path = "/pack-balances/"+pack.getString("_id")+"/consumption-corrections";
+        String key = UUID.randomUUID().toString();
+        var body = Map.of("consumed", 5, "expectedConsumed", 2, "expectedRemaining", 8, "reason", "Reconcile classes attended");
+        var result = call(POST, path, body, as("admin"), 200, key);
+        assertThat(result.path("consumed").asInt()).isEqualTo(5);
+        assertThat(result.path("remaining").asInt()).isEqualTo(5);
+        assertThat(result.path("movements")).hasSize(1);
+        assertThat(call(POST, path, body, as("admin"), 200, key)).isEqualTo(result);
+        assertThat(call(POST, path, body, as("admin"), 409, UUID.randomUUID().toString()).path("code").asText()).isEqualTo("STALE_VERSION");
+        assertThat(count("audit_entries", Criteria.where("action").is("PACK_ADJUSTED"))).isEqualTo(1);
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PACK_ADJUSTED")), Document.class, "audit_entries");
+        assertThat(audit.get("details", Document.class)).containsEntry("consumed", 5).containsEntry("previousConsumed", 2)
+                .containsEntry("remaining", 5).containsEntry("previousRemaining", 8);
+        assertThat(events("PackAdjusted")).isEqualTo(1);
+    }
     @Test @AuditCovers(AuditAction.PACK_ADJUSTED)
     void T_12_07_adjustWritesTheBalanceAndItsAuditInOneTransaction() throws Exception {
         openPack("s08-m-laura", "s08-d-duna", 10, 0, LocalDate.parse("2026-11-11"));

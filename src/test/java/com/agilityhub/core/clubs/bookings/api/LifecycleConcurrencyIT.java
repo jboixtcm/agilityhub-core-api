@@ -131,7 +131,8 @@ class LifecycleConcurrencyIT extends BookingFixtures {
             } finally { gate.release().countDown(); }
         }
     }
-    @Test void T_12_07_differentAdjustmentKeysRetryToPackNegativeAndReplayTheWinner() throws Exception {
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void concurrentPackEditsRetryAgainstTheCommittedBalanceAndReplayTheWinner(boolean absolute) throws Exception {
         openPack("s08-m-laura", "s08-d-duna", 10, 0, LocalDate.parse("2026-11-11"));
         String pack = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "pack_balances").getString("_id");
         var gate = pause("unused"); var once = new AtomicBoolean();
@@ -141,7 +142,9 @@ class LifecycleConcurrencyIT extends BookingFixtures {
             }
             return call.callRealMethod();
         }).when(billingEvents).publish(eq(com.agilityhub.core.payments.domain.BillingEvent.Kind.PackAdjusted), anyString(), anyMap());
-        var body = Map.of("delta", -6, "reason", "Correction"); String path = "/pack-balances/"+pack+"/adjustments", key = UUID.randomUUID().toString();
+        var body = absolute ? Map.of("consumed", 6, "expectedConsumed", 0, "expectedRemaining", 10, "reason", "Recount")
+                : Map.of("delta", -6, "reason", "Correction");
+        String path = "/pack-balances/"+pack+(absolute ? "/consumption-corrections" : "/adjustments"), key = UUID.randomUUID().toString();
         try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
             var winner = pool.submit(() -> { try { return call(POST, path, body, as("admin"), 200, key); } finally { gate.committed().countDown(); } });
             try {
@@ -149,10 +152,12 @@ class LifecycleConcurrencyIT extends BookingFixtures {
                 var response = mvc.perform(post("/api/v1"+path).header("Host", HOST).header("Idempotency-Key", UUID.randomUUID().toString())
                         .with(as("admin")).contentType("application/json").content(mapper.writeValueAsBytes(body))).andReturn().getResponse();
                 gate.release().countDown(); var first = winner.get(15, TimeUnit.SECONDS);
-                assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(422);
-                assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).isEqualTo("PACK_NEGATIVE");
+                assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(absolute ? 409 : 422);
+                assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).isEqualTo(absolute ? "STALE_VERSION" : "PACK_NEGATIVE");
                 assertThat(call(POST, path, body, as("admin"), 200, key)).isEqualTo(first);
-                assertThat(mongo.findById(pack, Document.class, "pack_balances").getInteger("remaining")).isEqualTo(4);
+                var saved = mongo.findById(pack, Document.class, "pack_balances");
+                assertThat(saved.getInteger("remaining")).isEqualTo(4);
+                assertThat(saved.getInteger("consumed")).isEqualTo(absolute ? 6 : 0);
                 assertThat(events("PackAdjusted")).isEqualTo(1);
                 assertThat(count("audit_entries", Criteria.where("action").is("PACK_ADJUSTED"))).isEqualTo(1);
             } finally { gate.release().countDown(); }

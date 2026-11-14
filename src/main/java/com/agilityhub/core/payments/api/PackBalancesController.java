@@ -82,4 +82,17 @@ public class PackBalancesController {
         access.pack(id);
         return keyed(200, () -> mapped(service.adjust(id, request.delta(), request.reason(), request.expiresOn())));
     }
+
+    @PostMapping("/api/v1/pack-balances/{id}/consumption-corrections")
+    @RequiresModule(Module.PACKS)
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, PACK_NEGATIVE})
+    @Operation(summary = "correctPackConsumption", description = ROLES + "Set the absolute consumed count, retaining previous balance adjustments and the expiry. "
+            + "Supply the consumed and remaining counts shown to the administrator. Changed counts return STALE_VERSION. "
+            + "The new count must cover the bookings still charged to this pack. The reason and correction are recorded in the pack history and audit.",
+            responses = @ApiResponse(responseCode = "200", description = "PackBalanceDetail", useReturnTypeSchema = true))
+    public PackBalanceDetail correctPackConsumption(@PathVariable String id, @Valid @RequestBody PackConsumptionCorrectionRequest request,
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        access.pack(id);
+        return keyed(200, () -> mapped(service.correctConsumption(id, request.consumed(), request.expectedConsumed(), request.expectedRemaining(), request.reason())));
+    }
 }

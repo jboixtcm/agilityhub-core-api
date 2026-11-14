@@ -247,15 +247,13 @@ class WaitlistIT extends BookingFixtures {
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201));
         cancel(as("pere"), id(pere), 200);
-        var c1 = hold(as("c1"), "last", "s08-d-c1", 201); // taken between the release and the offer (the outbox has not run)
+        assertThat(code(hold(as("c1"), "last", "s08-d-c1", 409))).isEqualTo("CLASS_FULL"); // before dispatch
         dispatch();
         assertThat(entry(duna)).containsEntry("state", "NOTIFIED");
         var seat = row("c0", "s08-d-c0", "last");
         assertThat(seat.path("freeSeats").asInt()).isZero(); assertThat(seat.path("state").asText()).isEqualTo("WAITLIST_OPEN");
         var refused = hold(as("c0"), "last", "s08-d-c0", 409);
         assertThat(code(refused)).isEqualTo("CLASS_FULL"); assertThat(refused.at("/details/heldOnly").asBoolean()).isFalse();
-        assertThat(code(confirm(as("c1"), id(c1), null, 409))).isEqualTo("CLASS_FULL");
-        call(DELETE, "/seat-holds/" + id(c1), null, as("c1"), 204);
         String c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
         // The offered dog claims the seat.
         var claimed = claim(as("laura"), duna, id(holdFor(as("laura"), "last", "s08-d-duna", duna, 201)), null, 201);
@@ -282,14 +280,16 @@ class WaitlistIT extends BookingFixtures {
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201));
         cancel(as("pere"), id(pere), 200);
-        var c1 = hold(as("c1"), "last", "s08-d-c1", 201); // taken between the release and the offer (the outbox has not run)
+        // A pre-existing hold, e.g. from a release queued by an earlier version, never outranks an open offer.
+        String holdId = "s08-pre-existing";
+        mongo.insert(new com.agilityhub.core.clubs.bookings.persistence.SeatHold(holdId, CLUB, "s08-last", "s08-d-c1", "s08-m-c1",
+                "s08-c1", null, NOW.minusSeconds(1), NOW.plusSeconds(59)));
         clock.advance(Duration.ofSeconds(5)); dispatch();
         assertThat(entry(duna)).containsEntry("state", "NOTIFIED");
-        assertThat(count("seat_holds", Criteria.where("_id").is(id(c1)))).as("c1's hold is still live").isEqualTo(1);
         var offered = holdFor(as("laura"), "last", "s08-d-duna", duna, 201);
         var claimed = claim(as("laura"), duna, id(offered), null, 201);
         assertThat(entry(duna)).containsEntry("state", "CONSOLIDATED").containsEntry("bookingId", id(claimed));
-        assertThat(code(confirm(as("c1"), id(c1), null, 409))).isEqualTo("CLASS_FULL");
+        assertThat(code(confirm(as("c1"), holdId, null, 409))).isEqualTo("CLASS_FULL");
         assertThat(count("bookings", Criteria.where("classSessionId").is("s08-last").and("state").in("ACTIVE", "PAYMENT_PENDING"))).isEqualTo(1);
     }
 
@@ -352,6 +352,44 @@ class WaitlistIT extends BookingFixtures {
         assertThat(code(refused)).isEqualTo("BOOKING_LIMIT_REACHED"); assertThat(refused.at("/details/swappable")).isEmpty();
     }
 
+    @Test void canicFifoProtectsBothTurnsEvenBeforeDispatchAndInsideTheNoticeThreshold() throws Exception {
+        parameter("waitlist.mode", "FIFO"); parameter("waitlist.maxPerClass", 2); parameter("waitlist.fifoConfirmMinutes", 15);
+        var booking = book(as("pere"), "last", "s08-d-nit");
+        String first = id(join(as("laura"), "last", "s08-d-duna", 201));
+        String second = id(join(as("joan"), "last", "s08-d-toby", 201));
+        assertThat(code(join(as("c1"), "last", "s08-d-c1", 409))).isEqualTo("WAITLIST_LIMIT");
+        var release = local("2026-10-08T19:29"); // class at 20:00
+        clock.setInstant(release);
+        cancel(as("pere"), id(booking), 200);
+        assertThat(code(hold(as("c1"), "last", "s08-d-c1", 409))).isEqualTo("CLASS_FULL");
+        dispatch();
+        assertThat(entry(first)).containsEntry("state", "NOTIFIED");
+        assertThat(notificationsOf("N-15", "APP")).singleElement().satisfies(n ->
+                assertThat(n.getString("body")).contains("15 min", "19:44", "següent persona"));
+        clock.setInstant(release.plusSeconds(899));
+        var directHold = hold(as("laura"), "last", "s08-d-duna", 201);
+        assertThat(directHold.path("expiresAt").asText()).isEqualTo(release.plusSeconds(900).toString());
+        clock.advance(Duration.ofSeconds(1));
+        assertThat(code(confirm(as("laura"), id(directHold), null, 409))).isEqualTo("SEAT_HOLD_EXPIRED");
+        assertThat(code(hold(as("c1"), "last", "s08-d-c1", 409))).isEqualTo("CLASS_FULL");
+        assertThat(row("c1", "s08-d-c1", "last").path("freeSeats").asInt()).isZero();
+        assertThat(code(holdFor(as("laura"), "last", "s08-d-duna", first, 422))).isEqualTo("WAITLIST_OFFER_EXPIRED");
+        expired(first); dispatch();
+        assertThat(entry(second)).containsEntry("state", "NOTIFIED");
+        assertThat(instant(entry(second), "confirmBy")).isEqualTo(release.plusSeconds(1800));
+        assertThat(notificationsOf("N-15", "APP")).anySatisfy(n ->
+                assertThat(n.getString("body")).contains("15 min", "19:59", "tothom"));
+        // A late join waits for a new release and does not extend the two original turns.
+        String later = id(join(as("c1"), "last", "s08-d-c1", 201));
+        clock.advance(Duration.ofMinutes(15));
+        assertThat(row("c2", "s08-d-c2", "last").path("freeSeats").asInt()).isEqualTo(1);
+        assertThat(row("joan", "s08-d-toby", "last").path("freeSeats").asInt()).isEqualTo(1);
+        assertThat(row("c1", "s08-d-c1", "last").path("freeSeats").asInt()).isEqualTo(1);
+        expired(second); dispatch();
+        assertThat(entry(later)).containsEntry("state", "ACTIVE");
+        book(as("c2"), "last", "s08-d-c2");
+    }
+
     @Test void T_08_34_aDuplicateWaitlistExpiredProducesASingleOffer() throws Exception {
         parameter("waitlist.mode", "FIFO");
         var pere = book(as("pere"), "last", "s08-d-nit");
@@ -374,7 +412,7 @@ class WaitlistIT extends BookingFixtures {
         var pere = book(as("pere"), "two", "s08-d-nit"); var joan = book(as("joan"), "two", "s08-d-toby");
         String duna = id(join(as("laura"), "two", "s08-d-duna", 201)), c0 = id(join(as("c0"), "two", "s08-d-c0", 201)), c1 = id(join(as("c1"), "two", "s08-d-c1", 201));
         cancel(as("pere"), id(pere), 200); cancel(as("joan"), id(joan), 200);
-        try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-two", 2)).isEqualTo(2); }
+        try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-two", 2)).isZero(); }
         assertThat(entry(duna)).containsEntry("state", "NOTIFIED"); assertThat(entry(c0)).containsEntry("state", "NOTIFIED");
         assertThat(entry(c1)).containsEntry("state", "ACTIVE");
         assertThat(eventsOf("WaitlistNotified")).hasSize(2).allSatisfy(e -> {

@@ -158,6 +158,15 @@ class DemoScenarioSeederSurvivorsTest {
         return Map.of("classBookings", List.of(item));
     }
 
+    @Test void demoWaitlistUsesTheClubLimitWhenFillingTheQueue() {
+        when(members.pool(Set.of("member-login"))).thenReturn(List.of(candidate("a1", "level-a"), candidate("a2", "level-a"), candidate("a3", "level-a")));
+        var full = input(Map.of("classes", List.of(Map.of("day", "MONDAY", "start", "18:00", "ring", "R1", "freeWaitlistPlaces", 0))));
+        when(context.integer("waitlist.maxPerClass")).thenReturn(3);
+        assertThat(seeder.apply(full)).containsEntry("scenarioWaitlist", 3);
+        when(context.integer("waitlist.maxPerClass")).thenReturn(2);
+        assertThat(seeder.apply(full)).containsEntry("scenarioWaitlist", 2);
+    }
+
     @Test void E11_T06_aCancellationOffersExactlyTheFreedSeatAndCountsTheOffersMade() {
         var scenario = cancellation();
         when(entries.live("class-1")).thenReturn(List.of(entry(WaitlistState.ACTIVE)));

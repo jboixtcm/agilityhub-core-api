@@ -161,19 +161,8 @@ class WaitlistServiceSurvivorsTest {
 
     @Test void T_08_34_aWaitlistExpiredDeliveryNeverExpiresTheEntryAgainAndOffersTheSeatToTheNextUnderTheLock() {
         when(context.enabled(Module.WAITLIST)).thenReturn(true);
-        when(context.waitlistMode()).thenReturn(WaitlistMode.FIFO);
-        when(context.integer("waitlist.notifyThresholdMinutes")).thenReturn(30);
-        when(context.integer("waitlist.fifoConfirmMinutes")).thenReturn(30);
-        // P6 already expired entry-1 (WaitlistFifoJob) and published the event this consumer handles.
         var expired = entry("entry-1", "dog-duna", "member-laura", WaitlistState.EXPIRED, NOW.minusSeconds(2400), NOW.minusSeconds(600), 2L);
-        var next = entry("entry-2", "dog-kira", "member-eva", WaitlistState.ACTIVE, null, null, 0L);
-        var confirmBy = NOW.plusSeconds(1800);
         when(waitlist.findById("entry-1")).thenReturn(Optional.of(expired));
-        when(classes.find("class-a")).thenReturn(Optional.of(session(2, 1, STARTS)));
-        when(waitlist.live("class-a")).thenReturn(List.of(next));
-        when(transitions.freeSeats("class-a")).thenReturn(1);
-        when(transitions.notify(next, NOW, confirmBy, null))
-                .thenReturn(entry("entry-2", "dog-kira", "member-eva", WaitlistState.NOTIFIED, NOW, confirmBy, 1L));
 
         // The `WaitlistExpired` consumer ignores the count (WaitlistConsumers.java:42): only the offer it writes is observable.
         service.offerNext("class-a", "entry-1");
@@ -181,7 +170,7 @@ class WaitlistServiceSurvivorsTest {
         verify(transitions, never()).expire(any(), any());
         var order = inOrder(locks, transitions);
         order.verify(locks).lock("class-a");
-        order.verify(transitions).notify(next, NOW, confirmBy, null);
+        order.verify(transitions).handOver(expired, NOW);
     }
 
     // --- sweep (lines 214, 219) and the leave cancellations (cancelLocked, lines 248, 255) ---------------------------------

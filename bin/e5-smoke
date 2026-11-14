@@ -437,7 +437,7 @@ class Smoke:
         self.record("POST /seat-holds at the limit → POST /bookings {swapBookingId}", "201 + 201",
                     f"limit {limit['count']}/{limit['max']}, swappable 1, notSelectable [DONE]; old CANCELLED{{SWAP}}, new ACTIVE")
 
-        # ALL_AT_ONCE waiting list: join, free a seat, N-15 to every waiting member, hold + claim, N-46 to the others.
+        # The club policy decides whether everyone gets the release or the first person has an exclusive turn.
         eight = self.call("GET", "/api/v1/me/home", access=self.m[8], quiet=True)
         dog8 = next(d["id"] for d in eight["dogs"] if d["own"] and d["levelName"] == "E")
         full = next(c for c in views[8]["classes"] if c["state"] == "WAITLIST_OPEN")
@@ -452,19 +452,31 @@ class Smoke:
         self.call("POST", f"/api/v1/bookings/{nine['id']}/cancellation", access=self.m[9], body={})
         live = lambda: self.mongo('db.waitlist_entries.find({classSessionId:' + json.dumps(full["id"]) + ',state:{$in:["ACTIVE","NOTIFIED"]}})'
                                   '.toArray().map(e=>({id:e._id,state:e.state,member:e.memberId}))')
-        offered = wait(lambda: (lambda e: e if e and all(x["state"] == "NOTIFIED" for x in e) else None)(live()), "Entries not notified")
+        fifo = self.call("GET", "/api/v1/parameters/waitlist.mode", access=self.admin, quiet=True)["value"] == "FIFO"
+        def ready():
+            queue = live()
+            offered = [e for e in queue if e["state"] == "NOTIFIED"]
+            return offered if len(offered) == (1 if fifo else len(queue)) and offered else None
+        offered = wait(ready, "Waiting list offer missing")
         accounts = [self.account_of(e["member"]) for e in offered]
         wait(lambda: all(self.notifications("N-15", [a]) > 0 for a in accounts), "N-15 rows missing")
-        self.record("member.5@ cancels in time → SeatReleased{notifyWaitlist}", "200", f"{len(offered)} entries NOTIFIED; N-15 for each waiting member")
-        claim_hold = self.call("POST", "/api/v1/seat-holds", 201, access=self.m[8], body=dict(classSessionId=full["id"], dogId=dog8, waitlistEntryId=entry["id"]))
-        claimed = self.call("POST", f"/api/v1/waitlist-entries/{entry['id']}/claim", 201, access=self.m[8], body=dict(seatHoldId=claim_hold["id"]), idempotent=True)
-        consolidated = self.mongo('db.waitlist_entries.findOne({_id:' + json.dumps(entry["id"]) + '}).state')
-        others = [a for e, a in zip(offered, accounts) if e["id"] != entry["id"]]
-        wait(lambda: all(x["state"] == "ACTIVE" for x in live()), "Other entries not demoted")
-        wait(lambda: all(self.notifications("N-46", [a]) > 0 for a in others), "N-46 rows missing")
+        self.record("SeatReleased → WaitlistNotified → N-15", f"{len(offered)} offered", "one APP row per offered member")
+        if fifo:
+            require(full["waiting"] == 1 and offered[0]["id"] != entry["id"], "Expected the seeded member to have the first turn")
+            self.call("POST", "/api/v1/seat-holds", 409, access=self.m[8], body=dict(classSessionId=full["id"], dogId=dog8))
+            claim_id, claimant, claim_dog = offered[0]["id"], self.m[5], e_dog
+        else:
+            claim_id, claimant, claim_dog = entry["id"], self.m[8], dog8
+        claim_hold = self.call("POST", "/api/v1/seat-holds", 201, access=claimant, body=dict(classSessionId=full["id"], dogId=claim_dog, waitlistEntryId=claim_id))
+        claimed = self.call("POST", f"/api/v1/waitlist-entries/{claim_id}/claim", 201, access=claimant, body=dict(seatHoldId=claim_hold["id"]), idempotent=True)
+        consolidated = self.mongo('db.waitlist_entries.findOne({_id:' + json.dumps(claim_id) + '}).state')
+        wait(lambda: all(x["state"] == "ACTIVE" for x in live()), "Other entries should still be waiting")
+        if not fifo:
+            others = [a for e, a in zip(offered, accounts) if e["id"] != claim_id]
+            wait(lambda: all(self.notifications("N-46", [a]) > 0 for a in others), "N-46 rows missing")
         require(claimed["state"] == "ACTIVE" and consolidated == "CONSOLIDATED", "Claim mismatch")
         self.record("POST /seat-holds {waitlistEntryId} → POST /waitlist-entries/{id}/claim", "201 + 201",
-                    f"entry CONSOLIDATED; {len(others)} others back to ACTIVE with N-46")
+                    "offered entry CONSOLIDATED and remaining entries ACTIVE")
 
         # Free training (S09): 2/3 → «Qualsevol» booking → 3/3 → 409 → ring block over a live booking.
         summary = self.call("GET", f"/api/v1/me/training-summary?dogId={e_dog}", access=self.m[5])

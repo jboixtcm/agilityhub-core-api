@@ -130,6 +130,40 @@ class PackBalanceServiceTest {
         assertThat(adjusted.expiredAt()).isNull();
         assertThat(adjusted.movements()).extracting(PackBalance.Movement::type).containsExactly(PackMovementType.OPEN, PackMovementType.EXPIRE, PackMovementType.ADJUST);
     }
+    @Test void absoluteCorrectionsPreservePriorAdjustmentsAndCanReconcileImportedUsageToZero() {
+        service.openMigrated("pack", "source", "member", "dog", "plan", LocalDate.of(2026, 6, 12), 4, LocalDate.of(2026, 6, 12));
+        service.adjust("pack", 2, "Gift", null);
+        var raised = service.correctConsumption("pack", 7, 4, 8, "Three extra classes");
+        assertThat(raised.remaining()).isEqualTo(5);
+        assertThat(raised.consumed()).isEqualTo(7);
+        assertThat(raised.movements().getLast()).satisfies(m -> {
+            assertThat(m.type()).isEqualTo(PackMovementType.CONSUMPTION_CORRECTION);
+            assertThat(m.delta()).isEqualTo(-3);
+            assertThat(m.reason()).isEqualTo("Three extra classes");
+        });
+        service.expire("pack");
+        var reset = service.correctConsumption("pack", 0, 7, 5, "Historical correction");
+        assertThat(reset.consumed()).isZero();
+        assertThat(reset.remaining()).isEqualTo(12);
+        assertThat(reset.state()).isEqualTo(PackBalanceState.EXPIRED);
+        assertThat(reset.expiredAt()).isNotNull();
+    }
+    @Test void correctionsValidateCurrentCountersAndNeverInvalidateLaterBookingRefunds() {
+        var pack = open(null, 3, null);
+        service.consume("member", "dog", "booked", LocalDate.of(2026, 7, 1));
+        assertThatThrownBy(() -> service.correctConsumption(pack.id(), 0, 1, 2, "Reset"))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+        assertThatThrownBy(() -> service.correctConsumption(pack.id(), 4, 1, 2, "Too many"))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.PACK_NEGATIVE));
+        assertThatThrownBy(() -> service.correctConsumption(pack.id(), 2, 0, 3, "Stale count"))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.STALE_VERSION));
+        service.adjust(pack.id(), 1, "Gift", null);
+        assertThatThrownBy(() -> service.correctConsumption(pack.id(), 3, 1, 2, "Stale balance"))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.STALE_VERSION));
+        service.correctConsumption(pack.id(), 2, 1, 3, "Reconcile classes");
+        service.refund("booked");
+        assertThat(service.correctConsumption(pack.id(), 0, 1, 3, "Reconcile again").remaining()).isEqualTo(4);
+    }
     @Test void T_12_22_packsOffDoesNotReadOrWriteBalances() {
         when(configs.get("club")).thenReturn(new ClubConfig(null, Map.of(), Set.of(), null, Map.of()));
         assertThat(service.balance("member", "dog", LocalDate.of(2026, 7, 1))).isEmpty();

@@ -79,35 +79,39 @@ public class RoleAssignmentService {
     private Set<String> toggle(Set<String> roles, String role, boolean enabled) {
         var next = new HashSet<>(roles); if (enabled) { next.add(role); } else { next.remove(role); } return next;
     }
-    private Instructor build(Instructor old, String memberId, String name, String color, boolean active) {
+    private Instructor build(Instructor old, String memberId, String name, String color, boolean active, boolean support) {
         var actor = actors.current().accountId(); var now = clock.instant();
         return new Instructor(old == null ? UUID.randomUUID().toString() : old.id(), TenantContext.require(), memberId,
                 shortName(name), color(color), active, old == null ? 0 : old.version() + 1,
-                old == null ? now : old.createdAt(), now, old == null ? actor : old.createdByAccountId(), actor);
+                old == null ? now : old.createdAt(), now, old == null ? actor : old.createdByAccountId(), actor, support);
     }
     private void saveInstructor(Instructor old, Instructor next) {
         var item = next == null ? old : next; writer.save(item.id(), item.memberId(), writer.fields(old), next);
     }
-    private void checkRemoval(TeamMembership member, Set<String> next, boolean leave) {
+    private void checkRemoval(TeamMembership member, Set<String> next, Instructor before, Instructor after, boolean leave) {
         if (member.roles().contains("ADMIN") && !next.contains("ADMIN") && memberships.activeAdmins() <= 1
                 && member.status().equals("ACTIVE")) { throw new ApiException(ErrorCode.LAST_ADMIN); }
-        var instructor = instructors.forMember(member.memberId()).orElse(null);
-        if (!leave && instructor != null && instructor.active() && !next.contains("INSTRUCTOR")
-                && usage.usage(instructor.id()).futureClassSessions() > 0) {
-            throw new ApiException(ErrorCode.INSTRUCTOR_IN_USE, usage.usage(instructor.id()).details());
+        if (!leave && before != null && before.active() && (after == null || !after.active())) {
+            var references = usage.usage(before.id());
+            if (references.futureClassSessions() > 0) { throw new ApiException(ErrorCode.INSTRUCTOR_IN_USE, references.details()); }
         }
     }
     private void apply(TeamMembership member, Set<String> roles, Instructor instructor, AdminProfile admin, boolean leave, String reason) {
-        checkRemoval(member, roles, leave);
         var before = instructors.forMember(member.memberId()).orElse(null);
+        checkRemoval(member, roles, before, instructor, leave);
         if (instructor != null) { saveInstructor(before, instructor); }
-        memberships.save(member.id(), roles, instructor == null ? null : instructor.id(), admin, reason);
+        memberships.save(member.id(), roles, instructor == null || instructor.isSupport() ? null : instructor.id(), admin, reason);
     }
     public Created createInstructor(String memberId, String name, String color) {
+        return createInstructor(memberId, name, color, null);
+    }
+    public Created createInstructor(String memberId, String name, String color, Boolean schedulingOnly) {
         return write(() -> {
             var member = activeMember(memberId); var old = instructors.forMember(memberId).orElse(null);
-            var next = build(old, memberId, name, color, true);
-            apply(member, toggle(member.roles(), "INSTRUCTOR", true), next, member.adminProfile(), false, null);
+            boolean support = schedulingOnly == null ? old != null && old.isSupport() : schedulingOnly;
+            if (old != null && old.active() && support != old.isSupport()) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+            var next = build(old, memberId, name, color, true, support);
+            apply(member, support ? member.roles() : toggle(member.roles(), "INSTRUCTOR", true), next, member.adminProfile(), false, null);
             return new Created(next.id(), old == null);
         });
     }
@@ -116,8 +120,8 @@ public class RoleAssignmentService {
             var old = instructor(id); version(old.version(), expected); var member = memberships.forMember(old.memberId());
             boolean enabled = active == null ? old.active() : active;
             if (enabled && !old.active()) { activeMember(old.memberId()); }
-            var next = build(old, old.memberId(), name == null ? old.shortName() : name, color == null ? old.color() : color, enabled);
-            apply(member, toggle(member.roles(), "INSTRUCTOR", enabled), next, member.adminProfile(), false, null); return null;
+            var next = build(old, old.memberId(), name == null ? old.shortName() : name, color == null ? old.color() : color, enabled, old.isSupport());
+            apply(member, old.isSupport() ? member.roles() : toggle(member.roles(), "INSTRUCTOR", enabled), next, member.adminProfile(), false, null); return null;
         });
     }
     /** A new short name for an instructor, keeping colour and state (the E6-T04 demo seed names the class's instructor). */
@@ -129,8 +133,8 @@ public class RoleAssignmentService {
         write(() -> {
             var old = instructor(id);
             if (usage.hasReferences(id)) { throw new ApiException(ErrorCode.INSTRUCTOR_IN_USE, usage.usage(id).details()); }
-            var member = memberships.forMember(old.memberId()); var roles = toggle(member.roles(), "INSTRUCTOR", false);
-            checkRemoval(member, roles, false); saveInstructor(old, null);
+            var member = memberships.forMember(old.memberId()); var roles = old.isSupport() ? member.roles() : toggle(member.roles(), "INSTRUCTOR", false);
+            checkRemoval(member, roles, old, null, false); saveInstructor(old, null);
             memberships.save(member.id(), roles, null, member.adminProfile(), null); return null;
         });
     }
@@ -174,7 +178,9 @@ public class RoleAssignmentService {
             String name = instructor == null ? defaultName(member) : instructor.shortName();
             var config = configs.get(TenantContext.require());
             String color = instructor == null ? (config.ringPalette().isEmpty() ? config.primaryColor() : config.ringPalette().getFirst()) : instructor.color();
-            instructor = build(instructor, member.memberId(), name, color, roles.contains("INSTRUCTOR"));
+            boolean support = instructor != null && instructor.isSupport() && !roles.contains("INSTRUCTOR");
+            boolean active = support ? !leave && instructor.active() : roles.contains("INSTRUCTOR");
+            instructor = build(instructor, member.memberId(), name, color, active, support);
         }
         var admin = member.adminProfile();
         if (roles.contains("ADMIN") || admin != null) {

@@ -125,7 +125,11 @@ public class BookingNotificationFacts implements NotificationFactsPort, Waitlist
             // `mode` only selects the wording; `confirm_by` exists in FIFO only (catalog).
             var values = new java.util.LinkedHashMap<String, Object>();
             values.put("mode", entry.confirmBy() == null ? WaitlistMode.ALL_AT_ONCE.name() : WaitlistMode.FIFO.name());
-            if (entry.confirmBy() != null) { values.put("confirm_by", entry.confirmBy()); }
+            if (entry.confirmBy() != null) {
+                values.put("confirm_by", entry.confirmBy());
+                values.put("has_next", trigger.flag("hasNext") ? "true" : "false");
+                values.put("turn_minutes", java.time.Duration.between(entry.notifiedAt(), entry.confirmBy()).toMinutes());
+            }
             values.put("entityId", entry.id());
             builder.member(new NotificationFacts.MemberSubject(entry.memberId(), entry.dogId(), values,
                     NotificationSubject.waitlistEntry(entry.id()).with(NotificationSubject.classSession(entry.classSessionId()))));

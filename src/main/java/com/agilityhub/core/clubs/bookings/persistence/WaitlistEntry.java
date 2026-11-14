@@ -19,4 +19,15 @@ public record WaitlistEntry(@Id String id, String clubId, String classSessionId,
         Instant joinedAt, @AuditField WaitlistState state, int position, Instant notifiedAt, Instant confirmBy, Instant offerNotifiedAt,
         String bookingId, @AuditField Instant cancelledAt, @AuditField WaitlistCancelReason cancelReason,
         Instant classStartsAt, String bookingWeekKey,
-        @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) implements TenantEntity { }
+        @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId,
+        Integer offerThroughPosition) implements TenantEntity {
+    // Null on entries written before FIFO releases recorded the last eligible queue position.
+    public WaitlistEntry(String id, String clubId, String classSessionId, String dogId, String memberId, String accountId,
+            Instant joinedAt, WaitlistState state, int position, Instant notifiedAt, Instant confirmBy, Instant offerNotifiedAt,
+            String bookingId, Instant cancelledAt, WaitlistCancelReason cancelReason, Instant classStartsAt, String bookingWeekKey,
+            Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) {
+        this(id, clubId, classSessionId, dogId, memberId, accountId, joinedAt, state, position, notifiedAt, confirmBy, offerNotifiedAt,
+                bookingId, cancelledAt, cancelReason, classStartsAt, bookingWeekKey, version, createdAt, createdByAccountId, updatedAt,
+                updatedByAccountId, null);
+    }
+}

@@ -524,7 +524,7 @@ class CensusIT extends AbstractIntegrationTest {
         family();
         field("dogs", "dog-two", "licenses", List.of(object("organisation", "EXAMPLE", "number", "123", "category", "M", "grade", "2", "division", "2D")));
         field("dogs", "dog-two", "handlerName", "Example Handler");
-        mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-two").append("remaining", 4).append("sessionsTotal", 10).append("state", "ACTIVE").append("expiresOn", "2027-12-31"), "pack_balances");
+        mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-two").append("consumed", 8).append("remaining", 4).append("sessionsTotal", 10).append("state", "ACTIVE").append("expiresOn", "2027-12-31"), "pack_balances");
         task("pending", "PENDING", null); task("recent", "DONE", clock.instant().minus(Duration.ofDays(30))); task("old", "DONE", clock.instant().minus(Duration.ofDays(31)));
         var response = json(own(get("/api/v1/me/dogs")), 200); assertThat(response.path("dogs")).hasSize(3); assertThat(response.toString()).contains("dog-family").doesNotContain("chip", "handlerName", "passwordHash");
         assertThat(response.path("dogs").get(0).path("tasks").path("items")).hasSize(2);
@@ -535,6 +535,7 @@ class CensusIT extends AbstractIntegrationTest {
         var pending = response.path("dogs").get(0).path("tasks").path("items").findParents("id").stream().filter(item -> item.path("id").asText().equals("pending")).findFirst().orElseThrow();
         assertThat(pending.has("doneBy")).isFalse();
         assertThat(response.path("dogs").get(1).path("pack").path("remaining").asInt()).isEqualTo(4);
+        assertThat(response.path("dogs").get(1).path("pack").path("consumed").asInt()).isEqualTo(8);
         assertThat(response.path("dogs").get(1).path("licenses").get(0).path("division").asText()).isEqualTo("2D");
         // E3-T16 (R-03-15, R-03-32): the club's document types for «＋ DOC.», in catalog order and the reader's language (`en` here).
         assertThat(response.path("documentTypes")).isEqualTo(mapper.readTree("[{\"key\":\"VACCINATION_CARD\",\"label\":\"Vaccination card\",\"required\":true},"

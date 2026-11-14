@@ -370,13 +370,13 @@ lists what each account holds at `demoNow` (anchor week = week 0; ids differ per
 | `member.2@` (6), E dog | Mon 08:30 MUN `CANCELLED_LATE` (DONE) + Wed 08:30 MUN `ACTIVE` (swappable) · free training Mon 11:00 CEN (a taken capacity-1 slot for others) | 06 swap (`limit.reached`, 1 swappable, 1 not selectable) |
 | `member.3@` (7), E dog | Thu 20:00 CEN `CANCELLED` in time · Mon 08:30 MUN `ACTIVE` (inside 4 h at 07:00) · Mon 09:30 CEN `CANCELLED_LATE` | 04 `WEEKLY_LIMIT_DONE`, 29 informative, 07 green and yellow notes |
 | `member.4@` (8), E and CAD dogs | nothing booked; CAD dog without free-training right | 04 `WAITLIST_OPEN` (Thu 17:40 CAR); smoke: join, then hold + claim |
-| `member.5@` (9), E dog | Thu 17:40 CAR `ACTIVE` | smoke: in-time cancellation frees the seat, so N-15 goes to every waiting member |
+| `member.5@` (9), E dog | Thu 17:40 CAR `ACTIVE` | smoke: in-time cancellation frees the seat and N-15 follows the club’s waitlist mode |
 | `member.6@` (10), E dog | Thu 20:00 CEN `ACTIVE` (the class has exactly `classes.minDogs` = 2) | smoke: in-time cancellation, so exactly one N-54 |
 | `member.7@` (11) | `bookingBlock` «Quota pendent (fictícia)» | 04 `NOT_BOOKABLE{BLOCKED}` + banner |
 | instructor 0 | `RESERVATION`/`PRIVATE_CLASS` on Petita, Tue 11:00–12:00, note «Classe particular (fictícia)» | 24 and the grids |
 
-Classes of week 0 filled with non-login registrants (member-number order, seed 42): Tue 17:40 CAR full + 3 waiting
-(`WAITLIST_FULL`); Thu 17:40 CAR full + 1 waiting (+ `member@`, so 2) (`WAITLIST_OPEN`); Thu 20:00 CEN + 1. The S15 P2
+Classes of week 0 filled with non-login registrants (member-number order, seed 42): Tue 17:40 CAR full with its waitlist at the club limit
+(`WAITLIST_FULL`); Thu 17:40 CAR full with `member@` waiting and one waitlist place left (`WAITLIST_OPEN`); Thu 20:00 CEN + 1. The S15 P2
 fixture for a review on **Tuesday 07:30**: Tue 18:50 CEN with 1 registrant (cancelled that day, N-17 + N-08a), Wed
 16:30 CEN with 0 (warned, N-16 to the admins), Tue 20:00 MUN `riskExempt`. P2 cancels every other class of that day
 below `classes.minDogs` as well: that is the rule, not seed data.

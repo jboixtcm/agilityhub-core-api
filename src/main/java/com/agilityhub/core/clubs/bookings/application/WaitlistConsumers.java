@@ -22,7 +22,7 @@ public class WaitlistConsumers {
         return new DomainEventHandler<>() {
             public String eventType() { return "SeatReleased"; } public Class<BookingEvent> eventClass() { return BookingEvent.class; }
             public void handle(String id, BookingEvent event) {
-                if (!Boolean.TRUE.equals(event.payload().get("notifyWaitlist"))) { return; }
+                if (!Boolean.TRUE.equals(event.payload().get("notifyWaitlist")) || Boolean.TRUE.equals(event.payload().get("fifoProcessed"))) { return; }
                 try (var tenant = TenantContext.open(event.clubId())) {
                     waitlist.offerSeats(Objects.toString(event.payload().getOrDefault("classId", event.aggregateId())),
                             event.payload().get("freeSeats") instanceof Number seats ? seats.intValue() : 0);
@@ -34,6 +34,7 @@ public class WaitlistConsumers {
         return new DomainEventHandler<>() {
             public String eventType() { return "WaitlistExpired"; } public Class<SchedulerEvent> eventClass() { return SchedulerEvent.class; }
             public void handle(String id, SchedulerEvent event) {
+                if (Boolean.TRUE.equals(event.payload().get("fifoProcessed"))) { return; }
                 try (var tenant = TenantContext.open(event.clubId())) {
                     var entryId = Objects.toString(event.payload().getOrDefault("entryId", event.aggregateId()), null);
                     // `classId` is the S15 §7 payload addition; the catalog row only has `entryId`.

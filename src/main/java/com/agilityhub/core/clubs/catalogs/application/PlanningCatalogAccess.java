@@ -57,7 +57,7 @@ public class PlanningCatalogAccess {
      * changed «instructor 0» from club to club.
      */
     public List<String> activeInstructorIds() {
-        var active = instructors.findAll().stream().filter(Instructor::active).toList();
+        var active = instructors.findAll().stream().filter(i -> i.active() && !i.isSupport()).toList();
         var numbers = members.memberNumbers(active.stream().map(Instructor::memberId).filter(java.util.Objects::nonNull).collect(java.util.stream.Collectors.toSet()));
         return active.stream().sorted(Comparator.comparing((Instructor i) -> numbers.getOrDefault(i.memberId(), Integer.MAX_VALUE))
                 .thenComparing(Instructor::memberId, Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(Instructor::id)).map(Instructor::id).toList();
@@ -71,9 +71,9 @@ public class PlanningCatalogAccess {
     /** S10 R-10-01: the instructors with their census member (the caller's profile), active or not. */
     public record InstructorRef(String id, String shortName, String memberId, boolean active) { }
     public List<InstructorRef> instructorRefs() {
-        return instructors.findAll().stream().map(i -> new InstructorRef(i.id(), i.shortName(), i.memberId(), i.active())).toList();
+        return instructors.findAll().stream().filter(i -> !i.isSupport()).map(i -> new InstructorRef(i.id(), i.shortName(), i.memberId(), i.active())).toList();
     }
-    public List<String> instructorMembers(Collection<String> ids) { return instructors.findAll().stream().filter(i -> ids.contains(i.id())).map(Instructor::memberId).toList(); }
+    public List<String> instructorMembers(Collection<String> ids) { return instructors.findAll().stream().filter(i -> !i.isSupport() && ids.contains(i.id())).map(Instructor::memberId).toList(); }
     public static int capacity(List<Integer> capacities, boolean levelsEnabled, int defaultCapacity) {
         return CapacityCalculator.forLevels(capacities, levelsEnabled, defaultCapacity);
     }

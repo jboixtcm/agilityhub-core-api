@@ -98,7 +98,8 @@ class MessageTemplateSeedTest {
         assertThat(checked).containsExactly("N-08a", "N-15", "N-16", "N-09", "N-19", "N-06", "N-04", "N-02", "N-28", "N-13");
         // E76: N-02's APP copy has no link (the welcome e-mail carries it); FIFO names the deadline; N-16 names the dog (S15).
         assertThat(seed.of("N-02").orElseThrow().body().values()).allSatisfy(text -> assertThat(text).doesNotContain("[[link]]"));
-        assertThat(seed.of("N-15").orElseThrow().smsBody().get("ca")).contains("FIFO {Tens fins a les [[confirm_by]] per confirmar-la a l'app.}");
+        assertThat(seed.of("N-15").orElseThrow().smsBody().values()).allSatisfy(text ->
+                assertThat(text).contains("[[confirm_by]]", "[[turn_minutes]]", "{has_next, select, true {"));
         assertThat(seed.of("N-16").orElseThrow().body().get("ca")).contains("[[dog_name]]", "{auto_cancel, select, true {");
     }
     /** The top-level «…» texts of a cell, in order (a text may hold its own «…», as N-08a's admin text). */

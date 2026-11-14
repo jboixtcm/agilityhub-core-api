@@ -286,7 +286,7 @@ class MessagingE7T06UnitTest {
         var provider = new TemplateProvider(null, MessageTemplateSeed.load(), CLOCK, null, mock(AnnouncementRepository.class));
         var service = new MessageTemplateService(null, provider, null, null, null, null, null, CLOCK, null);
         assertThat(service.seedArguments("N-01")).containsExactly("has_upfront");
-        assertThat(service.seedArguments("N-15")).containsExactly("mode");
+        assertThat(service.seedArguments("N-15")).containsExactly("mode", "has_next");
         assertThat(service.seedArguments("N-16")).containsExactly("auto_cancel");
         assertThat(service.seedArguments("N-08b")).isEmpty(); assertThat(service.seedArguments("N-32c")).isEmpty();
         assertThat(service.rules(TemplateKind.CATALOG, "N-08b", NotificationCategory.CLUB_CHANGES).icuNames()).doesNotContain("class_description");

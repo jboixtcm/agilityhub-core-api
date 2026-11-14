@@ -305,7 +305,7 @@ class E8ResponseContractTest {
         expected.put(RollbackBlocker.class, "REMITTANCE_SUBMITTED,COLLECTION_SUBMITTED,INVOICE_PAID,MANUAL_INVOICE_AFTER,COLLECTION_DATE_PASSED");
         expected.put(UpfrontConcept.class, "ENTRY_FEE,FIRST_MONTH,PACK,SINGLE_CLASS,ACTIVITY,OTHER"); expected.put(UpfrontStatus.class, "DUE,CHECKOUT_PENDING,PARTIAL,PAID,CANCELLED,REFUNDED");
         expected.put(UpfrontProvider.class, "STRIPE,MANUAL"); expected.put(ManualChannel.class, "CASH,TRANSFER,BIZUM");
-        expected.put(PackBalanceState.class, "ACTIVE,EXPIRED,CLOSED"); expected.put(PackMovementType.class, "OPEN,CONSUME,REFUND,ADJUST,EXPIRE");
+        expected.put(PackBalanceState.class, "ACTIVE,EXPIRED,CLOSED"); expected.put(PackMovementType.class, "OPEN,CONSUME,REFUND,ADJUST,EXPIRE,CONSUMPTION_CORRECTION");
         expected.put(StripeEventOutcome.class, "PROCESSED,IGNORED,FAILED"); expected.put(CheckoutStatus.class, "PENDING,PAID,EXPIRED");
         expected.put(InactivityState.class, "REQUESTED,APPROVED,ACTIVE,FINISHED,DENIED,CANCELLED"); expected.put(LeaveRequestState.class, "PENDING,APPROVED,DENIED,CANCELLED");
         expected.put(LeaveSource.class, "MEMBER,ADMIN,PACK_EXPIRED,MIGRATED"); expected.put(LifecycleOrigin.class, "APP,BACKOFFICE,SYSTEM");

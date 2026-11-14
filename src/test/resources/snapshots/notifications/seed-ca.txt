@@ -106,10 +106,10 @@ body: Laura Serra Puig ha demanat la baixa amb data 31 d’agost de 2026. Motiu:
 
 ## N-15 MEMBER
 title: S'ha alliberat una plaça!
-body: Classe B+C · dimecres 12 · 18:50. Tens fins a les 17:00 per confirmar-la.
-sms: Club Agility Exemple: s'ha alliberat una placa a la classe de dimecres 12 a les 18:50 (B+C). Tens fins a les 17:00 per confirmar-la a l'app. [140]
-email.text: S'ha alliberat una plaça!⏎⏎Classe B+C · dimecres 12 · 18:50. Tens fins a les 17:00 per confirmar-la.⏎⏎Obre l’app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-exemple&classSessionId=class-exemple&dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 2acae13956e85046
+body: Classe B+C · dimecres 12 · 18:50. Només tu pots reservar aquesta plaça durant 15 min. Confirma-la a l’app abans de les 17:00. Si no la reserves, passarà a la següent persona de la llista.
+sms: Classe dimecres 12 18:50. Tens prioritat fins a les 17:00 (15 min). Reserva a l'app. Després, torn següent. [107]
+email.text: S'ha alliberat una plaça!⏎⏎Classe B+C · dimecres 12 · 18:50. Només tu pots reservar aquesta plaça durant 15 min. Confirma-la a l’app abans de les 17:00. Si no la reserves, passarà a la següent persona de la llista.⏎⏎Obre l’app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-exemple&classSessionId=class-exemple&dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: d1d13d8ee6345361
 
 ## N-16 MEMBER
 title: Possible anul·lació de classe

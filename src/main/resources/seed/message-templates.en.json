@@ -241,8 +241,8 @@
       "code": "N-15",
       "name": "A place has been freed up!",
       "title": "A place has been freed up!",
-      "body": "[[class_description]] class · [[class_date]] · [[class_time]]. {mode, select, FIFO {You have until [[confirm_by]] to confirm it.} other {You are on the waiting list: the place goes to whoever confirms first.}}",
-      "smsBody": "[[club_name]]: a place has been freed up in the class on [[class_date]] at [[class_time]] ([[class_description]]). {mode, select, FIFO {You have until [[confirm_by]] to confirm it in the app.} other {Open the app to take it.}}",
+      "body": "[[class_description]] class · [[class_date]] · [[class_time]]. {mode, select, FIFO {Only you can book this place for [[turn_minutes]] min. Confirm it in the app by [[confirm_by]]. {has_next, select, true {If you do not book, the next person on the list gets a turn.} other {If you do not book, the place opens to everyone.}}} other {You are on the waiting list: the place goes to whoever confirms first.}}",
+      "smsBody": "{mode, select, FIFO {Class [[class_date]] [[class_time]]. Your turn until [[confirm_by]] ([[turn_minutes]] min). Book in the app. {has_next, select, true {Next, the next person gets a turn.} other {Then anyone can book.}}} other {[[club_name]]: a place has been freed up in the class on [[class_date]] at [[class_time]] ([[class_description]]). Open the app to take it.}}",
       "icon": "unlock",
       "color": "ACCENT",
       "matrix": {

@@ -82,10 +82,15 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
     @Test void T_08_40_scenarioHoldsEveryScreenStateAtDemoNowThroughTheRealServices() throws Exception {
         seed("canic");
         var run = mongo.findById(club + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);
-        assertThat(run).containsEntry("scenarioClassBookings", 18).containsEntry("scenarioCancellations", 3).containsEntry("scenarioWaitlist", 5)
+        assertThat(run).containsEntry("scenarioClassBookings", 18).containsEntry("scenarioCancellations", 3).containsEntry("scenarioWaitlist", 3)
                 .containsEntry("scenarioRiskExempt", 1).containsEntry("scenarioBookingBlocks", 1).containsEntry("scenarioTrainingBookings", 3)
                 .containsEntry("scenarioTrainingOverrides", 1).containsEntry("scenarioRingBlocks", 1).containsEntry("scenarioActivityRegistrations", 1)
                 .containsEntry("validatedWeeks", 2);
+        var waitlistClasses = List.of(session(WEEK.plusDays(1), "17:40", "CAR").getString("_id"),
+                session(WEEK.plusDays(3), "17:40", "CAR").getString("_id"));
+        long scenarioWaitlist = mongo.count(Query.query(Criteria.where("clubId").is(club).and("classSessionId").in(waitlistClasses)
+                .and("state").in("ACTIVE", "NOTIFIED")), "waitlist_entries");
+        assertThat(scenarioWaitlist).isEqualTo(run.getInteger("scenarioWaitlist").longValue());
         clock.setInstant(DEMO_NOW);
 
         // 03: every row type for member@ (CLASS, CLASS_WAITLIST, TRAINING ×2, ACTIVITY), chronological, counters of W0.
@@ -137,9 +142,9 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
         assertThat(session(WEEK.plusDays(2), "16:30", "CEN").get("counters", Document.class)).containsEntry("booked", 0);
         assertThat(session(WEEK.plusDays(1), "20:00", "MUN").get("risk", Document.class)).containsEntry("exempt", true);
         var full = session(WEEK.plusDays(1), "17:40", "CAR");
-        assertThat(full.get("counters", Document.class)).containsEntry("booked", full.getInteger("capacity")).containsEntry("waiting", 3);
+        assertThat(full.get("counters", Document.class)).containsEntry("booked", full.getInteger("capacity")).containsEntry("waiting", 2);
         var open = session(WEEK.plusDays(3), "17:40", "CAR");
-        assertThat(open.get("counters", Document.class)).containsEntry("booked", open.getInteger("capacity")).containsEntry("waiting", 2);
+        assertThat(open.get("counters", Document.class)).containsEntry("booked", open.getInteger("capacity")).containsEntry("waiting", 1);
         assertThat(session(WEEK.plusDays(3), "20:00", "CEN").get("counters", Document.class)).containsEntry("booked", 2);
 
         // The counters the services keep match the documents; every seeded document belongs to the tenant.
@@ -203,6 +208,8 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
         var entries = mongo.find(Query.query(Criteria.where("clubId").is(fifo)).with(org.springframework.data.domain.Sort.by("position")), Document.class, "waitlist_entries");
         assertThat(entries).extracting(e -> e.getString("state")).containsExactly("NOTIFIED", "ACTIVE", "ACTIVE");
         assertThat(entries.getFirst().getDate("confirmBy").toInstant()).isEqualTo(WEEK.minusDays(1).atTime(21, 30).atZone(MADRID).toInstant());
+        var run = mongo.findById(fifo + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);
+        assertThat(run.getInteger("scenarioOffers")).isEqualTo((int) entries.stream().filter(e -> "NOTIFIED".equals(e.getString("state"))).count());
         var pending = mongo.findOne(Query.query(Criteria.where("clubId").is(fifo).and("state").is("PAYMENT_PENDING")), Document.class, "bookings");
         assertThat(pending).isNotNull(); assertThat(pending.get("charge", Document.class).getString("mode")).isEqualTo("PAY_TO_BOOK");
         assertThat(configs.get(fifo).get("waitlist.mode", String.class)).isEqualTo("FIFO");

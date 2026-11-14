@@ -87,7 +87,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
      */
     static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(concepts|simulations|runs|runs/[^/]+/(rollback|card-charges))"
             + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation|retry|refund)"
-            + "|POST /api/v1/pack-balances(/[^/]+/adjustments)?|POST /api/v1/upfront-payments|POST /api/v1/members/[^/]+/plan-change|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
+            + "|POST /api/v1/pack-balances(/[^/]+/(adjustments|consumption-corrections))?|POST /api/v1/upfront-payments|POST /api/v1/members/[^/]+/plan-change|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
 
     /**
      * S16 R-16-11 (E9-T06, INC-47's pattern), `METHOD path`: the keyed build-session writes (the start, the join and `finish`) run

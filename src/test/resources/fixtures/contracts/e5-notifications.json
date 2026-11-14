@@ -3,7 +3,7 @@
   "N-05": {"event": "BookingCancelled", "variables": ["dog_name", "class_date", "class_time", "late"], "action": null},
   "N-06": {"event": "TrainingBooked", "variables": ["dog_name", "date", "time", "ring_name"], "action": null},
   "N-07": {"event": "TrainingCancelled", "variables": ["dog_name", "date", "time", "ring_name"], "action": null},
-  "N-15": {"event": "SeatReleased", "variables": ["dog_name", "class_date", "class_time", "confirm_by"], "action": "CLAIM_SEAT"},
+  "N-15": {"event": "SeatReleased", "variables": ["dog_name", "class_date", "class_time", "confirm_by", "turn_minutes", "has_next"], "action": "CLAIM_SEAT"},
   "N-16#MEMBER": {"event": "ClassAtRisk", "variables": ["dog_name", "class_date", "class_time", "review_time", "review_day", "audience"], "action": "CHANGE_CLASS"},
   "N-16#STAFF": {"event": "ClassAtRisk", "variables": ["class_date", "class_time", "review_time", "review_day", "audience"], "action": "CHANGE_CLASS"},
   "N-17": {"event": "ClassAutoCancelled", "variables": ["class_date", "class_time", "dogs_count", "class_description", "ring_name"], "action": "CHANGE_CLASS"},

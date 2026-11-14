@@ -132,6 +132,20 @@ class PlanningIT extends AbstractIntegrationTest {
             .with(jwt().jwt(j -> j.subject("member").claim("clubId",CLUB)).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isForbidden());
         try(var tenant=TenantContext.open(OTHER)) { assertThat(sessions.findAll()).isEmpty(); }
     }
+    @Test void generationKeepsTheSupportStaffAssignedInTheTemplate() throws Exception {
+        String support = "plan-support";
+        mongo.insert(new Instructor(support, CLUB, "support-member", "Support", "#123456", true, 0, clock.instant(), clock.instant(), "admin", "admin", true));
+        String template = template("Support week", "WEEKDAYS");
+        var body = classBody(band(template).at("/bands/0/id").asText());
+        body.put("instructorIds", List.of(support));
+        assertThat(ok("POST", "/week-templates/" + template + "/classes", body).at("/classes/0/instructorIds/0").asText()).isEqualTo(support);
+        String week = week("2026-08-24");
+        generation(week, template, null, UUID.randomUUID().toString()).andExpect(status().isOk()).andExpect(jsonPath("$.classCount").value(1));
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(sessions.forWeek(week)).singleElement().satisfies(session -> assertThat(session.instructorIds()).containsExactly(support));
+        }
+    }
+
     @Test void T_06_09_INC_40_instructorListsAndInactiveReferencesOfTemplateClasses() throws Exception {
         String id = template("Week A", "WEEKDAYS"); String path = "/week-templates/" + id; String band = band(id).at("/bands/0/id").asText();
         // The POST's Bean Validation already answers an empty list (NotEmpty); the PATCH below answers it with the same field code.

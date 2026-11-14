@@ -46,6 +46,7 @@ class TeamIT extends AbstractIntegrationTest {
     @Autowired ClubConfigService configs;
     @Autowired HostTenantResolver hosts;
     @Autowired RoleAssignmentService team;
+    @Autowired PlanningCatalogAccess planning;
     @Autowired TeamMembershipService memberships;
     @Autowired InstructorUsageCounter usage;
     @Autowired MongoTransactionManager transactionManager;
@@ -129,6 +130,46 @@ class TeamIT extends AbstractIntegrationTest {
         state("one", "PENDING");
         admin(body(post("/api/v1/instructors"), Map.of("memberId", "one", "shortName", "Pending", "color", "#123456")))
                 .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("MEMBER_NOT_ACTIVE"));
+    }
+
+    @Test void rosterBeforeSupportWasAddedKeepsInstructorAccessAndNotifications() throws Exception {
+        String id = instructor("one").path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().unset("schedulingOnly"), "instructors");
+        var listed = json(admin(get("/api/v1/instructors")), 200).at("/items/0");
+        assertThat(listed.path("schedulingOnly").booleanValue()).isFalse();
+        try (var scope = TenantContext.open(CLUB)) {
+            assertThat(planning.instructorRefs()).extracting(PlanningCatalogAccess.InstructorRef::id).containsExactly(id);
+            assertThat(planning.instructorMembers(List.of(id))).containsExactly("one");
+        }
+        assertThat(membership("one").roles()).contains(Role.INSTRUCTOR);
+    }
+
+    @Test void supportCanBeScheduledWithoutGainingAnInstructorIdentity() throws Exception {
+        var created = json(admin(body(post("/api/v1/instructors"), Map.of("memberId", "one", "shortName", "Support",
+                "color", "#123456", "schedulingOnly", true))), 201);
+        String id = created.path("id").asText();
+        assertThat(created.path("schedulingOnly").asBoolean()).isTrue();
+        assertThat(membership("one").roles()).containsExactly(Role.MEMBER);
+        assertThat(membership("one").instructorId()).isNull();
+        assertThat(event("MembershipChanged")).isEmpty();
+        reference("class_sessions", CLUB, id, "PLANNED", 5);
+        try (var scope = TenantContext.open(CLUB)) {
+            assertThat(team.setRoles("one", Set.of("MEMBER"))).containsExactly("MEMBER");
+            assertThat(planning.snapshot().instructors()).containsExactly(new PlanningCatalogAccess.ResourceView(id, "Support", true));
+            assertThat(planning.instructorRefs()).isEmpty();
+            assertThat(planning.instructorMembers(List.of(id))).isEmpty();
+        }
+        assertThat(update("instructors/" + id, Map.of("shortName", "Helping", "version", 0)).path("schedulingOnly").asBoolean()).isTrue();
+        admin(body(patch("/api/v1/instructors/" + id), Map.of("active", false, "version", 1)))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("INSTRUCTOR_IN_USE"));
+        mongo.remove(new Query(), "class_sessions");
+        update("instructors/" + id, Map.of("active", false, "version", 1));
+        assertThat(json(admin(get("/api/v1/instructors")), 200).path("items")).isEmpty();
+        // An older client reactivating the same profile preserves its kind.
+        json(admin(body(post("/api/v1/instructors"), Map.of("memberId", "one", "shortName", "Back", "color", "#111111"))), 200);
+        assertThat(membership("one").roles()).containsExactly(Role.MEMBER);
+        assertThat(membership("one").instructorId()).isNull();
+        admin(delete("/api/v1/instructors/" + id)).andExpect(status().isNoContent());
     }
 
     @Test void T_05_14_futureAndHistoricalReferencesAndTemplateOnlyDeactivation() throws Exception {

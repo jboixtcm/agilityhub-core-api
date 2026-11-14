@@ -305,7 +305,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : clubRoutes().filter(r -> billing.contains(r.module())).toList()) {
             for (String role : route.roles()) { error(call(route, CLUB, role), 404, "MODULE_DISABLED"); }
         }
-        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(37);
+        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(38);
         error(as(get("/api/v1/me/invoices"), "MEMBER"), 404, "MODULE_DISABLED");
         // A delivery signed by the club's secret reaches the module guard; an unsigned one never does (R-12-21).
         String event = "{\"id\":\"evt_e8\",\"type\":\"payment_intent.succeeded\"}";
@@ -320,7 +320,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         club(CLUB, without(Module.PACKS));
         for (Route route : clubRoutes().filter(r -> "PACKS".equals(r.module())).toList()) { error(call(route, CLUB, route.roles().getFirst()), 404, "MODULE_DISABLED"); }
         assertThat(clubRoutes().filter(r -> "PACKS".equals(r.module())).map(Route::label)).containsExactly("GET /api/v1/pack-balances", "GET /api/v1/me/pack-balances",
-                "POST /api/v1/pack-balances", "POST /api/v1/pack-balances/{id}/adjustments");
+                "POST /api/v1/pack-balances", "POST /api/v1/pack-balances/{id}/adjustments", "POST /api/v1/pack-balances/{id}/consumption-corrections");
         mvc.perform(as(get("/api/v1/invoices"), "ADMIN")).andExpect(status().isOk());
         mvc.perform(as(get("/api/v1/members/e8-member-a/pending-charges"), "ADMIN")).andExpect(status().isOk());
         club(CLUB, without(Module.SINGLE_CLASS));
@@ -635,9 +635,9 @@ class E8ContractIT extends AbstractIntegrationTest {
 
     @Test void WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(59);
+        assertThat(routes().count()).isEqualTo(60);
         long s13 = routes().filter(r -> r.path().contains("inactivity") || r.path().contains("leave") || r.path().endsWith("/reactivation")).count();
-        assertThat(List.of(routes().count() - s13, s13)).containsExactly(38L, 21L);
+        assertThat(List.of(routes().count() - s13, s13)).containsExactly(39L, 21L);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();

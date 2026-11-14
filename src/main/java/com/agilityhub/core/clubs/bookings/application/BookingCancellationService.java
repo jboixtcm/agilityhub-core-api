@@ -191,6 +191,10 @@ public class BookingCancellationService {
         boolean notify = CancellationPolicy.notifyWaitlist(context.enabled(Module.WAITLIST), b.classStartsAt(), now,
                 context.integer("waitlist.notifyThresholdMinutes"), liveEntries);
         payload.put("notifyWaitlist", notify);
+        if (notify && context.waitlistMode() == WaitlistMode.FIFO) {
+            transitions.offerFifo(b.classSessionId(), now, Math.max(0, capacity - taken), null);
+            payload.put("fifoProcessed", true);
+        }
         events.publish(BookingEvent.Kind.SeatReleased, b.classSessionId(), payload, actor);
         return notify;
     }

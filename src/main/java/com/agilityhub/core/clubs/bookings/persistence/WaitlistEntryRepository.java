@@ -71,11 +71,30 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         var scope = startedClassIds.isEmpty() ? started : new Criteria().orOperator(Criteria.where("classSessionId").in(startedClassIds), started);
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE)).addCriteria(scope).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
     }
-    /** R-08-14 (INC-40, E11-T10): the still open FIFO offers (NOTIFIED, `confirmBy > now`) of the given classes. */
+    /** Effective FIFO reservations. At expiry, protect the next eligible entry until the job persists and notifies its turn. */
     public List<WaitlistEntry> openOffers(Collection<String> classSessionIds, java.time.Instant now) {
         if (classSessionIds.isEmpty()) { return List.of(); }
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").in(classSessionIds).and("state").is(WaitlistState.NOTIFIED)
-                .and("confirmBy").gt(now)), WaitlistEntry.class);
+        var live = mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").in(classSessionIds).and("state").in(LIVE))
+                .with(Sort.by("classSessionId", "position", "_id")), WaitlistEntry.class);
+        var byClass = live.stream().collect(java.util.stream.Collectors.groupingBy(WaitlistEntry::classSessionId));
+        var reserved = new ArrayList<WaitlistEntry>();
+        for (var queue : byClass.values()) {
+            var waiting = new ArrayDeque<>(queue.stream().filter(e -> e.state() == WaitlistState.ACTIVE).toList());
+            var due = new ArrayList<WaitlistEntry>();
+            for (var offer : queue) {
+                if (offer.state() != WaitlistState.NOTIFIED || offer.confirmBy() == null) { continue; }
+                if (offer.confirmBy().isAfter(now)) { reserved.add(offer); }
+                else if (offer.classStartsAt().isAfter(now)) { due.add(offer); }
+            }
+            due.sort(Comparator.comparing(WaitlistEntry::confirmBy).thenComparingInt(WaitlistEntry::position));
+            for (var expired : due) {
+                if (waiting.isEmpty()) { break; }
+                if (expired.offerThroughPosition() == null || waiting.getFirst().position() <= expired.offerThroughPosition()) {
+                    reserved.add(waiting.removeFirst());
+                }
+            }
+        }
+        return reserved;
     }
     /** S15 P6: NOTIFIED (FIFO) entries whose `confirmBy` has passed, oldest offer first. */
     public List<WaitlistEntry> notifiedDue(java.time.Instant now) {

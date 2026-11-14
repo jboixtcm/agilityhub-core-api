@@ -210,6 +210,7 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) List<NoteAttachment> attachments) { }
     public record PackSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
+            @Schema(requiredMode = REQUIRED, description = "Sessions charged to the pack, including manual consumption corrections") int consumed,
             @Schema(requiredMode = REQUIRED) int remaining,
             @Schema(requiredMode = REQUIRED) int total,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate expiresOn) { }

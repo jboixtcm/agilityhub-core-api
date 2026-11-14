@@ -241,8 +241,8 @@
       "code": "N-15",
       "name": "¡Se ha liberado una plaza!",
       "title": "¡Se ha liberado una plaza!",
-      "body": "Clase [[class_description]] · [[class_date]] · [[class_time]]. {mode, select, FIFO {Tienes hasta las [[confirm_by]] para confirmarla.} other {Estás en la lista de espera: la plaza es para quien la confirme primero.}}",
-      "smsBody": "[[club_name]]: se ha liberado una plaza en la clase del [[class_date]] a las [[class_time]] ([[class_description]]). {mode, select, FIFO {Tienes hasta las [[confirm_by]] para confirmarla en la app.} other {Entra en la app para cogerla.}}",
+      "body": "Clase [[class_description]] · [[class_date]] · [[class_time]]. {mode, select, FIFO {Solo tú puedes reservar esta plaza durante [[turn_minutes]] min. Confírmala en la app antes de las [[confirm_by]]. {has_next, select, true {Si no la reservas, pasará a la siguiente persona de la lista.} other {Si no la reservas, quedará abierta a todo el mundo.}}} other {Estás en la lista de espera: la plaza es para quien la confirme primero.}}",
+      "smsBody": "{mode, select, FIFO {Clase [[class_date]] [[class_time]]. Tienes prioridad hasta las [[confirm_by]] ([[turn_minutes]] min). Reserva en la app. {has_next, select, true {Después, siguiente turno.} other {Después, abierta a todos.}}} other {[[club_name]]: se ha liberado una plaza en la clase del [[class_date]] a las [[class_time]] ([[class_description]]). Entra en la app para cogerla.}}",
       "icon": "unlock",
       "color": "ACCENT",
       "matrix": {

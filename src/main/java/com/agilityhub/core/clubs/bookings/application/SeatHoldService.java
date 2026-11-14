@@ -48,8 +48,17 @@ public class SeatHoldService {
                 var admitted = admit(actor, classSessionId, dogId, waitlistEntryId, now, true);
                 var subject = admitted.subject(); var limit = admitted.limit();
                 int seconds = context.integer("bookings.seatHoldSeconds");
+                var expiresAt = now.plusSeconds(seconds);
+                if (context.enabled(Module.WAITLIST) && context.waitlistMode() == WaitlistMode.FIFO) {
+                    var deadline = waitlist.live(classSessionId, dogId).filter(e -> e.state() == WaitlistState.NOTIFIED)
+                            .map(WaitlistEntry::confirmBy).orElse(null);
+                    if (deadline != null && deadline.isAfter(now) && deadline.isBefore(expiresAt)) {
+                        expiresAt = deadline;
+                        seconds = Math.toIntExact(java.time.Duration.between(now, deadline).toSeconds());
+                    }
+                }
                 var hold = holds.upsert(new SeatHold(UUID.randomUUID().toString(), TenantContext.require(), classSessionId, dogId, subject.owner().id(),
-                        actor.accountId(), waitlistEntryId, now, now.plusSeconds(seconds)));
+                        actor.accountId(), waitlistEntryId, now, expiresAt));
                 events.publish(BookingEvent.Kind.SeatHeld, hold.id(), payload(hold), actor);
                 return new Held(hold, subject, limit, singleClass(subject.owner().id()), now, seconds);
             });

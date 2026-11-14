@@ -188,8 +188,8 @@ scenario:
     - {member: 9, dog: E, day: THURSDAY, start: '17:40', ring: CAR}                                      # frees the WAITLIST_OPEN seat in the smoke
     - {member: 10, dog: E, day: THURSDAY, start: '20:00', ring: CEN}                                     # 2 counted; smoke: in-time cancellation, N-54
   classes:
-    - {day: TUESDAY, start: '17:40', ring: CAR, fill: true, waiting: 3}     # WAITLIST_FULL (waitlist.maxPerClass = 3)
-    - {day: THURSDAY, start: '17:40', ring: CAR, fill: true, waiting: 1}    # WAITLIST_OPEN
+    - {day: TUESDAY, start: '17:40', ring: CAR, fill: true, freeWaitlistPlaces: 0}  # WAITLIST_FULL at the configured club limit
+    - {day: THURSDAY, start: '17:40', ring: CAR, fill: true, freeWaitlistPlaces: 1} # WAITLIST_OPEN after the named member joins
     - {day: THURSDAY, start: '20:00', ring: CEN, booked: 1}                 # with member 10: exactly classes.minDogs
     - {day: TUESDAY, start: '18:50', ring: CEN, booked: 1}                  # P2 on Tuesday 07:30: cancelled, N-17 + N-08a
     - {day: WEDNESDAY, start: '16:30', ring: CEN, booked: 0}                # P2 on Tuesday 07:30: tomorrow, N-16 to the admins

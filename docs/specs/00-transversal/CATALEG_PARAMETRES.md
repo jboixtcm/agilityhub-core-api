@@ -30,7 +30,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `legal.maxPostpones` | int | 3 | A12: vegades que es pot posposar l'acceptació d'una versió nova de la política (pop-up «Més tard»); a 0 el front bloqueja (afegit 06-09, organitzador) |
 
 ## Classes i reserves (`bookings.*`, `classes.*`) — bloc Classes
-| Clau | Tipus | Cànic | Notes |
+| Clau | Tipus | Defecte de producte | Notes |
 |---|---|---|---|
 | `bookings.maxCurrentWeek` | int | 2 | PAR-02 (per unitat de `bookings.limitUnit`) |
 | `bookings.maxNextWeek` | int | 1 | PAR-03 |
@@ -46,17 +46,17 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `classes.riskLookaheadDays` | int | 2 | «avui + 2 dies vista» |
 | `classes.riskAutoCancelSameDay` | bool | true | el dia mateix: anul·lació; dies següents: només avís |
 | `classes.maxInstructorsPerClass` | int | 1 | ADR-012 |
-| `classes.slotMinutes` | int | 10 | granularitat de la graella de plantilles (franges lliures) |
+| `classes.slotMinutes` | int | 10 | Cànic aplica 5 minuts a la graella de plantilles |
 | `levels.enabled` | bool | true | ADR-012 |
 | `coverage.thresholds` | json `{ok, tight, short}` % | `{240, 190, 150}` | bé > ok · ajustat ok–tight · manca oferta tight–short · cal ampliar < short |
 | `coverage.activeDogWeeks` | int | 2 | «actius» = amb reserva la setmana en curs o l'anterior |
 
 ## Llista d'espera (`waitlist.*`) — bloc Llista d'espera
-| Clau | Tipus | Cànic | Notes |
+| Clau | Tipus | Defecte de producte | Notes |
 |---|---|---|---|
-| `waitlist.mode` | enum `ALL_AT_ONCE`/`FIFO` | ALL_AT_ONCE | ADR-012 |
-| `waitlist.fifoConfirmMinutes` | int | 30 | només FIFO |
-| `waitlist.maxPerClass` | int | 3 | PAR-23 |
+| `waitlist.mode` | enum `ALL_AT_ONCE`/`FIFO` | ALL_AT_ONCE | Cànic aplica FIFO per ordre d’inscripció (ADR-012) |
+| `waitlist.fifoConfirmMinutes` | int | 30 | Cànic concedeix 15 minuts per torn FIFO |
+| `waitlist.maxPerClass` | int | 3 | Cànic admet 2 entrades per classe (PAR-23) |
 | `waitlist.maxPerDogPerWeek` | int | 2 | PAR-22 |
 | `waitlist.maxPerDogPerWeekIfAttended` | int | 1 | «1 si ja ha fet classe» |
 | `waitlist.notifyThresholdMinutes` | duration | 30 | «llindar d'avís a la llista d'espera» (R28-08): per sota, la plaça s'allibera sense avís |

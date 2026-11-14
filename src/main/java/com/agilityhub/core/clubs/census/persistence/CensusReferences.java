@@ -58,7 +58,8 @@ public class CensusReferences extends TenantRepository<Member> {
     public Map<String,Object> pack(String dogId, LocalDate today) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").is(dogId).and("state").is("ACTIVE").and("remaining").gt(0)
                 .and("expiresOn").gte(today.toString())).with(Sort.by("expiresOn", "_id")), Document.class, "pack_balances").stream()
-                .map(row -> object("id", row.get("_id"), "remaining", number(row.get("remaining")), "total", number(row.get("sessionsTotal")), "expiresOn", date(row.get("expiresOn"))))
+                .map(row -> object("id", row.get("_id"), "consumed", number(row.get("consumed")), "remaining", number(row.get("remaining")),
+                        "total", number(row.get("sessionsTotal")), "expiresOn", date(row.get("expiresOn"))))
                 .findFirst().orElse(Map.of());
     }
     public Map<String,Object> packById(String id) { return one("pack_balances", "_id", id); }

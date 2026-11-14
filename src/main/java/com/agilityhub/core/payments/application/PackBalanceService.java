@@ -170,6 +170,26 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         return next;
     }
 
+    @Transactional @RequiresModule(Module.PACKS)
+    @Audited(action = AuditAction.PACK_ADJUSTED, entityType = "'PackBalance'", entity = "#id", reason = "#reason",
+            details = "{'previousConsumed': #expectedConsumed, 'consumed': #consumed, 'previousRemaining': #expectedRemaining, 'remaining': #result.remaining}")
+    public PackBalance correctConsumption(String id, int consumed, int expectedConsumed, int expectedRemaining, String reason) {
+        var pack = get(id);
+        if (pack.consumed() != expectedConsumed || pack.remaining() != expectedRemaining) { throw new ApiException(ErrorCode.STALE_VERSION); }
+        // Each still-charged booking can later refund one session to this pack.
+        long chargedBookings = pack.movements().stream().filter(m -> m.bookingId() != null
+                && (m.type() == PackMovementType.CONSUME || m.type() == PackMovementType.REFUND)).mapToLong(m -> -m.delta()).sum();
+        if (consumed < 0 || consumed < chargedBookings) { throw BillingContractAccess.invalid("consumed"); }
+        int delta = pack.consumed() - consumed;
+        long remaining = (long) pack.remaining() + delta;
+        if (remaining < 0) { throw new ApiException(ErrorCode.PACK_NEGATIVE); }
+        if (remaining > Integer.MAX_VALUE) { throw BillingContractAccess.invalid("consumed"); }
+        var next = write(pack, movement(PackMovementType.CONSUMPTION_CORRECTION, delta, null, reason), consumed, (int) remaining,
+                pack.state(), pack.expiresOn(), pack.expiredAt(), pack.lowBalanceNotifiedAt());
+        publish(BillingEvent.Kind.PackAdjusted, next, null, Map.of("delta", delta, "previousConsumed", expectedConsumed, "consumed", consumed, "reason", reason));
+        return next;
+    }
+
     @Transactional
     public void expire(String id) {
         if (!enabled()) { return; }

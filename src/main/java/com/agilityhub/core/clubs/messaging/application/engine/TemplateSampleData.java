@@ -64,6 +64,7 @@ public final class TemplateSampleData {
         values.put("pack_expiry", LocalDate.of(2026, 8, 31)); values.put("requested_date", LocalDate.of(2026, 8, 31));
         values.put("effective_date", LocalDate.of(2026, 8, 31)); values.put("from_month", YearMonth.of(2026, 9)); values.put("to_month", YearMonth.of(2026, 10));
         values.put("decision", "APPROVED"); values.put("cancelled_count", 3); values.put("confirm_by", at(zone, LocalDateTime.of(2026, 8, 12, 17, 0)));
+        values.put("turn_minutes", 15); values.put("has_next", "true");
         values.put("mode", "ALL_AT_ONCE"); values.put("review_time", "07:30"); values.put("review_day", LocalDate.of(2026, 8, 12)); values.put("auto_cancel", "true");
         values.put("dogs_count", 1); values.put("instructor_name", text("instructorName", locale)); values.put("task_excerpt", text("taskExcerpt", locale));
         values.put("document_type", text("documentType", locale)); values.put("activity_title", text("activityTitle", locale)); values.put("setup_kind", "NEW");

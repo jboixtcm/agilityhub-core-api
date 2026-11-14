@@ -43,7 +43,7 @@ public class TeamController {
             responses = {@ApiResponse(responseCode = "201", description = "Created Instructor"),
                     @ApiResponse(responseCode = "200", description = "Reactivated Instructor", content = @Content(schema = @Schema(implementation = Instructor.class)))})
     public org.springframework.http.ResponseEntity<Instructor> createInstructor(@Valid @RequestBody InstructorCreate request) {
-        var result = team.createInstructor(request.memberId(), request.shortName(), request.color());
+        var result = team.createInstructor(request.memberId(), request.shortName(), request.color(), request.schedulingOnly());
         return org.springframework.http.ResponseEntity.status(result.created() ? 201 : 200).body(views.instructor(result.id()));
     }
 

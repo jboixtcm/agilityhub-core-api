@@ -125,19 +125,51 @@ public class WaitlistTransitions implements WaitlistConsolidationPort {
      * event can ever tell it «La plaça ja s'ha ocupat» (N-46 is for an offer someone else took, not one that ran out).
      */
     WaitlistEntry expire(WaitlistEntry e, Instant now) {
-        return write(e, WaitlistState.EXPIRED, e.notifiedAt(), e.confirmBy(), null, null, null, now, null, null);
+        return write(e, WaitlistState.EXPIRED, e.notifiedAt(), e.confirmBy(), null, null, null, now, null, null, e.offerThroughPosition());
+    }
+
+    /** Assign FIFO under the class lock, together with its release or handover. Later joins wait for a new vacancy. */
+    int offerFifo(String classId, Instant now, int seatCeiling, Integer lastEligiblePosition) {
+        return offerFifo(classId, now, seatCeiling, lastEligiblePosition, Integer.MAX_VALUE);
+    }
+    private int offerFifo(String classId, Instant now, int seatCeiling, Integer lastEligiblePosition, int maxNewOffers) {
+        var session = classes.find(classId).filter(ClassSessionBookingAccess.Session::active).orElse(null);
+        if (session == null || !now.isBefore(session.startsAt())) { return 0; }
+        var live = waitlist.live(classId);
+        var waiting = live.stream().filter(e -> e.state() == WaitlistState.ACTIVE
+                && (lastEligiblePosition == null || e.position() <= lastEligiblePosition)).toList();
+        int open = (int) live.stream().filter(e -> e.state() == WaitlistState.NOTIFIED).count();
+        int free = Math.max(0, session.capacity() - bookings.forClass(classId, BookingRepository.LIVE).size());
+        int count = Math.min(maxNewOffers, WaitlistRules.toNotify(WaitlistMode.FIFO, Math.min(free, seatCeiling), open, waiting.size()));
+        if (count == 0) { return 0; }
+        int through = lastEligiblePosition == null ? waiting.getLast().position() : lastEligiblePosition;
+        var confirmBy = WaitlistRules.confirmBy(now, context.integer("waitlist.fifoConfirmMinutes"), session.startsAt());
+        for (var entry : waiting.subList(0, count)) {
+            write(entry, WaitlistState.NOTIFIED, now, confirmBy, null, null, null, now, null, null, through);
+            var payload = new LinkedHashMap<String, Object>();
+            payload.put("classId", classId); payload.put("entryIds", List.of(entry.id())); payload.put("mode", WaitlistMode.FIFO);
+            payload.put("confirmBy", confirmBy); payload.put("hasNext", waiting.size() > count);
+            events.publish(BookingEvent.Kind.WaitlistNotified, classId, payload, BookingActor.system());
+        }
+        return count;
+    }
+
+    /** One released offer can hand its seat to at most one successor. */
+    int handOver(WaitlistEntry entry, Instant now) {
+        if (entry.confirmBy() == null || !context.enabled(Module.WAITLIST) || context.waitlistMode() != WaitlistMode.FIFO) { return 0; }
+        return offerFifo(entry.classSessionId(), now, Integer.MAX_VALUE, entry.offerThroughPosition(), 1);
     }
 
     private WaitlistEntry write(WaitlistEntry e, WaitlistState state, Instant notifiedAt, Instant confirmBy, String bookingId, Instant cancelledAt,
             WaitlistCancelReason reason, Instant now, String actorAccountId) {
-        return write(e, state, notifiedAt, confirmBy, bookingId, cancelledAt, reason, now, actorAccountId, e.offerNotifiedAt());
+        return write(e, state, notifiedAt, confirmBy, bookingId, cancelledAt, reason, now, actorAccountId, e.offerNotifiedAt(), e.offerThroughPosition());
     }
     private WaitlistEntry write(WaitlistEntry e, WaitlistState state, Instant notifiedAt, Instant confirmBy, String bookingId, Instant cancelledAt,
-            WaitlistCancelReason reason, Instant now, String actorAccountId, Instant offerNotifiedAt) {
+            WaitlistCancelReason reason, Instant now, String actorAccountId, Instant offerNotifiedAt, Integer through) {
         long version = e.version() == null ? 0L : e.version();
         return waitlist.update(new WaitlistEntry(e.id(), e.clubId(), e.classSessionId(), e.dogId(), e.memberId(), e.accountId(), e.joinedAt(), state,
                 e.position(), notifiedAt, confirmBy, offerNotifiedAt, bookingId, cancelledAt, reason, e.classStartsAt(), e.bookingWeekKey(), version + 1,
-                e.createdAt(), e.createdByAccountId(), now, actorAccountId), version);
+                e.createdAt(), e.createdByAccountId(), now, actorAccountId, through), version);
     }
     static Map<String, Object> payload(WaitlistEntry e) {
         var payload = new LinkedHashMap<String, Object>(); payload.put("entryId", e.id()); payload.put("classId", e.classSessionId());

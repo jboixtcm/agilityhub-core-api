@@ -79,7 +79,8 @@ public class BookableClassesQuery {
         var cached = base.get(); var weeks = context.weeks(); var zone = context.zone(); var locale = LocaleContext.current();
         var taken = new HashSet<String>();
         bookings.forDogs(List.of(dog.id()), BookingRepository.LIVE, now, cached.to()).forEach(b -> taken.add(b.classSessionId()));
-        waitlist.liveForDogs(List.of(dog.id()), now).forEach(e -> taken.add(e.classSessionId()));
+        var ownQueue = waitlist.liveForDogs(List.of(dog.id()), now).stream()
+                .collect(java.util.stream.Collectors.toMap(WaitlistEntry::classSessionId, e -> e));
         boolean levelsEnabled = context.flag("levels.enabled"), waitlistOn = context.enabled(Module.WAITLIST), inactivityOn = context.enabled(Module.INACTIVITY);
         int waitlistMax = context.integer("waitlist.maxPerClass");
         var limits = new HashMap<String, BookingLimits.Result>();
@@ -98,6 +99,15 @@ public class BookableClassesQuery {
                     && limits.computeIfAbsent(week.key(), key -> checks.limit(key, relative, dog.id(), owner.id(), now)).done();
             var sessionPack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), date) : Optional.<PackBalancePort.Balance>empty();
             int occupied = s.booked() + WaitlistTransitions.others(offers.getOrDefault(s.id(), Set.of()), dog.id()).size();
+            var ownEntry = ownQueue.get(s.id());
+            if (ownEntry != null) {
+                // Normally the dog's live entry is managed in its agenda. A public vacancy after a FIFO turn
+                // must also be visible here to someone whose old turn or later queue entry is still on record.
+                boolean publicSeat = waitlistOn && context.waitlistMode() == WaitlistMode.FIFO && occupied < s.capacity()
+                        && !offers.getOrDefault(s.id(), Set.of()).contains(dog.id())
+                        && (ownEntry.state() == WaitlistState.ACTIVE || ownEntry.confirmBy() != null && !ownEntry.confirmBy().isAfter(now));
+                if (!publicSeat) { continue; }
+            }
             var row = BookableRow.resolve(new BookableRow.Input(reason, relative == RelativeWeek.LATER,
                     sessionPack.isPresent() && BookingEligibility.packEmpty(new BookingEligibility.Pack(sessionPack.get().available(), sessionPack.get().expiresOn()), date),
                     limitDone, occupied >= s.capacity(), waitlistOn, s.waiting(), waitlistMax));

@@ -26,7 +26,7 @@ public class TeamViews {
         return instructor(item, access.admin() ? team.usage(item.id()) : null, lastChange("Instructor", item.id()));
     }
     private CatalogResponses.Instructor instructor(Instructor item, InstructorUsageCounter.Usage usage, LastChange lastChange) {
-        return new CatalogResponses.Instructor(item.id(), access.admin() ? item.memberId() : null, item.shortName(), item.color(), item.active(),
+        return new CatalogResponses.Instructor(item.id(), access.admin() ? item.memberId() : null, item.shortName(), item.color(), item.active(), item.isSupport(),
                 usage == null ? null : new CatalogResponses.InstructorUsage(Math.toIntExact(usage.futureClassSessions()), Math.toIntExact(usage.templateClasses())),
                 lastChange, item.version());
     }

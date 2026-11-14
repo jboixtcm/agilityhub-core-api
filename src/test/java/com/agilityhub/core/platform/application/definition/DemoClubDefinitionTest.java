@@ -27,7 +27,13 @@ class DemoClubDefinitionTest {
         assertThat(instructions.path("en").asText()).contains("Do not make any real payment");
         assertThat(demo.toString()).doesNotContain("agilitycanic.cat", production.at("/club/taxId").asText(),
                 production.at("/club/address/street").asText()).doesNotMatch("(?s).*ES\\d{2}[\\d ]{20,}.*");
-        for (String field : List.of("accounts", "catalogs", "parameters")) {
+        var sharedParameters = production.withObject("/parameters").deepCopy();
+        assertThat(sharedParameters.remove("classes.slotMinutes").asInt()).isEqualTo(5);
+        assertThat(sharedParameters.remove("waitlist.mode").asText()).isEqualTo("FIFO");
+        assertThat(sharedParameters.remove("waitlist.fifoConfirmMinutes").asInt()).isEqualTo(15);
+        assertThat(sharedParameters.remove("waitlist.maxPerClass").asInt()).isEqualTo(2);
+        assertThat(demo.path("parameters")).isEqualTo(sharedParameters);
+        for (String field : List.of("accounts", "catalogs")) {
             assertThat(demo.path(field)).as("demo retains functional fixture " + field).isEqualTo(production.path(field));
         }
         var modules = new java.util.TreeSet<String>(); production.path("modules").forEach(value -> modules.add(value.asText()));

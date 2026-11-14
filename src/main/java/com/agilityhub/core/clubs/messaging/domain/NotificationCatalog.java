@@ -152,7 +152,7 @@ public final class NotificationCatalog {
         rows.add(code("N-14", OPERATIONAL, "LeaveRequested").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER).vars("member_name", "requested_date", "reason").build());
         // R-11-12: the one per-code exception to the caps, SMS for the member although the category is OPERATIONAL. S11 §7 emits it on WaitlistNotified.
         rows.add(code("N-15", OPERATIONAL, "WaitlistNotified").to(MEMBER, APP, SMS, PUSH).memberSms().action(CLAIM_SEAT)
-                .vars("dog_name", "class_date", "class_time", "confirm_by", "mode", "entityId", "class_description").mandatory()
+                .vars("dog_name", "class_date", "class_time", "confirm_by", "turn_minutes", "has_next", "mode", "entityId", "class_description").mandatory()
                 .seed(TemplateIcon.unlock, TemplateColor.ACCENT).modules(Module.WAITLIST).build());
         rows.add(code("N-16", CLUB_CHANGES, "ClassAtRisk").to(MEMBER, APP, EMAIL).to(ADMINS, APP).action(CHANGE_CLASS)
                 .vars("dog_name", "class_date", "class_time", "review_time", "review_day", "audience", "class_description", "auto_cancel")

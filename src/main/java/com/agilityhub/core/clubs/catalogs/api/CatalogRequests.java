@@ -114,7 +114,8 @@ public final class CatalogRequests {
     public record InstructorCreate(
             @Schema(requiredMode = REQUIRED) @NotBlank String memberId,
             @Schema(requiredMode = REQUIRED) @NotBlank @Size(max = 12) String shortName,
-            @Schema(requiredMode = REQUIRED) @NotBlank @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color) { }
+            @Schema(requiredMode = REQUIRED) @NotBlank @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Support profile for class planning only.") Boolean schedulingOnly) { }
     public record InstructorPatch(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 12) String shortName,
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,

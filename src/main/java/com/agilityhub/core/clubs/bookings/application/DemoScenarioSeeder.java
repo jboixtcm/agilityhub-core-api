@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.bookings.application;
 
+import com.agilityhub.core.clubs.bookings.domain.WaitlistMode;
 import com.agilityhub.core.clubs.bookings.domain.WaitlistRules;
 import com.agilityhub.core.clubs.bookings.domain.WaitlistState;
 import com.agilityhub.core.clubs.bookings.persistence.*;
@@ -36,8 +37,12 @@ public class DemoScenarioSeeder implements DemoSeedStep {
         public static LocalDate date(LocalDate weekStart, DayOfWeek day) { return DemoPlanningSeeder.date(weekStart, 0, day); }
     }
     public record ClassBooking(int member, String dog, DayOfWeek day, String start, String ring, At at, At cancelAt) { }
-    public record ClassRow(DayOfWeek day, String start, String ring, boolean fill, int booked, int waiting, boolean riskExempt) {
-        public ClassRow { if (booked < 0 || waiting < 0) { throw new IllegalArgumentException("Invalid demo scenario class"); } }
+    public record ClassRow(DayOfWeek day, String start, String ring, boolean fill, int booked, int waiting, Integer freeWaitlistPlaces, boolean riskExempt) {
+        public ClassRow {
+            if (booked < 0 || waiting < 0 || freeWaitlistPlaces != null && (freeWaitlistPlaces < 0 || waiting != 0)) {
+                throw new IllegalArgumentException("Invalid demo scenario class");
+            }
+        }
     }
     public record Join(int member, String dog, DayOfWeek day, String start, String ring) { }
     public record Block(int member, String reason) { }
@@ -76,8 +81,14 @@ public class DemoScenarioSeeder implements DemoSeedStep {
             });
             if (item.cancelAt() != null) {
                 add(actions, item.cancelAt().instant(weekStart, zone), at -> {
+                    var before = entries.live(slot.id()).stream().filter(e -> e.state() == WaitlistState.ACTIVE).map(WaitlistEntry::id).toList();
                     var cancelled = members.cancel(booked[0].id(), member, at);
-                    counts.merge("scenarioCancellations", 1, Integer::sum); counts.merge("scenarioOffers", offer(cancelled, at), Integer::sum);
+                    // FIFO offers are persisted by the cancellation. The asynchronous simultaneous mode needs its consumer here.
+                    int offered;
+                    if (context.waitlistMode() == WaitlistMode.FIFO) {
+                        offered = (int) entries.live(slot.id()).stream().filter(e -> before.contains(e.id()) && e.state() == WaitlistState.NOTIFIED).count();
+                    } else { offered = offer(cancelled, at); }
+                    counts.merge("scenarioCancellations", 1, Integer::sum); counts.merge("scenarioOffers", offered, Integer::sum);
                 });
             }
         }
@@ -88,11 +99,17 @@ public class DemoScenarioSeeder implements DemoSeedStep {
             add(actions, opening(slot.id(), sequence), at -> {
                 // `fill` books what is left of the capacity at this point of the timeline.
                 int booked = row.fill() ? Math.max(0, classes.require(slot.id()).capacity() - bookings.forClass(slot.id(), BookingRepository.LIVE).size()) : row.booked();
+                int waiting = row.waiting();
+                if (row.freeWaitlistPlaces() != null) {
+                    // Named members join after the filler rows. Leave their places and the requested vacancy.
+                    long named = spec.waitlist().stream().filter(j -> j.day() == row.day() && j.start().equals(row.start()) && j.ring().equals(row.ring())).count();
+                    waiting = Math.max(0, context.integer("waitlist.maxPerClass") - row.freeWaitlistPlaces() - Math.toIntExact(named) - entries.live(slot.id()).size());
+                }
                 var eligible = new ArrayList<>(pool.stream().filter(c -> slot.levelIds().contains(c.levelId()) && !usedDogs.contains(c.dogId())).toList());
                 Collections.shuffle(eligible, new Random(random));
                 var chosen = new ArrayList<DemoMembers.Candidate>(); var chosenMembers = new HashSet<String>();
-                for (var c : eligible) { if (chosen.size() < booked + row.waiting() && chosenMembers.add(c.memberId())) { chosen.add(c); } }
-                if (chosen.size() < booked + row.waiting()) { throw new ApiException(ErrorCode.NOT_FOUND, Map.of("scenarioClass", row.toString())); }
+                for (var c : eligible) { if (chosen.size() < booked + waiting && chosenMembers.add(c.memberId())) { chosen.add(c); } }
+                if (chosen.size() < booked + waiting) { throw new ApiException(ErrorCode.NOT_FOUND, Map.of("scenarioClass", row.toString())); }
                 for (int i = 0; i < chosen.size(); i++) {
                     var c = chosen.get(i); usedDogs.add(c.dogId());
                     if (i < booked) { members.book(slot.id(), c, at.plusMillis(i)); counts.merge("scenarioClassBookings", 1, Integer::sum); }

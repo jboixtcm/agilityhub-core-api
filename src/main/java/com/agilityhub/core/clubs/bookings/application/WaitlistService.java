@@ -99,6 +99,7 @@ public class WaitlistService {
             var entry = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
             if (!WaitlistEntryRepository.LIVE.contains(entry.state())) { throw new ApiException(ErrorCode.WAITLIST_ENTRY_NOT_LIVE); }
             var after = transitions.cancel(entry, actor.role() == ActorRole.ADMIN ? WaitlistCancelReason.ADMIN : WaitlistCancelReason.MEMBER, now, actor.accountId());
+            if (entry.state() == WaitlistState.NOTIFIED) { transitions.handOver(entry, now); }
             events.publish(BookingEvent.Kind.WaitlistLeft, entry.id(), WaitlistTransitions.payload(entry), actor);
             counters.recount(entry.classSessionId(), false, actor);
             return after;
@@ -163,33 +164,25 @@ public class WaitlistService {
             var now = context.now();
             locks.lock(classSessionId);
             if (expiredEntryId != null) {
-                waitlist.findById(expiredEntryId).filter(e -> e.state() == WaitlistState.NOTIFIED && e.confirmBy() != null && !e.confirmBy().isAfter(now))
-                        .ifPresent(e -> transitions.expire(e, now));
+                var previous = waitlist.findById(expiredEntryId).filter(e -> classSessionId.equals(e.classSessionId())).orElse(null);
+                if (previous == null || previous.confirmBy() == null || previous.confirmBy().isAfter(now)) { return 0; }
+                if (previous.state() == WaitlistState.NOTIFIED) { transitions.expire(previous, now); }
+                else if (previous.state() != WaitlistState.EXPIRED) { return 0; }
+                return transitions.handOver(previous, now);
             }
             var session = classes.find(classSessionId).filter(ClassSessionBookingAccess.Session::active).orElse(null);
             if (session == null || !WaitlistRules.inTime(now, session.startsAt(), context.integer("waitlist.notifyThresholdMinutes"))) { return 0; }
-            if (expiredEntryId != null && context.waitlistMode() != WaitlistMode.FIFO) { return 0; }
+            if (context.waitlistMode() == WaitlistMode.FIFO) { return transitions.offerFifo(classSessionId, now, seats, null); }
             var live = waitlist.live(classSessionId);
             var waiting = live.stream().filter(e -> e.state() == WaitlistState.ACTIVE).toList();
-            int open = (int) live.stream().filter(e -> e.state() == WaitlistState.NOTIFIED).count();
-            var mode = context.waitlistMode();
-            int count = WaitlistRules.toNotify(mode, Math.min(seats, transitions.freeSeats(classSessionId)), open, waiting.size());
+            int count = WaitlistRules.toNotify(WaitlistMode.ALL_AT_ONCE, Math.min(seats, transitions.freeSeats(classSessionId)), 0, waiting.size());
             if (count == 0) { return 0; }
-            var confirmBy = mode == WaitlistMode.FIFO ? WaitlistRules.confirmBy(now, context.integer("waitlist.fifoConfirmMinutes"), session.startsAt()) : null;
-            var actor = BookingActor.system();
-            var notified = waiting.subList(0, count).stream().map(e -> transitions.notify(e, now, confirmBy, null)).toList();
-            if (mode == WaitlistMode.ALL_AT_ONCE) { notified(classSessionId, notified.stream().map(WaitlistEntry::id).toList(), null, mode, actor); }
-            else { notified.forEach(e -> notified(classSessionId, List.of(e.id()), confirmBy, mode, actor)); } // one confirmBy per entry (T-08-45)
+            var notified = waiting.stream().map(e -> transitions.notify(e, now, null, null).id()).toList();
+            events.publish(BookingEvent.Kind.WaitlistNotified, classSessionId,
+                    Map.of("entryIds", notified, "classId", classSessionId, "mode", WaitlistMode.ALL_AT_ONCE), BookingActor.system());
             return count;
         });
     }
-    private void notified(String classSessionId, List<String> entryIds, Instant confirmBy, WaitlistMode mode, BookingActor actor) {
-        var payload = new LinkedHashMap<String, Object>(); payload.put("entryIds", entryIds); payload.put("classId", classSessionId);
-        if (confirmBy != null) { payload.put("confirmBy", confirmBy); }
-        payload.put("mode", mode);
-        events.publish(BookingEvent.Kind.WaitlistNotified, classSessionId, payload, actor);
-    }
-
     /**
      * R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a): the live entries of started classes, by class; nothing written (the P8 plan,
      * E6-T04), each one swept by {@link #sweepStarted(String, Instant)}. A class has started when S06's own `startsAt` is
@@ -248,11 +241,14 @@ public class WaitlistService {
     private int cancelLocked(String classSessionId, List<WaitlistEntry> entries, WaitlistCancelReason reason, Instant now) {
         locks.lock(classSessionId);
         int count = 0;
+        var relinquished = new ArrayList<WaitlistEntry>();
         for (var initial : entries) {
             var e = waitlist.findById(initial.id()).orElse(null);
             if (e == null || !WaitlistEntryRepository.LIVE.contains(e.state())) { continue; }
             transitions.cancel(e, reason, now, null); count++;
+            if (e.state() == WaitlistState.NOTIFIED) { relinquished.add(e); }
         }
+        if (reason != WaitlistCancelReason.CLASS_STARTED) { relinquished.forEach(e -> transitions.handOver(e, now)); }
         if (count > 0) { counters.recount(classSessionId, false, BookingActor.system()); }
         return count;
     }

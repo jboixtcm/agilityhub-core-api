@@ -21,7 +21,7 @@ public class InstructorWriter {
         this.instructors = instructors; this.events = events; this.actors = actors; this.clock = clock;
     }
     public Map<String, Object> fields(Instructor item) {
-        return item == null ? Map.of() : Map.of("memberId", item.memberId(), "shortName", item.shortName(), "color", item.color(), "active", item.active());
+        return item == null ? Map.of() : Map.of("memberId", item.memberId(), "shortName", item.shortName(), "color", item.color(), "active", item.active(), "schedulingOnly", item.isSupport());
     }
     @Transactional
     @Audited(action = AuditAction.CATALOG_CHANGED, entityType = "'Instructor'", entity = "#id", before = "#before", member = "#memberId")
