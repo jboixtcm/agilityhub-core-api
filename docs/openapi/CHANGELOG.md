@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PRIV-04 · An erasure waits while a SEPA collection is refundable
+
+**No operations, schemas or error codes added; 2 operation descriptions changed (`POST /members/{id}/erasure`, `POST /accounts/{id}/erasure`).**
+
+- `POST /members/{id}/erasure` and `POST /accounts/{id}/erasure`: a SEPA collection of the member (of an invoice they pay, in a remittance not rolled back) whose collection date is less than 8 weeks ago no longer lets the erasure run: the request is still created (`201`), with `status: BLOCKED`, `blockReasons: ["SEPA_REFUND_WINDOW"]` and `executeAt` no earlier than the start (club-local) of the first day after the window, when the daily run erases it. That reason never appears in `422 ERASURE_BLOCKED {reasons}`, which lists only the reasons that refuse the request. `GET /members/{id}/erasure` shows it in `blockReasons`; the request can be cancelled like any `BLOCKED` one. A request already `SCHEDULED` that meets such a collection when it runs goes `BLOCKED [SEPA_REFUND_WINDOW]` and is retried daily.
+
 ## 2026-11-14 · SEPA-10 · The simulation compares its total with the previous month's run
 
 **No operations or error codes added; 1 schema added (`SimulationComparison`); `BillingSimulation` and `PeriodSimulation` gain an optional `comparison`; 3 operation descriptions changed (`POST /billing/simulations`, `GET /billing/periods/{period}`, `POST /billing/runs`); 1 parameter added (`billing.totalDifferenceConfirmPercent`, int, 20, 0–100, club-editable).**

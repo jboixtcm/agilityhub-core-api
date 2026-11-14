@@ -13,18 +13,24 @@ import com.agilityhub.core.platform.application.privacy.MemberDataPackage;
 import com.agilityhub.core.platform.application.privacy.MemberDataSource;
 import com.agilityhub.core.platform.application.privacy.RetentionTask;
 import com.agilityhub.core.shared.application.BillingCensusAccess;
+import com.agilityhub.core.payments.domain.SepaRefundWindow;
+import com.agilityhub.core.shared.application.ClubClock;
 import com.agilityhub.core.shared.application.ExportFileStore;
+import com.agilityhub.core.shared.application.TenantContext;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
  * S14 WP-14-D, the payments side: R-14-14's `INVOICES_OPEN` (an invoice `PENDING`, `COLLECTING` or `FAILED`) and `UPFRONT_OPEN`
- * (`DUE`, `PARTIAL`, `CHECKOUT_PENDING`); R-14-15's invoice snapshots and S12's `forgetCustomer` for a card member (queued in the
+ * (`DUE`, `PARTIAL`, `CHECKOUT_PENDING`), and PRIV-04's `SEPA_REFUND_WINDOW` (a SEPA collection of an invoice the member pays, in a
+ * remittance not rolled back whose collection date is less than 8 weeks ago: the request waits until the window closes); R-14-15's invoice snapshots and S12's `forgetCustomer` for a card member (queued in the
  * erasure's transaction, before the census drops the customer reference: this step runs first); and R-14-16 (c), the remittance
  * XML files older than `rgpd.retentionYearsAfterLeave`, never the file of a remittance still `GENERATED` (PRIV-02).
  */
@@ -35,15 +41,26 @@ public class PaymentsErasure implements ErasureCheck, ErasureStep, RetentionTask
     private final BillingCensusAccess census;
     private final PaymentPrivacyPort privacy;
     private final ExportFileStore files;
-    public PaymentsErasure(PaymentsErasureRepository erasure, BillingCensusAccess census, PaymentPrivacyPort privacy, ExportFileStore files) {
-        this.erasure = erasure; this.census = census; this.privacy = privacy; this.files = files;
+    private final ClubClock clubClock;
+    public PaymentsErasure(PaymentsErasureRepository erasure, BillingCensusAccess census, PaymentPrivacyPort privacy, ExportFileStore files, ClubClock clubClock) {
+        this.erasure = erasure; this.census = census; this.privacy = privacy; this.files = files; this.clubClock = clubClock;
     }
 
     @Override public Set<ErasureBlockReason> blockReasons(Collection<String> memberIds, Instant now) {
         var reasons = EnumSet.noneOf(ErasureBlockReason.class);
         if (erasure.openInvoices(memberIds)) { reasons.add(ErasureBlockReason.INVOICES_OPEN); }
         if (erasure.openUpfrontPayments(memberIds)) { reasons.add(ErasureBlockReason.UPFRONT_OPEN); }
+        if (refundWindowClosesAt(memberIds, now).isPresent()) { reasons.add(ErasureBlockReason.SEPA_REFUND_WINDOW); }
         return reasons;
+    }
+
+    /** PRIV-04: the start (club-local) of the first day on which no SEPA collection of these members can be claimed back. */
+    @Override public Optional<Instant> waitsUntil(Collection<String> memberIds, Instant now) { return refundWindowClosesAt(memberIds, now); }
+
+    private Optional<Instant> refundWindowClosesAt(Collection<String> memberIds, Instant now) {
+        ZoneId zone = clubClock.now(TenantContext.require()).getZone();
+        return erasure.latestSepaCollectionDate(memberIds, SepaRefundWindow.openSince(now.atZone(zone).toLocalDate()))
+                .map(collected -> SepaRefundWindow.closesOn(collected).atStartOfDay(zone).toInstant());
     }
 
     @Override public ErasureEffect erase(ErasureSubject subject) {
