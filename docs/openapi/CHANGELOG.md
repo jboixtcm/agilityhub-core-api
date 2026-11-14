@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · SEPA-09 · The accounting export adds the last collection's status and the return date
+
+**No operations, schemas or error codes added; 1 operation description changed (`GET /billing/exports`).**
+
+- `GET /billing/exports` (`listKey = accounting`): after the sixteen existing columns, unchanged, two more: the status of the receipt's last collection attempt (`lastCollectionStatus`, in words: pending, submitted, collected, failed, refunded) and its return date (`failedAt`, the day the receipt was marked unpaid; empty without one). A receipt settled and later returned keeps its collection date and shows the failure beside it.
+
 ## 2026-11-14 · SEPA-06 · Every remittance file has its own name; a rolled-back one is named cancelled
 
 **No operations, schemas or error codes added; 3 operation descriptions changed (`GET /remittances/{id}/file`, `GET /remittances/{id}/spreadsheet`, `GET /remittances`).**

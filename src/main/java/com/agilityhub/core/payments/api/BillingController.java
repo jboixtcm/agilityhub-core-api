@@ -171,7 +171,8 @@ public class BillingController {
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportAccounting", description = ROLES + "R-12-26 «Exporta per a comptabilitat» (S14 engine, listKey = accounting): one row "
             + "per invoice line (number, date, month, member number, name, holder's tax id, concept, base, tax %, tax, total, method, status, "
-            + "collection date, remittance, mandate or PaymentIntent reference), UTF-8 with BOM, `;`, decimals per the admin's locale. 200 file "
+            + "collection date, remittance, mandate or PaymentIntent reference, then — SEPA-09 — the status of the receipt's last collection "
+            + "attempt and its return date failedAt), UTF-8 with BOM, `;`, decimals per the admin's locale. 200 file "
             + "or 202 ExportAccepted for a large one; DATA_EXPORTED audit. format defaults to billing.accountingExportFormat." + SERVED,
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @Header(name = "Content-Disposition", schema = @Schema(type = "string")),
