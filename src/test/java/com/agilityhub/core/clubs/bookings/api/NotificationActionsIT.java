@@ -140,9 +140,11 @@ class NotificationActionsIT extends BookingFixtures {
                 String duna = prepare(() -> book("s08-laura", "s08-m-laura", "Laura", "last", "s08-d-duna"));
                 prepare(() -> as("s08-pere", "MEMBER", () -> waitlist.join(member("s08-pere", "s08-m-pere", "Pere"), "s08-last", "s08-d-nit").id()));
                 act(() -> cancel(member("s08-laura", "s08-m-laura", "Laura"), duna));
-                // The club's waitlist mode is ALL_AT_ONCE: no `confirm_by`.
+                // The club's waitlist mode is ALL_AT_ONCE: no `confirm_by`. COMM-02 (owner decision of 13 Nov 2026): N-15 also has its
+                // e-mail, which Pere's default OPERATIONAL preference (off) skips, as N-13's below.
                 expect(notice("N-15", "MEMBER", "s08-pere", "en", "A place has been freed up!",
-                                "Classe last class · Thursday 8 · 20:00. You are on the waiting list: the place goes to whoever confirms first.", APP, PUSH, SMS),
+                                "Classe last class · Thursday 8 · 20:00. You are on the waiting list: the place goes to whoever confirms first.", APP,
+                                "EMAIL:SKIPPED_BY_PREFERENCE", PUSH, SMS),
                         notice("N-05", "MEMBER", "s08-laura", "ca", "Reserva anul·lada", "Dijous 8 · 20:00, amb Duna. L'has anul·lada dins el termini.", APP));
                 assertThat(only("N-15").action().type().name()).isEqualTo("CLAIM_SEAT");
             }

@@ -1269,6 +1269,14 @@ from the environment ([.env.example](../.env.example)); none is ever logged.
 | `VAPID_SUBJECT` | `mailto:` or `https:` contact sent to the push services. |
 | `EMAIL_UNSUBSCRIBE_KEY` | HMAC key (base64, 32 bytes) of the signed 30-day «Deixar de rebre aquests comunicats» links of `CLUB_NEWS` mails (`List-Unsubscribe`). Required in staging/prod. |
 
+COMM-02 (owner decision of 13 November 2026): the seat-released notice (N-15) also
+goes by e-mail, like the class reminder (N-13), to members whose «Operativa» e-mail
+preference is on. A club's stored templates keep their channel matrix (the start-up
+upgrade only brings texts up to date), so a club whose N-15 template already exists,
+such as the Cànic, gets the e-mail only once an admin ticks «Correu» for «Alumne» on
+«S'ha alliberat una plaça!» in D9 (`/comunicats`); a club seeded afterwards gets it
+ticked.
+
 The dispatcher sends right after each notice is stored and polls every 5 s for
 retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS state
 (no Twilio delivery callback at R1). The real Twilio and VAPID sends are verified

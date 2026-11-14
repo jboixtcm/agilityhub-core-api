@@ -194,6 +194,35 @@ class NotificationEngineIT extends EngineFixtures {
     }
 
     /**
+     * COMM-02 (owner decision of 13 Nov 2026): the seat-released notice (N-15) and the class reminder (N-13) also go by e-mail,
+     * under the member's OPERATIONAL e-mail preference (N-15 is mandatory and still does not bypass it) and without the
+     * unsubscribe header of club news (R-11-08). Before the decision N-15 had no EMAIL delivery at all.
+     */
+    @Test void COMM_02_theSeatReleasedNoticeAndTheReminderAlsoGoByEmailUnderTheOperationalPreference() {
+        ports.update("member-marc", c -> InMemoryMessagingPorts.with(c, null, Map.of("emailByCategory", Map.of("OPERATIONAL", true)), null, null));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-laura", "dogId", "dog-duna", "mode", "ALL_AT_ONCE", "classId", "e7t02-class-a"));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-marc", "dogId", "dog-ares", "mode", "ALL_AT_ONCE", "classId", "e7t02-class-a"));
+        var laura = stored(CLUB, "N-15").stream().filter(n -> "member-laura".equals(n.recipient().memberId())).findFirst().orElseThrow();
+        var marc = stored(CLUB, "N-15").stream().filter(n -> "member-marc".equals(n.recipient().memberId())).findFirst().orElseThrow();
+        // Laura keeps the product default (OPERATIONAL e-mail off): the e-mail is recorded as skipped by her preference.
+        assertThat(channels(mongo.findById(laura.id(), Notification.class)))
+                .containsExactly("APP:DELIVERED", "EMAIL:SKIPPED_BY_PREFERENCE", "SMS:SENT", "SMS:SENT", "PUSH:SKIPPED_NO_CONTACT");
+        assertThat(mail.to("laura@example.test")).isEmpty();
+        // Marc turned it on: the seat offer reaches his address too, with the seat claim link and no List-Unsubscribe.
+        assertThat(channels(mongo.findById(marc.id(), Notification.class))).containsExactly("APP:DELIVERED", "EMAIL:SENT", "SMS:SENT", "PUSH:SKIPPED_NO_CONTACT");
+        assertThat(mail.to("marc@example.test")).singleElement().satisfies(m -> {
+            assertThat(m.subject()).isEqualTo(marc.title()); assertThat(m.headers()).doesNotContainKey("List-Unsubscribe");
+            assertThat(m.html()).doesNotContain("Deixar de rebre", "Dejar de recibir");
+        });
+        // The reminder of a booking of Marc's goes by e-mail as well (it already did under the same preference).
+        var startsAt = Instant.parse("2026-10-07T16:50:00Z");
+        ports.activeBookings.put("booking-comm02", startsAt);
+        deliver(CLUB, "ReminderDue", Map.of("bookingId", "booking-comm02", "memberId", "member-marc", "dogId", "dog-ares", "startsAt", startsAt.toString()));
+        assertThat(channels(only(CLUB, "N-13"))).containsExactly("APP:DELIVERED", "EMAIL:SENT", "PUSH:SKIPPED_NO_CONTACT");
+        assertThat(mail.to("marc@example.test")).hasSize(2).last().satisfies(m -> assertThat(m.headers()).doesNotContainKey("List-Unsubscribe"));
+    }
+
+    /**
      * T-11-31 (R-11-09). E7-T04 round 3: CI was red at `b786a0c`. The test's own loop delivered again ten times without
      * pausing, and one delivery lost all ten attempts while its twin's transaction was still open. Now every delivery goes
      * through the outbox's own retry ({@link #deliver}, {@code OutboxDispatcher.CONFLICT_ATTEMPTS}): the delivery that loses

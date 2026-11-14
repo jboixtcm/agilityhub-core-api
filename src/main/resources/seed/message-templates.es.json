@@ -248,7 +248,7 @@
       "matrix": {
         "MEMBER": {
           "APP": true,
-          "EMAIL": false,
+          "EMAIL": true,
           "SMS": true
         }
       }

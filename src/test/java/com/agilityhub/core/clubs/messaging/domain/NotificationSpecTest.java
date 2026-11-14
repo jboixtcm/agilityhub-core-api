@@ -29,7 +29,9 @@ class NotificationSpecTest {
         assertThat(spec("N-01").action(ADMINS)).isEqualTo(NotificationActionType.OPEN_SIGNUP);
         assertThat(spec("N-01").action(APPLICANT)).isNull();
         assertThat(spec("N-15").caps(MEMBER)).contains(NotificationChannel.SMS);
-        assertThat(spec("N-15").defaultChannels(MEMBER)).containsExactlyInAnyOrder(NotificationChannel.APP, NotificationChannel.SMS, NotificationChannel.PUSH);
+        // COMM-02 (owner decision of 13 Nov 2026): N-15 also goes by e-mail (APP + SMS + PUSH before it).
+        assertThat(spec("N-15").defaultChannels(MEMBER)).containsExactlyInAnyOrder(NotificationChannel.APP, NotificationChannel.EMAIL, NotificationChannel.SMS,
+                NotificationChannel.PUSH);
         assertThat(spec("N-25").templated()).isFalse(); assertThat(spec("N-02").templated()).isTrue();
     }
 
