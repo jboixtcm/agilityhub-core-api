@@ -102,9 +102,12 @@ task. Returning normally marks that consumer processed, so a skip is durable.
   gets its attempt, and the record backs off if any of them failed. Treat delivery
   as at least once: external effects must deduplicate using `eventId` (and consumer
   identity if a provider key space is shared), since HTTP effects cannot roll back.
-- Attempts use exponential delays of 1, 2, 4, ... seconds, capped at 300 seconds.
-  `SharedConfiguration` supplies 10 maximum attempts; exhausted records become
-  `FAILED`, which the poller does not retry. Only the exception type is persisted.
+- Attempts use exponential delays of 1, 2, 4, ... seconds, capped at one hour
+  (OUT-01, owner decision of 13 Nov 2026; before, 300 seconds). `SharedConfiguration`
+  supplies `OutboxDispatcher.MAX_ATTEMPTS` (36), about 24 hours of retries; exhausted
+  records become `FAILED`, which the poller does not retry, and the dispatcher then
+  e-mails the platform admins (N-57, `OutboxFailureAlerts`, at most once per admin,
+  event type and UTC day). Only the exception type is persisted.
   Do not rename consumer beans casually or promise a replay/admin API in E0.
 - A record becomes `PUBLISHED` after all currently registered matching consumers
   finish, including when none match. Adding a handler later does not replay old

@@ -228,7 +228,7 @@ class NotificationEngineIT extends EngineFixtures {
      * through the outbox's own retry ({@link #deliver}, {@code OutboxDispatcher.CONFLICT_ATTEMPTS}): the delivery that loses
      * the race on `{clubId, dedupKey}` meets a `WriteConflict` while the other is open, rolls back, waits the shared backoff
      * and finds the stored reminder. A delivery whose attempts all run out is redelivered after the record's backoff, as the
-     * outbox does, at most `maxAttempts` = 10 times (`SharedConfiguration`). The test prints where the conflicts were.
+     * outbox does, at most `OutboxDispatcher.MAX_ATTEMPTS` times (36 since OUT-01). The test prints where the conflicts were.
      */
     @Test void T_11_31_aHundredSimultaneousRemindersAreAHundredNotificationsWithoutDuplicates() throws Exception {
         var startsAt = Instant.parse("2026-10-08T16:50:00Z");

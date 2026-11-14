@@ -105,4 +105,42 @@ class OutboxDispatcherTest {
         verify(records, never()).published(any(), any());
         verify(records, times(1)).failed(same(record), eq(NOW), eq(10), any());
     }
+    /**
+     * OUT-01 pass 2 (owner decision of 13 Nov 2026): a record whose failure was its last (the repository says it is FAILED now)
+     * tells every alert once — ids, type, attempts and the error type, never the payload —, an alert that throws does not keep
+     * the next one or the next record from running, and a failure that still leaves the record PENDING alerts nobody.
+     */
+    @Test void OUT_01_aRecordThatEndsFailedTellsEveryAlertOnceAndAnEarlierFailureNone() {
+        var records = mock(OutboxRepository.class);
+        var last = record(36, Map.of()); var earlier = new DomainEventRecord("event-2", "club-a", "ClubUpdated", "Club", "club-a", NOW, Map.of(), null, null, null,
+                "\"payload\"", DomainEventRecord.Status.PENDING, 3, NOW, null, null, "claim-2", 0, Map.of());
+        when(records.claim(any())).thenReturn(last, earlier, (DomainEventRecord) null);
+        when(records.failed(same(last), any(), anyInt(), any())).thenReturn(true);
+        when(records.failed(same(earlier), any(), anyInt(), any())).thenReturn(false);
+        var told = new ArrayList<OutboxFailureAlerts.FailedEvent>();
+        OutboxFailureAlerts throwing = event -> { told.add(event); throw new IllegalStateException("fictional alert failure"); };
+        OutboxFailureAlerts recording = told::add;
+        var dispatcher = new OutboxDispatcher(records, Map.of("first", handler("ClubUpdated", new ArrayList<>(), "first", true)),
+                new TransactionTemplate(mock(PlatformTransactionManager.class)), new ObjectMapper(), Clock.fixed(NOW, ZoneOffset.UTC), new SimpleMeterRegistry(),
+                OutboxDispatcher.MAX_ATTEMPTS, () -> List.of(throwing, recording));
+
+        dispatcher.dispatch();
+
+        verify(records).failed(same(earlier), eq(NOW), eq(36), any());
+        assertThat(told).hasSize(2).containsOnly(new OutboxFailureAlerts.FailedEvent("event-1", "club-a", "ClubUpdated", "Club", 36, "IllegalStateException", NOW));
+    }
+
+    /** OUT-01 pass 2: the back-off doubles from 1 s to an hour, so the 36th attempt comes about a day after the first (before: 10 over ~8.5 min). */
+    @Test void OUT_01_theRetryHorizonIsAboutADayWithAGrowingBackOff() {
+        assertThat(OutboxRepository.backoff(1)).hasSeconds(1);
+        assertThat(OutboxRepository.backoff(2)).hasSeconds(2);
+        assertThat(OutboxRepository.backoff(12)).hasSeconds(2_048);
+        assertThat(OutboxRepository.backoff(13)).isEqualTo(java.time.Duration.ofHours(1));
+        assertThat(OutboxRepository.backoff(35)).isEqualTo(java.time.Duration.ofHours(1));
+        assertThat(OutboxRepository.backoff(0)).hasSeconds(1);
+        var horizon = java.time.Duration.ZERO;
+        for (int attempt = 1; attempt < OutboxDispatcher.MAX_ATTEMPTS; attempt++) { horizon = horizon.plus(OutboxRepository.backoff(attempt)); }
+        assertThat(horizon).isBetween(java.time.Duration.ofHours(23), java.time.Duration.ofHours(25));
+        assertThat(OutboxDispatcher.MAX_ATTEMPTS).isEqualTo(36);
+    }
 }

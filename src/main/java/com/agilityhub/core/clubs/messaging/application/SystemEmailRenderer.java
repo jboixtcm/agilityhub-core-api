@@ -28,7 +28,7 @@ public final class SystemEmailRenderer {
      * The SYSTEM codes (S11 R-11-01: product copy of `messages_*`, never a template) and N-02's welcome e-mail, whose S01
      * magic link is a credential (E7-T02). Any other code belongs to the engine: `TEMPLATE_NOT_SENDABLE`.
      */
-    static final Set<String> CODES = Set.of("N-02", "N-25", "N-26", "N-27", "N-39", "N-43", "N-52", "N-53");
+    static final Set<String> CODES = Set.of("N-02", "N-25", "N-26", "N-27", "N-39", "N-43", "N-52", "N-53", "N-57");
     public EmailMessage render(String code, String to, Locale locale, Map<String, ?> variables,
                                ClubEmailSettings.Settings settings, Map<String, String> tags) {
         if (!CODES.contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }

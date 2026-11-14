@@ -130,6 +130,7 @@ Tots amb rol `AGILITYHUB_ADMIN` (token sense context de club) llevat de `/intern
 |---|---|---|---|
 | N-53 Invitació com a administrador (proposta) | `POST …/admins` | compte convidat → EMAIL (SYSTEM) | `club_name`, `link`, `inviter_name` |
 | N-43 Domini trencat (proposta) | `ClubDomainBroken` | admins de plataforma → EMAIL | `club_name`, `host` |
+| N-57 Esdeveniment intern no processat (OUT-01, decisió del propietari 13-11-2026) | un registre de l'outbox esgota els reintents (unes 24 h) i passa a `FAILED` (el dispatcher, sense esdeveniment; CATALEG_ESDEVENIMENTS regla 2); màx. 1 per admin, tipus i dia UTC | admins de plataforma → EMAIL (SYSTEM) | `club_name`, `reason`, `event_type` |
 
 ## 9. Paràmetres i mòduls
 
@@ -199,3 +200,4 @@ Ordre: A → B → C ∥ D. Fils: (1) A+B, (2) C, (3) D.
 - 13-11-2026 · AUTHZ-05 (auditoria de preproducció, decisió del propietari): R-17-10, tota escriptura feta amb un token de suport queda a l'auditoria del club amb `origin = PLATFORM_SUPPORT`, també la que el seu servei no audita (`SUPPORT_WRITE`, S14 R-14-09); abans només les accions ja auditades.
 - 14-11-2026 · PRIV-10 (auditoria de preproducció, decisió del propietari del 13-11): R-17-01, l'informe de `club:apply` avisa de les pàgines legals amb text provisional (S05 R-05-21b).
 - 14-11-2026 · PAY-10 (auditoria de preproducció, decisió del propietari 13-11-2026): R-17-05 i §6, desar una `secretKey` de Stripe fa la prova de connexió amb la clau nova i la refusa si falla (`422 STRIPE_CONNECTION_FAILED`, res desat), i la prova superada queda desada; amb el perfil `prod`, passar de claus `live` desades a `mode: test` demana `testModeOverride: true` (si no, `422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}`).
+- 14-11-2026 · OUT-01 (auditoria de preproducció, decisió del propietari 13-11-2026): §8, N-57 «Esdeveniment intern no processat», correu SYSTEM als admins de plataforma quan un registre de l'outbox esgota els reintents (unes 24 h) i queda `FAILED` (CATALEG_ESDEVENIMENTS regla 2).

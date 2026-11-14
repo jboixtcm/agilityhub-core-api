@@ -13,6 +13,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -184,7 +185,11 @@ class OutboxIT extends AbstractIntegrationTest {
         assertThat(record(id).processedAt()).hasSize(2);
         assertThat(mongo.getCollection("outbox_effects").countDocuments()).isEqualTo(1);
     }
-    @Test void E0_T04_maxAttemptsFailsAndBackoffCapsAtFiveMinutes() {
+    /**
+     * OUT-01 pass 2 (owner decision of 13 Nov 2026) changed the back-off this test asserts: it doubles from 1 s up to an hour
+     * (before, capped at 300 s), so the 11th to 14th waits are 1,024, 2,048, 3,600 and 3,600 s.
+     */
+    @Test void E0_T04_OUT_01_maxAttemptsFailsAndBackoffGrowsToAnHour() {
         String id = publish("club-a");
         var failing = handler((ignored, event) -> { throw new IllegalStateException("private data must not be persisted"); });
         var dispatcher = dispatcher(Map.of("failing", failing), 2);
@@ -197,15 +202,41 @@ class OutboxIT extends AbstractIntegrationTest {
         clock.advance(Duration.ofDays(1)); dispatcher.dispatch();
         assertThat(record(id).attempts()).isEqualTo(2);
         String other = publish("club-b");
-        dispatcher = dispatcher(Map.of("failing", failing), 11);
-        for (int attempt = 1; attempt <= 10; attempt++) {
+        dispatcher = dispatcher(Map.of("failing", failing), 15);
+        for (int attempt = 1; attempt <= 14; attempt++) {
             dispatcher.dispatch();
-            long delay = Math.min(300, 1L << (attempt - 1));
+            long delay = Math.min(3_600, 1L << (attempt - 1));
             assertThat(record(other).nextAttemptAt()).isEqualTo(clock.instant().plusSeconds(delay));
             clock.advance(Duration.ofSeconds(delay));
         }
         assertThatThrownBy(() -> dispatcher(Map.of(), 0)).isInstanceOf(IllegalArgumentException.class);
     }
+    /**
+     * OUT-01 pass 2 (owner decision of 13 Nov 2026): when a record runs out of its attempts the dispatcher marks it FAILED and
+     * tells the alerts once, with the record's ids, type, attempts and error type; the earlier failures, a published record and
+     * a FAILED record the poller no longer claims tell nobody. An alert that throws leaves the record FAILED and the dispatch going.
+     */
+    @Test void OUT_01_aRecordThatRunsOutOfItsAttemptsIsFailedAndAlertedOnce() {
+        String failingId = publish("club-a"), passingId = publish("club-b");
+        var told = new java.util.concurrent.CopyOnWriteArrayList<com.agilityhub.core.shared.application.OutboxFailureAlerts.FailedEvent>();
+        com.agilityhub.core.shared.application.OutboxFailureAlerts throwing = event -> { throw new IllegalStateException("fictional alert failure"); };
+        var handler = handler((eventId, event) -> { if (event.clubId().equals("club-a")) { throw new IllegalStateException("fictional consumer bug"); } });
+        var dispatcher = new OutboxDispatcher(records, Map.of("consumer", handler), transactions, mapper, clock, metrics, 3, () -> List.of(throwing, told::add));
+        dispatcher.dispatch();
+        assertThat(record(passingId).status()).isEqualTo(DomainEventRecord.Status.PUBLISHED);
+        clock.advance(Duration.ofSeconds(1)); dispatcher.dispatch();
+        assertThat(record(failingId).status()).isEqualTo(DomainEventRecord.Status.PENDING);
+        assertThat(told).isEmpty();
+        clock.advance(Duration.ofSeconds(2)); dispatcher.dispatch();
+        assertThat(record(failingId).status()).isEqualTo(DomainEventRecord.Status.FAILED);
+        assertThat(record(failingId).attempts()).isEqualTo(3);
+        assertThat(told).singleElement().isEqualTo(new com.agilityhub.core.shared.application.OutboxFailureAlerts.FailedEvent(failingId, "club-a", "ClubUpdated",
+                "Club", 3, "IllegalStateException", clock.instant()));
+        clock.advance(Duration.ofDays(2)); dispatcher.dispatch();
+        assertThat(told).hasSize(1);
+        assertThat(metrics.get("outbox.failed").gauge().value()).isEqualTo(1);
+    }
+
     @Test void E0_T04_competingDispatchersDoNotDeliverAnActiveClaimTwice() throws Exception {
         String id = publish("club-a");
         var entered = new CountDownLatch(1); var release = new CountDownLatch(1);

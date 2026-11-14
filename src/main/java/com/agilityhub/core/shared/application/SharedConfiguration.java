@@ -47,10 +47,13 @@ public class SharedConfiguration {
     /** AUTH-01 (S01 R-01-18): the recent sign-in of a `@RecentLogin` handler, checked after its `@PreAuthorize`. */
     @Bean com.agilityhub.core.shared.api.RecentLoginAspect recentLoginAspect(RecentLogins logins) { return new com.agilityhub.core.shared.api.RecentLoginAspect(logins); }
 
+    /** OUT-01: {@link OutboxDispatcher#MAX_ATTEMPTS} attempts over about a day, then the {@link OutboxFailureAlerts}. */
     @Bean OutboxDispatcher outboxDispatcher(OutboxRepository records, Map<String, DomainEventHandler<?>> handlers,
                                             MongoTransactionManager transactions, ObjectMapper mapper,
-                                            Clock clock, MeterRegistry metrics) {
-        return new OutboxDispatcher(records, handlers, new TransactionTemplate(transactions), mapper, clock, metrics, 10);
+                                            Clock clock, MeterRegistry metrics,
+                                            org.springframework.beans.factory.ObjectProvider<OutboxFailureAlerts> alerts) {
+        return new OutboxDispatcher(records, handlers, new TransactionTemplate(transactions), mapper, clock, metrics, OutboxDispatcher.MAX_ATTEMPTS,
+                () -> alerts.orderedStream().toList());
     }
 
     @Configuration(proxyBeanMethods = false)

@@ -126,7 +126,7 @@ and overlap validation. Team rows require census members and belong to `seed:dem
 
 Each entry `{code: "N-xx"}` names a notification code whose **product seed** the club gets as its `CATALOG` template
 (D9): `src/main/resources/seed/message-templates.{ca,es,en}.json`, one template per catalog code of stage R1 that is not
-`SYSTEM` (53 codes; N-25, N-26, N-27, N-39, N-43, N-52, N-53 are account e-mails without a template, and N-44, N-45, N-48
+`SYSTEM` (53 codes; N-25, N-26, N-27, N-39, N-43, N-52, N-53 and N-57 (OUT-01) are account e-mails without a template, and N-44, N-45, N-48
 are not R1), with the catalog's icon, colour and default channels. Only the club's languages are stored. A code the club
 already has a template of is **kept as it is** (D9 is the source of truth once seeded; «Restaura el text per defecte»
 brings the seed back), so re-applying changes nothing. A code the definition leaves out is seeded on its first use, or

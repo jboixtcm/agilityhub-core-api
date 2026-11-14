@@ -1770,6 +1770,11 @@ closed it (`JobRunner.report`), with its first exception, if any, and the trace 
 Apart from Sentry, the club's admins get N-42 (in the app and by e-mail, at most once per process and local day, while
 `jobs.alertAdminsOnFailure` is on) for any `FAILED` run and, since JOB-01 (owner decision of 13 November 2026), for a `PARTIAL`
 run of the processes that affect members: `risk-review`, `reminders`, `expirations`, `payment-timeouts` and `billing-reminder`.
+An outbox event whose consumer keeps failing is retried with a growing back-off (1 s doubling to one hour) for about
+24 hours (36 attempts, OUT-01, owner decision of 13 November 2026); when it ends `FAILED` (gauge `outbox.failed`) the
+dispatcher e-mails every active platform admin (N-57 «Esdeveniment intern no processat», at most once per admin, event type
+and UTC day; the error line `Outbox event FAILED after its retries` is logged with the event id). Its consumers that had not
+processed it will not do so on their own: find it in `domain_events` with `status: FAILED`.
 Handled 4xx errors, `NOT_IMPLEMENTED` stubs, an expired async (SSE) request and a client that went away are not captured.
 
 The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled

@@ -14,7 +14,7 @@ class NotificationSpecTest {
     private static NotificationSpec spec(String code) { return NotificationCatalog.byCode(code).orElseThrow(); }
 
     @Test void WP_11_A_lookupsReturnTheRegisteredCodesAndOnlyR1CodesPerEvent() {
-        assertThat(NotificationCatalog.codes()).hasSize(63).startsWith("N-01", "N-02").endsWith("N-54", "N-53", "N-55", "N-56");
+        assertThat(NotificationCatalog.codes()).hasSize(64).startsWith("N-01", "N-02").endsWith("N-54", "N-53", "N-55", "N-56", "N-57"); // OUT-01: + N-57
         assertThat(NotificationCatalog.specsFor("PaymentDisputed")).extracting(NotificationSpec::code).containsExactly("N-56"); // PAY-06
         assertThat(NotificationCatalog.byCode("N-12")).isEmpty(); assertThat(NotificationCatalog.byCode(null)).isEmpty();
         assertThat(NotificationCatalog.specsFor("BookingCreated")).extracting(NotificationSpec::code).containsExactly("N-04", "N-36", "N-46");

@@ -32,7 +32,7 @@ class MessageTemplateSeedTest {
         assertThat(seed.all()).extracting(MessageTemplateSeed.Seeded::code).containsExactlyElementsOf(eligible);
         assertThat(seed.size()).isEqualTo(53); // PAY-06: + N-56
         var withoutTemplate = NotificationCatalog.codes().stream().filter(code -> !eligible.contains(code)).toList();
-        assertThat(withoutTemplate).containsExactly("N-25", "N-26", "N-27", "N-39", "N-43", "N-44", "N-45", "N-48", "N-52", "N-53");
+        assertThat(withoutTemplate).containsExactly("N-25", "N-26", "N-27", "N-39", "N-43", "N-44", "N-45", "N-48", "N-52", "N-53", "N-57"); // OUT-01: N-57 is SYSTEM
         var mapper = new ObjectMapper();
         for (String locale : List.of("ca", "es", "en")) {
             var file = mapper.readTree(Files.readString(Path.of("src/main/resources/seed/message-templates." + locale + ".json")));

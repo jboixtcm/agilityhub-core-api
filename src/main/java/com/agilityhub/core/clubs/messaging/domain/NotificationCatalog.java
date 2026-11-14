@@ -233,6 +233,9 @@ public final class NotificationCatalog {
         // PAY-06 (owner decision of 13 Nov 2026): a Stripe dispute (chargeback) flagged a card payment of the member.
         rows.add(code("N-56", OPERATIONAL, "PaymentDisputed").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER)
                 .vars("member_name", "amount", "reason").modules(Module.BILLING).build());
+        // OUT-01 (owner decision of 13 Nov 2026): an outbox record that ran out of its retries is no event either: the dispatcher
+        // triggers N-57 directly (`OutboxFailureAlerts`), a SYSTEM e-mail to the platform admins as N-43.
+        rows.add(code("N-57", SYSTEM).to(ADMINS, EMAIL).vars("club_name", "reason", "event_type").build());
         return rows;
     }
 

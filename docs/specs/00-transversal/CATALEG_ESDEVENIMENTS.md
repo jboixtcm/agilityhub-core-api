@@ -113,7 +113,7 @@
 ## Regles
 
 1. Els services **no** envien notificacions ni criden proveïdors externs: emeten esdeveniments; el dispatcher fa la resta (testable amb dobles).
-2. Consumidors idempotents (`processedAt` per consumidor); reintents amb backoff; cua d'errors visible a la consola (S17).
+2. Consumidors idempotents (`processedAt` per consumidor); reintents amb backoff; cua d'errors visible a la consola (S17). **OUT-01 (decisió del propietari 13-11-2026):** cada consumidor té el seu intent (un que falla no impedeix els següents) i el registre torna a la cua amb un backoff creixent — 1, 2, 4… s fins a 1 h, i cada hora a partir d'aquí — durant unes 24 hores (36 intents); el que els esgota queda `FAILED` (mètrica `outbox.failed`) i el dispatcher avisa directament els admins de plataforma per correu (N-57, sense cap esdeveniment nou: un avís sobre l'outbox no espera a l'outbox), com a màxim un per admin, tipus d'esdeveniment i dia UTC.
 3. Cada esdeveniment té un test que verifica que s'emet amb el payload esperat (assert a l'outbox) — PLA_BACKEND §9.
 4. Afegir un esdeveniment = afegir-lo aquí + classe `record` al paquet `domain.events` del context corresponent.
 
