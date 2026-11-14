@@ -1688,6 +1688,12 @@ from Caddy. The web build owns its CSP. API JSON, errors, OAuth and files keep t
 Spring Security baseline and E71 download policies. API HSTS is enabled only for
 HTTPS requests under `prod`.
 
+Caddy caps request bodies before they reach the Core (CFG-03, snippet `api_body_limit`): 2 MB (2,000,000 bytes)
+for `/api/*` and `/oauth2/*` on every site that proxies them (the three product hosts, the club catch-all and the Core
+host), except the two signed upload PUTs (`/api/v1/attachments/uploads/{id}` and `/api/v1/signup/uploads`), which the
+Core bounds by the club's `files.maxSizeMb` while it streams them; 1 MiB for the Core host's `/webhooks/*`. A refused
+body gets `400 VALIDATION_ERROR` in the standard error envelope, with Caddy's error id as `traceId`.
+
 The per-instance token buckets below use the injected clock and reset at their
 interval boundary. R1 is a single instance (ADR-003). Every refusal returns the
 catalog `429 RATE_LIMITED`, `Retry-After` in seconds, and writes `SecurityEvent`.
