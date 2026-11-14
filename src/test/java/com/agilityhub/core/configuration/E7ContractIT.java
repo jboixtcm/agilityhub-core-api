@@ -120,13 +120,13 @@ class E7ContractIT extends AbstractIntegrationTest {
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (!role.equals("ANON")) {
-            request.with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", clubId).claim("memberId", "e7-member-a"))
+            request.with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", clubId).claim("memberId", "e7-member-a").claim("auth_time", signedInNow()))
                     .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         }
         return request;
     }
     private MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String role) {
-        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", CLUB).claim("memberId", "e7-member-a"))
+        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", CLUB).claim("memberId", "e7-member-a").claim("auth_time", signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
     }
     /** The allowed call: its success status, or the error of a stub (501) or of the unsubscribe fixture (422). */

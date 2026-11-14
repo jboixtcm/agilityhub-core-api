@@ -130,7 +130,7 @@ class E4ContractIT extends AbstractIntegrationTest {
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (r.key()) { request.header("X-Api-Key", PUBLIC_KEY); }
-        if (!role.equals("ANON")) { request.with(jwt().jwt(j -> j.subject("e4-" + role).claim("clubId", clubId).claim("memberId", "member-a"))
+        if (!role.equals("ANON")) { request.with(jwt().jwt(j -> j.subject("e4-" + role).claim("clubId", clubId).claim("memberId", "member-a").claim("auth_time", signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_" + role))); }
         return request;
     }

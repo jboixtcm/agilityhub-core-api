@@ -30,7 +30,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         clubs.save(PlatformFixtures.club("console-source","source.example.test"));
     }
     MockHttpServletRequestBuilder actor(MockHttpServletRequestBuilder call) {
-        return call.header("Host","unknown.example.test").with(jwt().jwt(j->j.subject("console-actor"))
+        return call.header("Host","unknown.example.test").with(jwt().jwt(j->j.subject("console-actor").claim("auth_time",signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")));
     }
     JsonNode call(MockHttpServletRequestBuilder call, Object body, int status) throws Exception {

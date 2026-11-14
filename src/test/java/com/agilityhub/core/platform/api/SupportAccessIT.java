@@ -42,7 +42,7 @@ class SupportAccessIT extends BillingItSupport {
                 Account.Status.ACTIVE, new Account.Security(0, null, null, 0), Map.of(), false, clock.instant()));
     }
     MockHttpServletRequestBuilder console(MockHttpServletRequestBuilder call, String subject) {
-        return call.header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject(subject)).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")));
+        return call.header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject(subject).claim("auth_time", signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")));
     }
     MockHttpServletResponse start(String club, String key, String subject) throws Exception {
         return mvc.perform(console(post("/api/v1/platform/clubs/" + club + "/support-access"), subject).header("Idempotency-Key", key)

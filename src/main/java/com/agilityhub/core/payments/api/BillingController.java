@@ -163,6 +163,7 @@ public class BillingController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/billing/exports")
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportAccounting", description = ROLES + "R-12-26 «Exporta per a comptabilitat» (S14 engine, listKey = accounting): one row "

@@ -105,7 +105,7 @@ abstract class PrivacyItFixtures extends AbstractIntegrationTest {
     }
     ResultActions call(MockHttpServletRequestBuilder request, String club, String account, String... roles) throws Exception {
         return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject(account).claim("clubId", club).claim("name", "Fictional Operator")
-                .claim("locale", "ca")).authorities(Arrays.stream(roles).<GrantedAuthority>map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList())));
+                .claim("locale", "ca").claim("auth_time", signedInNow())).authorities(Arrays.stream(roles).<GrantedAuthority>map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList())));
     }
     ResultActions admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, CLUB, "admin-account", "ADMIN"); }
     ResultActions platform(MockHttpServletRequestBuilder request) throws Exception {

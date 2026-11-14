@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTH-01 (c) · A recent sign-in for exports, remittance files, bank accounts and payment providers
+
+**No operations or schemas added; 1 error code added (`RECENT_LOGIN_REQUIRED`, 403, `details.maxAgeMinutes`); 25 operations gain it in their 403 (24 routes with `@RecentLogin`, and `PATCH /members/{id}` when it carries `paymentMethod`); 1 operation description changed (`PATCH /members/{id}`).**
+
+- S01 R-01-18: a staff caller (ADMIN or INSTRUCTOR of the club, AGILITYHUB_ADMIN; a support token carries its platform administrator's sign-in) reaches these operations only within 15 minutes of the sign-in that opened its session (the access token's `auth_time`; a refresh, a profile switch or a handoff keeps it): `GET`/`POST /members/export`, `/dogs/export`, `/audit-entries/export`; `GET /activities/export`, `/activity-registrations/export`, `/invoices/export`, `/notifications/export`, `/training-bookings/export`, `/instructor/week/export`, `/billing/exports`; `GET /exports`, `/exports/{id}`, `/exports/{id}/download`; `POST /members/{id}/data-export`, `/me/data-export`; `GET /platform/clubs/{clubId}/migrations/{runId}/report`; `GET /remittances/{id}/file`, `/remittances/{id}/spreadsheet`; `PATCH /members/{id}/payment-method` and `PATCH /members/{id}` with `paymentMethod`; `PUT`/`DELETE /platform/clubs/{id}/payment-providers/{provider}`. Otherwise `403 RECENT_LOGIN_REQUIRED {maxAgeMinutes: 15}`, after the route's role, tenant, module, support and impersonation checks (a caller without the role keeps its `403 FORBIDDEN`). The client signs in again (the password, or a `LOGIN` sign-in link for an account without one) and repeats the call. A member without a staff role is never asked.
+
 ## 2026-11-13 · AUTH-01 (b) · Staff passwords of 12 characters at least
 
 **No operations, schemas or error codes added; `PASSWORD_TOO_SHORT` gains `details.minLength`; 1 operation description changed (`PUT /me/password`).**

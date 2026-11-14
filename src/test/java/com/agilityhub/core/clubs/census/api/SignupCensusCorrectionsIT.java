@@ -90,7 +90,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     MockHttpServletRequestBuilder postJson(String path,Object body) throws Exception {return post("/api/v1"+path).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body));}
     MockHttpServletRequestBuilder from(MockHttpServletRequestBuilder request,String ip) { return request.with(r->{r.setRemoteAddr(ip);return r;}); }
     String ip() { return "198.51.100."+(++sequence%250+1); }
-    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("corrections-admin").claim("clubId",club)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
+    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("corrections-admin").claim("clubId",club).claim("auth_time",signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
     JsonNode result(MockHttpServletRequestBuilder request,int status) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();var body=mapper.readTree(response.getContentAsString().isEmpty()?"{}":response.getContentAsString());
         assertThat(response.getStatus()).as("HTTP code=%s details=%s",body.path("code").asText(),body.path("details")).isEqualTo(status);return body;

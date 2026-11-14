@@ -56,6 +56,14 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected Fixtures fixtures;
 
+    /**
+     * AUTH-01 (S01 R-01-18): the `auth_time` claim (epoch seconds) of a staff token signed in at the test clock's now. A test that is
+     * not about the recent-login rule gives it to the synthetic staff token it sends to a `@RecentLogin` route (an export, a
+     * remittance file, a member's bank account, a payment provider), as a real session opened by a sign-in carries it;
+     * `StepUpIT` covers the refusal of an old or missing one.
+     */
+    protected long signedInNow() { return clock.instant().getEpochSecond(); }
+
     @Autowired
     private MongoTemplate sharedDatabase;
 

@@ -140,7 +140,7 @@ class E5ContractIT extends AbstractIntegrationTest {
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (!role.equals("ANON")) {
-            request.with(jwt().jwt(j -> j.subject("e5-" + role).claim("clubId", clubId).claim("memberId", memberId))
+            request.with(jwt().jwt(j -> j.subject("e5-" + role).claim("clubId", clubId).claim("memberId", memberId).claim("auth_time", signedInNow()))
                     .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         }
         return request;

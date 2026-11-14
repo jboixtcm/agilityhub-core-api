@@ -208,12 +208,12 @@ class E8ContractIT extends AbstractIntegrationTest {
         if (r.webhook()) { request.header("Stripe-Signature", signature(mapper.writeValueAsString(r.body()))); }
         if (role.equals("ANON") && r.path().startsWith("/api/v1/checkout-sessions/")) { request.header("X-Signup-Token", signupToken); }
         if (!role.equals("ANON")) {
-            request.with(jwt().jwt(j -> j.subject("e8-" + role).claim("clubId", clubId).claim("memberId", memberId)).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
+            request.with(jwt().jwt(j -> j.subject("e8-" + role).claim("clubId", clubId).claim("memberId", memberId).claim("auth_time", signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         }
         return request;
     }
     private MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String... roles) {
-        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e8-" + roles[0]).claim("clubId", CLUB).claim("memberId", "e8-member-a"))
+        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e8-" + roles[0]).claim("clubId", CLUB).claim("memberId", "e8-member-a").claim("auth_time", signedInNow()))
                 .authorities(Arrays.stream(roles).map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toArray(SimpleGrantedAuthority[]::new)));
     }
     private ResultActions error(MockHttpServletRequestBuilder request, int status, String... codes) throws Exception {

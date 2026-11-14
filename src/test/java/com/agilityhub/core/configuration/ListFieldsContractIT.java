@@ -211,7 +211,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     Response read(String url, String fields, String club, String role) throws Exception { return read(url, fields, club, role, "20"); }
     Response read(String url, String fields, String club, String role, String size) throws Exception {
         var request = get(url).header("Host", CANIC_HOST).param("size", size)
-                .with(jwt().jwt(j -> j.subject("list-fields-" + role.toLowerCase()).claim("clubId", club)).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
+                .with(jwt().jwt(j -> j.subject("list-fields-" + role.toLowerCase()).claim("clubId", club).claim("auth_time", signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         if (fields != null) { request.param("fields", fields); }
         var response = mvc.perform(request).andReturn().getResponse();
         return new Response(response.getStatus(), mapper.readTree(response.getContentAsString()));

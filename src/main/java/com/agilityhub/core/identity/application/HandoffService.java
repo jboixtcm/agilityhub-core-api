@@ -3,6 +3,7 @@ package com.agilityhub.core.identity.application;
 import com.agilityhub.core.identity.domain.Role;
 import com.agilityhub.core.identity.persistence.HandoffCode;
 import com.agilityhub.core.identity.persistence.HandoffCodeRepository;
+import com.agilityhub.core.identity.persistence.RefreshToken;
 import com.agilityhub.core.platform.application.ClubAppUrls;
 import com.agilityhub.core.shared.application.SecurityEvents;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -61,11 +62,12 @@ public class HandoffService {
                 }
                 var session = eligible(code.accountId(), clientId);
                 if (session.account().familyVersion() != code.tokenFamilyVersion()) { return null; }
-                try { tokens.requireFamily(code.accountId(), code.sourceClientId(), code.sourceFamilyId(), code.tokenFamilyVersion()); }
+                RefreshToken source;
+                try { source = tokens.requireFamily(code.accountId(), code.sourceClientId(), code.sourceFamilyId(), code.tokenFamilyVersion()); }
                 catch (ApiException revoked) { return null; }
                 urls.login(clientId);
                 if (!codes.consume(code.id(), clock.instant())) { return null; }
-                return tokens.handoff(session, clientId, userAgent);
+                return tokens.handoff(session, clientId, userAgent, signedIn(source));
             });
             return result == null ? invalid(code.accountId(), code.clubId()) : result;
         }
@@ -81,17 +83,20 @@ public class HandoffService {
         }
         var result = transactions.run(() -> {
             var session = identities.current(code.accountId());
+            RefreshToken source;
             try (var scope = TenantContext.open(code.clubId())) {
                 if (code.usedAt() != null || !code.expiresAt().isAfter(clock.instant())
                         || session.account().familyVersion() != code.tokenFamilyVersion()) { return null; }
-                try { tokens.requireFamily(code.accountId(), code.sourceClientId(), code.sourceFamilyId(), code.tokenFamilyVersion()); }
+                try { source = tokens.requireFamily(code.accountId(), code.sourceClientId(), code.sourceFamilyId(), code.tokenFamilyVersion()); }
                 catch (ApiException revoked) { return null; }
                 if (!codes.consume(code.id(), clock.instant())) { return null; }
             }
-            return tokens.handoff(session, clientId, userAgent);
+            return tokens.handoff(session, clientId, userAgent, signedIn(source));
         });
         return result == null ? invalid(code.accountId(), code.clubId()) : result;
     }
+    /** AUTH-01 (S01 R-01-18): the sign-in time of the source session, which the new one keeps (its creation for an older row). */
+    static java.time.Instant signedIn(RefreshToken source) { return source.authTime() != null ? source.authTime() : source.createdAt(); }
     private IdentityService.Session eligible(String accountId, String target) {
         var session = identities.current(accountId);
         if (session.membership() == null || !("clubs-admin".equals(target) ? session.membership().roles().contains(Role.ADMIN)

@@ -81,6 +81,10 @@ public class SupportAccessService implements ConsoleSupportAccess {
                 .claim("clubId", grant.clubId()).claim("roles", List.of("ADMIN")).claim("activeProfile", "ADMIN")
                 .claim("actorAccountId", actor.id()).claim("support", true)
                 .claim("name", actor.name()).claim("email", actor.email()).claim("locale", actor.locale());
+        // AUTH-01 (S01 R-01-18): the support token's sign-in is its platform administrator's, the console session that started it.
+        Instant signedIn = authentication instanceof org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken console
+                ? com.agilityhub.core.shared.application.RecentLogins.authTime(console.getToken()) : null;
+        if (signedIn != null) { claims.claim("auth_time", signedIn.getEpochSecond()); }
         Jwt jwt = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).build(), claims.build()));
         events.publish(new SupportAccessStarted(grant.clubId(), grant.id(), now, actor.id()));
         return new Issued(grant.id(), jwt.getTokenValue(), grant.expiresAt());

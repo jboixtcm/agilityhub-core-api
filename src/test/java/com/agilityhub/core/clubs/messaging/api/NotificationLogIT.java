@@ -120,7 +120,7 @@ class NotificationLogIT extends AbstractIntegrationTest {
                 code.equals("N-08a") ? "Club: classe anul·lada" : null, n.action(), n.deliveries(), null, at, null, null, null, null, null, null, null, null);
     }
     private MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String role, String club) {
-        return request.header("Host", club.equals(CLUB) ? HOST : OTHER_HOST).with(jwt().jwt(j -> j.subject("log-" + role).claim("clubId", club))
+        return request.header("Host", club.equals(CLUB) ? HOST : OTHER_HOST).with(jwt().jwt(j -> j.subject("log-" + role).claim("clubId", club).claim("auth_time", signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
     }
     private JsonNode call(MockHttpServletRequestBuilder request, int status) throws Exception {
@@ -245,7 +245,8 @@ class NotificationLogIT extends AbstractIntegrationTest {
         }
         // The reader's language (es).
         var spanish = mvc.perform(get("/api/v1/notifications/export").param("filter", "code:eq:N-08a").param("columns", "code,channels").param("format", "xlsx")
-                .header("Host", HOST).with(jwt().jwt(j -> j.subject("log-ADMIN").claim("clubId", CLUB).claim("locale", "es")).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .header("Host", HOST).with(jwt().jwt(j -> j.subject("log-ADMIN").claim("clubId", CLUB).claim("locale", "es").claim("auth_time", signedInNow()))
+                        .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andReturn().getResponse();
         assertThat(spanish.getStatus()).isEqualTo(200);
         try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(spanish.getContentAsByteArray()))) {

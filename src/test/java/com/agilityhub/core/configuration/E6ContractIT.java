@@ -129,7 +129,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (!role.equals("ANON")) {
             request.with(jwt().jwt(j -> {
-                        j.subject("e6-" + role).claim("clubId", clubId).claim("memberId", memberId);
+                        j.subject("e6-" + role).claim("clubId", clubId).claim("memberId", memberId).claim("auth_time", signedInNow());
                         // Attendance writes require the class's assigned instructor, not only the role.
                         if (role.equals("INSTRUCTOR")) j.claim("instructorId", "e6-instructor-a");
                     })
@@ -138,7 +138,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         return request;
     }
     private MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String... roles) {
-        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e6-" + roles[0]).claim("clubId", CLUB).claim("memberId", "e6-member-a"))
+        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e6-" + roles[0]).claim("clubId", CLUB).claim("memberId", "e6-member-a").claim("auth_time", signedInNow()))
                 .authorities(Arrays.stream(roles).map(role -> (org.springframework.security.core.GrantedAuthority) new SimpleGrantedAuthority("ROLE_" + role)).toList()));
     }
     private ResultActions error(MockHttpServletRequestBuilder request, int status, String... codes) throws Exception {

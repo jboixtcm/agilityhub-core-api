@@ -26888,7 +26888,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED"
+            "description" : "IMPERSONATION_DENIED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -29404,7 +29404,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -31631,7 +31631,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -31899,7 +31899,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -33154,7 +33154,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -43564,7 +43564,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -43859,7 +43859,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -46566,7 +46566,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -46745,7 +46745,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -46908,7 +46908,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -51020,7 +51020,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED"
+            "description" : "IMPERSONATION_DENIED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -52252,7 +52252,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -57216,7 +57216,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED"
+            "description" : "IMPERSONATION_DENIED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -63431,7 +63431,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -63753,7 +63753,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -64258,7 +64258,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. A wrong document is resolved by rejecting the readmission. The remarks and internal notes stay the LEFT record's: changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit.",
+        "description" : "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. A wrong document is resolved by rejecting the readmission. The remarks and internal notes stay the LEFT record's: changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit. AUTH-01: a request carrying paymentMethod (a pending member's bank account) needs a sign-in of the last 15 minutes: 403 RECENT_LOGIN_REQUIRED {maxAgeMinutes} otherwise.",
         "operationId" : "updateMember",
         "parameters" : [ {
           "in" : "path",
@@ -64317,7 +64317,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -65485,7 +65485,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -67631,7 +67631,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -70541,7 +70541,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -75788,7 +75788,7 @@
                 }
               }
             },
-            "description" : "FORBIDDEN, IMPERSONATION_DENIED, SUPPORT_RESTRICTED"
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED, SUPPORT_RESTRICTED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -78400,7 +78400,7 @@
                 }
               }
             },
-            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -78563,7 +78563,7 @@
                 }
               }
             },
-            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -83464,7 +83464,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -83771,7 +83771,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {
@@ -91513,7 +91513,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED"
+            "description" : "IMPERSONATION_DENIED, RECENT_LOGIN_REQUIRED"
           },
           "404" : {
             "content" : {

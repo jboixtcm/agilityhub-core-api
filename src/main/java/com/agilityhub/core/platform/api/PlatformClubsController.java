@@ -213,6 +213,7 @@ public class PlatformClubsController {
         var modules=selected;return scoped(id,()->{var c=changes.modules(request.version(),modules).club();return new PlatformModules(c.modules(),c.version());});
     }
 
+    @com.agilityhub.core.shared.application.RecentLogin
     @PutMapping(value="/api/v1/platform/clubs/{id}/payment-providers/{provider}")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, STALE_VERSION, PROVIDER_CONFIG_INVALID})
@@ -230,6 +231,7 @@ public class PlatformClubsController {
         }));
     }
 
+    @com.agilityhub.core.shared.application.RecentLogin
     @DeleteMapping(value="/api/v1/platform/clubs/{id}/payment-providers/{provider}")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, PROVIDER_IN_USE})

@@ -42,6 +42,7 @@ public class RemittancesController {
         this.access = access; this.lists = lists; this.remittances = remittances; this.transactions = transactions; this.mapper = mapper; this.actions = actions;
     }
 
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping(value="/api/v1/remittances/{id}/spreadsheet", produces="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     @com.agilityhub.core.shared.application.SupportRestricted
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
@@ -83,6 +84,7 @@ public class RemittancesController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/remittances/{id}/file")
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "remittanceFile", description = ROLES + "[Descarrega l'XML]: a signed URL of the pain.008 file valid for five minutes (also "

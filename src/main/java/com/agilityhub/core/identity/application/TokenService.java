@@ -109,8 +109,13 @@ public class TokenService {
         }
         return outcome.tokens();
     }
-    /** Called inside the handoff consumption transaction. */
-    Tokens handoff(IdentityService.Session session, String clientId, String userAgent) { return login(session, clientId, userAgent); }
+    /**
+     * Called inside the handoff consumption transaction. AUTH-01 (S01 R-01-18): the new session keeps the sign-in time of the session
+     * the code came from ({@code authTime}), so an app switch is no fresh sign-in for a recent-login action.
+     */
+    Tokens handoff(IdentityService.Session session, String clientId, String userAgent, Instant authTime) {
+        return login(session, clientId, userAgent, java.util.Set.of(), false, null, authTime == null ? clock.instant() : authTime);
+    }
     private Tokens login(IdentityService.Session session, String clientId, String userAgent) {
         return login(session, clientId, userAgent, java.util.Set.of(), false, null, clock.instant());
     }

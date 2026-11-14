@@ -44,6 +44,9 @@ public class SharedConfiguration {
     /** CONVENCIONS_API §7 (E62): the replay answers only once the handler's own authorization accepted the token. */
     @Bean IdempotentReplayAspect idempotentReplayAspect() { return new IdempotentReplayAspect(); }
 
+    /** AUTH-01 (S01 R-01-18): the recent sign-in of a `@RecentLogin` handler, checked after its `@PreAuthorize`. */
+    @Bean com.agilityhub.core.shared.api.RecentLoginAspect recentLoginAspect(RecentLogins logins) { return new com.agilityhub.core.shared.api.RecentLoginAspect(logins); }
+
     @Bean OutboxDispatcher outboxDispatcher(OutboxRepository records, Map<String, DomainEventHandler<?>> handlers,
                                             MongoTransactionManager transactions, ObjectMapper mapper,
                                             Clock clock, MeterRegistry metrics) {

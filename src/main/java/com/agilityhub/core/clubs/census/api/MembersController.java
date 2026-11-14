@@ -27,6 +27,8 @@ public class MembersController {
     private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles;
     private final com.agilityhub.core.clubs.census.application.MemberService members;
+    /** AUTH-01 (S01 R-01-18): a pending member's payment method (its bank account) in `PATCH /members/{id}` needs a recent sign-in. */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.RecentLogins recentLogins;
     public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists, com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles,
             com.agilityhub.core.clubs.census.application.CensusQuery queries, com.agilityhub.core.clubs.census.application.CensusAccess access,
             com.agilityhub.core.identity.application.IdentityTransactions transactions, com.agilityhub.core.clubs.census.application.MemberService members) {
@@ -79,17 +81,22 @@ public class MembersController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     // S04 §6 (E3-T10 round 2): the D2 edit of a pending signup (identity document, phones, payment method, requested plan) as well.
     @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, INVALID_PHONE, INVALID_IBAN, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, INVALID_STATE, MEMBER_ERASED,
-            PAYMENT_METHOD_NOT_AVAILABLE, PLAN_NOT_AVAILABLE})
+            PAYMENT_METHOD_NOT_AVAILABLE, PLAN_NOT_AVAILABLE, RECENT_LOGIN_REQUIRED})
     @Operation(summary = "Update member",
             description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. "
                     + "A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; "
                     + "the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. "
                     + "A wrong document is resolved by rejecting the readmission. The remarks and internal notes stay the LEFT record's: "
-                    + "changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit.",
+                    + "changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit. "
+                    + "AUTH-01: a request carrying paymentMethod (a pending member's bank account) needs a sign-in of the last 15 minutes: "
+                    + "403 RECENT_LOGIN_REQUIRED {maxAgeMinutes} otherwise.",
             responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(implementation = Member.class))))
-    public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
+    public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) {
+        if (request.containsKey("paymentMethod")) { recentLogins.require(); }
+        return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
         else { members.patch(id, request, false); } return queries.member(id, true); }); }
 
+    @com.agilityhub.core.shared.application.RecentLogin
     @PatchMapping("/api/v1/members/{id}/payment-method")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

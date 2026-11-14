@@ -184,6 +184,7 @@ public class TrainingController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/training-bookings/export")
     @PreAuthorize("hasRole('ADMIN')")
     @ListContract(filterable = {"id", "date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},

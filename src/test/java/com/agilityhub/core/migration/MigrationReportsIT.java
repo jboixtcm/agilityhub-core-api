@@ -41,7 +41,7 @@ class MigrationReportsIT extends AbstractIntegrationTest {
     }
     String path(String club,String run) { return "/api/v1/platform/clubs/"+club+"/migrations/"+run+"/report"; }
     org.springframework.test.web.servlet.request.RequestPostProcessor actor(String club,String role) {
-        return jwt().jwt(token->token.subject("fictional-operator").claim("clubId",club)).authorities(()->"ROLE_"+role);
+        return jwt().jwt(token->token.subject("fictional-operator").claim("clubId",club).claim("auth_time",signedInNow())).authorities(()->"ROLE_"+role);
     }
     @Test void T_18_16_onlyClubAdminOrPlatformAdminCanReceiveSignedLink() throws Exception {
         mvc.perform(get(path(CLUB,RUN))).andExpect(status().isUnauthorized());

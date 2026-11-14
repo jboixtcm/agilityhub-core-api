@@ -176,6 +176,8 @@ public enum ErrorCode {
     PUSH_SUBSCRIPTION_INVALID(422),
     RATE_LIMITED(429),
     READ_ONLY(403),
+    /** AUTH-01 (S01 R-01-18): a staff caller's sign-in is older than 15 minutes; sign in again (password or sign-in link). */
+    RECENT_LOGIN_REQUIRED(403),
     REFRESH_EXPIRED(400),
     REFRESH_REUSED(400),
     REFUND_EXCEEDS_PAID(422),

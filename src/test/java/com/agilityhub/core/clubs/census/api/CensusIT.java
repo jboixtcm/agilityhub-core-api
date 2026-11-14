@@ -115,7 +115,7 @@ class CensusIT extends AbstractIntegrationTest {
     /** A caller whose account reads {@code locale} (the JWT `locale` claim, R-03-32). */
     ResultActions reading(String locale, MockHttpServletRequestBuilder request, String club, String account, String... roles) throws Exception {
         return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject(account + "-account").claim("clubId", club)
-                .claim("name", "Example Operator").claim("locale", locale)).authorities(Arrays.stream(roles)
+                .claim("name", "Example Operator").claim("locale", locale).claim("auth_time", signedInNow())).authorities(Arrays.stream(roles)
                         .<org.springframework.security.core.GrantedAuthority>map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role)).toList())));
     }
     ResultActions admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, CLUB, "admin", "ADMIN"); }

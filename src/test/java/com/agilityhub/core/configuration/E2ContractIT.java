@@ -122,7 +122,7 @@ class E2ContractIT extends AbstractIntegrationTest {
         anonymous.andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN")) {
             boolean allowed = route.roles().contains(role);
-            var result = mvc.perform(call(route).with(jwt().jwt(j -> j.subject(route.method() + route.path() + role).claim("clubId", "e2-club-a"))
+            var result = mvc.perform(call(route).with(jwt().jwt(j -> j.subject(route.method() + route.path() + role).claim("clubId", "e2-club-a").claim("auth_time", signedInNow()))
                             .authorities(new SimpleGrantedAuthority("ROLE_" + role))))
                     .andExpect(status().is(allowed ? authorizedStatus : 403));
             if (allowed && consoleRead) {

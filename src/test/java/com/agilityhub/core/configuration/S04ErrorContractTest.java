@@ -29,7 +29,9 @@ class S04ErrorContractTest {
             BASE + "platform.application.CountryContacts", BASE + "platform.application.CountryContactRules", BASE + "platform.application.CensusClubSettings",
             BASE + "platform.domain.", BASE + "clubs.followup.application.AttachmentService", BASE + "clubs.catalogs.application.SignupPlanData",
             // INC-39 (E11-T10): the money arithmetic, whose currency check the validation's upfrontAmountPaid reached undocumented.
-            BASE + "shared.domain.Money");
+            BASE + "shared.domain.Money",
+            // AUTH-01 (S01 R-01-18): PATCH /members/{id} asks for a recent sign-in when it carries a pending member's paymentMethod.
+            BASE + "shared.application.RecentLogins");
     /**
      * Answered by the generic responses of every operation (401/403/404/500): authentication, the tenant guards, S02 host
      * resolution and configuration faults (a stored parameter was validated when it was written, S02).

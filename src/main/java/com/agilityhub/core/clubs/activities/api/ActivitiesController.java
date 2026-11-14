@@ -76,6 +76,7 @@ public class ActivitiesController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/activities/export")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "upcoming", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = false,

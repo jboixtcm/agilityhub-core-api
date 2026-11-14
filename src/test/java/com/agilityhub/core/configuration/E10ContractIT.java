@@ -51,7 +51,7 @@ class E10ContractIT extends AbstractIntegrationTest {
         if(route.body()!=null&&!route.body().isNull()) request.contentType("application/json").content(mapper.writeValueAsString(route.body()));
         route.params().forEach(request::param);
         if(route.key()) request.header("Idempotency-Key",UUID.randomUUID().toString());
-        if(!role.equals("ANON")) request.with(jwt().jwt(j->j.subject("e10-actor"))
+        if(!role.equals("ANON")) request.with(jwt().jwt(j->j.subject("e10-actor").claim("auth_time",signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_"+role)));
         return request;
     }
