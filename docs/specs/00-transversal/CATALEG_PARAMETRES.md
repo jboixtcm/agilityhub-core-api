@@ -10,7 +10,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `auth.sessionDays` | int | 30 | refresh token lliscant (ADR-004); el backoffice (`clubs-admin`) caduca, a més, 12 h després de l'inici de sessió (S01 R-01-06, AUTH-01) |
 | `auth.magicLinkMinutes` | int | 15 | caducitat de l'enllaç màgic |
 | `auth.impersonationMinutes` | int | 60 | «Entra com l'abonat» |
-| `auth.passwordMinLength` | int | 8 | els comptes de personal (`ADMIN`, `INSTRUCTOR`, `AGILITYHUB_ADMIN`) en necessiten com a mínim 12 (S01 R-01-05, AUTH-01) |
+| `auth.passwordMinLength` | int | 8 | els comptes de personal (`ADMIN`, `INSTRUCTOR`, `AGILITYHUB_ADMIN`) en necessiten com a mínim 12 (S01 R-01-05, AUTH-01); **mínim 8**: pis del catàleg, mai 0 (AUTH-08, propietari 13-11) |
 
 ## Alta (`signup.*`) — bloc Alta i consentiments
 | Clau | Tipus | Cànic | Notes |
@@ -158,7 +158,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `auth.welcomeLinkDays` | int | 7 | sistema | S01/S04 |
 | `auth.maxSessions` | int | 10 | sistema | S01 |
 | `auth.refreshReuseGraceSeconds` | int | 30 | sistema | S01 R-01-06 (INC-36, E11-T02; 0–120 s, 0 = sense marge) |
-| `auth.lockoutMinutes` · `auth.lockoutMaxAttempts` | int | 15 · 5 | sistema | S01 |
+| `auth.lockoutMinutes` · `auth.lockoutMaxAttempts` | int | 15 · 5 | sistema | S01 R-01-08 (**mínims 1 · 3**: pisos del catàleg, cap no es pot posar a 0; AUTH-08, propietari 13-11) |
 | `auth.checkCompromisedPasswords` | bool | true | sistema | S01 |
 | `census.dogDocumentTypes` | json `[{key, label: localizedText, required}]` | `[{"key": "VACCINATION_CARD", "label": {"ca": "Cartilla de vacunes", "es": "Cartilla de vacunas", "en": "Vaccination card"}, "required": true}, {"key": "INSURANCE", "label": {"ca": "Assegurança", "es": "Seguro", "en": "Insurance"}, "required": false}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "required": false}]` | Alta i consentiments | S03 |
 | `census.bookingBlockReasons` | list localizedText | `[{"ca": "rebut impagat", "es": "recibo impagado", "en": "unpaid receipt"}, {"ca": "cartilla pendent", "es": "cartilla pendiente", "en": "vaccination card pending"}, {"ca": "decisió del club", "es": "decisión del club", "en": "club decision"}]` | Club i pistes | S03 (es/en afegits 18-10, INC-38, E11-T10) |
@@ -205,3 +205,5 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 Bloc nou a D11: **«Privacitat i auditoria»** (S14) i **«Processos automàtics»** (S15).
 
 Pisos legals de la retenció (PRIV-02, decisió del propietari 13-11): un **mínim** de la columna de notes és el `min` del catàleg (`catalog.yaml`); el club edita la clau per sobre del pis. Un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (`ParameterInvalidOverride`): val el valor de producte.
+
+Pisos de l'accés (AUTH-08, decisió del propietari 13-11): `auth.passwordMinLength` (**mínim 8**), `auth.lockoutMinutes` i `auth.lockoutMaxAttempts` (**mínims 1 · 3**, a la columna «Spec» de l'annex) tenen el pis com a `min` del catàleg, amb el mateix tractament: la consola els edita per sobre del pis, un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (val el valor de producte).

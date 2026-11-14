@@ -179,6 +179,25 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         assertThat(mongo.findAll(MagicLinkToken.class)).isEmpty();
     }
 
+    /**
+     * AUTH-08 (owner decision 13-11-2026, S01 R-01-05 and R-01-08): overrides of 0 stored before the catalogue floors existed are
+     * ignored, so the product defaults apply: with a stored 0 the first failure would lock (0 attempts) or never lock (0 minutes).
+     */
+    @Test void AUTH_08_overridesStoredUnderTheAccessFloorsAreIgnoredAndTheLockoutKeepsItsDefaults() throws Exception {
+        for (String key : List.of("auth.passwordMinLength", "auth.lockoutMinutes", "auth.lockoutMaxAttempts")) {
+            mongo.insert(new Parameter("floor-" + key, "club-a", key, 0, "int", "club", null, List.of(), null, clock.instant()));
+        }
+        configs.invalidate("club-a");
+        try (var scope = TenantContext.open("club-a")) {
+            assertThat(authSettings.integer("auth.passwordMinLength")).isEqualTo(8);
+            assertThat(authSettings.integer("auth.lockoutMinutes")).isEqualTo(15);
+            assertThat(authSettings.integer("auth.lockoutMaxAttempts")).isEqualTo(5);
+        }
+        for (int n = 0; n < 4; n++) { login(HOST, "admin@example.test", "wrong").andExpect(status().isUnauthorized()); }
+        login(HOST, "admin@example.test", "wrong").andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("LOGIN_LOCKED")).andExpect(header().string("Retry-After", "900"));
+    }
+
     @Test void T_01_06_passwordLockoutPersistsAndMagicLinkRemainsAvailable() throws Exception {
         for (int round = 0; round < 3; round++) {
             for (int n = 0; n < 4; n++) { login(HOST, "admin@example.test", "wrong").andExpect(status().isUnauthorized()); }

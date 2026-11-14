@@ -46,7 +46,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.auth.passwordMinLength.label"
     helpKey: "admin-settings:param.auth.passwordMinLength.help"
-    constraints: {"min": 0}
+    constraints: {"min": 8}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"
@@ -1099,7 +1099,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.auth.lockoutMinutes.label"
     helpKey: "admin-settings:param.auth.lockoutMinutes.help"
-    constraints: {"min": 0}
+    constraints: {"min": 1}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"
@@ -1112,7 +1112,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.auth.lockoutMaxAttempts.label"
     helpKey: "admin-settings:param.auth.lockoutMaxAttempts.help"
-    constraints: {"min": 0}
+    constraints: {"min": 3}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"

@@ -108,6 +108,43 @@ class ParameterCatalogContractTest {
         // The rejected-signup retention has no floor in the decision.
         assertThat(catalog.get("rgpd.rejectedSignupRetentionDays").constraints()).containsEntry("min", 0);
     }
+    /**
+     * AUTH-08 (owner's decision of 13-11): the floors of the access keys, so that none can be set to 0. Each «**mínim N**» /
+     * «**mínims a · b**» of a row's last column (the notes of a section table, the «Spec» cell of Annex A) is the catalogue's
+     * `min`: the password length 8, the lock 1 minute and 3 attempts. A value under it is refused, and 0 always.
+     */
+    @Test void AUTH_08_theAccessFloorsOfTheDocumentAreTheCatalogMinimums() throws Exception {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var floors = new LinkedHashMap<String, Integer>();
+        var floor = Pattern.compile("\\*\\*mínims? ([^*]+)\\*\\*");
+        for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {
+            if (!line.startsWith("| `auth.")) { continue; }
+            String[] cells = Arrays.stream(line.split("\\|", -1)).map(String::strip).toArray(String[]::new);
+            var matcher = floor.matcher(cells[cells.length - 2]);
+            if (!matcher.find()) { continue; }
+            List<String> keys = new ArrayList<>();
+            var key = Pattern.compile("`([^`]+)`").matcher(cells[1]);
+            while (key.find()) { keys.add(key.group(1)); }
+            List<String> values = Arrays.asList(matcher.group(1).strip().split(" · "));
+            assertThat(values).as(line).hasSameSizeAs(keys);
+            for (int i = 0; i < keys.size(); i++) { if (!values.get(i).equals("—")) { floors.put(keys.get(i), Integer.valueOf(values.get(i))); } }
+        }
+        assertThat(floors).containsExactlyInAnyOrderEntriesOf(Map.of("auth.passwordMinLength", 8, "auth.lockoutMinutes", 1, "auth.lockoutMaxAttempts", 3));
+        var validator = new ParameterValidator();
+        floors.forEach((name, minimum) -> {
+            var entry = catalog.get(name);
+            assertThat(((Number) entry.constraints().get("min")).intValue()).as(name).isEqualTo(minimum);
+            assertThat(entry.editableBy()).as(name).isEqualTo("PLATFORM");
+            assertThat(((Number) entry.defaultValue()).intValue()).as(name).isGreaterThanOrEqualTo(minimum);
+            assertThatCode(() -> validator.validate(entry, minimum, "ca", "EUR")).as(name).doesNotThrowAnyException();
+            assertThatThrownBy(() -> validator.validate(entry, minimum - 1, "ca", "EUR")).as(name)
+                    .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                            refused -> assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.PARAMETER_INVALID));
+            assertThatThrownBy(() -> validator.validate(entry, 0, "ca", "EUR")).as(name).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+        });
+        // Members keep 8: the floor is the product default, not a higher minimum.
+        assertThat(catalog.get("auth.passwordMinLength").defaultValue()).isEqualTo(8);
+    }
     static final Map<String, String> BLOCKS = Map.ofEntries(Map.entry("sistema", "system"), Map.entry("Alta i consentiments", "signup"),
             Map.entry("Classes", "classes"), Map.entry("Llista d'espera", "waitlist"), Map.entry("Entrenaments", "training"),
             Map.entry("Club i pistes", "club"), Map.entry("Quotes i remesa", "billing"), Map.entry("Comunicacions", "messaging"),

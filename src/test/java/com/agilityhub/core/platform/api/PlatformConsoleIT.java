@@ -324,6 +324,26 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(call(put(BASE+"/console-target/parameters/auth.sessionDays"),Map.of("version",0,"value",50),409).path("code").asText()).isEqualTo("STALE_VERSION");
         assertThat(call(put(BASE+"/console-target/parameters/auth.sessionDays"),Map.of("version",1,"value",-1),400).path("code").asText()).isEqualTo("PARAMETER_INVALID");
     }
+    /**
+     * AUTH-08 (owner decision 13-11-2026, S01 R-01-05 and R-01-08): the console edits the password length and the lockout only from
+     * their catalogue floor up (8 characters, 1 minute, 3 attempts); 0 and any value under the floor are refused.
+     */
+    @Test void AUTH_08_theConsoleKeepsThePasswordAndLockoutParametersAtOrAboveTheirFloors() throws Exception {
+        configs.get("console-target");
+        var floors=Map.of("auth.passwordMinLength",8,"auth.lockoutMinutes",1,"auth.lockoutMaxAttempts",3);
+        var listed=call(get(BASE+"/console-target/parameters?block=system"),null,200);
+        var published=new java.util.HashMap<String,Integer>();
+        for(var block:listed.path("blocks")) for(var row:block.path("rows"))
+            if(floors.containsKey(row.path("key").asText())) published.put(row.path("key").asText(),row.at("/constraints/min").asInt());
+        assertThat(published).isEqualTo(floors);
+        for(var floor:floors.entrySet()) {
+            String path=BASE+"/console-target/parameters/"+floor.getKey();
+            for(int under:new int[]{0,floor.getValue()-1})
+                assertThat(call(put(path),Map.of("version",0,"value",under),400).path("code").asText()).as(floor.getKey()).isEqualTo("PARAMETER_INVALID");
+            assertThat(call(put(path),Map.of("version",0,"value",floor.getValue()),200).path("value").asInt()).isEqualTo(floor.getValue());
+        }
+        assertThat(configs.get("console-target").get("auth.lockoutMaxAttempts",Integer.class)).isEqualTo(3);
+    }
     @Test void T_17_02_R_17_02_createRejectsTakenAndReservedHosts() throws Exception {
         var routes=mapper.readTree(java.nio.file.Path.of("src/test/resources/fixtures/contracts/e10-routes.json").toFile());
         var body=(ObjectNode)routes.get(1).path("body").deepCopy();
