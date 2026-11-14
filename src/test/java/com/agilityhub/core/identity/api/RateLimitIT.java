@@ -207,6 +207,45 @@ class RateLimitIT extends IdentityIntegrationSupport {
             assertThat(event.type().name()).isEqualTo("RATE_LIMITED");
         });
     }
+    /**
+     * CFG-14 (owner decision 13-11-2026, CONVENCIONS_API §9): every authenticated API route counts in the account's quota of
+     * 600 per minute, across routes and addresses, the one `/me` and `/platform` already had: the 601st request is `429
+     * RATE_LIMITED` with `Retry-After` and a `RATE_LIMITED {limit: ME}` security event. Before, `/members` or `/bookings` had none.
+     */
+    @Test void CFG_14_everyAuthenticatedApiRouteSharesTheAccountsQuotaOfSixHundredPerMinute() throws Exception {
+        var admin = jwt().jwt(token -> token.subject("rate-account-c").claim("clubId", "club-a"))
+                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"));
+        for (int index = 0; index < 300; index++) {
+            // Club routes without a handler exercise the quota without 600 database reads; /me's children share it.
+            mvc.perform(get(index % 2 == 0 ? "/api/v1/cfg-14-missing" : "/api/v1/me/missing").header("Host", HOST).with(admin))
+                    .andExpect(status().isNotFound());
+        }
+        for (int index = 0; index < 299; index++) {
+            mvc.perform(get("/api/v1/cfg-14-missing").header("Host", HOST).with(admin)
+                    .with(request -> { request.setRemoteAddr("203.0.113.91"); return request; })).andExpect(status().isNotFound());
+        }
+        // The 600th request still reaches its route, whatever it answers.
+        mvc.perform(get("/api/v1/members").header("Host", HOST).with(admin))
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+        // The 601st, a club write from another address, is refused before its route.
+        mvc.perform(post("/api/v1/bookings").header("Host", HOST).with(admin).contentType("application/json").content("{}")
+                        .with(request -> { request.setRemoteAddr("203.0.113.92"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("RATE_LIMITED"))
+                .andExpect(header().string("Retry-After", "60"));
+        assertThat(mongo.findAll(SecurityEvent.class)).anySatisfy(event -> {
+            assertThat(event.accountId()).isEqualTo("rate-account-c");
+            assertThat(event.type().name()).isEqualTo("RATE_LIMITED");
+            assertThat(event.details()).containsEntry("limit", "ME");
+        });
+        // Another account, and health, go on.
+        mvc.perform(get("/api/v1/cfg-14-missing").header("Host", HOST).with(jwt().jwt(token -> token.subject("rate-account-d").claim("clubId", "club-a"))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/health")).andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+        // A minute later the account's quota is full again.
+        clock.advance(Duration.ofMinutes(1));
+        mvc.perform(get("/api/v1/cfg-14-missing").header("Host", HOST).with(admin)).andExpect(status().isNotFound());
+    }
+
     @Test void T_17_10_R_17_12_platformQuotaIsPerAccountAndRecordsSafeTelemetry() throws Exception {
         var authority=new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN");
         for(int index=0;index<600;index++) mvc.perform(get("/api/v1/platform/club-templates").with(jwt().jwt(j->j.subject("console-rate"))

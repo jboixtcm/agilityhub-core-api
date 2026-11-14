@@ -198,6 +198,75 @@ class AnonymousRateLimitsTest {
         return response;
     }
 
+    /**
+     * CFG-14 (owner decision 13-11-2026, CONVENCIONS_API §9): every authenticated API route counts in the account's bucket, the
+     * one `/me` and `/platform` use; anonymous requests, health, webhooks, the token endpoint and the routes with a family of their
+     * own keep theirs. Before CFG-14 an authenticated `/members` or `/bookings` call had none (`null`).
+     */
+    @org.junit.jupiter.api.Test void CFG_14_everyAuthenticatedApiRouteCountsInTheAccountsBucket() {
+        for (String[] call : new String[][] {{"GET", "/api/v1/members"}, {"GET", "/api/v1/members/m-1"}, {"POST", "/api/v1/bookings"},
+                {"POST", "/api/v1/waitlist-entries/w-1/claim"}, {"GET", "/api/v1/audit-entries"}, {"PATCH", "/api/v1/dogs/d-1"},
+                {"DELETE", "/api/v1/saved-views/v-1"}, {"GET", "/api/v1/members/export"}, {"POST", "/api/v1/checkout-sessions"},
+                {"GET", "/api/v1/me"}, {"GET", "/api/v1/platform/clubs"}}) {
+            assertThat(RateLimitFilter.route(call[0], call[1], true)).as("%s %s", call[0], call[1]).isEqualTo(RateLimits.Route.ME);
+        }
+        // The same routes without a bearer: not limited here (the security chain answers 401).
+        assertThat(RateLimitFilter.route("GET", "/api/v1/members", false)).isNull();
+        assertThat(RateLimitFilter.route("POST", "/api/v1/bookings", false)).isNull();
+        // Health, webhooks, the token endpoint and the other families keep their own, with or without a bearer.
+        assertThat(RateLimitFilter.route("GET", "/api/v1/health", true)).isNull();
+        assertThat(RateLimitFilter.route("OPTIONS", "/api/v1/members", true)).isNull();
+        assertThat(RateLimitFilter.route("POST", "/webhooks/email/brevo", true)).isEqualTo(RateLimits.Route.WEBHOOK);
+        assertThat(RateLimitFilter.route("POST", "/webhooks/stripe/club-a", true)).isEqualTo(RateLimits.Route.STRIPE_WEBHOOK);
+        assertThat(RateLimitFilter.route("POST", "/oauth2/token", true)).isEqualTo(RateLimits.Route.TOKEN);
+        assertThat(RateLimitFilter.route("POST", "/api/v1/auth/magic-link", true)).isEqualTo(RateLimits.Route.TOKEN);
+        assertThat(RateLimitFilter.route("POST", "/api/v1/auth/handoff", true)).isEqualTo(RateLimits.Route.HANDOFF);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/checkout-sessions/c-1", true)).isEqualTo(RateLimits.Route.CHECKOUT_STATUS);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/branding", true)).isEqualTo(RateLimits.Route.BRANDING);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/public/club-a/plans", true)).isEqualTo(RateLimits.Route.PUBLIC);
+        assertThat(RateLimitFilter.route("POST", "/api/v1/signup", true)).isEqualTo(RateLimits.Route.SIGNUP_SUBMIT);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/attachments/files/f-1", true)).isEqualTo(RateLimits.Route.SIGNED_FILE);
+        assertThat(RateLimitFilter.route("POST", "/oauth2/revoke", true)).isEqualTo(RateLimits.Route.ANONYMOUS);
+        // Outside the API (an actuator or a static path) nothing changes.
+        assertThat(RateLimitFilter.route("GET", "/actuator/info", true)).isNull();
+    }
+
+    /**
+     * CFG-14: one bucket per account across every authenticated API route and address, `429 RATE_LIMITED` with `Retry-After` and a
+     * `RATE_LIMITED {limit: ME}` security event once it is spent; another account, an anonymous request and health go on.
+     */
+    @org.junit.jupiter.api.Test void CFG_14_anAccountsRequestsShareOneBucketAcrossRoutesAndAddresses() throws Exception {
+        var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var events = mock(SecurityEvents.class);
+        var errors = mock(ApiExceptionHandler.class);
+        when(errors.body(any(), any())).thenReturn(new ApiError("RATE_LIMITED", "Rate limited", Map.of(), "fixture-trace"));
+        var filter = new RateLimitFilter(new RateLimits(true, policies(), clock), events, errors, new ObjectMapper(),
+                com.agilityhub.core.identity.domain.Email::normalize);
+        try {
+            authenticate("account-a");
+            assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204);
+            assertThat(call(filter, "POST", "/api/v1/bookings", "192.0.2.10").getStatus()).isEqualTo(204);
+            var refused = call(filter, "GET", "/api/v1/me", "198.51.100.4");
+            assertThat(refused.getStatus()).isEqualTo(429);
+            assertThat(refused.getHeader("Retry-After")).isEqualTo("60");
+            assertThat(new ObjectMapper().readTree(refused.getContentAsString()).path("code").asText()).isEqualTo("RATE_LIMITED");
+            assertThat(call(filter, "GET", "/api/v1/audit-entries").getStatus()).isEqualTo(429);
+            verify(events, times(2)).record(SecurityEvents.Type.RATE_LIMITED, "account-a", "club-a", null, Map.of("limit", "ME"));
+            // Health is never limited; another account has its own bucket.
+            for (int i = 0; i < 3; i++) { assertThat(call(filter, "GET", "/api/v1/health").getStatus()).isEqualTo(204); }
+            authenticate("account-b");
+            assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204);
+        } finally { org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
+        // Without a bearer the request is not this account's (the security chain refuses it later).
+        for (int i = 0; i < 3; i++) { assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204); }
+        // A minute later the account's bucket is full again.
+        clock.advance(Duration.ofMinutes(1));
+        try {
+            authenticate("account-a");
+            assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204);
+        } finally { org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
+    }
+
     private static RateLimitFilter filter(MockClock clock) { return filter(new RateLimits(true, policies(), clock)); }
 
     private static RateLimitFilter filter(RateLimits limits) {

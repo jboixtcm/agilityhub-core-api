@@ -140,6 +140,9 @@ public final class RateLimitFilter extends OncePerRequestFilter {
                 || path.equals("/api/v1/email-unsubscribes") || path.startsWith("/api/v1/checkout-sessions/")) {
             return Route.ANONYMOUS;
         }
+        // CFG-14 (owner decision 13-11-2026, CONVENCIONS_API §9): every other authenticated API route counts in the account's own
+        // bucket, the one `/me` and `/platform` already use (600/min); the routes above, health and webhooks keep their own.
+        if (authenticated && path.startsWith("/api/")) { return Route.ME; }
         return null;
     }
 

@@ -113,7 +113,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 
 ## 9. Seguretat bàsica
 
-- Rate limit per IP i per compte a `ANON` i a `/oauth2/token`; CORS només per als hosts de club registrats + `id.*`; headers de seguretat (HSTS, CSP per a les SPAs); logs estructurats amb `traceId`, `clubId`, `accountId`; secrets només en variables d'entorn; claus Stripe xifrades a la BBDD.
+- Rate limit per IP i per compte a `ANON` i a `/oauth2/token`. **Per compte a tota ruta autenticada de l'API (CFG-14, decisió del propietari 13-11-2026):** cada compte té una quota de 600 peticions/min, comuna a totes les rutes `/api/…` que crida amb el seu token i a totes les seves adreces (la que ja tenien `/me` i `/platform`); en esgotar-la, `429 RATE_LIMITED` amb el cos d'error estàndard, `Retry-After` en segons i un `SecurityEvent RATE_LIMITED`. Els webhooks, el health, `/oauth2/token` i les rutes amb quota pròpia (`/auth/magic-link`, `/auth/handoff`, l'alta pública, l'estat del checkout, els fitxers signats, `/branding`, `/public/*`) mantenen la seva; CORS només per als hosts de club registrats + `id.*`; headers de seguretat (HSTS, CSP per a les SPAs); logs estructurats amb `traceId`, `clubId`, `accountId`; secrets només en variables d'entorn; claus Stripe xifrades a la BBDD.
 - Webhooks Stripe: verificació de signatura + idempotència per `event.id` (`stripe_events`).
 
 ## 10. Tests mínims per endpoint (DoD, PLA_BACKEND §9)

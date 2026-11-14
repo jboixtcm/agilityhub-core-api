@@ -1615,7 +1615,7 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 | `core.security.rate-limits.access-resend-club` | 60 / 1h | Club; the D10 welcome e-mail (`POST /members/{id}/access-resend`, WEB-01), with the per-address bucket above and without the IP one |
 | `core.security.rate-limits.branding` | 120 / 1m | IP |
 | `core.security.rate-limits.public-routes` | 60 / 1m | IP for the public API |
-| `core.security.rate-limits.me` | 600 / 1m | Account across IPs and `/me` children |
+| `core.security.rate-limits.me` | 600 / 1m | Account across IPs: `/me` and its children, `/platform/**` and, since CFG-14, every other authenticated `/api/` route without a family of its own in this table (one bucket per account for all of them; health and webhooks are never in it) |
 | `core.security.rate-limits.anonymous` | 120 / 1m | IP; discovery/authorize/logout, signup form, manifest, country/postal lookup, unsubscribe, other checkout-session paths |
 | `core.security.rate-limits.webhook` | 600 / 1m | IP; email provider signature validation is still required |
 | `core.security.rate-limits.stripe-webhook` | 600 / 1m | IP; independent Stripe delivery quota; signature validation still required |

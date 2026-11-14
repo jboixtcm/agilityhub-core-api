@@ -202,6 +202,7 @@ core:
       token-refresh: {capacity: 120, period: 1m}
       branding: {capacity: 120, period: 1m}
       public-routes: {capacity: 60, period: 1m}
+      # CFG-14: one bucket per account for /me, /platform and every other authenticated /api/ route without its own family below.
       me: {capacity: 600, period: 1m}
       # E11-T03: independent per-IP buckets; handoff also per account, token-account across IPs.
       anonymous: {capacity: 120, period: 1m}
