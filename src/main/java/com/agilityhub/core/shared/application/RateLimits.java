@@ -18,7 +18,12 @@ public final class RateLimits {
          * WEB-01 (owner decision 13-11-2026, S03 R-03-06): the welcome e-mails a club's administrators send from D10, per club, apart
          * from the magic-link IP bucket that the members' own sign-in requests from the club's network use.
          */
-        ACCESS_RESEND_CLUB }
+        ACCESS_RESEND_CLUB,
+        /**
+         * AUTH-09 (owner decision 13-11-2026, S01 R-01-08): the refresh grant of `/oauth2/token`, per address, apart from the
+         * {@link #TOKEN} bucket of the password, link and other grants that many members behind the club's Wi-Fi address share.
+         */
+        TOKEN_REFRESH }
     public record Limit(long capacity, Duration period) {
         public Limit {
             if (capacity < 1 || period == null || period.isZero() || period.isNegative()) {
@@ -45,7 +50,7 @@ public final class RateLimits {
 
     /**
      * {@code maximumBuckets}: the cap of the buckets kept over every route (tests use a small one). INC-74 (E11-T13): each
-     * route keeps its equal share, {@code maximumBuckets / routes} (4 545 of the default 100 000 with 22 routes), so the worst-case heap stays
+     * route keeps its equal share, {@code maximumBuckets / routes} (4 347 of the default 100 000 with 23 routes), so the worst-case heap stays
      * the single cache's (≈ 52 MB) and a flood on one route still evicts only that route's buckets. An equal share rather than
      * a fixed 10 000 per route, because only the share keeps the sum at {@code maximumBuckets} whatever the number of routes.
      * Maintenance runs on the caller's thread, so an eviction is never left to a background pool.

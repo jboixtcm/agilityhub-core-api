@@ -38,7 +38,7 @@ public class SecurityBaselineConfiguration {
                                          RateLimits.Limit handoff, RateLimits.Limit tokenAccount,
                                          RateLimits.Limit checkoutStatus, RateLimits.Limit stripeWebhook,
                                          RateLimits.Limit magicLinkEmail, RateLimits.Limit magicLinkIp,
-                                         RateLimits.Limit accessResendClub) { }
+                                         RateLimits.Limit accessResendClub, RateLimits.Limit tokenRefresh) { }
 
     @Bean RateLimits rateLimits(RateLimitConfiguration settings, Clock clock) {
         var limits = new java.util.EnumMap<RateLimits.Route, RateLimits.Limit>(RateLimits.Route.class);
@@ -56,6 +56,7 @@ public class SecurityBaselineConfiguration {
         limits.put(RateLimits.Route.MAGIC_LINK_EMAIL, settings.magicLinkEmail());
         limits.put(RateLimits.Route.MAGIC_LINK_IP, settings.magicLinkIp());
         limits.put(RateLimits.Route.ACCESS_RESEND_CLUB, settings.accessResendClub());
+        limits.put(RateLimits.Route.TOKEN_REFRESH, settings.tokenRefresh());
         return new RateLimits(settings.enabled(), limits, clock);
     }
 

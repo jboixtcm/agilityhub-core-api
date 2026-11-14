@@ -51,6 +51,9 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         var jwt = authentication instanceof JwtAuthenticationToken token && token.isAuthenticated() ? token : null;
         if (jwt != null) { RequestTraceFilter.identity(jwt.getName(), jwt.getToken().getClaimAsString("clubId")); }
         Route route = route(request.getMethod(), path, jwt != null);
+        // AUTH-09 (owner decision 13-11-2026, S01 R-01-08): a refresh grant takes its own per-address bucket, never the one of the
+        // password and link grants. One `grant_type` only: a request with two is refused by the grant converter anyway.
+        if (route == Route.TOKEN && path.equals("/oauth2/token") && refreshGrant(request)) { route = Route.TOKEN_REFRESH; }
         if (route != null) {
             String subject = route == Route.ME ? jwt.getName() : request.getRemoteAddr();
             // INC-67 (E11-T08), CONVENCIONS_API §9: a member's or an administrator's status polls count per account, not per shared NAT.
@@ -138,6 +141,12 @@ public final class RateLimitFilter extends OncePerRequestFilter {
             return Route.ANONYMOUS;
         }
         return null;
+    }
+
+    /** AUTH-09: whether a token request is the refresh grant (exactly one `grant_type`, `refresh_token`). */
+    static boolean refreshGrant(HttpServletRequest request) {
+        String[] grants = request.getParameterValues("grant_type");
+        return grants != null && grants.length == 1 && "refresh_token".equals(grants[0]);
     }
 
     /**

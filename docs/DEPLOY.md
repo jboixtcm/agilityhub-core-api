@@ -1607,7 +1607,8 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 
 | Configuration key (each has `.capacity` and `.period`) | Default | Key / scope |
 |---|---|---|
-| `core.security.rate-limits.token` | 30 / 1m | IP, shared token + magic-link entry point |
+| `core.security.rate-limits.token` | 30 / 1m | IP, shared token (every grant except refresh) + magic-link entry point |
+| `core.security.rate-limits.token-refresh` | 120 / 1m | IP; the refresh grant of `/oauth2/token` only, apart from the bucket above (AUTH-09) |
 | `core.security.rate-limits.token-account` | 10 / 1m | Digest of normalized token username, across IPs |
 | `core.security.rate-limits.magic-link-email` | 10 / 1h | Digest of normalized e-mail (existing magic-link rule) |
 | `core.security.rate-limits.magic-link-ip` | 60 / 1h | IP (existing magic-link rule) |

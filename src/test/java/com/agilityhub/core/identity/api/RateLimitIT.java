@@ -113,6 +113,47 @@ class RateLimitIT extends IdentityIntegrationSupport {
         })).andExpect(status().isBadRequest());
     }
 
+    /**
+     * AUTH-09 (owner decision 13-11-2026, S01 R-01-08): behind one address, the members' refresh grants and the password and link
+     * grants have separate buckets: 30 password grants leave the refreshes open, and 120 refreshes per minute are allowed.
+     */
+    @Test void AUTH_09_refreshGrantsHaveTheirOwnAddressQuotaApartFromPasswordAndLinkGrants() throws Exception {
+        for (int index = 0; index < 30; index++) {
+            // Without credentials the grant answers 400 at once; the request still counts.
+            mvc.perform(post("/oauth2/token").header("Host", HOST).param("grant_type", "password").param("client_id", "clubs-app")
+                    .with(request -> { request.setRemoteAddr("203.0.113.91"); return request; }))
+                    .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+        }
+        mvc.perform(post("/oauth2/token").header("Host", HOST).param("grant_type", "password").param("client_id", "clubs-app")
+                        .with(request -> { request.setRemoteAddr("203.0.113.91"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json")
+                        .content("{\"email\":\"shared-wifi@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}")
+                        .with(request -> { request.setRemoteAddr("203.0.113.91"); return request; }))
+                .andExpect(status().isTooManyRequests());
+        for (int index = 0; index < 120; index++) {
+            mvc.perform(post("/oauth2/token").header("Host", HOST).param("grant_type", "refresh_token").param("client_id", "clubs-app")
+                    .param("refresh_token", "made-up-refresh-" + index)
+                    .with(request -> { request.setRemoteAddr("203.0.113.91"); return request; }))
+                    .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+        }
+        mvc.perform(post("/oauth2/token").header("Host", HOST).param("grant_type", "refresh_token").param("client_id", "clubs-app")
+                        .param("refresh_token", "made-up-refresh-last")
+                        .with(request -> { request.setRemoteAddr("203.0.113.91"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(header().string("Retry-After", "60"))
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        assertThat(mongo.findAll(SecurityEvent.class)).anySatisfy(event -> {
+            assertThat(event.type().name()).isEqualTo("RATE_LIMITED");
+            assertThat(event.ip()).isEqualTo("203.0.113.91");
+            assertThat(event.details()).containsEntry("limit", "TOKEN_REFRESH");
+        });
+        // Another address refreshes from its own bucket.
+        mvc.perform(post("/oauth2/token").header("Host", HOST).param("grant_type", "refresh_token").param("client_id", "clubs-app")
+                        .param("refresh_token", "made-up-refresh-elsewhere")
+                        .with(request -> { request.setRemoteAddr("203.0.113.92"); return request; }))
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+    }
+
     @Test void T_01_15_brandingAndPublicRoutesUseSeparateIpBucketsAndIgnoreSpoofedForwarding() throws Exception {
         for (int index = 0; index < 120; index++) {
             mvc.perform(get("/api/v1/branding").header("Host", HOST).with(request -> {

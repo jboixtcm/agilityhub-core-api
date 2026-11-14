@@ -198,6 +198,8 @@ core:
     rateLimits:
       enabled: true
       token: {capacity: 30, period: 1m}
+      # AUTH-09: the refresh grant's own per-address bucket (members behind the club's Wi-Fi share one address).
+      token-refresh: {capacity: 120, period: 1m}
       branding: {capacity: 120, period: 1m}
       public-routes: {capacity: 60, period: 1m}
       me: {capacity: 600, period: 1m}

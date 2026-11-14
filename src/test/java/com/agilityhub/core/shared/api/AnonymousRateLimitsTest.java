@@ -146,6 +146,58 @@ class AnonymousRateLimitsTest {
         assertThat(call(filter, "GET", "/api/v1/checkout-sessions/example").getStatus()).isEqualTo(429);
     }
 
+    /**
+     * AUTH-09 (owner decision 13-11-2026, S01 R-01-08): the refresh grant has its own bucket per address; the password and link
+     * grants keep theirs, so neither one exhausts the other.
+     */
+    @org.junit.jupiter.api.Test void AUTH_09_theRefreshGrantHasItsOwnBucketApartFromThePasswordAndLinkGrants() throws Exception {
+        var filter = filter(new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        for (int i = 0; i < 2; i++) { assertThat(token(filter, "refresh_token").getStatus()).isEqualTo(204); }
+        assertThat(token(filter, "refresh_token").getStatus()).isEqualTo(429);
+        // The refreshes of the members behind the address left the password and link grants' bucket whole.
+        assertThat(token(filter, "password").getStatus()).isEqualTo(204);
+        assertThat(call(filter, "POST", "/api/v1/auth/magic-link").getStatus()).isEqualTo(204);
+        assertThat(token(filter, "password").getStatus()).isEqualTo(429);
+        assertThat(token(filter, "urn:agilityhub:grant:magic-link").getStatus()).isEqualTo(429);
+        // Another address keeps its own refresh bucket.
+        var elsewhere = new MockHttpServletRequest("POST", "/oauth2/token");
+        elsewhere.setRemoteAddr("192.0.2.10");
+        elsewhere.addParameter("grant_type", "refresh_token");
+        var response = new MockHttpServletResponse();
+        filter.doFilter(elsewhere, response, (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        assertThat(response.getStatus()).isEqualTo(204);
+    }
+
+    /** AUTH-09: only a request whose single `grant_type` is `refresh_token` takes the refresh bucket; any other is a token request. */
+    @org.junit.jupiter.api.Test void AUTH_09_onlyASingleRefreshGrantTypeTakesTheRefreshBucket() throws Exception {
+        var limits = new RateLimits(true, policies(), new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        var filter = filter(limits);
+        var twice = new MockHttpServletRequest("POST", "/oauth2/token");
+        twice.setRemoteAddr("127.0.0.1");
+        twice.addParameter("grant_type", "refresh_token", "password");
+        filter.doFilter(twice, new MockHttpServletResponse(), (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        assertThat(token(filter, "authorization_code").getStatus()).isEqualTo(204);
+        assertThat(limits.available(RateLimits.Route.TOKEN, "127.0.0.1", new RateLimits.Limit(2, Duration.ofMinutes(1)))).isFalse();
+        assertThat(limits.available(RateLimits.Route.TOKEN_REFRESH, "127.0.0.1", new RateLimits.Limit(2, Duration.ofMinutes(1)))).isTrue();
+        assertThat(token(filter, "refresh_token").getStatus()).isEqualTo(204);
+        // A refresh on the magic-link route is no token grant: it stays in the token bucket.
+        var link = new MockHttpServletRequest("POST", "/api/v1/auth/magic-link");
+        link.setRemoteAddr("127.0.0.1");
+        link.addParameter("grant_type", "refresh_token");
+        var refused = new MockHttpServletResponse();
+        filter.doFilter(link, refused, (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        assertThat(refused.getStatus()).isEqualTo(429);
+    }
+
+    private static MockHttpServletResponse token(RateLimitFilter filter, String grant) throws Exception {
+        var request = new MockHttpServletRequest("POST", "/oauth2/token");
+        request.setRemoteAddr("127.0.0.1");
+        request.addParameter("grant_type", grant);
+        var response = new MockHttpServletResponse();
+        filter.doFilter(request, response, (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        return response;
+    }
+
     private static RateLimitFilter filter(MockClock clock) { return filter(new RateLimits(true, policies(), clock)); }
 
     private static RateLimitFilter filter(RateLimits limits) {
