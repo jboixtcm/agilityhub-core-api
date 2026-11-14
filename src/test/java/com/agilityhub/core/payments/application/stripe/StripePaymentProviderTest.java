@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -127,6 +128,61 @@ class StripePaymentProviderTest {
         assertThat(options.getValue().getIdempotencyKey()).isEqualTo("operation");
         verify(sessions).providerSession("operation", "cs_example");
     }
+    /**
+     * PAY-08 (owner decision of 13 Nov 2026, S04 R-04-26): a signup or S12 checkout ends at Stripe with S04's 24 hours, five minutes before
+     * Core's own expiry (Stripe refuses more than 24 hours after it creates the session), and a retry of the stored request after a lost
+     * answer sends the very same `expires_at`, whatever the time, so that Stripe's idempotency answers the same session.
+     */
+    @Test void PAY_08_aSignupCheckoutEndsWithCoresTwentyFourHoursAndARetrySendsTheSameExpiry() throws Exception {
+        configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
+        var session = new Session(); session.setId("cs_example"); session.setUrl("https://checkout.stripe.com/example");
+        when(client.v1().checkout().sessions().create(any(SessionCreateParams.class), any(RequestOptions.class))).thenReturn(session);
+        var issued = Instant.parse("2026-10-04T10:00:00.250Z"); var coreExpiry = issued.plus(java.time.Duration.ofHours(24));
+        var request = new PaymentProvider.Request("operation", "club-a", "member", "payment",
+                List.of(new PaymentProvider.Item("payment", "Entry fee", new Money(1200, "EUR"))), "member@example.test", "member",
+                Map.of("clubId", "club-a", "memberId", "member", "upfrontPaymentIds", List.of("payment")), "off_session",
+                "https://app.example.test/ok", "https://app.example.test/ko", coreExpiry);
+        try (var tenant = TenantContext.open("club-a")) {
+            ReflectionTestUtils.setField(provider, "clock", java.time.Clock.fixed(issued, java.time.ZoneOffset.UTC));
+            provider.createCheckoutSession(request);
+            ReflectionTestUtils.setField(provider, "clock", java.time.Clock.fixed(issued.plus(java.time.Duration.ofHours(3)), java.time.ZoneOffset.UTC));
+            provider.createCheckoutSession(request);
+        }
+        var params = ArgumentCaptor.forClass(SessionCreateParams.class);
+        verify(client.v1().checkout().sessions(), times(2)).create(params.capture(), any(RequestOptions.class));
+        long expected = Instant.parse("2026-10-05T09:55:00Z").getEpochSecond();
+        assertThat(params.getAllValues()).extracting(SessionCreateParams::getExpiresAt).containsExactly(expected, expected);
+        assertThat(params.getAllValues().getFirst().toMap()).containsEntry("expires_at", expected);
+        assertThat(expected - issued.getEpochSecond()).isLessThan(24 * 3600).isGreaterThanOrEqualTo(30 * 60);
+    }
+    /**
+     * PAY-08 (owner decision of 13 Nov 2026, S08 R-08-18): a PAY_TO_BOOK booking's checkout ends at the booking deadline, but never sooner
+     * than Stripe's 30-minute minimum (plus the clock margin) nor later than its 24-hour maximum, counted from now.
+     */
+    @Test void PAY_08_aBookingCheckoutEndsAtTheBookingDeadlineWithinStripesWindow() throws Exception {
+        configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
+        var session = new Session(); session.setId("cs_booking"); session.setUrl("https://checkout.stripe.com/example");
+        when(client.v1().checkout().sessions().create(any(SessionCreateParams.class), any(RequestOptions.class))).thenReturn(session);
+        var now = Instant.parse("2026-10-04T18:00:00Z"); var clock = java.time.Clock.fixed(now, java.time.ZoneOffset.UTC);
+        ReflectionTestUtils.setField(provider, "clock", clock);
+        java.util.function.Function<Instant, PaymentProvider.Request> booking = deadline -> new PaymentProvider.Request("booking-op", "club-a", "member",
+                "payment", List.of(new PaymentProvider.Item("payment", "Class", new Money(1200, "EUR"))), "member@example.test", "booking-1",
+                Map.of("clubId", "club-a", "memberId", "member", "bookingId", "booking-1", "upfrontPaymentIds", List.of("payment")), null,
+                "https://app.example.test/reserves/booking-1?payment=success", "https://app.example.test/reserves/booking-1?payment=cancel", deadline);
+        try (var tenant = TenantContext.open("club-a")) { provider.createCheckoutSession(booking.apply(now.plus(java.time.Duration.ofMinutes(90)))); }
+        var params = ArgumentCaptor.forClass(SessionCreateParams.class);
+        verify(client.v1().checkout().sessions()).create(params.capture(), any(RequestOptions.class));
+        assertThat(params.getValue().getExpiresAt()).isEqualTo(now.plus(java.time.Duration.ofMinutes(90)).getEpochSecond());
+        // The default deadline (`bookings.paymentPendingMinutes` = 30, counted from the booking, before this call) and shorter ones.
+        for (int minutes : List.of(0, 10, 29, 30, 35)) {
+            assertThat(StripePaymentProvider.providerExpiry(booking.apply(now.plus(java.time.Duration.ofMinutes(minutes))), clock))
+                    .isEqualTo(now.plus(java.time.Duration.ofMinutes(35)));
+        }
+        assertThat(StripePaymentProvider.providerExpiry(booking.apply(now.plus(java.time.Duration.ofMinutes(36))), clock))
+                .isEqualTo(now.plus(java.time.Duration.ofMinutes(36)));
+        assertThat(StripePaymentProvider.providerExpiry(booking.apply(now.plus(java.time.Duration.ofHours(48))), clock))
+                .isEqualTo(now.plus(java.time.Duration.ofHours(24)).minus(java.time.Duration.ofMinutes(5)));
+    }
     @Test void T_12_31_setupAndExpandedCardUseTheClubAccount() throws Exception {
         configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
         var customer = new com.stripe.model.Customer(); customer.setId("cus_example");
@@ -146,6 +202,8 @@ class StripePaymentProviderTest {
             verify(client.v1().checkout().sessions()).create(params.capture(), any(RequestOptions.class));
             assertThat(params.getValue().getCustomer()).isEqualTo("cus_example"); assertThat(params.getValue().getCustomerEmail()).isNull();
             assertThat(params.getValue().getCurrency()).isEqualTo("gbp");
+            // PAY-08: a card setup (signup or R-12-22) keeps S04's 24 hours too, five minutes before Core's own expiry.
+            assertThat(params.getValue().getExpiresAt()).isEqualTo(Instant.parse("2026-10-04T23:55:00Z").getEpochSecond());
             assertThat(params.getValue().toMap()).containsEntry("allowed_payment_method_types", List.of("card"))
                     .doesNotContainKey("payment_method_types");
             assertThat(params.getValue().getSetupIntentData().getMetadata()).containsEntry("operationId", "setup-op");

@@ -11,6 +11,7 @@ import com.stripe.net.RequestOptions;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +67,8 @@ public class StripePaymentProvider implements PaymentProvider {
         metadata.put("operationId", request.sessionId());
         var params = SessionCreateParams.builder().setMode(SessionCreateParams.Mode.valueOf(request.mode().toUpperCase(Locale.ROOT)))
                 .setSuccessUrl(request.successUrl()).setCancelUrl(request.cancelUrl()).setClientReferenceId(request.clientReferenceId())
-                .putAllMetadata(metadata).putExtraParam("allowed_payment_method_types", List.of("card")); // Stripe defaults to 24h; Core enforces its shorter booking deadline and refunds late captures.
+                .putAllMetadata(metadata).putExtraParam("allowed_payment_method_types", List.of("card"))
+                .setExpiresAt(providerExpiry(request, clock).getEpochSecond());
         if (!"setup".equals(request.mode()) && request.customerEmail() != null) { params.setCustomerEmail(request.customerEmail()); }
         if ("setup".equals(request.mode())) {
             var customer = calls.call(() -> client.v1().customers().create(CustomerCreateParams.builder().putMetadata("memberId", request.memberId()).build(), options("customer:" + request.memberId())));
@@ -89,6 +91,31 @@ public class StripePaymentProvider implements PaymentProvider {
         var session = calls.call(() -> client.v1().checkout().sessions().create(params.build(), options(request.sessionId())));
         sessions.providerSession(request.sessionId(), session.getId());
         return session.getUrl();
+    }
+    /** PAY-08: Stripe accepts an `expires_at` from 30 minutes to 24 hours after it creates the Checkout session. */
+    static final Duration STRIPE_MIN_EXPIRY = Duration.ofMinutes(30), STRIPE_MAX_EXPIRY = Duration.ofHours(24);
+    /** PAY-08: room for the call's latency and for a difference between this server's clock and Stripe's, at either bound. */
+    static final Duration EXPIRY_CLOCK_MARGIN = Duration.ofMinutes(5);
+    /**
+     * PAY-08 (owner decision of 13 Nov 2026; S04 R-04-26, S08 R-08-18): the `expires_at` of the Checkout session, so that the provider's
+     * session ends with Core's deadline ({@link Request#expiresAt}) inside the window Stripe accepts.
+     * <p>
+     * A PAY_TO_BOOK booking's checkout (its metadata names the `bookingId`, as {@code SingleClassCharges} opens it) ends at the booking's
+     * deadline (`bookings.paymentPendingMinutes` after the booking), but never sooner than Stripe's 30-minute minimum nor later than its
+     * 24-hour maximum, counted from {@code clock}'s now with the margin: when Core's deadline passes first, P7 expires the provider's
+     * session (S15 R-15-17) and E34 refunds a payment that still arrives. That checkout is asked for once, after the booking's commit.
+     * <p>
+     * Every other checkout (the signup's and S12's, card setups included) keeps S04's 24 hours: it ends the margin before Core's own
+     * expiry, so a clock ahead of Stripe's never makes Stripe refuse it, and Stripe's expiry callback closes Core's side. The value comes
+     * from the request alone: a retry after a lost answer (E5-T30) sends Stripe the very parameters of the first call.
+     */
+    static Instant providerExpiry(Request request, java.time.Clock clock) {
+        if (!request.metadata().containsKey("bookingId")) { return request.expiresAt().minus(EXPIRY_CLOCK_MARGIN); }
+        var now = clock.instant();
+        var earliest = now.plus(STRIPE_MIN_EXPIRY).plus(EXPIRY_CLOCK_MARGIN);
+        var latest = now.plus(STRIPE_MAX_EXPIRY).minus(EXPIRY_CLOCK_MARGIN);
+        var deadline = request.expiresAt();
+        return deadline.isBefore(earliest) ? earliest : deadline.isAfter(latest) ? latest : deadline;
     }
     @Override public OffSessionResult createOffSessionPayment(OffSessionRequest request) {
         var client = client();
