@@ -17,6 +17,7 @@ import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.DomainEvent;
 import com.agilityhub.core.shared.domain.ErrorCode;
+import com.agilityhub.core.shared.domain.ProvisionalText;
 import com.agilityhub.core.shared.domain.audit.AuditField;
 import com.agilityhub.core.shared.domain.events.ClubConfigChanged;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -202,7 +203,41 @@ public class ClubDefinitionWriter {
         }
         lines.add((changedPages.isEmpty() ? "=" : "+") + " pages: " + changedPages.size() + " page changes");
         if (!changedPages.isEmpty()) { summary.put("pages", changedPages.size()); }
+        lines.addAll(draftLegalPages(changedPages));
         return new Plan(next, changed, newAdmins, changedAccounts, changedPages, changedCatalogs, seededTemplates, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+    }
+    /** PRIV-10: the club's legal pages (S05 `ClubPage` keys); its other pages, the FAQ and the plans' texts are not checked here. */
+    static final List<String> LEGAL_PAGES = List.of("RULES", "IMAGE_CONSENT", "PRIVACY");
+    /**
+     * PRIV-10 (owner's decision of 13-11-2026; S05 R-05-21b): one warning line per legal page body that, as this apply leaves it
+     * (the definition's text for a page it writes, the stored text otherwise), is still a placeholder (only the provisional marker)
+     * or holds draft markers (the marker, bracketed values to fill in). Report only: it refuses nothing and is no change.
+     */
+    private List<String> draftLegalPages(List<com.agilityhub.core.platform.application.ClubPageProvisioner.Page> written) {
+        var resulting = new LinkedHashMap<String, com.agilityhub.core.platform.application.ClubPageProvisioner.Page>();
+        pages.list().forEach(page -> resulting.put(page.key(), page));
+        written.forEach(page -> resulting.put(page.key(), page));
+        var warnings = new ArrayList<String>();
+        for (String key : LEGAL_PAGES) {
+            var page = resulting.get(key);
+            if (page == null) { continue; }
+            String inactive = page.active() ? "" : " (inactive page)";
+            new java.util.TreeMap<>(page.body()).forEach((locale, body) -> {
+                if (ProvisionalText.placeholder(body)) {
+                    warnings.add("! WARNING pages." + key + ".body." + locale + ": placeholder body, only the provisional text marker" + inactive);
+                    return;
+                }
+                var markers = ProvisionalText.draftMarkers(body);
+                if (markers.isEmpty()) { return; }
+                warnings.add("! WARNING pages." + key + ".body." + locale + ": draft text, " + markers.size() + " draft marker" + (markers.size() == 1 ? "" : "s")
+                        + " (" + String.join(", ", markers.subList(0, Math.min(3, markers.size()))) + (markers.size() > 3 ? ", …" : "") + ")" + inactive);
+            });
+        }
+        if (!warnings.isEmpty()) {
+            warnings.add("! WARNING legal pages: " + warnings.size() + " text" + (warnings.size() == 1 ? "" : "s")
+                    + " still provisional; replace them from D11 before members read them (R-05-21b)");
+        }
+        return warnings;
     }
     private List<ClubAccountProvisioner.SeedAccount> planAccounts(ObjectNode definition, boolean allowSeedPasswords,
                                                                  List<String> lines, Map<String, Object> summary) {
