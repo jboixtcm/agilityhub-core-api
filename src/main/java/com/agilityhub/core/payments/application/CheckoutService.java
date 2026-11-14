@@ -60,7 +60,8 @@ public class CheckoutService {
         PaymentProvider gateway=gateways.getIfAvailable();if(gateway==null) throw new ApiException(ErrorCode.NOT_IMPLEMENTED);
         redirect(success);redirect(cancel);
         String reference=IdempotentOperation.reference();
-        var request=members.write(() -> { IdempotentOperation.lock();return prepare(memberId,success,cancel,reference); });
+        var closed=closeHeldCheckouts(memberId,reference,gateway);
+        var request=members.write(() -> { IdempotentOperation.lock();return prepare(memberId,success,cancel,reference,closed); });
         String url;
         try { url=gateway.createCheckoutSession(request); }
         catch(RuntimeException failure) {
@@ -103,7 +104,37 @@ public class CheckoutService {
     private void abandon(String memberId,String id) {
         members.write(() -> { IdempotentOperation.lock();members.lock();if(sessions.finish(id,"EXPIRED",null)) payments.checkout(memberId,id,false);return null; });
     }
-    private PaymentProvider.Request prepare(String memberId,String success,String cancel,String reference) {
+    /**
+     * PAY-04 (owner decision of 13 Nov 2026, S04 R-04-26): an applicant who backed out of Stripe Checkout can pay again at once.
+     * Another request (another Idempotency-Key: the form's retry after `?cs=cancel`, the e-mail's link, another device) for rows
+     * that still wait for one of the member's own open signup checkouts first expires that checkout at the provider, outside any
+     * transaction, so it can take no more money; {@link #prepare} then expires it on our side, gives its rows back and opens the
+     * new one. A checkout the provider does not expire (paid meanwhile, or the provider does not answer) stays open and the
+     * request answers `409 INVALID_STATE`, as before: the same rows are never charged by two open checkouts. The same request
+     * retried after a lost answer never closes its own checkout (review #3), and a lapsed one needs no provider ({@link #releaseLapsed}).
+     * Returns the checkouts expired at the provider.
+     */
+    private Set<String> closeHeldCheckouts(String memberId,String reference,PaymentProvider gateway) {
+        var now=clock.instant();
+        var open=sessions.openSignup(memberId).stream().filter(s -> s.expiresAt().isAfter(now)&&!s.upfrontPaymentIds().isEmpty()).toList();
+        if(open.isEmpty()||reference!=null&&sessions.openFor(memberId,reference,now).isPresent()) return Set.of();
+        // The rows this request would charge (prepare's scope) that wait for a checkout: today's 409.
+        var held=payments.lines(memberId,members.submissions(memberId)).stream().filter(l -> "CHECKOUT_PENDING".equals(l.status()))
+                .map(UpfrontPayments.Line::id).collect(java.util.stream.Collectors.toSet());
+        var closed=new LinkedHashSet<String>();
+        for(var session:open) {
+            if(session.upfrontPaymentIds().stream().noneMatch(held::contains)) continue;
+            try { gateway.expire(session.id()); }
+            catch(RuntimeException failure) {
+                LOG.warn("Open checkout not replaced, the provider did not expire it: checkoutSessionId={} clubId={} error={}",
+                        session.id(),session.clubId(),failure.getClass().getName());
+                throw new ApiException(ErrorCode.INVALID_STATE);
+            }
+            closed.add(session.id());
+        }
+        return closed;
+    }
+    private PaymentProvider.Request prepare(String memberId,String success,String cancel,String reference,Set<String> closed) {
         members.lock();var member=members.member(memberId);
         if(!Set.of("PENDING","ACTIVE").contains(member.get("status"))) throw new ApiException(ErrorCode.INVALID_STATE);
         var retried=reference==null?Optional.<SignupCheckoutSession>empty():sessions.openFor(memberId,reference,clock.instant());
@@ -111,6 +142,9 @@ public class CheckoutService {
         // with exactly what it was first asked (E5-T30), whatever the member became since.
         if(retried.isPresent()) return retried.get().providerRequest();
         releaseLapsed(memberId);
+        // PAY-04: the checkouts this request expired at the provider expire here too and give their rows back. A row still waiting
+        // for another checkout (one a concurrent request opened meanwhile) answers 409 below, as before.
+        for(String id:closed) if(sessions.finish(id,"EXPIRED",null)) payments.checkout(memberId,id,false);
         String currency=configs.get(TenantContext.require()).club().currency();
         var scope=members.submissions(memberId);
         var payable=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();

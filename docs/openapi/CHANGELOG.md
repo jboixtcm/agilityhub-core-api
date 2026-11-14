@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PAY-04 · An applicant who backs out of Stripe Checkout can pay again at once
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /checkout-sessions`).**
+
+- `POST /checkout-sessions` (signup checkout): a request with another `Idempotency-Key` for rows that wait for the member's own open signup checkout (not past its `expiresAt`) no longer answers `409 INVALID_STATE` until that checkout lapses after 24 h. It first expires that checkout at the provider, then on our side (its rows go back to `DUE`), and answers `201` with a new checkout for the same rows. When the provider does not expire it (paid meanwhile, or the provider does not answer) the checkout stays open and the request answers `409 INVALID_STATE`, as before. The same key retried after a lost answer still returns its own checkout. The `bookingId` and `upfrontPaymentIds` checkouts are unchanged.
+
 ## 2026-11-14 · PRIV-05 · The onboarding image box starts ticked only for the member's own grant
 
 **No operations, schemas or error codes added; 1 schema property description changed (`OnboardingState.imageConsent`).**
