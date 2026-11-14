@@ -106,7 +106,8 @@ email settings before activation; never supply fake credentials to pass it.
 
    A recreated or stopped Core gets SIGTERM and up to its `stop_grace_period` (60 s; Mongo 120 s) before Docker kills
    it, so Spring's graceful shutdown (`spring.lifecycle.timeout-per-shutdown-phase`, 45 s) can finish the requests in
-   flight (CFG-06). An open build-session stream counts as one: the old Core then stops after the full 45 s.
+   flight (CFG-06). The live build-session streams do not count: Core closes them at the start of shutdown, before
+   the server waits for its requests (a stream opened meanwhile ends at once), and the web reopens them on the new Core.
 
 5. Smoke the deployed hosts: HTTPS health returns `UP` and, as `commit`, the
    full commit of the reviewed `sha-…` tag (REL-02); each club host's

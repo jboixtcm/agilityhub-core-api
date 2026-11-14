@@ -57,6 +57,8 @@ class BuildSessionsIT extends CourseItSupport {
     @Autowired CourseSchemas schemas;
     @Autowired BuildSessionService service;
     @Autowired TransactionRetries retries;
+    @Autowired BuildSessionStreams live;
+    @Autowired org.springframework.context.ApplicationContext context;
     private final List<Stream> streams = new ArrayList<>();
 
     @AfterEach void closeStreams() { streams.forEach(Stream::close); }
@@ -801,6 +803,39 @@ class BuildSessionsIT extends CourseItSupport {
         assertThat(stream.exit(Duration.ofSeconds(10))).as("a clean end").isZero();
         assertThat(Duration.ofNanos(System.nanoTime() - opened)).isGreaterThan(Duration.ofSeconds(2)).isLessThan(Duration.ofSeconds(8));
         assertThat(session(id).getString("status")).isEqualTo("NOT_STARTED");
+    }
+
+    /**
+     * CFG-06 (owner decision of 13 Nov 2026): the Core closes the live build-session streams at the start of shutdown, so that they
+     * do not hold a deploy for the whole graceful-shutdown phase (45 s). In the real context the streams are a running lifecycle
+     * that stops before the web server's graceful shutdown waits for its requests; that stop ends two real streams (curl over
+     * Tomcat, one per token transport) cleanly at once, without finishing the session, and a stream opened meanwhile ends at once.
+     */
+    @Test void CFG_06_theStartOfShutdownEndsTheLiveStreamsBeforeTheServerWaitsForThem() throws Exception {
+        var graceful = context.getBean("webServerGracefulShutdown", org.springframework.context.SmartLifecycle.class);
+        assertThat(live.isRunning()).isTrue();
+        assertThat(live.getPhase()).as("stopped first").isGreaterThan(graceful.getPhase());
+        String id = start(placement(A1, true), "INSTRUCTOR", 201).path("id").asText();
+        var first = new Stream(id, token("first", Role.INSTRUCTOR), true);
+        var second = new Stream(id, token("second", Role.ADMIN), false);
+        first.next(":open", LIVE);
+        second.next(":open", LIVE);
+        try {
+            long stopping = System.nanoTime();
+            live.stop();
+            assertThat(first.exit(LIVE)).as("a clean end").isZero();
+            assertThat(second.exit(LIVE)).as("a clean end").isZero();
+            assertThat(Duration.ofNanos(System.nanoTime() - stopping)).isLessThan(LIVE);
+            var late = new Stream(id, token("late", Role.INSTRUCTOR), true);
+            late.next("HTTP/1.1 200", LIVE);
+            assertThat(late.exit(LIVE)).as("a stream opened while stopping ends at once").isZero();
+        } finally {
+            live.start();
+        }
+        assertThat(session(id).getString("status")).isEqualTo("NOT_STARTED");
+        assertThat(clubEvents("BuildSessionFinished")).isEmpty();
+        // Started again (only a test does that: a stopped Core is closing), streams open as before.
+        new Stream(id, token("after", Role.INSTRUCTOR), true).next(":open", LIVE);
     }
 
     /** Review #8: a finish on a ring that lost its geometry → `422 RING_WITHOUT_GEOMETRY`, as the published contract lists it. */
