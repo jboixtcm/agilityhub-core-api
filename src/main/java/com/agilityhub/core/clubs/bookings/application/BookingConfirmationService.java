@@ -67,6 +67,8 @@ public class BookingConfirmationService {
             var subject = checks.subject(actor, hold.classSessionId(), hold.dogId(), now);
             checks.lockOwner(subject);
             checks.notBookedYet(subject);
+            // BOOK-02: also for the swap (its own booking, cancelled below, does not count) and the claim (R-08-15 runs this transaction).
+            checks.noOverlap(subject, swapBookingId);
             var limit = checks.limit(subject, now);
             Booking swapped = null;
             if (swapBookingId != null || (limit.reached() && !overrideWeeklyLimit)) {

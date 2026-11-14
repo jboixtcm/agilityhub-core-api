@@ -407,6 +407,82 @@ class BookingsIT extends BookingFixtures {
         assertThat(code(hold(as("pere"), "sat", "s08-d-nit", 422))).isEqualTo("MEMBER_NOT_ACTIVE");
     }
 
+    /** BOOK-02: a free-training booking of the dog (S09), stored as R-09-10 does. */
+    void training(String id, String dogId, String memberId, String start, int minutes, String state) {
+        var starts = local(start);
+        mongo.save(new Document("_id", id).append("clubId", CLUB).append("memberId", memberId).append("dogId", dogId).append("ringId", "s08-ring")
+                .append("startsAt", Date.from(starts)).append("endsAt", Date.from(starts.plusSeconds(minutes * 60L))).append("slotId", "s08-ring:" + start)
+                .append("seatIndex", 0).append("weekStart", Date.from(local("2026-10-04T20:00"))).append("state", state).append("origin", "APP")
+                .append("createdByAccountId", "s08-laura").append("version", 0L), "training_bookings");
+    }
+    long bookingsOf(String dogId) { return count("bookings", Criteria.where("dogId").is(dogId)); }
+    /**
+     * BOOK-02 (owner decision, 13-11-2026), R-08-08: a dog cannot hold two class bookings that overlap in time, nor a class
+     * booking over its own ACTIVE free-training booking: the confirmation answers 422 DOG_ALREADY_BOOKED and nothing is
+     * written. Back-to-back classes, another dog at the same time and a cancelled training booking are no overlap.
+     */
+    @Test void BOOK_02_aDogIsNeverBookedIntoTwoClassesAtTheSameTimeNorOverItsOwnTraining() throws Exception {
+        parameter("bookings.maxCurrentWeek", 5);
+        session("thu-b", "2026-10-08T19:20", 3, List.of()); session("thu-c", "2026-10-08T19:50", 3, List.of());
+        book(as("laura"), "thu", "s08-d-duna");
+        var held = hold(as("laura"), "thu-b", "s08-d-duna", 201);
+        assertThat(code(confirm(as("laura"), held.path("id").asText(), null, 422))).isEqualTo("DOG_ALREADY_BOOKED");
+        assertThat(bookingsOf("s08-d-duna")).isEqualTo(1); assertThat(session("thu-b").get("counters", Document.class)).containsEntry("booked", 0);
+        assertThat(events("BookingCreated")).isEqualTo(1);
+        // Back to back (19:50 after a class that ends at 19:50) is not an overlap; another dog at the same time is not either.
+        assertThat(book(as("laura"), "thu-c", "s08-d-duna").path("state").asText()).isEqualTo("ACTIVE");
+        assertThat(book(as("joan"), "thu-b", "s08-d-toby").path("state").asText()).isEqualTo("ACTIVE");
+        // The dog's own ACTIVE training booking at 19:00–19:30 refuses the 18:50 class; a CANCELLED one does not.
+        training("s08-t-rock", "s08-d-rock", "s08-m-laura", "2026-10-08T19:00", 30, "ACTIVE");
+        training("s08-t-nit", "s08-d-nit", "s08-m-pere", "2026-10-08T19:00", 30, "CANCELLED");
+        assertThat(code(confirm(as("laura"), hold(as("laura"), "thu", "s08-d-rock", 201).path("id").asText(), null, 422))).isEqualTo("DOG_ALREADY_BOOKED");
+        assertThat(bookingsOf("s08-d-rock")).isZero();
+        assertThat(book(as("pere"), "thu", "s08-d-nit").path("state").asText()).isEqualTo("ACTIVE");
+    }
+    /** BOOK-02: a PAYMENT_PENDING booking (R-08-18) holds its time too. */
+    @Test void BOOK_02_aPaymentPendingBookingAlsoHoldsTheDogsTime() throws Exception {
+        payToBook();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")),
+                new Update().set("paymentMethod", new Document("type", "CARD").append("card", new Document("last4", "1111"))), "members");
+        session("thu-b", "2026-10-08T19:20", 3, List.of());
+        assertThat(book(as("laura"), "thu", "s08-d-duna").path("state").asText()).isEqualTo("PAYMENT_PENDING");
+        assertThat(code(confirm(as("laura"), hold(as("laura"), "thu-b", "s08-d-duna", 201).path("id").asText(), null, 422))).isEqualTo("DOG_ALREADY_BOOKED");
+        assertThat(bookingsOf("s08-d-duna")).isEqualTo(1);
+    }
+    /**
+     * BOOK-02, R-08-09: the swap may move the dog to a class at the same time as the booking it swaps (that booking is cancelled
+     * in the same transaction), never over another of its bookings; a refused swap changes nothing.
+     */
+    @Test void BOOK_02_theSwapMovesTheDogToAParallelClassButNeverOverAnotherOfItsBookings() throws Exception {
+        parameter("bookings.maxNextWeek", 2);
+        session("mon-b", "2026-10-12T19:50", 3, List.of()); session("mon-x", "2026-10-12T19:20", 3, List.of()); session("mon-p", "2026-10-12T18:50", 3, List.of());
+        var mon = book(as("laura"), "mon", "s08-d-duna"); book(as("laura"), "mon-b", "s08-d-duna");
+        var over = hold(as("laura"), "mon-x", "s08-d-duna", 201);
+        assertThat(over.at("/limit/reached").asBoolean()).isTrue();
+        var before = mongo.findAll(Document.class, "bookings");
+        assertThat(code(confirm(as("laura"), over.path("id").asText(), mon.path("id").asText(), 422))).isEqualTo("DOG_ALREADY_BOOKED");
+        assertThat(mongo.findAll(Document.class, "bookings")).isEqualTo(before);
+        var parallel = confirm(as("laura"), hold(as("laura"), "mon-p", "s08-d-duna", 201).path("id").asText(), mon.path("id").asText(), 201);
+        assertThat(parallel.path("swapFromBookingId").asText()).isEqualTo(mon.path("id").asText());
+        assertThat(booking(mon.path("id").asText())).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "SWAP");
+    }
+    /** BOOK-02, R-08-15: the waiting-list claim runs the same check; once the overlapping booking is cancelled the claim goes through. */
+    @Test void BOOK_02_theWaitingListClaimIsRefusedWhileTheDogIsBookedAtThatTime() throws Exception {
+        parameter("waitlist.mode", "FIFO");
+        session("last-p", "2026-10-08T20:30", 3, List.of());
+        var nit = book(as("pere"), "last", "s08-d-nit");
+        String entry = join(as("laura"), "last", "s08-d-duna", 201).path("id").asText();
+        var other = book(as("laura"), "last-p", "s08-d-duna");
+        cancel(as("pere"), nit.path("id").asText(), 200); dispatch();
+        assertThat(entry(entry)).containsEntry("state", "NOTIFIED");
+        var held = holdFor(as("laura"), "last", "s08-d-duna", entry, 201);
+        assertThat(code(claim(as("laura"), entry, held.path("id").asText(), null, 422))).isEqualTo("DOG_ALREADY_BOOKED");
+        assertThat(entry(entry)).containsEntry("state", "NOTIFIED"); assertThat(count("bookings", Criteria.where("classSessionId").is("s08-last").and("state").is("ACTIVE"))).isZero();
+        cancel(as("laura"), other.path("id").asText(), 200);
+        assertThat(claim(as("laura"), entry, held.path("id").asText(), null, 201).path("state").asText()).isEqualTo("ACTIVE");
+        assertThat(entry(entry)).containsEntry("state", "CONSOLIDATED");
+    }
+
     @Test void T_08_24_singleClassPayToBookChargeOnAttendanceAndModuleOff() throws Exception {
         payToBook();
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")),

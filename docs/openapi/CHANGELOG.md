@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · BOOK-02 · A dog is never booked into two classes at the same time, nor over its own training
+
+**No operations, schemas or error codes added; 2 operation descriptions and their 422 error lists changed (`POST /bookings`, `POST /waitlist-entries/{id}/claim`).**
+
+- `POST /bookings` (confirmation and swap) and `POST /waitlist-entries/{id}/claim`: `422 DOG_ALREADY_BOOKED` (S09's existing code, now listed for both routes) when the dog holds another live class booking (`ACTIVE` or `PAYMENT_PENDING`) whose class overlaps this one in time, or an `ACTIVE` free-training booking over it; nothing is written and a claimed entry stays `NOTIFIED`. Back-to-back classes do not overlap; the booking a swap cancels (`swapBookingId`) does not count, so a swap to a class at the same time as that booking goes through. `POST /seat-holds` and `POST /waitlist-entries` are unchanged.
+
 ## 2026-11-14 · PLAN-02 · A started class can no longer be cancelled by the admin
 
 **No operations, schemas or error codes added; 1 operation description changed (`POST /class-sessions/{id}/cancellation`).**

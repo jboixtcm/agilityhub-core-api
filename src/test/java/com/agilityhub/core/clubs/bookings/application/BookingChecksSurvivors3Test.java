@@ -23,7 +23,7 @@ class BookingChecksSurvivors3Test {
     final ClassSessionBookingAccess classes = mock(ClassSessionBookingAccess.class);
     final BookingMemberAccess census = mock(BookingMemberAccess.class);
     final BookingChecks checks = new BookingChecks(mock(BookingContext.class), classes, census, mock(BookingRepository.class),
-            mock(InactivityPort.class), mock(PackBalancePort.class));
+            mock(InactivityPort.class), mock(PackBalancePort.class), mock(com.agilityhub.core.clubs.bookings.application.ports.DogTrainingOverlapPort.class));
 
     @Test void T_08_14_aHoldForAClassTheClubDoesNotHaveIsNotFound() {
         when(classes.find("class-unknown")).thenReturn(Optional.empty());
