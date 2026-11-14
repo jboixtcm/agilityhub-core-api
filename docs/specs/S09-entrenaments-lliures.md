@@ -66,7 +66,7 @@ Camps d'altres entitats que aquesta vertical **escriu**: `Member.lastDogForTrain
 
 ## 4. Regles de negoci
 
-**R-09-01 Dret a entrenar.** `canFreeTrain(dog) = dog.status == ACTIVE ∧ (dog.freeTrainingOverride ?? level(dog).grantsFreeTraining)`; amb `levels.enabled = false`, `dog.freeTrainingOverride == true` (null = no). Els gossos elegibles d'un abonat són els propis i, amb `FAMILY_GROUP`, els dels abonats del seu grup (propietari amb `Member.status = ACTIVE`). Paràmetres: `levels.enabled = true`. *Exemple*: Rock (nivell D, `grantsFreeTraining = true`, override null) → sí; Kira (nivell B, override `true`) → sí; Toby (nivell B, override null) → no; Nala (nivell E, override `false`) → no. La Maria (grup amb en Joan, propietari de Kira) veu Rock i Kira.
+**R-09-01 Dret a entrenar.** Si el club activa `training.freeTrainingRequiresLicense`, el gos també ha de tenir una llicència amb organisme i número, tant si el dret ve del nivell com d’una autorització manual. `canFreeTrain(dog) = dog.status == ACTIVE ∧ (dog.freeTrainingOverride ?? level(dog).grantsFreeTraining)`; amb `levels.enabled = false`, `dog.freeTrainingOverride == true` (null = no). Els gossos elegibles d'un abonat són els propis i, amb `FAMILY_GROUP`, els dels abonats del seu grup (propietari amb `Member.status = ACTIVE`). Paràmetres: `levels.enabled = true`. *Exemple*: Rock (nivell D, `grantsFreeTraining = true`, override null) → sí; Kira (nivell B, override `true`) → sí; Toby (nivell B, override null) → no; Nala (nivell E, override `false`) → no. La Maria (grup amb en Joan, propietari de Kira) veu Rock i Kira.
 
 **R-09-02 Pistes reservables i capacitat.** Un slot existeix per a `Ring.active ∧ Ring.allowsFreeTraining`; `capacity(ring) = ring.trainingCapacity ?? training.capacityPerRingSlot` (Cànic: 1). Els `RingBlock` poden anar a **qualsevol** pista activa. Per a INSTRUCTOR i ADMIN, `GET /training-slots` també llista les pistes actives sense entrenament lliure, amb `capacity = 0`: les seves cel·les mostren classes i bloquejos, són `FREE` altrament i mai compten per a `anyFree` ni `bookable` (INC-44, E132). *Exemple*: Cadells i Petita no surten a 08 però sí a 24.
 
@@ -245,7 +245,7 @@ Errors amb `details`: `TRAINING_LIMIT_REACHED {limit, used, weekStart, weekEnd, 
 
 ## 9. Paràmetres i mòduls
 
-Llegeix: `training.slotMinutes` (30) · `training.bookingWindowDays` (3) · `training.maxPerWeek` (3) · `training.cancelThresholdMinutes` (120) · `training.capacityPerRingSlot` (1, àmbit `ring`) · `training.freeTrainingRequiresLicense` (false; **informatiu**, no es valida) · `bookings.weekOpensAt` · `bookings.limitUnit` · `levels.enabled` · `classes.slotMinutes` (granularitat dels bloquejos) · `club.openingHours` · `club.holidays` · `club.timeZone` · `courses.showSetupToMembers` · `inactivity.cancelBookingsOnApproval`.
+Llegeix: `training.slotMinutes` (30) · `training.bookingWindowDays` (3) · `training.maxPerWeek` (3) · `training.cancelThresholdMinutes` (120) · `training.capacityPerRingSlot` (1, àmbit `ring`) · `training.freeTrainingRequiresLicense` (false per defecte; comprova la llicència quan està activat) · `bookings.weekOpensAt` · `bookings.limitUnit` · `levels.enabled` · `classes.slotMinutes` (granularitat dels bloquejos) · `club.openingHours` · `club.holidays` · `club.timeZone` · `courses.showSetupToMembers` · `inactivity.cancelBookingsOnApproval`.
 
 | Mòdul | Desactivat |
 |---|---|
@@ -343,7 +343,7 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. Tres fils: back-B, back-C, front-D+E.
 | 7 | Propostes de catàleg: paràmetre `ringBlocks.maxHorizonDays` (int, 60; bloc Club i pistes) · camp `Ring.order` (S05) · esdeveniment `RingBlockUpdated {blockId, diff}` · ampliar `TrainingCancelled` amb `by`, `cancelReason` · codis d'error nous: `TRAINING_LIMIT_REACHED`, `SLOT_TAKEN`, `SLOT_OUT_OF_WINDOW`, `SLOT_NOT_ON_GRID`, `CLUB_CLOSED`, `DOG_NOT_ALLOWED`, `DOG_ALREADY_BOOKED`, `RING_NOT_RESERVABLE`, `BOOKING_BLOCKED`, `INACTIVITY_PERIOD`, `MEMBER_NOT_ACTIVE`, `TRAINING_CANCEL_TOO_LATE`, `OVERRIDE_NOT_ALLOWED`, `RING_BLOCK_CONFLICT`, `RING_BLOCK_MANAGED_BY_ACTIVITY`, `RING_HAS_BOOKINGS`, `INVALID_TIME_RANGE`. | Jordi | S'usen tal com es defineixen aquí. |
 | 8 | Pantalla d'escriptori «Entrenaments» (menú Camp) sense mockup: llistat universal de reserves i bloquejos = registre d'ús. | Josep | Patró D5 amb `GET /training-bookings` i `GET /ring-blocks`. |
 | 9 | `slotId` com a clau determinista (no UUID v4) i col·lecció `training_slots` no creada a R1. | Jordi | Acceptat com a excepció documentada. |
-| 10 | `training.freeTrainingRequiresLicense` queda informatiu (el catàleg ho fixa); si el club vol que el sistema ho validi, cal llicència al gos i un codi d'error nou. | Josep | No es valida. |
+| 10 | `training.freeTrainingRequiresLicense` s’aplica als gossos amb dret per nivell o per autorització manual. | Josep | El Cànic exigeix organisme i número. |
 | 11 | Reserva d'un slot ja començat (arribar 5 min tard): s'exigeix `startsAt > now` per a tothom (R-09-04). Si el club vol permetre-ho, seria `endsAt > now` només amb impersonació. | Josep | Estricte. |
 | 12 | Tall Matí/Tarda a les 14:00 locals: constant de presentació del front (no de negoci); si algun club el vol diferent, paràmetre `training.afternoonStartsAt` (time). | Jordi | Constant al front, seccions buides amagades. |
 

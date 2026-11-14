@@ -59,6 +59,22 @@ class TrainingIT extends TrainingFixtures {
         call(GET, "/me/training-slots" + dates + "s09-d-rock", null, mixed, 404);
     }
 
+    @Test void aLicensedDogStillNeedsAuthorizationAndAnOverrideStillNeedsALicense() throws Exception {
+        parameter("training.freeTrainingRequiresLicense", true);
+        var valid = List.of(new Document("organisation","Fictional federation").append("number","123"));
+        for (String dog : List.of("s09-d-rock","s09-d-toby")) {
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(dog)), new Update().set("licenses",valid), "dogs");
+        }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-d-kira")),
+                new Update().set("licenses",List.of(new Document("organisation","Federation").append("number"," "))), "dogs");
+        var dogs = call(GET, "/me/training-summary", null, as("maria"), 200).path("eligibleDogs");
+        assertThat(dogs).extracting(d -> d.path("id").asText()).containsExactly("s09-d-rock");
+        assertThat(code(book(as("maria"), "s09-d-kira", "2026-10-05T10:00", MUN, 422))).isEqualTo("DOG_NOT_ALLOWED");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-d-kira")), new Update().set("licenses",valid), "dogs");
+        assertThat(call(GET, "/me/training-summary", null, as("maria"), 200).path("eligibleDogs"))
+                .extracting(d -> d.path("id").asText()).containsExactly("s09-d-rock","s09-d-kira");
+    }
+
     @Test void T_09_02_eligibleDogsFollowTheFamilyGroupAndTheLevels() throws Exception {
         var summary = call(GET, "/me/training-summary", null, as("maria"), 200);
         var dogs = summary.path("eligibleDogs");

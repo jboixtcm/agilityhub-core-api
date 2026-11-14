@@ -64,6 +64,7 @@ class SepaRemittanceWriterTest {
         when(config.club()).thenReturn(club);
         when(club.slug()).thenReturn("canic"); when(club.currency()).thenReturn("EUR"); when(club.timeZone()).thenReturn("Europe/Madrid");
         when(config.get("billing.sepa.schema", String.class)).thenReturn("pain.008.001.02");
+        when(config.sepaLeadBusinessDays()).thenReturn(2);
         when(config.get("billing.sepa.useFrst", Boolean.class)).thenReturn(false);
         when(providers.sepaCreditor()).thenReturn(Optional.of(new BillingProviderSettings.SepaCreditor("Club d'Agility Cànic", "ES10ZZZG00000000",
                 "ES00 0000 0000 0000 0000 9876", null, "001")));
@@ -76,6 +77,18 @@ class SepaRemittanceWriterTest {
         writer = new SepaRemittanceWriter(remittances, invoices, collections, configs, providers, census, vault, files, Clock.fixed(NOW, ZoneOffset.UTC), manager);
     }
     @AfterEach void close() throws Exception { tenant.close(); }
+
+    @Test void yearEndCollectionUsesTheSameTargetDayInTheRemittanceAndXml() {
+        when(config.sepaLeadBusinessDays()).thenReturn(1);
+        var dec31 = Clock.fixed(Instant.parse("2026-12-31T09:00:00Z"), ZoneOffset.UTC);
+        var yearEnd = new SepaRemittanceWriter(remittances, invoices, collections, configs, providers, census, vault, files, dec31, manager);
+        var remittance = yearEnd.write(run(), "test-year-end", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2027, 1, 1));
+        assertThat(remittance.requestedCollectionDate()).isEqualTo("2027-01-04");
+        assertThat(stored.get(remittance.fileKey())).contains("<ReqdColltnDt>2027-01-04</ReqdColltnDt>");
+        when(config.sepaLeadBusinessDays()).thenReturn(2);
+        assertCode(() -> yearEnd.write(run(), "test-too-late", List.of(debit("m2", 2, 6000, "Quota")), LocalDate.of(2027, 1, 1)),
+                ErrorCode.COLLECTION_DATE_TOO_SOON);
+    }
 
     @Test void T_12_06_withUseFrstOffTheCanicGetsOneRcurBlockWithItsCountAndTotal() {
         var debits = List.of(debit("m1", 1, 6000, "Quota Abonat — Setembre 2026"), debit("m2", 2, 9000, "Quota Abonat 2 gossos — Setembre 2026"));

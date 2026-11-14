@@ -15,11 +15,11 @@ class CensusRulesTest {
         assertThat(CensusRules.status("ACTIVE", null, null, Instant.EPOCH, today).kind()).isEqualTo("ERASED");
     }
     @Test void T_03_02_freeTrainingOverrideAndDisabledLevels() {
-        assertThat(FreeTrainingPolicy.evaluate(null, true, true)).isEqualTo(new FreeTrainingPolicy.Result(true, "LEVEL", null));
-        assertThat(FreeTrainingPolicy.evaluate(false, true, true)).isEqualTo(new FreeTrainingPolicy.Result(false, "MANUAL", false));
-        assertThat(FreeTrainingPolicy.evaluate(null, false, true).allowed()).isFalse();
-        assertThat(FreeTrainingPolicy.evaluate(null, true, false).allowed()).isFalse();
-        assertThat(FreeTrainingPolicy.evaluate(true, false, false).allowed()).isTrue();
+        assertThat(FreeTrainingPolicy.evaluate(null, true, true, true)).isEqualTo(new FreeTrainingPolicy.Result(true, "LEVEL", null));
+        assertThat(FreeTrainingPolicy.evaluate(false, true, true, true)).isEqualTo(new FreeTrainingPolicy.Result(false, "MANUAL", false));
+        assertThat(FreeTrainingPolicy.evaluate(null, false, true, true).allowed()).isFalse();
+        assertThat(FreeTrainingPolicy.evaluate(null, true, false, true).allowed()).isFalse();
+        assertThat(FreeTrainingPolicy.evaluate(true, false, false, true).allowed()).isTrue();
     }
     @Test void T_03_03_masksNeverExposeCompleteBankOrIdentityValues() {
         assertThat(CensusRules.maskedIban("ES91 2100 0418 4502 0005 1332")).isEqualTo("···· ···· ···· ···· 1332");

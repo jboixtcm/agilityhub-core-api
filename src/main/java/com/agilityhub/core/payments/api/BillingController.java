@@ -95,8 +95,7 @@ public class BillingController {
             + "billing.* parameters and the club's configuration, with the same unbilled PendingCharges and waiting includeInNextRun receipts "
             + "(409 SIMULATION_STALE; another club's or an unknown one → 404). Members with an incident are skipped (skipped[]), and so are the "
             + "waiting receipts the simulation listed as incidents (they stay PENDING); the others join the remittance. "
-            + "collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and must leave two "
-            + "business days after today → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA "
+            + "collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and rolls forward to the next TARGET business day. The collection must meet billing.sepa.leadBusinessDays after the presentation day (also rolled forward) → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA "
             + "members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). Two prices of one plan and concept valid on the issue "
             + "date (INC-68) → 409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}, nothing written. The same Idempotency-Key "
             + "answers the same run." + SERVED,

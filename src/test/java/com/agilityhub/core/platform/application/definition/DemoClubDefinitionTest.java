@@ -32,6 +32,9 @@ class DemoClubDefinitionTest {
         assertThat(sharedParameters.remove("waitlist.mode").asText()).isEqualTo("FIFO");
         assertThat(sharedParameters.remove("waitlist.fifoConfirmMinutes").asInt()).isEqualTo(15);
         assertThat(sharedParameters.remove("waitlist.maxPerClass").asInt()).isEqualTo(2);
+        assertThat(sharedParameters.remove("signup.cardEnabled").asBoolean()).isFalse();
+        assertThat(sharedParameters.remove("training.freeTrainingRequiresLicense").asBoolean()).isTrue();
+        assertThat(sharedParameters.remove("billing.sepa.leadBusinessDays").asInt()).isEqualTo(1);
         assertThat(demo.path("parameters")).isEqualTo(sharedParameters);
         for (String field : List.of("accounts", "catalogs")) {
             assertThat(demo.path(field)).as("demo retains functional fixture " + field).isEqualTo(production.path(field));

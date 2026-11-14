@@ -56,7 +56,7 @@ public class CheckoutService {
      */
     public Result create(String memberId,String token,String success,String cancel,java.util.function.Function<Result,byte[]> answer) {
         members.authorize(memberId,token);
-        if(!clubs.providerEnabled("STRIPE")) throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
+        if(!clubs.providerEnabled("STRIPE") || !configs.get(TenantContext.require()).signupCardEnabled()) throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
         PaymentProvider gateway=gateways.getIfAvailable();if(gateway==null) throw new ApiException(ErrorCode.NOT_IMPLEMENTED);
         redirect(success);redirect(cancel);
         String reference=IdempotentOperation.reference();

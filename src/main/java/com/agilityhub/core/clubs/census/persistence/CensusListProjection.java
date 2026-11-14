@@ -112,11 +112,17 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 .append("pendingDocuments", new Document("$setDifference", List.of(requiredDocumentTypes(),
                         map(new Document("$filter", new Document("input", "$documents").append("as", "doc")
                                 .append("cond", expr("$eq", "$$doc.state", "RECEIVED"))), "doc", "$$doc.type"))))));
-        boolean enabled = Boolean.TRUE.equals(configs.get(TenantContext.require()).get("levels.enabled", Boolean.class));
-        stages.add(new Document("$set", new Document("freeTrainingAllowed", fallback("$freeTrainingOverride",
-                        enabled ? fallback("$level.grantsFreeTraining", false) : false))
+        var config = configs.get(TenantContext.require());
+        boolean enabled = Boolean.TRUE.equals(config.get("levels.enabled", Boolean.class));
+        Object allowed = fallback("$freeTrainingOverride", enabled ? fallback("$level.grantsFreeTraining", false) : false);
+        Object licensed = expr("$anyElementTrue", map("$licenses", "license",
+                expr("$and", nonBlankString("$$license.organisation"), nonBlankString("$$license.number"))));
+        if (Boolean.TRUE.equals(config.get("training.freeTrainingRequiresLicense", Boolean.class))) {
+            allowed = expr("$and", allowed, licensed);
+        }
+        stages.add(new Document("$set", new Document("freeTrainingAllowed", allowed)
                 .append("hasPendingDocuments", expr("$gt", expr("$size", "$pendingDocuments"), 0))
-                .append("hasLicense", expr("$gt", expr("$size", "$licenses"), 0))
+                .append("hasLicense", licensed)
                 .append("displayStatus", status("$status", "$deactivatedAt"))));
         if (owner) {
             stages.add(join("members", "$memberId", "_id", "owner", List.of(new Document("$set", new Document("fullName", fullName("$"))))));
@@ -272,6 +278,10 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 : expr("$concat", "···· ···· ···· ···· ", tail), null));
     }
     private static Map<String, Object> fields(String... names) { var result = new LinkedHashMap<String, Object>(); for (String name : names) { result.put(name, "$" + name); } return result; }
+    private static Document nonBlankString(String field) {
+        Object text = condition(expr("$eq", new Document("$type", field), "string"), field, "");
+        return expr("$ne", new Document("$trim", new Document("input", text)), "");
+    }
     private static Document map(Object input, String as, Object in) { return new Document("$map", new Document("input", input).append("as", as).append("in", in)); }
     private static Document expr(String op, Object... values) { return new Document(op, Arrays.asList(values)); }
     private static Document fallback(Object value, Object fallback) { return expr("$ifNull", value, fallback); }

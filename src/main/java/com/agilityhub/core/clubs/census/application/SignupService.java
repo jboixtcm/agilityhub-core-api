@@ -375,7 +375,7 @@ public class SignupService implements SignupPaymentAccess {
         if(!billing()) { if(raw.get("iban")!=null) throw invalid("payment.iban","MODULE_DISABLED");return null; }
         String type=string(raw.get("type"));
         String provider=PaymentProviderFlags.provider(type);
-        if(provider==null||!settings.assignableProvider(provider)) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
+        if(provider==null || ("STRIPE".equals(provider) && !access.currentConfig().signupCardEnabled()) || !settings.assignableProvider(provider)) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
         var result=object("type",type);
         if(type.equals("SEPA_DD")) {
             String iban=string(raw.get("iban"));if(iban!=null) iban=iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT);
@@ -450,7 +450,7 @@ public class SignupService implements SignupPaymentAccess {
     private Map<String,Object> upfrontTotal(SignupPolicy.Quote quote) { return billing()?money(quote.totalDue()):null; }
     private List<String> initialMethods() {
         var methods = new ArrayList<String>();
-        if (settings.providerEnabled("STRIPE")) methods.add("CARD");
+        if (access.config().signupCardEnabled() && settings.providerEnabled("STRIPE")) methods.add("CARD");
         if (settings.providerEnabled("MANUAL")) { methods.add("BANK_TRANSFER"); methods.add("CASH"); }
         return methods;
     }
@@ -458,13 +458,13 @@ public class SignupService implements SignupPaymentAccess {
         String method = string(value);
         if (method == null) return null; // Preserve older clients and previously submitted signups.
         String provider = "CARD".equals(method) ? "STRIPE" : "MANUAL";
-        if (!billing() || !List.of("CARD", "BANK_TRANSFER", "CASH").contains(method) || !settings.assignableProvider(provider))
+        if (!billing() || !List.of("CARD", "BANK_TRANSFER", "CASH").contains(method) || ("CARD".equals(method) && !access.currentConfig().signupCardEnabled()) || !settings.assignableProvider(provider))
             throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
         return method;
     }
     private boolean checkoutRequired(Member member, Money due, String initialMethod) {
         if (initialMethod != null) return billing() && "CARD".equals(initialMethod) && due.amountMinor() > 0;
-        return billing() && settings.providerEnabled("STRIPE") && (due.amountMinor() > 0 || "CARD".equals(map(effectivePayment(member)).get("type")));
+        return billing() && access.config().signupCardEnabled() && settings.providerEnabled("STRIPE") && (due.amountMinor() > 0 || "CARD".equals(map(effectivePayment(member)).get("type")));
     }
     private static List<UpfrontPayments.Charge> charges(SignupPolicy.Quote quote) { return quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList(); }
     private void createPayments(String member,String submission,SignupPolicy.Quote quote) { payments.create(member,submission,charges(quote)); }
@@ -741,7 +741,7 @@ public class SignupService implements SignupPaymentAccess {
     }
     /** R-04-10 (E3-T14): the methods of the club's enabled providers, in the configured order; `payment(...)` accepts only these. */
     private List<String> offeredMethods() {
-        return settings.providers().stream().map(PaymentProviderFlags::method).filter(Objects::nonNull).toList();
+        return settings.providers().stream().filter(provider -> !"STRIPE".equals(provider) || access.config().signupCardEnabled()).map(PaymentProviderFlags::method).filter(Objects::nonNull).toList();
     }
     /**
      * The D2 method selector (R-04-19, web E3-W07 round 2): what D2 may assign is what `GET /signup` offers. The applicant's

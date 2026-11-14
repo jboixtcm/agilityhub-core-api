@@ -31,6 +31,10 @@ public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Modu
         }
         return type.cast(value);
     }
+    public boolean signupCardEnabled() { return !Boolean.FALSE.equals(parameters.get("signup.cardEnabled")); }
+    public Integer sepaLeadBusinessDays() {
+        return parameters.containsKey("billing.sepa.leadBusinessDays") ? get("billing.sepa.leadBusinessDays", Integer.class) : null;
+    }
     public List<String> ringPalette() { return club.theme().ringPalette(); }
     public String primaryColor() { return club.theme().colors().primary(); }
     /** S02 §3, S12 §10: the message key of the tax's name after the club's country profile (`ES` → «IVA»). */

@@ -13,7 +13,7 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
  */
 @Service
 public class TrainingMemberAccess {
-    public record Dog(String id, String name, String memberId, String levelId, String status, Boolean freeTrainingOverride) {
+    public record Dog(String id, String name, String memberId, String levelId, String status, Boolean freeTrainingOverride, boolean licensed) {
         public boolean active() { return "ACTIVE".equals(status); }
     }
     public record Member(String id, String accountId, String firstName, String displayName, String status, boolean blocked, String blockReason,
@@ -100,6 +100,7 @@ public class TrainingMemberAccess {
     }
     public Set<String> reachableMembers(String memberId) { return members.reachableMembers(memberId); }
     private static Dog view(com.agilityhub.core.clubs.census.persistence.Dog d) {
-        return new Dog(d.id, d.name, d.memberId, d.levelId, d.status, d.freeTrainingOverride);
+        return new Dog(d.id, d.name, d.memberId, d.levelId, d.status, d.freeTrainingOverride,
+                com.agilityhub.core.clubs.census.domain.FreeTrainingPolicy.hasLicense(d.licenses));
     }
 }

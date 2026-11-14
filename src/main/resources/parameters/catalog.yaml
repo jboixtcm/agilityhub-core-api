@@ -66,6 +66,19 @@ parameters:
     restartRequired: false
     documentType: "bool"
     documentDefault: "true"
+  - key: "signup.cardEnabled"
+    type: "bool"
+    default: true
+    block: "signup"
+    labelKey: "admin-settings:param.signup.cardEnabled.label"
+    helpKey: "admin-settings:param.signup.cardEnabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
   - key: "signup.pendingExpiryDays"
     type: "int"
     default: 30
@@ -1448,6 +1461,19 @@ parameters:
     restartRequired: false
     documentType: "int (dia **del mes que es factura**: 1–28, o `0` = últim dia)"
     documentDefault: "**1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay`"
+  - key: "billing.sepa.leadBusinessDays"
+    type: "int"
+    default: 2
+    block: "billing"
+    labelKey: "admin-settings:param.billing.sepa.leadBusinessDays.label"
+    helpKey: "admin-settings:param.billing.sepa.leadBusinessDays.help"
+    constraints: {"min": 1, "max": 30}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
   - key: "billing.stripeMaxAttempts"
     type: "int"
     default: 3

@@ -46,7 +46,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * <ol>
  * <li>Fail fast: the club's `SEPA_XML` creditor must be configured (name, identifier, IBAN) and `billing.sepa.schema` known —
  * else `422 SEPA_NOT_CONFIGURED`; the club and every amount in euros — else `422 CURRENCY_MISMATCH`; the collection date at
- * least two business days after today (club-local) — else `422 COLLECTION_DATE_TOO_SOON {requested, earliest}`.</li>
+ * least the configured number of TARGET business days after presentation — else `422 COLLECTION_DATE_TOO_SOON {requested, earliest}`.</li>
  * <li>Each debit takes its amount, `EndToEndId`, mandate and signature from its collection (E90), and the frozen description
  * from the invoice. The current holder and full IBAN come from the member through {@link BankAccountVault}. Legacy
  * collections without a signature use the current mandate's signature. A missing current reference, signature or account —
@@ -92,9 +92,11 @@ public class SepaRemittanceWriter implements RemittanceWriterPort {
         ZoneId zone = ZoneId.of(config.club().timeZone());
         Instant now = clock.instant();
         LocalDate today = LocalDate.ofInstant(now, zone);
-        if (CollectionDates.tooSoon(collectionDate, today)) {
+        collectionDate = CollectionDates.following(collectionDate);
+        LocalDate earliest = CollectionDates.earliest(today, config.sepaLeadBusinessDays());
+        if (collectionDate.isBefore(earliest)) {
             throw new ApiException(ErrorCode.COLLECTION_DATE_TOO_SOON, Map.of("requested", collectionDate.toString(),
-                    "earliest", CollectionDates.earliest(today).toString()));
+                    "earliest", earliest.toString()));
         }
         var lines = debits(club, zone, debits, Boolean.TRUE.equals(config.get("billing.sepa.useFrst", Boolean.class)));
         long sequence = remittances.forPeriod(run.period()).size() + 1L;

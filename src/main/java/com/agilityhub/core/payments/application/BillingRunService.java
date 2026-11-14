@@ -98,10 +98,11 @@ public class BillingRunService {
         boolean sepa = !included.isEmpty() || drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
         LocalDate collectionDate = null;
         if (sepa) {
-            collectionDate = requestedCollectionDate != null ? requestedCollectionDate : BillingSimulationService.collectionDate(plan);
-            if (CollectionDates.tooSoon(collectionDate, issueDate)) {
+            collectionDate = requestedCollectionDate != null ? CollectionDates.following(requestedCollectionDate) : BillingSimulationService.collectionDate(plan);
+            LocalDate earliest = CollectionDates.earliest(issueDate, context.config().sepaLeadBusinessDays());
+            if (collectionDate.isBefore(earliest)) {
                 throw new ApiException(ErrorCode.COLLECTION_DATE_TOO_SOON, Map.of("requested", collectionDate.toString(),
-                        "earliest", CollectionDates.earliest(issueDate).toString()));
+                        "earliest", earliest.toString()));
             }
         }
         // R-12-08: the series of the issue date, numbered from its counter in the members' order.

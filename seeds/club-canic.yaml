@@ -65,6 +65,9 @@ paymentProviders:
       ca: "Pots fer la transferència al compte ES08 2100 0416 5702 0016 4955 a nom de Club d’agility Canic posant com a concepte el teu nom i el del gos"
       es: "Puedes hacer la transferencia a la cuenta ES08 2100 0416 5702 0016 4955 a nombre de Club d’agility Canic indicando como concepto tu nombre y el del perro"
 parameters:
+  signup.cardEnabled: false
+  training.freeTrainingRequiresLicense: true
+  billing.sepa.leadBusinessDays: 1
   classes.slotMinutes: 5
   waitlist.mode: "FIFO"
   waitlist.fifoConfirmMinutes: 15

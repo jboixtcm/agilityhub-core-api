@@ -99,6 +99,7 @@ public class CensusAccess implements DogOwnerAccess {
     }
     public FreeTrainingPolicy.Result free(Dog dog) {
         return FreeTrainingPolicy.evaluate(dog.freeTrainingOverride, levels() && dog.levelId != null,
-                Boolean.TRUE.equals(references.level(dog.levelId).get("grantsFreeTraining")));
+                Boolean.TRUE.equals(references.level(dog.levelId).get("grantsFreeTraining")),
+                !Boolean.TRUE.equals(config().get("training.freeTrainingRequiresLicense", Boolean.class)) || FreeTrainingPolicy.hasLicense(dog.licenses));
     }
 }

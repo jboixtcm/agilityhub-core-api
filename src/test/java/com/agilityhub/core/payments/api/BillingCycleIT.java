@@ -704,6 +704,18 @@ class BillingCycleIT extends BillingItSupport {
         assertThat(paid.path("paidAt").asText()).isEqualTo("2026-08-26T02:30:00Z");
     }
 
+    @Test void yearEndSimulationAndGenerationAcceptOneTargetDayOfNotice() throws Exception {
+        parameter(CLUB, "billing.sepa.leadBusinessDays", 1);
+        clock.setInstant(Instant.parse("2026-12-31T09:00:00Z"));
+        mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("nextInvoiceDate").is("2026-09-01")),
+                new Update().set("nextInvoiceDate", "2027-01-01"), "members");
+        var simulation = simulate("2027-01");
+        assertThat(simulation.at("/kpis/collectionDate").asText()).isEqualTo("2027-01-04");
+        var result = run("2027-01", simulation.path("id").asText());
+        assertThat(result.at("/run/collectionDate").asText()).isEqualTo("2027-01-04");
+        assertThat(result.at("/remittance/requestedCollectionDate").asText()).isEqualTo("2027-01-04");
+    }
+
     @Test void T_12_29b_theCollectionDayParameterTheExplicitDateAndTheTwoBusinessDays() throws Exception {
         parameter(CLUB, "billing.sepa.collectionDayOfMonth", 0);
         clock.setInstant(NOW.plusSeconds(60));
@@ -718,7 +730,7 @@ class BillingCycleIT extends BillingItSupport {
         parameter(CLUB, "billing.sepa.collectionDayOfMonth", 28);
         mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("nextInvoiceDate").is("2026-10-01")), new Update().set("nextInvoiceDate", "2027-02-01"), "members");
         var february = run("2027-02", simulate("2027-02").path("id").asText());
-        assertThat(february.at("/run/collectionDate").asText()).isEqualTo("2027-02-28");
+        assertThat(february.at("/run/collectionDate").asText()).isEqualTo("2027-03-01");
         // An explicit date wins, and a date that leaves less than two business days is refused with the earliest one.
         clock.setInstant(Instant.parse("2027-02-26T09:00:00Z")); // Friday
         String march = simulate("2027-03").path("id").asText();

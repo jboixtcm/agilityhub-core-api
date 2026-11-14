@@ -71,19 +71,19 @@ class InvoiceArithmeticTest {
     @Test void T_12_29b_theCollectionDayIsADayOfTheBilledMonthAndZeroIsItsLastDay() {
         assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 9), 1)).isEqualTo(LocalDate.of(2026, 9, 1));
         assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 9), 0)).isEqualTo(LocalDate.of(2026, 9, 30));
-        assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 2), 28)).isEqualTo(LocalDate.of(2026, 2, 28));
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2026, 2), 28)).isEqualTo(LocalDate.of(2026, 3, 2));
         assertThat(CollectionDates.defaultDate(YearMonth.of(2028, 2), 0)).isEqualTo(LocalDate.of(2028, 2, 29));
         assertThatThrownBy(() -> CollectionDates.defaultDate(YearMonth.of(2026, 9), 29)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test void T_12_29b_twoBusinessDaysAfterTheGenerationDay() {
         // Tuesday 25-08 → Thursday 27-08 is the earliest: 01-09 is fine.
-        assertThat(CollectionDates.earliest(LocalDate.of(2026, 8, 25))).isEqualTo(LocalDate.of(2026, 8, 27));
-        assertThat(CollectionDates.tooSoon(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 8, 25))).isFalse();
+        assertThat(CollectionDates.earliest(LocalDate.of(2026, 8, 25), null)).isEqualTo(LocalDate.of(2026, 8, 27));
+        assertThat(LocalDate.of(2026, 9, 1).isBefore(CollectionDates.earliest(LocalDate.of(2026, 8, 25), 2))).isFalse();
         // Friday 28-08 → the weekend does not count: Tuesday 01-09 is the earliest, still fine.
-        assertThat(CollectionDates.earliest(LocalDate.of(2026, 8, 28))).isEqualTo(LocalDate.of(2026, 9, 1));
+        assertThat(CollectionDates.earliest(LocalDate.of(2026, 8, 28), null)).isEqualTo(LocalDate.of(2026, 9, 1));
         // Monday 31-08 → Wednesday 02-09: day 1 is too soon.
-        assertThat(CollectionDates.tooSoon(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 8, 31))).isTrue();
+        assertThat(LocalDate.of(2026, 9, 1).isBefore(CollectionDates.earliest(LocalDate.of(2026, 8, 31), 2))).isTrue();
     }
 
     @Test void T_12_08_presentChargesPendingVoidsASecondMarkNeverDuplicatesAndALateCancellationCharges() {
@@ -100,5 +100,19 @@ class InvoiceArithmeticTest {
         assertThat(PendingChargeRules.onCancellation(false, none)).isEqualTo(PendingChargeRules.Action.NONE);
         assertThat(PendingChargeRules.onCancellation(true, PendingChargeRules.Existing.OPEN)).isEqualTo(PendingChargeRules.Action.NONE);
         assertThat(PendingChargeRules.onCancellation(true, PendingChargeRules.Existing.VOIDED)).isEqualTo(PendingChargeRules.Action.REINSTATE);
+    }
+
+    @Test void oneTargetDayBeforeCollectionIncludesYearEndAndEasterClosures() {
+        var presentation = LocalDate.of(2026, 12, 31);
+        var collection = LocalDate.of(2027, 1, 4);
+        assertThat(CollectionDates.defaultDate(YearMonth.of(2027, 1), 1)).isEqualTo(collection);
+        assertThat(CollectionDates.earliest(presentation, 1)).isEqualTo(collection);
+        assertThat(CollectionDates.earliest(presentation, 2)).isEqualTo(collection.plusDays(1));
+        assertThat(CollectionDates.earliest(LocalDate.of(2027, 1, 2), 1)).isEqualTo(collection.plusDays(1));
+        assertThat(CollectionDates.earliest(LocalDate.of(2027, 3, 25), 1)).isEqualTo(LocalDate.of(2027, 3, 30));
+        assertThat(CollectionDates.earliest(LocalDate.of(2026, 4, 30), 1)).isEqualTo(LocalDate.of(2026, 5, 4));
+        assertThat(CollectionDates.earliest(LocalDate.of(2025, 12, 24), 1)).isEqualTo(LocalDate.of(2025, 12, 29));
+        assertThat(CollectionDates.earliest(LocalDate.of(2026, 9, 30), 1)).isEqualTo(LocalDate.of(2026, 10, 1));
+        assertThatThrownBy(() -> CollectionDates.earliest(presentation, 0)).isInstanceOf(IllegalArgumentException.class);
     }
 }

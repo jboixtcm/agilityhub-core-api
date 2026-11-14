@@ -15,6 +15,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 ## Alta (`signup.*`) — bloc Alta i consentiments
 | Clau | Tipus | Cànic | Notes |
 |---|---|---|---|
+| `signup.cardEnabled` | bool | true | Permet la targeta als pagaments de l’alta quan Stripe està habilitat. |
 | `signup.enabled` | bool | true | tanca el formulari públic (mostra `signup.text.closed`) |
 | `signup.pendingExpiryDays` | int | 30 | PAR-17: recordatori a l'admin, no esborra |
 | `signup.requireDogDocumentAtSignup` | bool | false | la cartilla no bloqueja l'alta (R24-08) |
@@ -69,7 +70,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `training.maxPerWeek` | int | 3 | PAR-07; el comptador es reinicia a `bookings.weekOpensAt` |
 | `training.cancelThresholdMinutes` | duration | 120 | |
 | `training.capacityPerRingSlot` | int (àmbit `ring`) | 1 | PAR-12; override a `Ring.trainingCapacity` |
-| `training.freeTrainingRequiresLicense` | bool | false | el Cànic ho diu a les condicions, no ho valida el sistema (decisió: informatiu) |
+| `training.freeTrainingRequiresLicense` | bool | false | En activar-ho, cada gos autoritzat necessita una llicència amb organisme i número per reservar entrenament lliure. |
 
 ## Club i pistes (`club.*`) — bloc Club i pistes
 | Clau | Tipus | Cànic | Notes |
@@ -177,6 +178,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `billing.invoiceSeriesPattern` · `billing.invoiceResetYearly` | string · bool | `{YYYY}` · true | Quotes i remesa | S12 (la sèrie només admet el joc de caràcters SEPA `a-zA-Z0-9/-?:().,'+` i espai, i el `displayNumber` expandit ha de cabre en 35 caràcters: és l'`EndToEndId` del pain.008 — organitzador 05-10, E90) |
 | `billing.cashInvoicing` | enum `MONTHLY · QUARTERLY · SEMESTER` | **QUARTERLY** (trimestres naturals) | Quotes i remesa | S12 |
 | `billing.taxIncluded` | bool | true | Quotes i remesa | S12 |
+| `billing.sepa.leadBusinessDays` | int | 2 | Quotes i remesa | Dies hàbils TARGET entre la presentació i el càrrec, segons el contracte del club. |
 | `billing.sepa.useFrst` · `billing.sepa.schema` · `billing.sepa.collectionDayOfMonth` | bool · enum · int (dia **del mes que es factura**: 1–28, o `0` = últim dia) | false (Josep 08-09: el banc accepta `RCUR` per a tot) · `pain.008.001.02` · **1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay` | Quotes i remesa | S12 |
 | `billing.upfrontCutoffDay` | int | 25 | dia límit per demanar una alta o un gos nou «per al mes següent» i pagar només l'entrada (Josep 08-09); coincideix amb `inactivity.requestDeadlineDay` | Quotes i remesa | S04, S12 |
 | `billing.packToMemberEntryDiscountPercent` · `billing.packToMemberMinSessions` | int · int | 40 · 10 | descompte d'entrada en passar de pack a abonat, si el pack tenia ≥ 10 sessions (Josep 08-09) | Quotes i remesa | S05, S04 |

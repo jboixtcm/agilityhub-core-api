@@ -122,6 +122,28 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
             }
         }
     }
+    @Test void cardDisabledAtSignupRejectsStaleRequestsWhileManualPaymentsWork() throws Exception {
+        providers(new Document("SEPA_XML",enabled(true)).append("MANUAL",enabled(true)).append("STRIPE",enabled(true)));
+        mongo.insert(new Parameter(UUID.randomUUID().toString(), club, "signup.cardEnabled", false,
+                "bool", "club", null, List.of(), 0L, clock.instant()));
+        configs.invalidate(club);
+        assertThat(offered("ca")).containsExactly("SEPA_DD", "MANUAL");
+        var config = result(get("/api/v1/signup").header("Host",host), 200);
+        assertThat(config.path("initialPaymentMethods")).extracting(JsonNode::asText).containsExactly("BANK_TRANSFER", "CASH");
+        assertThat(submit(request("CARD"),422).path("code").asText()).isEqualTo("PAYMENT_METHOD_NOT_AVAILABLE");
+        var stale = request("SEPA_DD");
+        ((ObjectNode)stale.get("payment")).put("initialMethod","CARD");
+        assertThat(submit(stale,422).path("code").asText()).isEqualTo("PAYMENT_METHOD_NOT_AVAILABLE");
+        assertThat(members()).isZero();
+        var accepted = submit(request("MANUAL"),201);
+        assertThat(accepted.at("/checkout/required").asBoolean()).isFalse();
+        var session = Map.of("memberId",accepted.path("memberId").asText(),"signupToken",accepted.path("signupToken").asText(),
+                "successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel");
+        var blocked = post("/api/v1/checkout-sessions").header("Host",host).contentType("application/json")
+                .header("Idempotency-Key",UUID.randomUUID()).content(mapper.writeValueAsBytes(session));
+        assertThat(result(blocked,422).path("code").asText()).isEqualTo("PAYMENT_PROVIDER_NOT_ENABLED");
+    }
+
     @Test void T_04_feedback_initialMethodsRespectTheCurrentClubsEnabledProviders() throws Exception {
         var body=request("SEPA_DD");((ObjectNode)body.get("payment")).put("initialMethod","CARD");
         assertThat(submit(body,422).path("code").asText()).isEqualTo("PAYMENT_METHOD_NOT_AVAILABLE");

@@ -104,14 +104,20 @@ public class DogService {
             if (readmission && !Objects.equals(value, dog.handlerIsMember)) { throw CensusAccess.readmissionFrozen(); }
             dog.handlerIsMember = value;
         }
+        Boolean previousRight = null;
         if (request.containsKey("licenses")) {
             var licenses = validation.licenses(request.get("licenses"));
             if (readmission && !licenses.equals(Objects.requireNonNullElse(dog.licenses, List.of()))) { throw CensusAccess.readmissionFrozen(); }
-            dog.licenses = licenses;
+            if (!licenses.equals(Objects.requireNonNullElse(dog.licenses, List.of()))) {
+                previousRight = access.free(dog).allowed();
+                dog.licenses = licenses;
+                dog.freeTrainingAllowed = access.free(dog).allowed();
+            }
         }
         var diff = events.diff(before, fields(target, dog)); if (documents) diff.put("documents",object("replaced",true));
         if (diff.isEmpty()) { return; }
         access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
+        if (previousRight != null) { freeEvent(dog, previousRight); }
         if ("PENDING".equals(dog.status)) { signups.getObject().refreshDashboard(); } // R-14-01 (M11): the D1 row shows the dog
     }
     /** The edited fields: the step-17 values from `values` (the submitted ones of a pending readmission), the rest from the record. */

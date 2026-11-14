@@ -19,18 +19,19 @@ public class TrainingEligibilityService {
     public TrainingEligibilityService(TrainingContext context, TrainingMemberAccess census, PlanningCatalogAccess catalogs) {
         this.context = context; this.census = census; this.catalogs = catalogs;
     }
-    public boolean canFreeTrain(TrainingMemberAccess.Dog dog) { return canFreeTrain(dog, catalogs.trainingLevels(), context.flag("levels.enabled")); }
-    private static boolean canFreeTrain(TrainingMemberAccess.Dog dog, Map<String, PlanningCatalogAccess.TrainingLevelView> levels, boolean levelsEnabled) {
+    public boolean canFreeTrain(TrainingMemberAccess.Dog dog) { return canFreeTrain(dog, catalogs.trainingLevels(), context.flag("levels.enabled"), context.flag("training.freeTrainingRequiresLicense")); }
+    private static boolean canFreeTrain(TrainingMemberAccess.Dog dog, Map<String, PlanningCatalogAccess.TrainingLevelView> levels, boolean levelsEnabled, boolean licenseRequired) {
         var level = dog.levelId() == null ? null : levels.get(dog.levelId());
-        return TrainingRules.canFreeTrain(dog.active(), dog.freeTrainingOverride(), levelsEnabled, level != null && level.grantsFreeTraining());
+        return (!licenseRequired || dog.licensed()) && TrainingRules.canFreeTrain(dog.active(), dog.freeTrainingOverride(), levelsEnabled, level != null && level.grantsFreeTraining());
     }
 
     public List<EligibleDog> eligibleDogs(String memberId) {
-        var levels = catalogs.trainingLevels(); boolean levelsEnabled = context.flag("levels.enabled"); var locale = LocaleContext.current();
+        var levels = catalogs.trainingLevels(); boolean levelsEnabled = context.flag("levels.enabled");
+        boolean licenseRequired = context.flag("training.freeTrainingRequiresLicense"); var locale = LocaleContext.current();
         var result = new ArrayList<EligibleDog>();
         for (var entry : census.reachableDogs(memberId)) {
             var dog = entry.getKey();
-            if (!canFreeTrain(dog, levels, levelsEnabled)) { continue; }
+            if (!canFreeTrain(dog, levels, levelsEnabled, licenseRequired)) { continue; }
             var level = dog.levelId() == null ? null : levels.get(dog.levelId());
             String levelName = !levelsEnabled || level == null || level.name() == null ? null : level.name().resolve(locale).value();
             result.add(new EligibleDog(dog, entry.getValue(), dog.memberId().equals(memberId), TrainingRules.rightSource(dog.freeTrainingOverride()), levelName));
@@ -44,9 +45,10 @@ public class TrainingEligibilityService {
     /** S16's N-31 audience (E9): ACTIVE members with at least one eligible dog, own or through their family group. */
     public Set<String> membersWithRight() {
         var levels = catalogs.trainingLevels(); boolean levelsEnabled = context.flag("levels.enabled");
+        boolean licenseRequired = context.flag("training.freeTrainingRequiresLicense");
         var active = new HashSet<>(census.activeMembers()); var result = new TreeSet<String>();
         var owners = new HashSet<String>();
-        for (var dog : census.activeDogs()) { if (active.contains(dog.memberId()) && canFreeTrain(dog, levels, levelsEnabled)) { owners.add(dog.memberId()); } }
+        for (var dog : census.activeDogs()) { if (active.contains(dog.memberId()) && canFreeTrain(dog, levels, levelsEnabled, licenseRequired)) { owners.add(dog.memberId()); } }
         for (String owner : owners) {
             result.add(owner);
             census.reachableMembers(owner).stream().filter(active::contains).forEach(result::add);
