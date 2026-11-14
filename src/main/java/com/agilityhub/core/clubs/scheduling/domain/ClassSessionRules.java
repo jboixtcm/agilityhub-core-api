@@ -24,6 +24,13 @@ public final class ClassSessionRules {
             throw new ApiException(ErrorCode.INVALID_STATE);
         }
     }
+    /**
+     * PLAN-02 (owner decision, 13-11-2026), R-06-10: the ADMIN's [ANUL·LA LA CLASSE] / [ELIMINA] (D4c) is refused once the
+     * class has started ({@code startsAt <= now}), whatever the reason or state; INVALID_STATE.
+     */
+    public static void cancellableByAdmin(Instant startsAt, Instant now) {
+        if (startsAt == null || !startsAt.isAfter(now)) { throw new ApiException(ErrorCode.INVALID_STATE); }
+    }
     public static void transition(WeekState from, WeekState to) {
         if (!(from == WeekState.PENDING && (to == WeekState.GENERATED || to == WeekState.VALIDATED)
                 || from == WeekState.GENERATED && to == WeekState.VALIDATED)) { throw new ApiException(ErrorCode.INVALID_STATE); }

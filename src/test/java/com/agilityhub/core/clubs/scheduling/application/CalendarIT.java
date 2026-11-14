@@ -271,6 +271,31 @@ class CalendarIT extends AbstractIntegrationTest {
         error("PATCH","/class-sessions/"+draft,Map.of("version",session(draft).path("version").asLong(),"capacity",3),ErrorCode.INVALID_STATE);
     }
     /**
+     * PLAN-02 (owner decision, 13-11-2026), R-06-10: the ADMIN's cancellation is refused with 409 INVALID_STATE once the class has
+     * started, at its start, while it runs and after its end (still ACTIVE inside classes.finishGraceMinutes), for CLUB_MANUAL and
+     * DELETED alike, a draft included; nothing changes (state, bookings, waiting list, holds, events). One second before the
+     * start it is still cancelled.
+     */
+    @Test void PLAN_02_theAdminCannotCancelOrDeleteAClassOnceItHasStarted() throws Exception {
+        modules(Module.WAITLIST,Module.PACKS);String id=session("2026-08-25","18:00","plan-ring");validate(id);audience(id,2,1);
+        String draft=session("2026-09-01","18:00",null);assertThat(session(draft).path("state").asText()).isEqualTo("DRAFT");
+        var body=Map.of("reason","CLUB_MANUAL","adminText","Rain: please choose another class.");
+        for(String at:List.of("2026-08-25T16:00:00Z","2026-08-25T16:30:00Z","2026-08-25T17:10:00Z")) {
+            clock.setInstant(Instant.parse(at));
+            error("POST","/class-sessions/"+id+"/cancellation",body,ErrorCode.INVALID_STATE);
+            error("POST","/class-sessions/"+id+"/cancellation",Map.of("reason","DELETED","adminText","Maintenance"),ErrorCode.INVALID_STATE);
+        }
+        assertThat(session(id).path("state").asText()).isEqualTo("ACTIVE");assertThat(session(id).at("/counters/booked").asInt()).isEqualTo(2);
+        assertThat(doubles.activeBookings(id)).hasSize(2);assertThat(doubles.liveWaitlist(id)).hasSize(1);assertThat(doubles.holds.get(id)).hasSize(2);
+        assertThat(events("ClassCancelledByClub")).isZero();assertThat(events("PackRefunded")).isZero();
+        clock.setInstant(Instant.parse("2026-08-25T15:59:59Z"));
+        assertThat(ok("POST","/class-sessions/"+id+"/cancellation",body).path("state").asText()).isEqualTo("CANCELLED");
+        assertThat(events("ClassCancelledByClub")).isEqualTo(1);assertThat(doubles.activeBookings(id)).isEmpty();
+        clock.setInstant(Instant.parse("2026-09-01T16:00:00Z"));
+        error("POST","/class-sessions/"+draft+"/cancellation",Map.of("reason","DELETED"),ErrorCode.INVALID_STATE);
+        assertThat(session(draft).path("state").asText()).isEqualTo("DRAFT");
+    }
+    /**
      * SCH-01 (owner request, 12-11-2026): an ADMIN restores a future class the club cancelled. It is ACTIVE again with no
      * cancellation and counters {0, 0}; the bookings and the waiting list stay cancelled and nobody is notified; one
      * ClassSessionUpdated and one CLASS_RESTORED entry. Refused: a class that is not CANCELLED (a repeat included), a DELETED one,

@@ -87,5 +87,13 @@ class CalendarRulesTest {
         invalid(() -> ClassSessionRules.restorable(ClassState.CANCELLED,ClassCancellationReason.ACTIVITY,null,now));
         for(var reason:ClassCancellationReason.values()) invalid(() -> ClassSessionRules.transition(ClassState.CANCELLED,ClassState.ACTIVE,reason));
     }
+    /** PLAN-02 (owner decision, 13-11-2026), R-06-10: the ADMIN's cancellation needs a class that has not started yet. */
+    @Test void PLAN_02_theAdminCancelsOnlyAClassThatHasNotStarted() {
+        var now=Instant.parse("2026-08-25T16:00:00Z");
+        ClassSessionRules.cancellableByAdmin(now.plusSeconds(1),now);
+        invalid(() -> ClassSessionRules.cancellableByAdmin(now,now));
+        invalid(() -> ClassSessionRules.cancellableByAdmin(now.minusSeconds(1),now));
+        invalid(() -> ClassSessionRules.cancellableByAdmin(null,now));
+    }
     private void invalid(Runnable action) { assertThatThrownBy(action::run).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.INVALID_STATE)); }
 }

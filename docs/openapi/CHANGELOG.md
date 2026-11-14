@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PLAN-02 · A started class can no longer be cancelled by the admin
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /class-sessions/{id}/cancellation`).**
+
+- `POST /class-sessions/{id}/cancellation` (ADMIN): refused with `409 INVALID_STATE` (already listed for the route) once the class has started (`startsAt` at or before now), whatever the `reason` (`CLUB_MANUAL` or `DELETED`) or state, a draft included; nothing changes (no booking, waiting-list entry, hold, pack or notice is touched). A class not yet started is cancelled as before. `GET …/cancellation-preview` is unchanged.
+
 ## 2026-11-14 · COMM-08 · RFC 8058 one-click unsubscribe
 
 **1 operation added (`POST /email-unsubscribes/one-click`); 1 schema added (`EmailOneClickUnsubscribeForm`, its form body); no error codes added.**

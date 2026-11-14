@@ -38843,7 +38843,7 @@
     },
     "/api/v1/class-sessions/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. PLAN-02: refused with 409 INVALID_STATE once the class has started (startsAt at or before now), whatever the reason (CLUB_MANUAL or DELETED) or state; nothing changes.",
         "operationId" : "cancelClass",
         "parameters" : [ {
           "in" : "path",
