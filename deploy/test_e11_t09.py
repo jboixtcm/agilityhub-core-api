@@ -133,7 +133,7 @@ class ClubAppTest(unittest.TestCase):
         core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
         port = free_port()
         core = core.replace('{$CORE_HOST} {', 'http://:8080 {').replace('reverse_proxy core:8080', 'reverse_proxy 127.0.0.1:9091')
-        snippets = self.caddy[self.caddy.index('(planned_maintenance) {'):self.caddy.index('(spa) {')]
+        snippets = self.caddy[self.caddy.index('(access_log) {'):self.caddy.index('(spa) {')]
         stub = 'http://:9091 {\n respond "fictional core" 200\n}\n'
         with tempfile.TemporaryDirectory(prefix='cfg05-caddy-') as directory:
             path = Path(directory) / 'Caddyfile'

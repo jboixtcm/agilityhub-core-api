@@ -19,17 +19,25 @@
     }
 }
 
-# E9-T06 (S16 R-16-11): the build session stream takes the access token as `?access_token=` (a browser EventSource sends no
-# header). Access logging stays off (docs/DEPLOY.md: query strings carry signed capabilities); a site that turns it on imports
-# this snippet, never a bare `log`, so the token is dropped from the logged URI. Caddy already redacts Authorization and Cookie.
+# CFG-07 (owner decision of 13 Nov 2026): every site logs its requests (address, method, host, path, status, size, duration,
+# browser) as JSON to one rolled file in the `caddy-logs` volume, never to the container log. The query string is dropped from
+# every URL logged, the request's own and those of its Referer and of a Location answer: OAuth and handoff codes, signatures,
+# signed file URLs and the build-session stream's `?access_token=` (E9-T06) travel there. Caddy already redacts Authorization,
+# Cookie and Set-Cookie. Rotation: a new file every 50 MiB, rolled files compressed, at most 30 kept and none older than 30 days
+# (the addresses are personal data). The internal ask listener below is not a public site and is not logged.
 (access_log) {
     log {
+        output file /var/log/caddy/access.log {
+            roll_size 50MiB
+            roll_keep 30
+            roll_keep_for 30d
+        }
         format filter {
             wrap json
             fields {
-                request>uri query {
-                    delete access_token
-                }
+                request>uri regexp \?.*$ ""
+                request>headers>Referer regexp \?.*$ ""
+                resp_headers>Location regexp \?.*$ ""
             }
         }
     }
@@ -169,6 +177,7 @@
 }
 
 (spa) {
+    import access_log
     import gateway_unavailable
     import security_headers
     import api_body_limit
@@ -191,6 +200,7 @@
     import spa /srv/clubsadmin
 }
 {$CORE_HOST} {
+    import access_log
     import gateway_unavailable
     @private path /internal/* /actuator/*
     respond @private 404
@@ -258,6 +268,7 @@ http://127.0.0.1:9080 {
 }
 
 https:// {
+    import access_log
     import gateway_unavailable
     import security_headers
     tls {

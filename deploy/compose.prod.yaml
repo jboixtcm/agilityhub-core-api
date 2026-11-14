@@ -165,6 +165,8 @@ services:
       - ${ADMIN_DIST_DIR:?Set ADMIN_DIST_DIR}:/srv/clubsadmin:ro
       - caddy-data:/data
       - caddy-config:/config
+      # CFG-07: the rolled access log of every site (deploy/Caddyfile `(access_log)`), outside the container log.
+      - caddy-logs:/var/log/caddy
     networks:
       default:
         ipv4_address: ${CADDY_IPV4_ADDRESS:-172.30.240.10}
@@ -212,3 +214,4 @@ volumes:
   mongo-data:
   caddy-data:
   caddy-config:
+  caddy-logs:

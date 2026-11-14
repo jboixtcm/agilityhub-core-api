@@ -435,8 +435,22 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
 
 `docker compose … logs --since 1h core` and `… mongo`/`… caddy` are the container
 logs. Production services use Docker json-file rotation, **5 × 10 MB per
-container** (size-based, no promised number of days). Caddy access logging is
-off: query strings can contain signed capabilities. Do not enable header/body or
+container** (size-based, no promised number of days).
+
+Caddy's HTTP access log (CFG-07) is on for every public site (the three product
+hosts, the Core host and every club alias; not the internal ask listener). Each
+request is one JSON line in `/var/log/caddy/access.log` of the `caddy-logs` volume,
+never in the container log: client address, method, host, path, status, size,
+duration and request headers. The query string is dropped from the logged URI and
+from the `Referer` and `Location` values (codes, signatures, signed file URLs and
+the stream's `access_token` travel there); Caddy redacts `Authorization`, `Cookie`
+and `Set-Cookie`. The file rolls every 50 MiB; rolled files are compressed, at most
+30 are kept and none older than 30 days, so the client addresses (personal data)
+are kept about a month (the live file rolls by size only, so under very light
+traffic its oldest lines can be older). An erasure (S14 R-14-15) does not rewrite
+it: its lines expire on their own. Read it with `docker compose … exec caddy cat
+/var/log/caddy/access.log` (rolled files: `… exec caddy sh -c 'zcat
+/var/log/caddy/access-*.log.gz'`). Do not enable header/body or
 DEBUG logging on live identity/payment traffic. Keep the cron log outside the
 repo, mode 0600; configure daily logrotate with 30 compressed files and an
 alerting collector for failures before rotation. The Mongo audit/event retention
