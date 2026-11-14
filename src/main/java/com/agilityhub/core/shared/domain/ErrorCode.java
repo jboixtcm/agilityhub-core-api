@@ -78,6 +78,8 @@ public enum ErrorCode {
     FORBIDDEN(403),
     GEOMETRY_INVALID(422),
     HANDOFF_INVALID(400),
+    /** FE-03 (S01 R-01-13): a handoff code of an account redeemed with the host's refresh cookie of another account's live session. */
+    HANDOFF_SESSION_CONFLICT(409),
     HOST_ALREADY_USED(409),
     HOST_NOT_VERIFIED(422),
     HOST_RESERVED(422),

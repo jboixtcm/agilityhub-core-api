@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · FE-03 · A handoff code of another account is refused on a host that holds a session
+
+**No operations or schemas added; 1 error code added (`HANDOFF_SESSION_CONFLICT`, 409); 1 response described (`POST /oauth2/token` 409).**
+
+- `POST /oauth2/token` with `grant_type=urn:agilityhub:grant:handoff` (clients `clubs-app` and `clubs-admin`, on a club host and on the console's product host): before the code is consumed, an account's code (not an «Entra com l'abonat» launch code) redeemed with the host's `ah_refresh` cookie of that client holding a live session (not revoked, not expired, of the account's current family version) of another account answers `409 HANDOFF_SESSION_CONFLICT` with the shared error body and no `details` (neither account is named). The code stays unused, no tokens are issued and no `Set-Cookie` is sent, so the host's session is kept. The same account's session, no cookie or a dead one: as before (S01 R-01-13).
+
 ## 2026-11-14 · BOOK-02 · A dog is never booked into two classes at the same time, nor over its own training
 
 **No operations, schemas or error codes added; 2 operation descriptions and their 422 error lists changed (`POST /bookings`, `POST /waitlist-entries/{id}/claim`).**

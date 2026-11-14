@@ -59,6 +59,10 @@ public class OAuthController {
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS"),
                     @ApiResponse(responseCode = "403", description = "NO_MEMBERSHIP, MEMBERSHIP_SUSPENDED, ACCOUNT_BLOCKED; PLATFORM_ONLY (clubs-admin on the console's product host without AGILITYHUB_ADMIN)"),
                     @ApiResponse(responseCode = "404", description = "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin; there, any other client's grant"),
+                    @ApiResponse(responseCode = "409", description = "HANDOFF_SESSION_CONFLICT (FE-03, R-01-13): a handoff code of an account, not an impersonation launch code, "
+                            + "redeemed with this host's ah_refresh cookie of the same client holding a live session (not revoked, not expired, current family version) "
+                            + "of another account. The code stays unused, no tokens are issued and no Set-Cookie is sent; the body names neither account. "
+                            + "The same account's session, no cookie or a dead one: the exchange goes on as usual"),
                     @ApiResponse(responseCode = "429", description = "LOGIN_LOCKED or RATE_LIMITED; Retry-After in seconds")})
     public TokenResponse token(@Parameter(hidden = true) @ModelAttribute TokenRequest request) {
         throw new UnsupportedOperationException();

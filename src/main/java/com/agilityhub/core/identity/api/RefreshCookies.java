@@ -41,6 +41,15 @@ public class RefreshCookies {
         if (matches.size() != 1 || matches.getFirst().getValue().isBlank()) { throw expired(); }
         return matches.getFirst().getValue();
     }
+    /**
+     * FE-03 (S01 R-01-13): the host's refresh cookie a handoff exchange carries, for the session-conflict check only: the one
+     * non-blank `ah_refresh`, as {@link #read} takes it, whatever the client or the `Origin`; null without one or with several.
+     */
+    public String presented(HttpServletRequest request) {
+        if (request.getCookies() == null) { return null; }
+        var matches = Arrays.stream(request.getCookies()).filter(cookie -> NAME.equals(cookie.getName())).toList();
+        return matches.size() == 1 && !matches.getFirst().getValue().isBlank() ? matches.getFirst().getValue() : null;
+    }
     private boolean sameHost(HttpServletRequest request) {
         String origin = request.getHeader("Origin");
         String source = origin == null ? request.getHeader("Referer") : origin;

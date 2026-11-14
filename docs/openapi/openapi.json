@@ -97594,7 +97594,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "HANDOFF_SESSION_CONFLICT (FE-03, R-01-13): a handoff code of an account, not an impersonation launch code, redeemed with this host's ah_refresh cookie of the same client holding a live session (not revoked, not expired, current family version) of another account. The code stays unused, no tokens are issued and no Set-Cookie is sent; the body names neither account. The same account's session, no cookie or a dead one: the exchange goes on as usual"
           },
           "422" : {
             "content" : {

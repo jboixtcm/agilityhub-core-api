@@ -214,6 +214,21 @@ public class TokenService {
         }
         return token;
     }
+    /**
+     * FE-03 (S01 R-01-13): the account whose live session the refresh token {@code value} of {@code clientId} belongs to, looked up
+     * in the current context (the host's club, or none on a host without one): its family not revoked, not expired (nor past the
+     * back office's 12 hours) and of the account's current family version, as {@link #requireFamily} takes a live session. Null
+     * without a token, for an unknown one or for a dead session. Reads only.
+     */
+    public String liveSessionAccount(String value, String clientId) {
+        if (value == null) { return null; }
+        var token = refreshTokens.find(digest(value), clientId).orElse(null);
+        var account = token == null ? null : accounts.findById(token.accountId()).orElse(null);
+        if (account == null) { return null; }
+        try { requireFamily(token.accountId(), clientId, token.familyId(), account.familyVersion()); }
+        catch (ApiException dead) { return null; }
+        return token.accountId();
+    }
     public List<RefreshToken> sessions(String accountId) {
         var session = identities.current(accountId);
         return families(live(TenantContext.current() == null ? accountSessions.active(accountId, session.account().familyVersion(), clock.instant())
