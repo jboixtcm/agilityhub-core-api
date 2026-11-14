@@ -1767,6 +1767,9 @@ exceptions, framework 5xx and `INTERNAL_ERROR` answers the code gives (for examp
 The default Sentry exception resolver keeps its later order, so one error produces one event.
 A scheduled-process run that ends `FAILED` or `PARTIAL` (S15 R-15-07, audit JOB-01) is captured once by the call that
 closed it (`JobRunner.report`), with its first exception, if any, and the trace id of its first error, which the job's error log line also prints.
+Apart from Sentry, the club's admins get N-42 (in the app and by e-mail, at most once per process and local day, while
+`jobs.alertAdminsOnFailure` is on) for any `FAILED` run and, since JOB-01 (owner decision of 13 November 2026), for a `PARTIAL`
+run of the processes that affect members: `risk-review`, `reminders`, `expirations`, `payment-timeouts` and `billing-reminder`.
 Handled 4xx errors, `NOT_IMPLEMENTED` stubs, an expired async (SSE) request and a client that went away are not captured.
 
 The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled

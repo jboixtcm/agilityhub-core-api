@@ -135,7 +135,7 @@
 | `BillingRunCreated` · `BillingRunCompleted` · `PackAdjusted{delta, reason}` · `MemberCardInvalidated` | pagaments | S12 |
 | `InactivityChanged` · `InactivityCancelled` · `LeaveCancelled` · `LeaveResolved{source, decision, cancelledBookings[]}` · `InactivityResolved{fee, cancelledBookings[]}` | inactivitat/baixa | S13 |
 | `AccountErasureRequested{accountId?, memberIds[], clubIds[], executeAt, source}` · `AccountErased{…}` · `DataExported{jobId, kind}` | RGPD | S14 |
-| `RemittanceReminderDue{period, pendingMembers}` · `JobFailed{job, runId, status, errorCount}` · `SchedulerRun{trigger, counters}` · `SignupPendingAging{count, oldestDays, memberIds[]}` (N-34) · `WaitlistExpired` (FIFO) · `TrainingCounterReset` | processos | S15 |
+| `RemittanceReminderDue{period, pendingMembers}` · `JobFailed{job, runId, status, errorCount}` (status FAILED, SKIPPED d'una ocurrència perduda, o PARTIAL d'un procés que afecta els abonats: JOB-01, 13-11-2026) · `SchedulerRun{trigger, counters}` · `SignupPendingAging{count, oldestDays, memberIds[]}` (N-34) · `WaitlistExpired` (FIFO) · `TrainingCounterReset` | processos | S15 |
 | S16: vegeu el bloc «Recorreguts» (E77, aplicat a E9-T01) | recorreguts | S16 |
 | `ClubDomainVerified{clubId, host}` · `ClubDomainBroken{clubId, host}` (E10-T03: S15 P9, origen `SYSTEM`) · `PlatformRoleChanged` · `ClubPaymentProviderChanged` · `ClubApplied{slug, diffSummary, dryRun}` · `SupportAccessStarted` · `SupportAccessEnded{clubId, actorAccountId}` (E10-T04 ronda 2, decisió E123: l'ADMIN del club acaba un accés de suport viu; `actorAccountId` = el compte de plataforma) | consola | S17 |
 | `MigrationRunStarted` · `MigrationRunCompleted{counters}` · `MigrationRunFailed{step}` | migració | S18 |

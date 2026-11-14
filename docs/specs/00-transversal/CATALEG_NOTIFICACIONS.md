@@ -84,7 +84,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-39 | Verifica que ets tu (afegir un gos com a soci existent) | `SignupRecognitionRequested` | SYSTEM | compte → EMAIL | link, expires_minutes, club_name | — | S04 |
 | N-40 | Reserva no completada (pagament caducat) | `BookingCancelled{reason: PAYMENT_TIMEOUT}` | OPERATIONAL | MEMBER → APP+EMAIL | dog_name, class_date, class_time | OPEN_BOOKING | S08 |
 | N-41 | Remesa del mes pendent | `RemittanceReminderDue` | OPERATIONAL | ADMINS → APP+EMAIL | period, pending_count | OPEN_INVOICES | S15/S12 |
-| N-42 | Procés automàtic amb errors | `JobFailed` (màx. 1 per procés i dia) | OPERATIONAL | ADMINS → APP (+EMAIL) | job_name, error_count | OPEN_JOBS | S15 |
+| N-42 | Procés automàtic amb errors | `JobFailed` (màx. 1 per procés i dia; d'una execució FAILED, d'una ocurrència perduda, o PARTIAL d'un procés que afecta els abonats: risk-review, reminders, expirations, payment-timeouts, billing-reminder — JOB-01, decisió del propietari 13-11-2026) | OPERATIONAL | ADMINS → APP (+EMAIL) | job_name, error_count | OPEN_JOBS | S15 |
 | N-43 | Domini del club trencat | `ClubDomainBroken` | SYSTEM | admins de plataforma → EMAIL | club_name, host | — | S17 |
 | N-44 | Nou challenge disponible (R2) | `ChallengePublished` | CLUB_NEWS | MEMBER amb nivell mapejat → APP | challenge_title, level | OPEN_CHALLENGE | S19 |
 | N-45 | Intent de challenge validat (R2) | `ChallengeAttemptValidated` | PERSONAL | MEMBER → APP+EMAIL | challenge_title, score | OPEN_CHALLENGE | S19 |

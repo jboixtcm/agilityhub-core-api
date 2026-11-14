@@ -346,15 +346,20 @@ public class JobRunner {
     /**
      * Trace, SchedulerRun and JobFailed commit together, and only if this call closed the RUNNING row of its holder
      * (R-15-04/R-15-06): a run already closed by the reaper or by its holder publishes nothing. A dry run writes only its JobRun (R-15-08).
+     * JOB-01: a PARTIAL run of a process that affects members ({@link JobCatalog#alertsOnPartial}) publishes `JobFailed` too, once.
      */
     private boolean complete(JobRun finished) {
         if (finished.dryRun()) { return runs.finish(finished); }
         return write(() -> {
             if (!runs.finish(finished)) { return false; }
             events.publish(event(SchedulerEvent.Kind.SchedulerRun, finished, schedulerRunPayload(finished)));
-            if (finished.status() == JobStatus.FAILED) { events.publish(failed(finished)); }
+            if (alerts(finished)) { events.publish(failed(finished)); }
             return true;
         });
+    }
+    /** R-15-10: a FAILED run of any process, and (JOB-01) a PARTIAL run of a process that affects members, publish `JobFailed` (N-42). */
+    static boolean alerts(JobRun run) {
+        return run.status() == JobStatus.FAILED || (run.status() == JobStatus.PARTIAL && JobCatalog.alertsOnPartial(run.job()));
     }
 
     private SchedulerEvent failed(JobRun run) {

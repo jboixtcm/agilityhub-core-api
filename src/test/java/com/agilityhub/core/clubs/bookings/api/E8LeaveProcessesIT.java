@@ -80,5 +80,9 @@ class E8LeaveProcessesIT extends BookingFixtures {
         assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("status")).isEqualTo("ACTIVE");
         assertThat(events("MemberStatusChanged")).isZero(); assertThat(events("BookingCancelled")).isZero();
         assertThat(events("TrainingCancelled")).isZero();
+        // JOB-01 (owner decision of 13 Nov 2026, R-15-10): P5 affects members, so its PARTIAL run alerts the admins (JobFailed → N-42) once.
+        assertThat(events("JobFailed")).isEqualTo(1);
+        assertThat(mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("JobFailed")), Document.class, "domain_events").get("payload", Document.class)).containsEntry("job", "EXPIRATIONS").containsEntry("status", "PARTIAL")
+                .containsEntry("runId", run.id());
     }
 }
