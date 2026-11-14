@@ -54,6 +54,8 @@ class AnnouncementsIT extends AbstractIntegrationTest {
             "push_subscriptions", "idempotency_records", "memberships");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
     @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher outbox;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
+    @Autowired com.agilityhub.core.clubs.messaging.application.EmailSender emailSender;
 
     @BeforeEach void prepare() {
         clock.setInstant(Instant.parse("2026-10-05T08:00:00Z"));
@@ -324,6 +326,73 @@ class AnnouncementsIT extends AbstractIntegrationTest {
                     .content(mapper.writeValueAsBytes(body)), 403).path("code").asText()).isEqualTo("FORBIDDEN");
         }
         assertThat(writes()).isZero();
+    }
+
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026, R-11-13): «Reenvia els fallits» of an announcement puts the batch's failed e-mails
+     * back in the queue — only that batch's and only e-mail — with a fresh budget, audits `ANNOUNCEMENT_RESENT` on the template
+     * with `details {batchId, resent}`, replays the same answer for the same key, and with nothing left to resend writes nothing.
+     * The dispatcher then sends them. Another club's or an unknown batch is 404; another role is 403.
+     */
+    @Test @AuditCovers(AuditAction.ANNOUNCEMENT_RESENT)
+    void T_11_18_COMM_07_resendFailedQueuesTheBatchsFailedEmailsAgainAndAuditsIt() throws Exception {
+        String n24 = templateOf("N-24");
+        String batchId = send(n24, Map.of("filters", List.of("status:eq:ACTIVE")), false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        String other = send(n24, Map.of("memberIds", List.of("e7t04-ann-laura")), false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        dispatch();
+        // The provider refused Laura's e-mail of each batch for good, and Pere's device failed (written here, as the dispatcher writes them).
+        java.util.function.BiFunction<String, String, String> notice = (batch, member) -> batch(batch).stream()
+                .filter(n -> n.getString("dedupKey").equals(batch + ":e7t04-ann-" + member)).findFirst().orElseThrow().getString("_id");
+        for (String id : List.of(notice.apply(batchId, "laura"), notice.apply(other, "laura"))) {
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("deliveries.channel").is("EMAIL")), new org.springframework.data.mongodb.core.query.Update()
+                    .set("deliveries.$.status", "FAILED").set("deliveries.$.failedAt", java.util.Date.from(clock.instant())).set("deliveries.$.lastError", "Brevo HTTP 400"),
+                    "notifications");
+        }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(notice.apply(batchId, "pere")).and("deliveries.channel").is("PUSH")),
+                new org.springframework.data.mongodb.core.query.Update().set("deliveries.$.status", "FAILED"), "notifications");
+        String path = "/api/v1/announcements/" + batchId + "/resend-failed";
+        // Other roles, another club and an unknown batch.
+        for (String role : List.of("MEMBER", "INSTRUCTOR")) {
+            assertThat(call(as(post(path), role).header("Idempotency-Key", UUID.randomUUID().toString()), 403).path("code").asText()).isEqualTo("FORBIDDEN");
+        }
+        assertThat(call(as(post(path), "ADMIN", OTHER).header("Idempotency-Key", UUID.randomUUID().toString()), 404).path("code").asText()).isEqualTo("NOT_FOUND");
+        assertThat(call(as(post("/api/v1/announcements/e7t04-ann-unknown/resend-failed"), "ADMIN").header("Idempotency-Key", UUID.randomUUID().toString()), 404)
+                .path("code").asText()).isEqualTo("NOT_FOUND");
+        assertThat(count("audit_entries", Criteria.where("action").is("ANNOUNCEMENT_RESENT"))).isZero();
+
+        String key = UUID.randomUUID().toString();
+        var resent = call(as(post(path), "ADMIN").header("Idempotency-Key", key), 202);
+        assertThat(resent.path("batchId").asText()).isEqualTo(batchId); assertThat(resent.path("resent").asInt()).isEqualTo(1);
+        var laura = mongo.findById(notice.apply(batchId, "laura"), com.agilityhub.core.clubs.messaging.persistence.Notification.class);
+        assertThat(laura.deliveries()).filteredOn(d -> d.channel() == com.agilityhub.core.clubs.messaging.domain.NotificationChannel.EMAIL).singleElement().satisfies(d -> {
+            assertThat(d.status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.QUEUED); assertThat(d.attempts()).isZero();
+            assertThat(d.nextAttemptAt()).isEqualTo(clock.instant()); assertThat(d.failedAt()).isNull(); assertThat(d.lastError()).isEqualTo("Brevo HTTP 400"); });
+        // The other batch and the push are untouched.
+        assertThat(channels(NotificationRows.rows(mongo, CLUB, "N-24").stream().filter(r -> r.getString("dedupKey").startsWith(other + ":")).toList(), "e7t04-ann-laura"))
+                .contains("EMAIL:FAILED");
+        assertThat(channels(NotificationRows.rows(mongo, CLUB, "N-24").stream().filter(r -> r.getString("dedupKey").startsWith(batchId + ":")).toList(), "e7t04-ann-pere"))
+                .contains("PUSH:FAILED", "EMAIL:SENT");
+        // ANNOUNCEMENT_RESENT on the template, by the admin, no changes; only in this club.
+        var audits = call(as(get("/api/v1/audit-entries"), "ADMIN").param("filter", "action:eq:ANNOUNCEMENT_RESENT"), 200).path("items");
+        assertThat(audits).singleElement().satisfies(audit -> {
+            assertThat(audit.path("entityType").asText()).isEqualTo("MessageTemplate"); assertThat(audit.path("entityId").asText()).isEqualTo(n24);
+            assertThat(audit.path("actorAccountId").asText()).isEqualTo(ADMIN); assertThat(audit.path("changes")).isEmpty();
+            assertThat(audit.path("details")).isEqualTo(mapper.createObjectNode().put("batchId", batchId).put("resent", 1));
+        });
+        assertThat(call(as(get("/api/v1/audit-entries"), "ADMIN", OTHER).param("filter", "action:eq:ANNOUNCEMENT_RESENT"), 200).path("items")).isEmpty();
+        // The same key: the same answer, nothing more.
+        assertThat(call(as(post(path), "ADMIN").header("Idempotency-Key", key), 202)).isEqualTo(resent);
+        assertThat(count("audit_entries", Criteria.where("action").is("ANNOUNCEMENT_RESENT"))).isEqualTo(1);
+        // The dispatcher sends it.
+        var fake = (com.agilityhub.core.clubs.messaging.application.FakeEmailSender) org.springframework.test.util.AopTestUtils.getTargetObject(emailSender);
+        int before = (int) fake.messages().stream().filter(m -> m.to().equals("laura.e7t04@example.test")).count();
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) { notificationDispatcher.dispatch(List.of(laura.id())); }
+        assertThat(channels(NotificationRows.rows(mongo, CLUB, "N-24").stream().filter(r -> r.getString("dedupKey").startsWith(batchId + ":")).toList(), "e7t04-ann-laura"))
+                .contains("EMAIL:SENT");
+        assertThat(fake.messages().stream().filter(m -> m.to().equals("laura.e7t04@example.test"))).hasSize(before + 1);
+        // Nothing left to resend: 0, and no entry.
+        assertThat(call(as(post(path), "ADMIN").header("Idempotency-Key", UUID.randomUUID().toString()), 202).path("resent").asInt()).isZero();
+        assertThat(count("audit_entries", Criteria.where("action").is("ANNOUNCEMENT_RESENT"))).isEqualTo(1);
     }
 
     /** A CUSTOM template's matrix: the members' row (APP, and EMAIL when asked); staff never receive a CUSTOM notice (S11 §13-6). */

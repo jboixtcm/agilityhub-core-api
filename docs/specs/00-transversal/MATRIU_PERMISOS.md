@@ -26,7 +26,7 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | Tasques, observacions, seguiment D14 | — | R tasques pròpies · X marcar feta · W adjunts propis | RW tasques i observacions de qualsevol alumne · R D14 | RW · R D14 | — |
 | Notificacions `/notifications` | — | R pròpies · X accions natives | R pròpies | R pròpies + R log complet del club | — |
 | Preferències d'avís | — | RW pròpies | RW pròpies | RW de qualsevol abonat (D10) | — |
-| Comunicats massius (`/message-templates/{id}/send`) | — | — | — | X | — |
+| Comunicats massius (`/message-templates/{id}/send`, `/announcements/{batchId}/resend-failed`) | — | — | — | X | — |
 | Facturació (rebuts, remeses, cobraments, exports) | — | R rebuts propis | — | RW + X (simular, generar, retrocedir, marcar enviada / desfer «enviada», marcar cobrat/impagat (també impagats en bloc d'una remesa), reintentar Stripe, reemborsar) | — |
 | Pagaments a l'acte (`/checkout-sessions`) | W (alta amb Stripe) | W propi | — | W en nom de l'abonat (manual) | — |
 | Inactivitat / baixa | — | W sol·licitud pròpia | — | RW + X (aprovar, denegar, data d'efecte) | — |

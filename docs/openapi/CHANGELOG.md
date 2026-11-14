@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · COMM-07 · «Reenvia els fallits» of an announcement
+
+**1 operation added (`POST /announcements/{batchId}/resend-failed`); 1 schema added (`AnnouncementResendResult`); 1 enum value added (`AuditAction`: `ANNOUNCEMENT_RESENT`); no error codes added.**
+
+- New `POST /announcements/{batchId}/resend-failed` (ADMIN, no impersonation; `Idempotency-Key` required; no body; `202 AnnouncementResendResult {batchId, resent}`): every e-mail of the announcement batch that ended `FAILED` goes back to `QUEUED`, due now with its attempts at zero, and is sent at the announcements' pace; no SMS or push is resent. Audited `ANNOUNCEMENT_RESENT` on the batch's template (no changes, `details {batchId, resent}`) when at least one was put back; `resent: 0` writes nothing. Another club's or an unknown batch → `404 NOT_FOUND`. The `batchId` is the one `POST /message-templates/{id}/send` answers and the log rows carry.
+
 ## 2026-11-14 · PAY-10 · Saving Stripe keys tests them; test mode after live keys needs an override on prod
 
 **No operations, schemas or error codes added; `PlatformProviderRequest` gains an optional `testModeOverride`; 1 operation description and its 422 error list changed (`PUT /platform/clubs/{id}/payment-providers/{provider}`).**

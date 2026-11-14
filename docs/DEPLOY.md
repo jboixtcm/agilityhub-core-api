@@ -615,6 +615,7 @@ and URIs are included because they must remain consistent across recovery.
 | `MAIL_FROM_PLATFORM` | Platform address verified by the selected provider; change only after sender-domain verification. Brevo always sends from this address. |
 | `SENDGRID_WEBHOOK_PUBLIC_KEY` | Required only for SendGrid: Event Webhook verification public key (base64 DER/PEM); coordinate with provider signing-key change and verify a signed event. |
 | `EMAIL_UNSUBSCRIBE_KEY` | Base64 32 random bytes; HMAC for 30-day unsubscribe links. Rotation invalidates outstanding links. |
+| `ANNOUNCEMENT_EMAILS_PER_MINUTE` | COMM-07: at most this many announcement e-mails («Enviar comunicat», N-24) per clock minute, set from the e-mail provider's plan; default 60, at least 1 (the API refuses to start otherwise). Platform-wide, not per club. Change it with the plan. |
 | `SMS_PROVIDER` | SMS transport, `twilio` (default) or `brevo`. Brevo uses the existing `BREVO_API_KEY` and the club’s registered SMS sender ID. |
 | `SMS_DELIVERY_ENABLED` | Defaults to `true`. Set to `false` to block SMS regardless of credentials. Hosted demo requires an explicit club ID and Brevo. |
 | `SMS_CLUB_ID` | Restricts SMS to that club. Leave empty on hosted demo to disable SMS. To enable later, select Brevo, configure the approved sender ID, enable the club SMS module and set a monthly cap and SMS delivery switch. |
@@ -1268,6 +1269,7 @@ from the environment ([.env.example](../.env.example)); none is ever logged.
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | The product's P-256 key pair, base64url (uncompressed public point, 32-byte private scalar). The public key is published on `GET /branding` as `pushPublicKey`. Required in staging/prod. Generate once, e.g. `npx web-push generate-vapid-keys`; rotating it invalidates every browser subscription. |
 | `VAPID_SUBJECT` | `mailto:` or `https:` contact sent to the push services. |
 | `EMAIL_UNSUBSCRIBE_KEY` | HMAC key (base64, 32 bytes) of the signed 30-day «Deixar de rebre aquests comunicats» links of `CLUB_NEWS` mails (`List-Unsubscribe`). Required in staging/prod. |
+| `ANNOUNCEMENT_EMAILS_PER_MINUTE` | COMM-07: the pace of announcement e-mails, per clock minute (default 60, at least 1); the next ones wait `QUEUED` for the following minute. Set it from the e-mail provider's plan. |
 
 COMM-02 (owner decision of 13 November 2026): the seat-released notice (N-15) also
 goes by e-mail, like the class reminder (N-13), to members whose «Operativa» e-mail
@@ -1276,6 +1278,16 @@ upgrade only brings texts up to date), so a club whose N-15 template already exi
 such as the Cànic, gets the e-mail only once an admin ticks «Correu» for «Alumne» on
 «S'ha alliberat una plaça!» in D9 (`/comunicats`); a club seeded afterwards gets it
 ticked.
+
+COMM-07 (owner decision of 13 November 2026): announcement e-mails go at the pace
+of `ANNOUNCEMENT_EMAILS_PER_MINUTE`, and the provider's quota answers (429, 402,
+Brevo's `not_enough_credits`) are retried 1, 5, 15, 60 minutes later and then every
+hour for about a day before a delivery is `FAILED`. A daily allowance smaller than an
+announcement still leaves the rest for the next day, and transactional mail (sign-in
+links included) shares that allowance: choose a plan above the club's largest
+announcement plus a day's notices. «Reenvia els fallits»
+(`POST /api/v1/announcements/{batchId}/resend-failed`) queues the failed e-mails of
+a batch again.
 
 COMM-06 (owner decision of 13 November 2026): an SMS goes only to a mobile number
 (a Spanish one starts with 6 or 7; another country's must be a valid mobile); a

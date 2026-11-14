@@ -89,6 +89,8 @@ services:
       SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
       MAIL_FROM_PLATFORM: ${MAIL_FROM_PLATFORM:-}
       SENDGRID_WEBHOOK_PUBLIC_KEY: ${SENDGRID_WEBHOOK_PUBLIC_KEY:-}
+      # COMM-07: announcement e-mails per minute, set to the e-mail provider's plan.
+      ANNOUNCEMENT_EMAILS_PER_MINUTE: ${ANNOUNCEMENT_EMAILS_PER_MINUTE:-60}
       EMAIL_UNSUBSCRIBE_KEY: ${EMAIL_UNSUBSCRIBE_KEY:?Set EMAIL_UNSUBSCRIBE_KEY}
       # Required by preflight/runtime unless the explicit hosted demo policy disables SMS.
       SMS_CLUB_ID: ${SMS_CLUB_ID:-}

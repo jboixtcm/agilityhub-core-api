@@ -58,6 +58,9 @@ notifications:
     vapid-public-key: ${VAPID_PUBLIC_KEY:}
     vapid-private-key: ${VAPID_PRIVATE_KEY:}
     vapid-subject: ${VAPID_SUBJECT:}
+  # COMM-07: at most this many announcement e-mails (N-24) per minute, set to the e-mail provider's plan.
+  announcements:
+    emails-per-minute: ${ANNOUNCEMENT_EMAILS_PER_MINUTE:60}
 
 identity:
   issuer: ${AUTH_ISSUER:https://id.agilitydoghub.com}

@@ -1440,6 +1440,20 @@
         "required" : [ "dryRun", "recipients" ],
         "type" : "object"
       },
+      "AnnouncementResendResult" : {
+        "properties" : {
+          "batchId" : {
+            "type" : "string"
+          },
+          "resent" : {
+            "description" : "The batch's failed e-mails put back in the queue (0: nothing to resend, nothing written)",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "batchId", "resent" ],
+        "type" : "object"
+      },
       "AnnouncementResult" : {
         "properties" : {
           "batchId" : {
@@ -1805,7 +1819,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "REMITTANCE_SUBMISSION_UNDONE", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "ACCOUNT_EMAIL_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "CLASS_RESTORED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "SUPPORT_ACCESS_ENDED", "SUPPORT_WRITE", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "REMITTANCE_SUBMISSION_UNDONE", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "ACCOUNT_EMAIL_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "CLASS_RESTORED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "SUPPORT_ACCESS_ENDED", "SUPPORT_WRITE", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "ANNOUNCEMENT_RESENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -30540,6 +30554,155 @@
         },
         "summary" : "Update administrator",
         "tags" : [ "clubs.catalogs" ]
+      }
+    },
+    "/api/v1/announcements/{batchId}/resend-failed" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Reenvia els fallits» of an announcement (COMM-07, R-11-13): every e-mail of the batch that ended FAILED goes back to QUEUED, due now with a fresh retry budget, and is sent at the announcements' pace (ANNOUNCEMENT_EMAILS_PER_MINUTE) with every check of a send (a suppressed address ends SKIPPED_NO_CONTACT). Only e-mail: no SMS or push is resent, nothing else changes. 202 with the number put back and the ANNOUNCEMENT_RESENT audit entry on the batch's template (no changes; details {batchId, resent}); resent = 0 writes nothing. batchId is the AnnouncementResult's (the log rows carry it); another club's or an unknown batch → 404. The same Idempotency-Key replays the same answer. Tenant comes from the JWT.",
+        "operationId" : "resendFailedAnnouncement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "batchId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementResendResult"
+                }
+              }
+            },
+            "description" : "AnnouncementResendResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "resendFailedAnnouncement",
+        "tags" : [ "clubs.messaging" ]
       }
     },
     "/api/v1/attachments" : {

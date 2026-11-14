@@ -101,6 +101,9 @@ public final class MessagingContracts {
     public record AnnouncementRequest(@NotNull @Valid AnnouncementRecipients recipients,
             @NotNull @Schema(description = "true: count only («S'enviarà a {n} abonats»), 200 and nothing written") Boolean dryRun) { }
     public record AnnouncementResult(@Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on dryRun") String batchId, int recipientCount) { }
+    /** COMM-07: «Reenvia els fallits» of an announcement batch. */
+    public record AnnouncementResendResult(String batchId,
+            @Schema(description = "The batch's failed e-mails put back in the queue (0: nothing to resend, nothing written)") int resent) { }
     /** `details` of `VALIDATION_ERROR` for a missing required variable (S11 §6 `TEMPLATE_MISSING_VARIABLE` is a catalog proposal). */
     public record MissingVariablesDetails(@Schema(description = "The template's required variables absent from the text (N-08a admin_text; N-02's link is its "
             + "welcome e-mail's only, E76)") List<String> missingVariables) { }

@@ -16,7 +16,27 @@ public final class RetryPolicy {
     public static final List<Duration> BACKOFF = List.of(Duration.ofMinutes(1), Duration.ofMinutes(5), Duration.ofMinutes(15),
             Duration.ofMinutes(60), Duration.ofMinutes(240));
 
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026): a provider's quota answer for an e-mail (429, 402, Brevo's `not_enough_credits`)
+     * is no longer final. It waits 1, 5, 15 and 60 minutes like any retryable failure, then every 60 minutes, for about a day:
+     * the {@value #QUOTA_MAX_ATTEMPTS}th failing attempt is final (`FAILED`), some 24 hours after the first.
+     */
+    public static final int QUOTA_MAX_ATTEMPTS = 28;
+    public static final Duration QUOTA_BACKOFF = Duration.ofMinutes(60);
+
     private RetryPolicy() { }
+
+    /**
+     * COMM-07: when to try again after a quota answer.
+     *
+     * @param attempts the send attempts made so far, the failing one included (≥ 1); a resend starts them again
+     * @return the next attempt, or empty once {@value #QUOTA_MAX_ATTEMPTS} attempts have failed
+     */
+    public static Optional<Instant> nextQuotaAttempt(int attempts, Instant now) {
+        if (attempts < 1) { throw new IllegalArgumentException("attempts must be positive"); }
+        if (attempts >= QUOTA_MAX_ATTEMPTS) { return Optional.empty(); }
+        return Optional.of(now.plus(attempts < MAX_ATTEMPTS ? BACKOFF.get(attempts - 1) : QUOTA_BACKOFF));
+    }
 
     /**
      * @param attempts the send attempts made so far, the failing one included (≥ 1)

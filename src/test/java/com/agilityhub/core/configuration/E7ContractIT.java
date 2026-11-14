@@ -46,7 +46,7 @@ class E7ContractIT extends AbstractIntegrationTest {
     static final String CLUB = "e7-club-a", OTHER = "e7-club-b", HOST = "e7-a.example.test", OTHER_HOST = "e7-b.example.test";
     static final List<String> ROLES = List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN");
     static final List<String> DATA = List.of("message_templates", "notifications", "push_subscriptions", "members", "memberships", "faq_entries", "domain_events",
-            "audit_entries", "idempotency_records");
+            "audit_entries", "idempotency_records", "announcements");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired ClubRepository clubs;
@@ -87,6 +87,9 @@ class E7ContractIT extends AbstractIntegrationTest {
         mongo.insert(new MessageTemplate("e7-template-custom", CLUB, null, TemplateKind.CUSTOM, NotificationCategory.CLUB_NEWS, news, news, null, TemplateIcon.flag,
                 TemplateColor.ACCENT, Map.of(NotificationAudience.MEMBER, Map.of(NotificationChannel.APP, true)), true, false, false, TemplateStatus.ACTIVE, 0L, now, "seed", now, "seed"));
         mongo.insert(new Notification("e7-notification-a", CLUB, "e7-MEMBER", "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
+        // COMM-07: a sent announcement batch of the club, for «Reenvia els fallits» (nothing failed: it answers 0 and writes nothing).
+        mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.Announcement("e7-batch-a", CLUB, "e7-template-custom", null,
+                com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS, List.of(), null, List.of("e7-member-a"), 1, "e7-ADMIN", now));
         for (String owner : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
             mongo.insert(new Notification("e7-own-" + owner, CLUB, "e7-" + owner, "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
             mongo.insert(new PushSubscription("e7-sub-" + owner, CLUB, "e7-" + owner, "https://push.example.test/send/" + owner, null,
@@ -111,7 +114,7 @@ class E7ContractIT extends AbstractIntegrationTest {
                 : r.path().startsWith("/api/v1/message-templates") ? "e7-template-a"
                 : r.path().startsWith("/api/v1/notifications/") ? "e7-notification-a"
                 : r.path().startsWith("/api/v1/me/notifications/") ? "e7-own-" + owner : r.path().startsWith("/api/v1/members/") ? "e7-member-a" : "e7-sub-" + owner;
-        return r.path().replace("{id}", id);
+        return r.path().replace("{id}", id).replace("{batchId}", "e7-batch-a");
     }
     private MockHttpServletRequestBuilder call(Route r, String clubId, String role) throws Exception { return call(r, clubId, role, role); }
     private MockHttpServletRequestBuilder call(Route r, String clubId, String role, String owner) throws Exception {
@@ -287,7 +290,7 @@ class E7ContractIT extends AbstractIntegrationTest {
 
     @Test void WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(22); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10
+        assertThat(routes().count()).isEqualTo(23); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10; COMM-07: the resend
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
@@ -302,7 +305,8 @@ class E7ContractIT extends AbstractIntegrationTest {
             assertThat(key.isPresent()).as(route.label() + " Idempotency-Key").isEqualTo(route.idempotency());
             if (route.idempotency()) { assertThat(key.orElseThrow().path("required").asBoolean()).isTrue(); assertThat(key.orElseThrow().at("/schema/format").asText()).isEqualTo("uuid"); }
         }
-        assertThat(routes().filter(Route::idempotency).map(Route::label)).containsExactly("POST /api/v1/message-templates/{id}/send");
+        assertThat(routes().filter(Route::idempotency).map(Route::label)).containsExactly("POST /api/v1/message-templates/{id}/send",
+                "POST /api/v1/announcements/{batchId}/resend-failed");
         var send = api.at("/paths/~1api~1v1~1message-templates~1{id}~1send/post/responses");
         assertThat(send.has("202")).isTrue(); assertThat(send.has("200")).isTrue();
         // Canonical statuses (CATALEG_ERRORS rule 0), whatever S11 §6 writes.

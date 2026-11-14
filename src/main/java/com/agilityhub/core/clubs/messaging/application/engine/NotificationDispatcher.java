@@ -110,6 +110,8 @@ public class NotificationDispatcher {
     private final ClubSmsUsage usage; private final NotificationEmailRenderer emails; private final UnsubscribeTokens unsubscribes;
     private final MemberDirectoryPort members; private final NotificationAccounts accounts; private final EventPublisher events; private final TransactionTemplate transactions;
     private final List<NotificationFactsPort> owners; private final Clock clock; private final String platformFrom;
+    /** COMM-07: the pace of announcement e-mails (N-24), the provider plan's ({@link AnnouncementEmailPace}). */
+    private final AnnouncementEmailPace pace;
     /** Settlements with a provider's answer that kept failing: written again before the next claims, while their token still holds the lease. */
     private final Queue<Settling> unsettled = new ConcurrentLinkedQueue<>();
 
@@ -117,10 +119,18 @@ public class NotificationDispatcher {
             PushSender push, ClubConfigService configs, ClubEmailSettings emailSettings, ClubSmsUsage usage, NotificationEmailRenderer emails,
             UnsubscribeTokens unsubscribes, MemberDirectoryPort members, NotificationAccounts accounts, EventPublisher events, TransactionTemplate transactions,
             List<NotificationFactsPort> owners, Clock clock, String platformFrom) {
+        this(notifications, subscriptions, email, sms, push, configs, emailSettings, usage, emails, unsubscribes, members, accounts, events, transactions, owners,
+                clock, platformFrom, AnnouncementEmailPace.unlimited());
+    }
+    /** With the pace of announcement e-mails (COMM-07): the application's dispatcher. */
+    public NotificationDispatcher(NotificationRepository notifications, PushSubscriptionRepository subscriptions, EmailSender email, SmsSender sms,
+            PushSender push, ClubConfigService configs, ClubEmailSettings emailSettings, ClubSmsUsage usage, NotificationEmailRenderer emails,
+            UnsubscribeTokens unsubscribes, MemberDirectoryPort members, NotificationAccounts accounts, EventPublisher events, TransactionTemplate transactions,
+            List<NotificationFactsPort> owners, Clock clock, String platformFrom, AnnouncementEmailPace pace) {
         this.notifications = notifications; this.subscriptions = subscriptions; this.email = email; this.sms = sms; this.push = push;
         this.configs = configs; this.emailSettings = emailSettings; this.usage = usage; this.emails = emails; this.unsubscribes = unsubscribes;
         this.members = members; this.accounts = accounts; this.events = events; this.transactions = transactions; this.owners = List.copyOf(owners);
-        this.clock = clock; this.platformFrom = platformFrom;
+        this.clock = clock; this.platformFrom = platformFrom; this.pace = Objects.requireNonNull(pace);
     }
 
     /**
@@ -219,6 +229,11 @@ public class NotificationDispatcher {
     }
 
     private Outcome sendEmail(Notification notification, Notification.Delivery delivery) {
+        // COMM-07: an announcement e-mail beyond the minute's pace waits for the next minute (nothing rendered, sent or counted).
+        if (com.agilityhub.core.clubs.messaging.domain.NotificationCatalog.ANNOUNCEMENT.equals(notification.code())) {
+            var wait = pace.acquire(clock.instant());
+            if (wait.isPresent()) { return Outcome.deferred(wait.get(), AnnouncementEmailPace.PACED); }
+        }
         var settings = emailSettings.get(notification.clubId(), platformFrom);
         String origin = emailSettings.appOrigin(notification.clubId()).orElse(null);
         String memberId = notification.recipient() == null ? null : notification.recipient().memberId();
@@ -264,17 +279,33 @@ public class NotificationDispatcher {
         return contact;
     }
     /**
-     * R-11-09 for the `EmailSender`'s answers, which carry no flag of their own: a provider status 4xx other than 429 (a
-     * rejected request, an invalid address) is final; 429, 5xx, a timeout or a transport failure is retried.
+     * R-11-09 for the `EmailSender`'s answers, which carry no flag of their own: a provider status 4xx (a rejected request, an
+     * invalid address) is final, but a quota answer ({@link #emailQuota}); a quota answer, 5xx, a timeout or a transport
+     * failure is retried.
      */
     static boolean emailRetryable(String error) {
         if (com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED.equals(error)) { return false; }
         if (com.agilityhub.core.clubs.messaging.application.AllowListEmailSender.NOT_ALLOWED.equals(error)) { return false; }
         if (com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.SUPPRESSED.equals(error)) { return false; }
-        var status = error == null ? null : java.util.regex.Pattern.compile("HTTP (\\d{3})").matcher(error);
+        if (emailQuota(error)) { return true; }
+        var status = error == null ? null : HTTP_STATUS.matcher(error);
         if (status == null || !status.find()) { return true; }
         int code = Integer.parseInt(status.group(1));
-        return code == 429 || code >= 500;
+        return code >= 500;
+    }
+    private static final java.util.regex.Pattern HTTP_STATUS = java.util.regex.Pattern.compile("HTTP (\\d{3})");
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026): the provider's quota answers — 429 (too many requests), 402 (payment required)
+     * and Brevo's `not_enough_credits` whatever its status — are retried for about a day ({@link RetryPolicy#nextQuotaAttempt})
+     * instead of becoming final.
+     */
+    static boolean emailQuota(String error) {
+        if (error == null) { return false; }
+        if (error.contains(com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.NOT_ENOUGH_CREDITS)) { return true; }
+        var status = HTTP_STATUS.matcher(error);
+        if (!status.find()) { return false; }
+        int code = Integer.parseInt(status.group(1));
+        return code == 429 || code == 402;
     }
 
     private Outcome sendSms(Notification notification, Notification.Delivery delivery) {
@@ -490,10 +521,14 @@ public class NotificationDispatcher {
         return settlement;
     }
 
-    /** R-11-09: retried with backoff, or failed for good. A delivery the webhook moved meanwhile keeps its state. */
+    /**
+     * R-11-09: retried with backoff, or failed for good; an e-mail's quota answer for about a day (COMM-07). A delivery the
+     * webhook moved meanwhile keeps its state.
+     */
     private NotificationRepository.Settlement failed(Settling s, SendResult result) {
         Instant now = clock.instant(); int attempts = s.delivery().attempts() + 1;
-        var next = RetryPolicy.nextAttempt(attempts, result.retryable(), now);
+        var next = s.delivery().channel() == NotificationChannel.EMAIL && emailQuota(result.error()) ? RetryPolicy.nextQuotaAttempt(attempts, now)
+                : RetryPolicy.nextAttempt(attempts, result.retryable(), now);
         if (next.isEmpty()) { return status(s, DeliveryStatus.FAILED, result.error()); }
         return notifications.settleClaim(s.notification().id(), s.token(), update -> update.set("deliveries.$.attempts", attempts)
                 .set("deliveries.$.nextAttemptAt", next.get()).set("deliveries.$.lastError", result.error()), update -> { });

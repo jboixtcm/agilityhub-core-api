@@ -42,7 +42,7 @@ public class AuditWriter {
      * has no changes and carries the batch in `details` (S14 §3).
      */
     static final java.util.Set<AuditAction> EVENT_ACTIONS = java.util.EnumSet.of(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED,
-            AuditAction.ANNOUNCEMENT_SENT, AuditAction.CARD_CHARGES_STARTED, AuditAction.PAYMENT_REFUNDED, AuditAction.UPFRONT_PAYMENT_RECORDED,
+            AuditAction.ANNOUNCEMENT_SENT, AuditAction.ANNOUNCEMENT_RESENT, AuditAction.CARD_CHARGES_STARTED, AuditAction.PAYMENT_REFUNDED, AuditAction.UPFRONT_PAYMENT_RECORDED,
             // S17 R-17-10 (E10-T04 round 2): the club ending a support access has no field diff and no reason.
             AuditAction.SUPPORT_ACCESS_ENDED,
             // AUTHZ-05: a support write that no other action audits records only that it happened, and what the request was.

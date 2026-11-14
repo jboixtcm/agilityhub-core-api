@@ -100,6 +100,7 @@ public final class AuditContracts {
         CATALOG_CHANGED,
         MIGRATION_APPLIED,
         ANNOUNCEMENT_SENT,
+        ANNOUNCEMENT_RESENT,
         DATA_EXPORTED,
         MEMBER_DATA_EXPORTED,
         ERASURE_REQUESTED,

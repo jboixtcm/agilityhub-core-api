@@ -115,6 +115,79 @@ class NotificationDispatcherIT extends EngineFixtures {
     }
 
     /**
+     * COMM-07 (owner decision of 13 Nov 2026, R-11-09): a provider's quota answer for an e-mail (429, 402, Brevo's
+     * `not_enough_credits`) is no longer final at the 5th attempt: it waits 1, 5, 15, 60 minutes and then every hour, and only
+     * its 28th failing attempt, about a day later, is `FAILED` with `NotificationFailed`. Another 4xx is still final at once.
+     */
+    @Test void T_11_09_COMM_07_aQuotaAnswerIsRetriedForAboutADayInsteadOfBeingFinal() {
+        String[] quota = {"Brevo HTTP 429", "Brevo HTTP 402", "Brevo HTTP 400 not_enough_credits"};
+        mail.script.add(EmailSender.SendResult.failed(quota[0]));
+        levelChange("member-marc", "dog-ares");
+        var n = memberNotice("N-09", "member-marc");
+        Instant start = clock.instant();
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(1);
+            assertThat(d.nextAttemptAt()).isEqualTo(start.plus(Duration.ofMinutes(1))); });
+        long[] waits = {1, 5, 15, 60};
+        for (int attempt = 2; attempt < com.agilityhub.core.clubs.messaging.domain.RetryPolicy.QUOTA_MAX_ATTEMPTS; attempt++) {
+            clock.advance(Duration.ofMinutes(attempt - 2 < waits.length ? waits[attempt - 2] : 60));
+            mail.script.add(EmailSender.SendResult.failed(quota[attempt % quota.length]));
+            assertThat(dispatch(dispatcher, n)).as("attempt " + attempt).isEqualTo(1);
+            var email = delivery(reload(n), NotificationChannel.EMAIL);
+            assertThat(email.status()).as("attempt " + attempt).isEqualTo(DeliveryStatus.QUEUED); assertThat(email.attempts()).isEqualTo(attempt);
+            assertThat(email.nextAttemptAt()).isEqualTo(clock.instant().plus(Duration.ofMinutes(attempt - 1 < waits.length ? waits[attempt - 1] : 60)));
+        }
+        assertThat(outbox(CLUB, "NotificationFailed")).isEmpty();
+        assertThat(Duration.between(start, clock.instant())).isGreaterThan(Duration.ofHours(23));
+        // The 28th quota answer is final.
+        clock.advance(Duration.ofMinutes(60));
+        mail.script.add(EmailSender.SendResult.failed(quota[1]));
+        assertThat(dispatch(dispatcher, n)).isEqualTo(1);
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.attempts()).isEqualTo(28); assertThat(d.lastError()).isEqualTo(quota[1]); });
+        assertThat(outbox(CLUB, "NotificationFailed")).hasSize(1);
+        assertThat(mail.to("marc@example.test")).isEmpty();
+        // A rejected request that is no quota answer is still final at its first attempt.
+        mail.script.add(EmailSender.SendResult.failed("Brevo HTTP 400"));
+        levelChange("member-anna", "dog-lluna");
+        assertThat(reload(memberNotice("N-09", "member-anna")).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.EMAIL)
+                .extracting(Notification.Delivery::status).containsExactlyInAnyOrder(DeliveryStatus.FAILED, DeliveryStatus.SENT);
+    }
+
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026, R-11-13): announcement e-mails go at the provider plan's pace (two a minute here):
+     * the ones beyond it stay `QUEUED` for the next minute, with no attempt counted and nothing sent, and then go; any other
+     * e-mail of the same minute is never held.
+     */
+    @Test void T_11_18_COMM_07_announcementEmailsGoAtTheProvidersPaceAndOtherEmailsNeverWait() {
+        var paced = new NotificationDispatcher(notifications, subscriptions, mail, sms, push, configs, emailSettings, usage, emails, unsubscribes, ports, accounts,
+                events, new org.springframework.transaction.support.TransactionTemplate(transactions), owners, clock, "no-reply@example.test", new AnnouncementEmailPace(2));
+        engine = engine(paced);
+        clock.setInstant(Instant.parse("2026-10-07T08:00:10Z"));
+        announce(CLUB, "comm07-batch", "member-laura", "member-marc", "member-anna"); // four addresses: Anna has two
+        java.util.function.Supplier<List<Notification.Delivery>> announced = () -> stored(CLUB, "N-24").stream().map(this::reload)
+                .flatMap(n -> n.deliveries().stream()).filter(d -> d.channel() == NotificationChannel.EMAIL).toList();
+        var next = Instant.parse("2026-10-07T08:01:00Z");
+        assertThat(announced.get()).extracting(Notification.Delivery::status).containsExactlyInAnyOrder(DeliveryStatus.SENT, DeliveryStatus.SENT,
+                DeliveryStatus.QUEUED, DeliveryStatus.QUEUED);
+        assertThat(announced.get()).filteredOn(d -> d.status() == DeliveryStatus.QUEUED).allSatisfy(d -> {
+            assertThat(d.nextAttemptAt()).isEqualTo(next); assertThat(d.attempts()).isZero(); assertThat(d.lastError()).isEqualTo(AnnouncementEmailPace.PACED); });
+        assertThat(mail.sent).hasSize(2);
+        // A transactional e-mail in the same minute goes at once.
+        levelChange("member-marc", "dog-ares");
+        assertThat(delivery(reload(memberNotice("N-09", "member-marc")), NotificationChannel.EMAIL).status()).isEqualTo(DeliveryStatus.SENT);
+        // Not before the next minute; then the two waiting ones go.
+        for (var n : stored(CLUB, "N-24")) { assertThat(dispatch(paced, n)).isZero(); }
+        clock.setInstant(next);
+        int sent = 0;
+        for (var n : stored(CLUB, "N-24")) { sent += dispatch(paced, n); }
+        assertThat(sent).isEqualTo(2);
+        assertThat(announced.get()).extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.SENT);
+        assertThat(announced.get()).allSatisfy(d -> { assertThat(d.attempts()).isEqualTo(1); assertThat(d.lastError()).isNull(); });
+        assertThat(mail.sent).hasSize(5);
+    }
+
+    /**
      * E6-T03 round 3 (S10 R-10-10, review of 27-09 21:19): before every attempt, retries included, the dispatcher asks the owners
      * of the notification's event whether it still applies ({@link NotificationFactsPort#deliverable}). A hook that throws is a
      * transient failure of that attempt; `false` ends the delivery as `SKIPPED_STALE`, with no provider call and no event, for

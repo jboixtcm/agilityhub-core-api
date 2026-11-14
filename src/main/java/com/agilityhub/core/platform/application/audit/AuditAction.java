@@ -25,6 +25,11 @@ public enum AuditAction {
      * `details {batchId, recipientCount, filters, selection}` (E7-T07).
      */
     ANNOUNCEMENT_SENT,
+    /**
+     * S11 R-11-13 (COMM-07, owner decision 13-11-2026): «Reenvia els fallits» of an announcement, the failed e-mails of the batch
+     * queued again; an «event» action on the template, no `changes`, `details {batchId, resent}`.
+     */
+    ANNOUNCEMENT_RESENT,
     MIGRATION_APPLIED,
     PLATFORM_ROLES_CHANGED,
     ONBOARDING_COMPLETED,
