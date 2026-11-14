@@ -300,6 +300,8 @@ final class ArchitectureRules {
             "clubs.messaging.api.BrevoWebhookController.receive", "clubs.messaging.api.SendGridWebhookController.receive",
             "payments.api.StripeWebhookController.receiveStripeEvent",
             "clubs.messaging.api.EmailUnsubscribesController.unsubscribeEmail",
+            // COMM-08: the RFC 8058 one-click POST of the List-Unsubscribe header, authorised by the same signed token.
+            "clubs.messaging.api.EmailUnsubscribesController.unsubscribeEmailOneClick",
             // Internal chain (E10ContractConfiguration): loopback and private peers only (Caddy's ask and forward_auth).
             "platform.api.InternalDomainsController.allowed", "platform.api.InternalDomainsController.app");
 

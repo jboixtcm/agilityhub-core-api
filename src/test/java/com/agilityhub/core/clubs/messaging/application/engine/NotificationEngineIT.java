@@ -467,11 +467,15 @@ class NotificationEngineIT extends EngineFixtures {
         assertThat(news.dedupKey()).isEqualTo("batch-1:member-laura");
         assertThat(channels(news)).containsExactly("APP:DELIVERED", "EMAIL:SENT", "PUSH:SKIPPED_NO_CONTACT");
         var mailToLaura = mail.to("laura@example.test").getFirst();
+        // COMM-08 (RFC 8058): the header names the API's one-click URL with List-Unsubscribe-Post; the footer, the club app's page,
+        // with the same signed token (before COMM-08 the header named the page).
         String header = mailToLaura.headers().get("List-Unsubscribe");
-        assertThat(header).startsWith("<https://engine.example.test/comunicats/baixa?t=").endsWith(">").doesNotContain("laura@");
+        assertThat(header).startsWith("<https://engine.example.test/api/v1/email-unsubscribes/one-click?t=").endsWith(">").doesNotContain("laura@");
+        assertThat(mailToLaura.headers()).containsEntry("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
         String token = header.substring(header.indexOf("?t=") + 3, header.length() - 1);
         assertThat(unsubscribes.verify(token, CLUB)).isEqualTo(new UnsubscribeTokens.Claim(CLUB, "member-laura"));
-        assertThat(mailToLaura.html()).contains("Deixar de rebre aquests comunicats"); assertThat(mailToLaura.text()).contains("Deixar de rebre aquests comunicats: https://engine.example.test/");
+        assertThat(mailToLaura.html()).contains("Deixar de rebre aquests comunicats");
+        assertThat(mailToLaura.text()).contains("Deixar de rebre aquests comunicats: https://engine.example.test/comunicats/baixa?t=" + token);
         // A PERSONAL notice (N-09): no header, no footer.
         deliver(CLUB, "DogLevelChanged", Map.of("memberId", "member-laura", "dogId", "dog-duna", "levelName", "C"));
         assertThat(mail.to("laura@example.test")).hasSize(2).last().satisfies(m -> { assertThat(m.headers()).isEmpty(); assertThat(m.html()).doesNotContain("Deixar de rebre"); });

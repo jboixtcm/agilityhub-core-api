@@ -237,7 +237,8 @@ public class NotificationDispatcher {
         var settings = emailSettings.get(notification.clubId(), platformFrom);
         String origin = emailSettings.appOrigin(notification.clubId()).orElse(null);
         String memberId = notification.recipient() == null ? null : notification.recipient().memberId();
-        String unsubscribe = origin != null && memberId != null ? origin + "/comunicats/baixa?t=" + unsubscribes.issue(notification.clubId(), memberId) : null;
+        // R-11-08, COMM-08: the footer's page and the header's RFC 8058 one-click URL carry the same signed token.
+        var unsubscribe = origin != null && memberId != null ? NotificationEmailRenderer.Unsubscribe.of(origin, unsubscribes.issue(notification.clubId(), memberId)) : null;
         var tags = new LinkedHashMap<String, String>(); tags.put("clubId", notification.clubId()); tags.put("notificationId", notification.id());
         var message = emails.render(notification, delivery.target(), settings, app -> emailSettings.appOrigin(notification.clubId(), app).orElse(null), unsubscribe, tags);
         // N-01 retains only a marker. Issue the 24-hour capability in memory at delivery, never in the notification document.

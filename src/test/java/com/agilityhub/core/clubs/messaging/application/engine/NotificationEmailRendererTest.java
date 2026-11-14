@@ -51,22 +51,29 @@ class NotificationEmailRendererTest {
                 null, null, null, null, null, null, null, null, variables);
     }
 
+    /**
+     * COMM-08 (owner decision of 13 Nov 2026, RFC 8058): the header names the API's one-click URL, with `List-Unsubscribe-Post:
+     * List-Unsubscribe=One-Click`; the footer keeps the club app's page (a button press there). Before, the header named the page.
+     */
     @Test void T_11_23_clubNewsCarriesTheUnsubscribeFooterAndHeaderAndTransactionalMailsNever() {
-        String link = "https://app.example.test/comunicats/baixa?t=token-a";
+        var urls = NotificationEmailRenderer.Unsubscribe.of("https://app.example.test", "token-a");
+        String link = "https://app.example.test/comunicats/baixa?t=token-a", oneClick = "https://app.example.test/api/v1/email-unsubscribes/one-click?t=token-a";
+        assertThat(urls).isEqualTo(new NotificationEmailRenderer.Unsubscribe(link, oneClick));
         var news = renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, APP,
-                link, Map.of("clubId", "club-a", "notificationId", "notification-a"));
-        assertThat(news.headers()).containsExactly(Map.entry("List-Unsubscribe", "<" + link + ">"));
-        assertThat(news.html()).contains("Deixar de rebre aquests comunicats", link.replace("&", "&amp;"), "Respon a aquest correu per contactar amb el club.");
-        assertThat(news.text()).contains("Deixar de rebre aquests comunicats: " + link);
+                urls, Map.of("clubId", "club-a", "notificationId", "notification-a"));
+        assertThat(news.headers()).containsOnly(Map.entry("List-Unsubscribe", "<" + oneClick + ">"), Map.entry("List-Unsubscribe-Post", "List-Unsubscribe=One-Click"));
+        assertThat(news.html()).contains("Deixar de rebre aquests comunicats", link.replace("&", "&amp;"), "Respon a aquest correu per contactar amb el club.")
+                .doesNotContain("one-click");
+        assertThat(news.text()).contains("Deixar de rebre aquests comunicats: " + link).doesNotContain("one-click");
         // A PERSONAL (or any transactional) mail never carries it, even when a link is offered.
         for (var category : List.of(NotificationCategory.PERSONAL, NotificationCategory.OPERATIONAL, NotificationCategory.CLUB_CHANGES)) {
-            var personal = renderer.render(notification("N-09", category, "ca", null, null), "laura@example.test", SETTINGS, APP, link, Map.of());
+            var personal = renderer.render(notification("N-09", category, "ca", null, null), "laura@example.test", SETTINGS, APP, urls, Map.of());
             assertThat(personal.headers()).isEmpty(); assertThat(personal.html()).doesNotContain("Deixar de rebre", "baixa"); assertThat(personal.text()).doesNotContain("baixa");
         }
-        // A link that is not https (or carries credentials) is never written.
+        // A link that is not https (or carries credentials) is never written: neither the footer nor the header.
         var unsafe = renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, APP,
-                "http://app.example.test/x", Map.of());
-        assertThat(unsafe.headers()).isEmpty();
+                NotificationEmailRenderer.Unsubscribe.of("http://app.example.test", "x"), Map.of());
+        assertThat(unsafe.headers()).isEmpty(); assertThat(unsafe.text()).doesNotContain("baixa");
         assertThat(renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, NO_APP, null, Map.of()).headers()).isEmpty();
     }
 

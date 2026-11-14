@@ -60,7 +60,8 @@ class E7ContractIT extends AbstractIntegrationTest {
         boolean club() { return scope.equals("CLUB"); }
         /** E7-T02 implements the unsubscribe link (the fixture's token is not valid → 422), E7-T03 the rest but the send, E7-T04 the send. */
         boolean implemented() { return true; }
-        boolean unsubscribe() { return label().equals("POST /api/v1/email-unsubscribes"); }
+        /** The page's call and COMM-08's RFC 8058 one-click POST: both reject the fixture's token with 422. */
+        boolean unsubscribe() { return label().equals("POST /api/v1/email-unsubscribes") || label().equals("POST /api/v1/email-unsubscribes/one-click"); }
         int allowedStatus() { return unsubscribe() ? 422 : implemented() ? success : 501; }
         /** The error code of the allowed call, `null` when it succeeds. */
         String allowedCode() { return unsubscribe() ? "UNSUBSCRIBE_TOKEN_INVALID" : implemented() ? null : "NOT_IMPLEMENTED"; }
@@ -285,12 +286,13 @@ class E7ContractIT extends AbstractIntegrationTest {
             int status = mvc.perform(call(route, CLUB, "ANON")).andReturn().getResponse().getStatus();
             assertThat(status == 401).as(route.label() + " without a token → " + status).isEqualTo(!route.roles().contains("ANON"));
         }
-        assertThat(routes().filter(r -> r.roles().contains("ANON")).map(Route::label)).containsExactly("POST /api/v1/email-unsubscribes");
+        assertThat(routes().filter(r -> r.roles().contains("ANON")).map(Route::label)).containsExactly("POST /api/v1/email-unsubscribes",
+                "POST /api/v1/email-unsubscribes/one-click");
     }
 
     @Test void WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(23); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10; COMM-07: the resend
+        assertThat(routes().count()).isEqualTo(24); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10; COMM-07: the resend; COMM-08: the one-click POST
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
@@ -319,6 +321,14 @@ class E7ContractIT extends AbstractIntegrationTest {
         assertThat(api.at("/paths/~1api~1v1~1push-subscriptions/post/responses/422/description").asText()).contains("PUSH_SUBSCRIPTION_INVALID");
         assertThat(api.at("/paths/~1api~1v1~1me~1notification-preferences/put/responses/422/description").asText()).contains("INVALID_REMINDER_OPTION");
         assertThat(api.at("/paths/~1api~1v1~1email-unsubscribes/post/responses/422/description").asText()).contains("UNSUBSCRIBE_TOKEN_INVALID");
+        // COMM-08 (RFC 8058): the one-click POST takes the token in the query and the form body List-Unsubscribe=One-Click.
+        var oneClick = api.at("/paths/~1api~1v1~1email-unsubscribes~1one-click/post");
+        assertThat(oneClick.path("responses").path("422").path("description").asText()).contains("UNSUBSCRIBE_TOKEN_INVALID");
+        assertThat(oneClick.path("responses").path("400").path("description").asText()).contains("VALIDATION_ERROR");
+        assertThat(oneClick.path("parameters").findValuesAsText("name")).containsExactly("t");
+        assertThat(oneClick.path("parameters").get(0).path("in").asText()).isEqualTo("query");
+        assertThat(oneClick.path("requestBody").path("content").fieldNames()).toIterable()
+                .containsExactlyInAnyOrder("application/x-www-form-urlencoded", "multipart/form-data");
         // The log: a universal list, exportable, and its export publishes the same contract (S14 R-14-12).
         var log = api.at("/paths/~1api~1v1~1notifications/get");
         assertThat(strings(log.path("x-filterable"))).containsExactly("code", "category", "channel", "status", "memberId", "createdAt");

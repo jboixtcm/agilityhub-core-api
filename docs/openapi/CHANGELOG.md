@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · COMM-08 · RFC 8058 one-click unsubscribe
+
+**1 operation added (`POST /email-unsubscribes/one-click`); 1 schema added (`EmailOneClickUnsubscribeForm`, its form body); no error codes added.**
+
+- New `POST /email-unsubscribes/one-click?t={token}` (ANON, `security: []`; the club comes from the host; no `Idempotency-Key`): the URL a `CLUB_NEWS` e-mail's `List-Unsubscribe` header now names, with `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058). The mailbox provider posts the form body `List-Unsubscribe=One-Click` (`application/x-www-form-urlencoded` or `multipart/form-data`) with the signed token of the mail in `t`; it answers `200 EmailUnsubscribeResult {category: CLUB_NEWS}` and does what `POST /email-unsubscribes` does with that token (a repeat changes nothing). Another body or no token → `400 VALIDATION_ERROR`; an expired, tampered or another club's token → `422 UNSUBSCRIBE_TOKEN_INVALID`. It shares the anonymous rate limit of `POST /email-unsubscribes`. The mail's footer link still opens the club app's page `/comunicats/baixa?t=…`, which calls `POST /email-unsubscribes`.
+
 ## 2026-11-14 · COMM-07 · «Reenvia els fallits» of an announcement
 
 **1 operation added (`POST /announcements/{batchId}/resend-failed`); 1 schema added (`AnnouncementResendResult`); 1 enum value added (`AuditAction`: `ANNOUNCEMENT_RESENT`); no error codes added.**

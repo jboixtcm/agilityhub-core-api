@@ -222,4 +222,8 @@ public final class MessagingContracts {
     public record PushSubscriptionCreated(String id) { }
     public record EmailUnsubscribeRequest(@NotBlank @Schema(description = "The signed token of the «Deixar de rebre aquests comunicats» link (30 days)") String token) { }
     public record EmailUnsubscribeResult(@Schema(description = "The category whose e-mail was turned off: always CLUB_NEWS") NotificationCategory category) { }
+    /** COMM-08 (RFC 8058 §3.2): the form body a mailbox provider posts to the one-click URL of the `List-Unsubscribe` header. */
+    @Schema(description = "RFC 8058 one-click body, form-encoded or multipart: exactly List-Unsubscribe=One-Click")
+    public record EmailOneClickUnsubscribeForm(@JsonProperty("List-Unsubscribe") @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = "One-Click")
+            String listUnsubscribe) { }
 }

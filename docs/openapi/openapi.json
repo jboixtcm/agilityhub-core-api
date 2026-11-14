@@ -9132,6 +9132,17 @@
         "required" : [ ],
         "type" : "object"
       },
+      "EmailOneClickUnsubscribeForm" : {
+        "description" : "RFC 8058 one-click body, form-encoded or multipart: exactly List-Unsubscribe=One-Click",
+        "properties" : {
+          "List-Unsubscribe" : {
+            "enum" : [ "One-Click" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "List-Unsubscribe" ],
+        "type" : "object"
+      },
       "EmailUnsubscribeRequest" : {
         "properties" : {
           "token" : {
@@ -46768,6 +46779,170 @@
         },
         "security" : [ ],
         "summary" : "unsubscribeEmail",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/email-unsubscribes/one-click" : {
+      "post" : {
+        "description" : "Roles: ANON (any caller; the token authorises). COMM-08, RFC 8058 one-click: the URL of a CLUB_NEWS e-mail's List-Unsubscribe header, sent with List-Unsubscribe-Post: List-Unsubscribe=One-Click. The mailbox provider posts the form body List-Unsubscribe=One-Click (application/x-www-form-urlencoded or multipart/form-data) with the signed token in the query (t); no cookie or bearer is read. It does what POST /email-unsubscribes does with the same token: emailByCategory.CLUB_NEWS off, EmailUnsubscribed{memberId} once; using it again changes nothing. A missing token or a body other than List-Unsubscribe=One-Click → VALIDATION_ERROR (400); an expired, tampered or another club's token → UNSUBSCRIBE_TOKEN_INVALID (422). The club comes from the host.",
+        "operationId" : "unsubscribeEmailOneClick",
+        "parameters" : [ {
+          "description" : "The signed token of the List-Unsubscribe URL (30 days)",
+          "in" : "query",
+          "name" : "t",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/x-www-form-urlencoded" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EmailOneClickUnsubscribeForm"
+              }
+            },
+            "multipart/form-data" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EmailOneClickUnsubscribeForm"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EmailUnsubscribeResult"
+                }
+              }
+            },
+            "description" : "EmailUnsubscribeResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "UNSUBSCRIBE_TOKEN_INVALID"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "unsubscribeEmailOneClick",
         "tags" : [ "clubs.messaging" ]
       }
     },

@@ -1271,6 +1271,15 @@ from the environment ([.env.example](../.env.example)); none is ever logged.
 | `EMAIL_UNSUBSCRIBE_KEY` | HMAC key (base64, 32 bytes) of the signed 30-day «Deixar de rebre aquests comunicats» links of `CLUB_NEWS` mails (`List-Unsubscribe`). Required in staging/prod. |
 | `ANNOUNCEMENT_EMAILS_PER_MINUTE` | COMM-07: the pace of announcement e-mails, per clock minute (default 60, at least 1); the next ones wait `QUEUED` for the following minute. Set it from the e-mail provider's plan. |
 
+COMM-08 (owner decision of 13 November 2026, RFC 8058): a `CLUB_NEWS` mail's
+`List-Unsubscribe` header names `https://<club app host>/api/v1/email-unsubscribes/one-click?t=…`
+with `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, so Gmail and Yahoo offer their
+one-click unsubscribe; the provider's anonymous `POST` reaches the API through the club
+host's `/api/*` proxy (no Caddy change). The footer link still opens the club app's page.
+Mailbox providers honour the one-click header only on DKIM-signed mail whose signature
+covers both headers: check in Brevo that the sending domain is authenticated (DKIM) and
+send a test announcement to a Gmail address to see «Unsubscribe» next to the sender.
+
 COMM-02 (owner decision of 13 November 2026): the seat-released notice (N-15) also
 goes by e-mail, like the class reminder (N-13), to members whose «Operativa» e-mail
 preference is on. A club's stored templates keep their channel matrix (the start-up

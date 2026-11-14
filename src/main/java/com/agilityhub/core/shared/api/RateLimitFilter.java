@@ -137,7 +137,8 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         if (path.startsWith("/oauth2/") || path.startsWith("/.well-known/") || path.equals("/connect/logout")
                 || path.equals("/api/v1/manifest.webmanifest") || path.equals("/api/v1/signup")
                 || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/")
-                || path.equals("/api/v1/email-unsubscribes") || path.startsWith("/api/v1/checkout-sessions/")) {
+                || path.equals("/api/v1/email-unsubscribes") || path.equals("/api/v1/email-unsubscribes/one-click")
+                || path.startsWith("/api/v1/checkout-sessions/")) {
             return Route.ANONYMOUS;
         }
         // CFG-14 (owner decision 13-11-2026, CONVENCIONS_API §9): every other authenticated API route counts in the account's own

@@ -157,7 +157,7 @@ class NotificationSeedSnapshotTest {
                     var action = spec.action(audience) == null ? null : new Notification.Action(spec.action(audience), ACTION_PARAMS);
                     var notification = new Notification("snapshot-" + spec.code(), "club-a", spec.code(), spec.category(), null, null, null, null, "d", audience, null, language, null,
                             spec.icon(), spec.color(), rendered.title(), rendered.body(), null, action, List.of(), null, NOW, null, null, null, null, null, null, null, null, variables);
-                    String unsubscribe = spec.category() == NotificationCategory.CLUB_NEWS ? "https://app.example.test/comunicats/baixa?t=exemple" : null;
+                    var unsubscribe = spec.category() == NotificationCategory.CLUB_NEWS ? NotificationEmailRenderer.Unsubscribe.of("https://app.example.test", "exemple") : null;
                     var mail = emails.render(notification, "laura@example.test", settings, app -> "https://app.example.test", unsubscribe, Map.of());
                     assertThat(mail.subject()).isEqualTo(rendered.title());
                     assertThat(mail.html()).contains("<h1", "Club Agility Exemple").doesNotContain(" th:", "[[", "{");

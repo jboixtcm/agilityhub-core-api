@@ -19,7 +19,7 @@ class AnonymousRateLimitsTest {
     @ParameterizedTest
     @CsvSource({
         "GET,/.well-known/jwks.json", "GET,/.well-known/openid-configuration", "GET,/oauth2/jwks",
-        "GET,/oauth2/authorize", "GET,/connect/logout", "POST,/api/v1/email-unsubscribes",
+        "GET,/oauth2/authorize", "GET,/connect/logout", "POST,/api/v1/email-unsubscribes", "POST,/api/v1/email-unsubscribes/one-click",
         "POST,/api/v1/auth/handoff", "GET,/api/v1/manifest.webmanifest", "GET,/api/v1/signup",
         "GET,/api/v1/country-profile", "GET,/api/v1/country-profile/postal-codes/00000",
         "GET,/api/v1/checkout-sessions/example", "POST,/webhooks/email/sendgrid", "POST,/webhooks/email/brevo", "POST,/webhooks/stripe/example",

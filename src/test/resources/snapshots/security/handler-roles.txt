@@ -311,6 +311,7 @@ POST /api/v1/dogs/{id}/documents/reminder | hasRole('ADMIN') and principal.claim
 POST /api/v1/dogs/{id}/reactivation | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.DogsController.reactivationDog
 POST /api/v1/dogs/{id}/transfer | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.DogsController.transferDog
 POST /api/v1/email-unsubscribes | none | clubs.messaging.api.EmailUnsubscribesController.unsubscribeEmail
+POST /api/v1/email-unsubscribes/one-click | none | clubs.messaging.api.EmailUnsubscribesController.unsubscribeEmailOneClick
 POST /api/v1/family-groups | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.census.api.FamilyGroupsController.createFamilyGroup
 POST /api/v1/faq-entries | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.catalogs.api.CatalogsController.createFaq
 POST /api/v1/followup/read-all | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.followup.api.FollowupController.readAllFollowup
