@@ -20,7 +20,8 @@ import static org.mockito.Mockito.*;
 class BillingSimulationServiceSurvivors2Test {
     final BillingSimulationService service = new BillingSimulationService(mock(InvoicingService.class), mock(BillingSimulationRepository.class),
             mock(BillingLockRepository.class), mock(BillingEvents.class), mock(BillingTransactions.class), mock(BillingProviderSettings.class),
-            Clock.fixed(BillingSimulationServiceSurvivorsTest.NOW, ZoneOffset.UTC));
+            Clock.fixed(BillingSimulationServiceSurvivorsTest.NOW, ZoneOffset.UTC),
+            mock(com.agilityhub.core.payments.persistence.BillingDocuments.BillingRunRepository.class));
 
     @Test void T_12_09_theInactivityKpiCountsTheInactivityLinesAndNotTheOthers() {
         var draft = new InvoicingRules.Draft("member-cash", List.of(BillingSimulationServiceSurvivorsTest.line(InvoiceLineOrigin.MONTHLY_FEE, 4500),

@@ -55,7 +55,7 @@ public class BillingController {
     @Operation(summary = "billingPeriod", description = ROLES + "D6's month (`?mes=YYYY-MM`): its last simulation (step 1), its live run — else its "
             + "last rolled-back one — with rollbackable and rollbackBlockers computed now (R-12-14), its remittance and the chip counts (all, "
             + "pending = PENDING, remitted = COLLECTING, paid, failed). A month is not a stored resource: every club reads its own, null parts until "
-            + "they exist. period not YYYY-MM → 400 VALIDATION_ERROR." + SERVED,
+            + "they exist; the simulation carries its comparison with the previous month's run (SEPA-10). period not YYYY-MM → 400 VALIDATION_ERROR." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "BillingPeriod", useReturnTypeSchema = true))
     public BillingPeriod billingPeriod(@PathVariable @Schema(pattern = BillingContracts.MONTH) String period) {
         access.tenant();
@@ -74,7 +74,10 @@ public class BillingController {
             + "and is not remitted. A month more than three months ahead "
             + "→ 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY. "
             + "Two prices of one plan and concept valid on the issue date (a legacy twin, INC-68) → 409 PRICE_OVERLAP "
-            + "{planId, concept, priceId, conflictingPriceId}: no price is chosen." + SERVED,
+            + "{planId, concept, priceId, conflictingPriceId}: no price is chosen. SEPA-10: comparison holds the total of the previous month's "
+            + "live run (previousTotal, null without one), the difference and its percentage, thresholdPercent (billing.totalDifferenceConfirmPercent) "
+            + "and secondConfirmationRequired — the difference, up or down, is above the threshold or there is nothing to compare with — which "
+            + "D6's generate confirmation uses to ask a second explicit confirmation." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingSimulation", useReturnTypeSchema = true))
     public BillingSimulation simulateBilling(@Valid @RequestBody SimulationRequest request) {
         access.tenant();
@@ -102,7 +105,8 @@ public class BillingController {
             + "COLLECTION_DATE_TOO_SOON {requested, earliest} (earliest is a business day). Nothing to bill → 422 NO_INVOICES; SEPA "
             + "members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). Two prices of one plan and concept valid on the issue "
             + "date (INC-68) → 409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}, nothing written. The same Idempotency-Key "
-            + "answers the same run." + SERVED,
+            + "answers the same run. D6 calls it after its confirmation, and after a second explicit one when the simulation's "
+            + "comparison.secondConfirmationRequired (SEPA-10); the request does not carry either." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingRunResult", useReturnTypeSchema = true))
     public BillingRunResult createBillingRun(@Valid @RequestBody BillingRunRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {

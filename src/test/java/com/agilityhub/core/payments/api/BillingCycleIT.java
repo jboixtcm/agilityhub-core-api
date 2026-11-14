@@ -759,6 +759,49 @@ class BillingCycleIT extends BillingItSupport {
         assertThat(result.at("/remittance/requestedCollectionDate").asText()).isEqualTo("2027-01-04");
     }
 
+    /**
+     * SEPA-10 (owner decision of 13-11-2026, R-12-07/11): the simulation compares its total with the previous month's live run and says
+     * when D6 must ask a second explicit confirmation: above `billing.totalDifferenceConfirmPercent` (20 %), or with nothing to compare.
+     */
+    @Test void SEPA_10_theSimulationComparesItsTotalWithThePreviousMonthsRunAndSaysWhenToAskTwice() throws Exception {
+        // September: no August run, so nothing to compare with and the second confirmation is asked.
+        var september = simulate("2026-09");
+        var first = september.path("comparison");
+        assertThat(first.path("previousPeriod").asText()).isEqualTo("2026-08");
+        assertThat(first.path("previousTotal").isNull()).isTrue();
+        assertThat(first.path("difference").isNull()).isTrue();
+        assertThat(first.path("differencePercent").isNull()).isTrue();
+        assertThat(first.path("thresholdPercent").asInt()).isEqualTo(20);
+        assertThat(first.path("secondConfirmationRequired").asBoolean()).isTrue();
+        var run = run("2026-09", september.path("id").asText()).path("run");
+        long previous = 0;
+        for (var provider : run.path("byProvider")) { previous += provider.at("/total/amountMinor").asLong(); }
+        assertThat(previous).isEqualTo(116_400);
+        // October against September's run: its total, the signed difference and its percentage; far below September, so asked twice.
+        var october = simulate("2026-10");
+        long total = october.at("/kpis/total/amountMinor").asLong();
+        var comparison = october.path("comparison");
+        assertThat(comparison.path("previousPeriod").asText()).isEqualTo("2026-09");
+        assertThat(comparison.at("/previousTotal/amountMinor").asLong()).isEqualTo(116_400);
+        assertThat(comparison.at("/difference/amountMinor").asLong()).isEqualTo(total - 116_400);
+        assertThat(comparison.path("differencePercent").decimalValue()).isEqualByComparingTo(java.math.BigDecimal.valueOf(total - 116_400)
+                .multiply(java.math.BigDecimal.valueOf(100)).divide(java.math.BigDecimal.valueOf(116_400), 1, java.math.RoundingMode.HALF_UP));
+        assertThat(Math.abs(total - 116_400) * 100).isGreaterThan(20L * 116_400);
+        assertThat(comparison.path("secondConfirmationRequired").asBoolean()).isTrue();
+        // D6's month shows the same comparison.
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-10")), 200).at("/simulation/comparison")).isEqualTo(comparison);
+        // A threshold that covers the difference: no second confirmation (the parameter change asks for a new simulation).
+        parameter(CLUB, "billing.totalDifferenceConfirmPercent", 100);
+        var covered = simulate("2026-10").path("comparison");
+        assertThat(covered.path("thresholdPercent").asInt()).isEqualTo(100);
+        assertThat(covered.path("secondConfirmationRequired").asBoolean()).isFalse();
+        // A rolled-back September is no previous total: asked twice again.
+        ok(admin(keyed(post("/api/v1/billing/runs/" + run.path("id").asText() + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        var alone = simulate("2026-10").path("comparison");
+        assertThat(alone.path("previousTotal").isNull()).isTrue();
+        assertThat(alone.path("secondConfirmationRequired").asBoolean()).isTrue();
+    }
+
     @Test void T_12_32_aManualOnlyClubGetsPendingInvoicesWithoutRemittanceAndTheTextsAreFrozenInTheClubsLanguage() throws Exception {
         club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), providers(false, true, false));
         mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("paymentMethod.type").is("SEPA_DD")), new Update().set("paymentMethod", new Document(cash())), "members");

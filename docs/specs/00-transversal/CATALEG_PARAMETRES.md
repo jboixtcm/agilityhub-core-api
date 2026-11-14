@@ -181,6 +181,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `billing.upfrontCutoffDay` | int | 25 | dia límit per demanar una alta o un gos nou «per al mes següent» i pagar només l'entrada (Josep 08-09); coincideix amb `inactivity.requestDeadlineDay` | Quotes i remesa | S04, S12 |
 | `billing.packToMemberEntryDiscountPercent` · `billing.packToMemberMinSessions` | int · int | 40 · 10 | descompte d'entrada en passar de pack a abonat, si el pack tenia ≥ 10 sessions (Josep 08-09) | Quotes i remesa | S05, S04 |
 | `billing.sepa.settlementBusinessDays` | int | 5 | Quotes i remesa | S12 R-12-15 (SEPA-04, propietari 13-11-2026: P5i dona per cobrats els rebuts d'una remesa enviada aquest nombre de dies hàbils TARGET després de la seva data de cobrament, no el mateix dia; `0` = el dia de cobrament; 0–40) |
+| `billing.totalDifferenceConfirmPercent` | int | 20 | Quotes i remesa | S12 R-12-11 (SEPA-10, propietari 13-11-2026: en generar el mes, si el total simulat difereix del total del run del mes anterior més d'aquest percentatge, o no hi ha mes anterior per comparar, D6 demana una segona confirmació explícita; 0–100) |
 | `billing.stripeMaxAttempts` | int | 3 | Quotes i remesa | S12 |
 | `billing.remittanceReminderDay` | int (0 = mai) | 22 | Quotes i remesa | S12/S15 |
 | `inactivity.maxStartMonthsAhead` | int | 12 | Quotes i remesa | S13 |

@@ -168,9 +168,22 @@ public final class BillingContracts {
             InactivityFees inactivityFees,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Default collection date: the day of the billed month, or the next TARGET business day when that day is not one "
                     + "(SEPA-05), club-local; null for a simulation stored before E90") LocalDate collectionDate) { }
+    @Schema(description = "SEPA-10 (R-12-11): the simulated total (kpis.total) against the total of the previous month's live run, as simulated. "
+            + "D6's generate confirmation shows it and, when secondConfirmationRequired, asks for a second explicit confirmation before POST "
+            + "/billing/runs: the difference, up or down, is more than thresholdPercent of previousTotal, or there is no previous total to compare with")
+    public record SimulationComparison(@Schema(pattern = MONTH, description = "The month before the simulated one") String previousPeriod,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The previous month's live run total over all its providers; null "
+                    + "without one (or in another currency)") Money previousTotal,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "kpis.total − previousTotal, signed; null without previousTotal") Money difference,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "difference as a percentage of previousTotal, one decimal, signed; null "
+                    + "without a positive previousTotal") BigDecimal differencePercent,
+            @Schema(minimum = "0", maximum = "100", description = "billing.totalDifferenceConfirmPercent when simulated") int thresholdPercent,
+            boolean secondConfirmationRequired) { }
     @Schema(description = "S12 §6 simulation JSON (R-12-07) plus its id, which POST /billing/runs names; only the last one per month is kept")
     public record BillingSimulation(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String period, Instant at, List<BillingIncident> incidents,
-            List<CashMember> cashMembers, SimulationKpis kpis, List<InvoicePreview> invoicesPreview) { }
+            List<CashMember> cashMembers, SimulationKpis kpis, List<InvoicePreview> invoicesPreview,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "SEPA-10; absent for a simulation stored "
+                    + "before it: D6 asks the second confirmation") SimulationComparison comparison) { }
     @Schema(description = "S12 §3 BillingRun. rollbackable and rollbackBlockers are computed at read (R-12-14); skipped = the members with an incident")
     public record BillingRun(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String period, BillingRunStatus status,
             @Schema(format = "uuid") String simulationId, List<String> invoiceIds, ByProvider byProvider,
@@ -185,7 +198,9 @@ public final class BillingContracts {
     public record CardChargesResult(@Schema(minimum = "0") int submitted, List<CardChargeSkip> skipped) { }
     public record RollbackResult(@Schema(minimum = "0") int cancelledInvoices, @Schema(minimum = "0") int restoredMembers) { }
     @Schema(description = "GET /billing/periods/{period}: the simulation of D6's step 1")
-    public record PeriodSimulation(@Schema(format = "uuid") String id, Instant at, SimulationKpis kpis, List<BillingIncident> incidents, List<CashMember> cashMembers) { }
+    public record PeriodSimulation(@Schema(format = "uuid") String id, Instant at, SimulationKpis kpis, List<BillingIncident> incidents, List<CashMember> cashMembers,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "SEPA-10; absent for a simulation stored "
+                    + "before it: D6 asks the second confirmation") SimulationComparison comparison) { }
     public record PeriodRun(@Schema(format = "uuid") String id, BillingRunStatus status, ByProvider byProvider, boolean rollbackable,
             List<RollbackBlocker> rollbackBlockers) { }
     @Schema(description = "requestedCollectionDate: the remittance's collection date (club-local). submissionDue (E147, E11-T15): still GENERATED and the "

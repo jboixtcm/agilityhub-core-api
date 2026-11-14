@@ -314,6 +314,8 @@
   "billing.sepa.useFrst": false,
   "billing.sepa.schema": "pain.008.001.02",
   "billing.sepa.collectionDayOfMonth": 1,
+  "billing.sepa.settlementBusinessDays": 5,
+  "billing.totalDifferenceConfirmPercent": 20,
   "billing.stripeMaxAttempts": 3,
   "billing.remittanceReminderDay": 22,
   "inactivity.maxStartMonthsAhead": 12,

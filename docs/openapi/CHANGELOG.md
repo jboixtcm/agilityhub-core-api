@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · SEPA-10 · The simulation compares its total with the previous month's run
+
+**No operations or error codes added; 1 schema added (`SimulationComparison`); `BillingSimulation` and `PeriodSimulation` gain an optional `comparison`; 3 operation descriptions changed (`POST /billing/simulations`, `GET /billing/periods/{period}`, `POST /billing/runs`); 1 parameter added (`billing.totalDifferenceConfirmPercent`, int, 20, 0–100, club-editable).**
+
+- `POST /billing/simulations` and `GET /billing/periods/{period}` (`simulation`): `comparison {previousPeriod, previousTotal?, difference?, differencePercent?, thresholdPercent, secondConfirmationRequired}` — the total of the previous month's live run over all its providers (null without one, or in another currency), the signed difference with `kpis.total` and its percentage of the previous total (one decimal), the club's `billing.totalDifferenceConfirmPercent` when simulated, and whether D6's generate confirmation must ask a second explicit confirmation (the difference, up or down, is above the threshold, or there is no previous total). Absent for a simulation stored before this change. `POST /billing/runs` is unchanged: the confirmations are the dialog's.
+
 ## 2026-11-14 · SEPA-09 · The accounting export adds the last collection's status and the return date
 
 **No operations, schemas or error codes added; 1 operation description changed (`GET /billing/exports`).**

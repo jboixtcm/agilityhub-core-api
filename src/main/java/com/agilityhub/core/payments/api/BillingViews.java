@@ -49,7 +49,17 @@ final class BillingViews {
                 cash(simulation), kpis(simulation.kpis()),
                 simulation.invoicesPreview().stream().map(preview -> new InvoicePreview(preview.memberId(), preview.memberName(), preview.paymentMethodType(),
                         preview.lines().stream().map(line -> new PreviewLine(line.origin(), line.description(), line.total())).toList(), preview.total(),
-                        preview.invoiceId(), preview.displayNumber())).toList());
+                        preview.invoiceId(), preview.displayNumber())).toList(), comparison(simulation));
+    }
+    /** SEPA-10 (R-12-11): the stored comparison with its difference and percentage; null for a simulation stored before it. */
+    static SimulationComparison comparison(BillingSimulation simulation) {
+        var comparison = simulation.comparison();
+        if (comparison == null) { return null; }
+        var total = simulation.kpis().total(); var previous = comparison.previousTotal();
+        var difference = previous == null ? null : new com.agilityhub.core.shared.domain.Money(total.amountMinor() - previous.amountMinor(), total.currency());
+        return new SimulationComparison(comparison.previousPeriod(), previous, difference,
+                com.agilityhub.core.payments.domain.TotalComparison.percent(previous == null ? null : previous.amountMinor(), total.amountMinor()),
+                comparison.thresholdPercent(), comparison.secondConfirmationRequired());
     }
     static List<BillingIncident> incidents(List<BillingSimulation.Incident> incidents) {
         return incidents.stream().map(incident -> new BillingIncident(incident.memberId(), incident.memberName(), incident.code(), incident.invoiceId(), incident.displayNumber())).toList();
@@ -120,7 +130,7 @@ final class BillingViews {
             }
         }
         return new BillingPeriod(period.period().toString(), simulation == null ? null : new PeriodSimulation(simulation.id(), simulation.at(),
-                kpis(simulation.kpis()), incidents(simulation.incidents()), cash(simulation)), run, remittance,
+                kpis(simulation.kpis()), incidents(simulation.incidents()), cash(simulation), comparison(simulation)), run, remittance,
                 new InvoiceCounts(all, counts.getOrDefault("PENDING", 0L), counts.getOrDefault("COLLECTING", 0L), counts.getOrDefault("PAID", 0L),
                         counts.getOrDefault("FAILED", 0L)));
     }
