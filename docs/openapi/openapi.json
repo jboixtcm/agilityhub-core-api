@@ -83050,7 +83050,7 @@
     },
     "/api/v1/remittances" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6 «Remeses»: the club's remittances, universal list (CONVENCIONS_API §4), newest creationAt first, filters period and status; no free-text search (a q → 400 INVALID_FILTER). A row: month, creation date, collection date, invoice count, total, status, fileAvailable (the XML can be downloaded) and submittedAt. A rolled-back remittance stays listed with its file (R-12-14). A club without SEPA_XML has none: an empty page, never an error (R-12-28). Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6 «Remeses»: the club's remittances, universal list (CONVENCIONS_API §4), newest creationAt first, filters period and status; no free-text search (a q → 400 INVALID_FILTER). A row: month, creation date, collection date, invoice count, total, status, fileAvailable (the XML can be downloaded) and submittedAt. A rolled-back remittance stays listed with its file (R-12-14), whose download is named as cancelled (SEPA-06). A club without SEPA_XML has none: an empty page, never an error (R-12-28). Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "remittances",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -83415,7 +83415,7 @@
     },
     "/api/v1/remittances/{id}/file" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. [Descarrega l'XML]: a signed URL of the pain.008 file valid for five minutes (also of a ROLLED_BACK one, whose file is kept); its download answers Content-Type application/xml and Content-Disposition attachment; filename=\"remesa-{period}.xml\" (CONVENCIONS_API §5) and authorises itself (no bearer). Issuing the link is the file access, audited DATA_EXPORTED. A remittance without a file → 404. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. [Descarrega l'XML]: a signed URL of the pain.008 file valid for five minutes (also of a ROLLED_BACK one, whose file is kept); its download answers Content-Type application/xml and Content-Disposition attachment; filename=\"remesa-{period}-{seq}.xml\" (CONVENCIONS_API §5), seq being the sequence of the remittance's MsgId ({clubSlug}-{period}-{seq}), so a month generated again after a rollback never reuses a name (SEPA-06); a ROLLED_BACK remittance's is remesa-{period}-{seq}-ANULLADA-NO-PUJAR.xml (cancelled, do not upload it to the bank). fileName is that name. The download authorises itself (no bearer). Issuing the link is the file access, audited DATA_EXPORTED. A remittance without a file → 404. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "remittanceFile",
         "parameters" : [ {
           "in" : "path",
@@ -83721,7 +83721,7 @@
     },
     "/api/v1/remittances/{id}/spreadsheet" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Excel file with one row per bank debit, from the stored remittance.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Excel file with one row per bank debit, from the stored remittance, named remesa-{period}-{seq}.xlsx as its XML (SEPA-06: seq is the MsgId's; a ROLLED_BACK one's name ends -ANULLADA-NO-PUJAR).",
         "operationId" : "spreadsheet",
         "parameters" : [ {
           "in" : "path",

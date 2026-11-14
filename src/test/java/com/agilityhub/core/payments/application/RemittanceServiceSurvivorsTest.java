@@ -53,10 +53,30 @@ class RemittanceServiceSurvivorsTest {
         verify(files, never()).open(any());
     }
 
+    /** SEPA-06 (owner decision of 13-11-2026): the sequence of the MsgId names the file, and a rolled-back one is named cancelled. */
+    @Test void SEPA_06_eachRemittanceFileIsNamedAfterItsMessageSequenceAndARolledBackOneIsNamedCancelled() {
+        assertThat(RemittanceService.fileName(remittance("r-1", "example-club-2026-10-1", RemittanceStatus.GENERATED))).isEqualTo("remesa-2026-10-1.xml");
+        assertThat(RemittanceService.fileName(remittance("r-1", "example-club-2026-10-1", RemittanceStatus.SUBMITTED), "xlsx")).isEqualTo("remesa-2026-10-1.xlsx");
+        assertThat(RemittanceService.fileName(remittance("r-1", "example-club-2026-10-1", RemittanceStatus.ROLLED_BACK)))
+                .isEqualTo("remesa-2026-10-1-ANULLADA-NO-PUJAR.xml");
+        assertThat(RemittanceService.fileName(remittance("r-1", "example-club-2026-10-1", RemittanceStatus.ROLLED_BACK), "xlsx"))
+                .isEqualTo("remesa-2026-10-1-ANULLADA-NO-PUJAR.xlsx");
+        // The month generated again after the rollback: the next sequence, another name; a slug cut to fit keeps the sequence.
+        assertThat(RemittanceService.fileName(remittance("r-2", "example-club-2026-10-12", RemittanceStatus.GENERATED))).isEqualTo("remesa-2026-10-12.xml");
+        assertThat(RemittanceService.fileName(remittance("r-3", "a-very-long-club-sl-2026-10-2", RemittanceStatus.GENERATED))).isEqualTo("remesa-2026-10-2.xml");
+        // Without a MsgId the remittance's id stands for the sequence.
+        assertThat(RemittanceService.fileName(remittance("r-4", null, RemittanceStatus.GENERATED))).isEqualTo("remesa-2026-10-r-4.xml");
+    }
+
     // --- fixture ------------------------------------------------------------------------------------------------------------
 
     static void assertCode(ThrowingCallable call, ErrorCode code) {
         assertThatThrownBy(call).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(code));
+    }
+
+    static Remittance remittance(String id, String messageId, RemittanceStatus status) {
+        return new Remittance(id, CLUB, "run-1", "2026-10", messageId, NOW, "2026-10-01", null, List.of(), 0,
+                new Money(0, "EUR"), null, "remittances/" + id + ".xml", null, null, status, null, null, 1L, NOW, null);
     }
 
     static Remittance remittance(String id, String fileKey) {

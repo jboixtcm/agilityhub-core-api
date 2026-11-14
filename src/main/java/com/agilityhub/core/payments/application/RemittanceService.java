@@ -31,8 +31,9 @@ import org.springframework.stereotype.Service;
  *
  * <ul>
  * <li>{@link #file}: a link of {@value #LINK_MINUTES} minutes to the pain.008 file, a rolled-back remittance's too (its file is
- * kept, R-12-14), named `remesa-{period}.xml`. Issuing it is the file access, audited `DATA_EXPORTED` (S14 R-14-09: a read is
- * audited only when it exports); on S3 the download itself never reaches the api.</li>
+ * kept, R-12-14), named by {@link #fileName}: `remesa-{period}-{seq}.xml`, a rolled-back one marked cancelled (SEPA-06). Issuing
+ * it is the file access, audited `DATA_EXPORTED` (S14 R-14-09: a read is audited only when it exports); on S3 the download itself
+ * never reaches the api.</li>
  * <li>{@link #download}: the local store's signed route (CONVENCIONS_API §5, A31), which authorises itself: the signature over
  * the club, the route and the expiry is checked first, then the club is opened as the tenant.</li>
  * <li>{@link #submit}: R-12-15 [Marca com a enviada al banc], `GENERATED → SUBMITTED` with the club-local day the file went to the
@@ -146,8 +147,20 @@ public class RemittanceService {
         return List.copyOf(changed);
     }
 
-    /** `remesa-{period}.xml` (S12 §2 «Descarrega l'XML»). */
-    static String fileName(Remittance remittance) { return "remesa-" + remittance.period() + ".xml"; }
+    /** SEPA-06: what a rolled-back remittance's file name adds — cancelled, do not upload it to the bank. */
+    public static final String CANCELLED = "-ANULLADA-NO-PUJAR";
+    /**
+     * S12 §2 «Descarrega l'XML» (SEPA-06, owner decision of 13-11-2026): `remesa-{period}-{seq}.{extension}`, `seq` being the
+     * sequence of the remittance's `MsgId` (`{clubSlug}-{period}-{seq}`, one more for each remittance of the month, rolled-back
+     * ones included), so a month generated again after a rollback never reuses a name; a `ROLLED_BACK` remittance's adds
+     * {@value #CANCELLED}. Without a `MsgId` the remittance's id stands for the sequence.
+     */
+    public static String fileName(Remittance remittance, String extension) {
+        String messageId = remittance.messageId();
+        String sequence = messageId == null || messageId.isBlank() ? remittance.id() : messageId.substring(messageId.lastIndexOf('-') + 1);
+        return "remesa-" + remittance.period() + "-" + sequence + (remittance.status() == RemittanceStatus.ROLLED_BACK ? CANCELLED : "") + "." + extension;
+    }
+    static String fileName(Remittance remittance) { return fileName(remittance, "xml"); }
     /** The local store's self-authorising route of a remittance's file (see {@link #download}). */
     public static String localPath(String club, String id) { return "/api/v1/remittances/files/" + club + "/" + id; }
 }

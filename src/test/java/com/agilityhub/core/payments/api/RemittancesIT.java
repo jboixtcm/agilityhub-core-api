@@ -34,7 +34,11 @@ class RemittancesIT extends BillingItSupport {
     JsonNode generate() throws Exception { return run("2026-09", simulate("2026-09").path("id").asText()); }
     MockHttpServletResponse download(String remittanceId) throws Exception {
         var link = ok(admin(get("/api/v1/remittances/" + remittanceId + "/file")), 200);
-        assertThat(link.path("fileName").asText()).isEqualTo("remesa-" + mongo.findById(remittanceId, Document.class, "remittances").getString("period") + ".xml");
+        // SEPA-06: remesa-{period}-{seq}.xml, seq the MsgId's; a rolled-back remittance's marked cancelled.
+        var stored = mongo.findById(remittanceId, Document.class, "remittances");
+        String messageId = stored.getString("messageId");
+        assertThat(link.path("fileName").asText()).isEqualTo("remesa-" + stored.getString("period") + "-" + messageId.substring(messageId.lastIndexOf('-') + 1)
+                + ("ROLLED_BACK".equals(stored.getString("status")) ? "-ANULLADA-NO-PUJAR" : "") + ".xml");
         // The local link authorises itself (CONVENCIONS_API §5, A31): no host, no bearer.
         return call(get(link.path("downloadUrl").asText()));
     }
@@ -50,7 +54,7 @@ class RemittancesIT extends BillingItSupport {
         var response = download(remittanceId);
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getContentType()).isEqualTo("application/xml");
-        assertThat(response.getHeader("Content-Disposition")).isEqualTo("attachment; filename=\"remesa-2026-09.xml\"");
+        assertThat(response.getHeader("Content-Disposition")).isEqualTo("attachment; filename=\"remesa-2026-09-1.xml\"");
         assertThat(response.getHeader("Content-Security-Policy")).contains("sandbox");
         byte[] xml = response.getContentAsByteArray();
         Files.createDirectories(ACTUAL.getParent()); Files.write(ACTUAL, xml);
@@ -144,6 +148,37 @@ class RemittancesIT extends BillingItSupport {
             assertThat(row.path("requestedCollectionDate").asText()).isEqualTo("2026-09-01");
         });
         assertThat(ok(admin(get("/api/v1/remittances").param("filter", "period:eq:2026-10")), 200).path("items")).isEmpty();
+    }
+
+    /**
+     * SEPA-06 (owner decision of 13-11-2026): every generated remittance file has its own download name — the month generated again
+     * after a rollback gets the next sequence — and the rolled-back remittance's file, still downloadable, is named cancelled, «do
+     * not upload», in its XML and Excel downloads and in the audit entry of the link.
+     */
+    @Test void SEPA_06_aMonthGeneratedAgainNeverReusesAFileNameAndTheRolledBackFileIsNamedCancelled() throws Exception {
+        var first = generate();
+        String firstId = first.at("/remittance/id").asText(), runId = first.at("/run/id").asText();
+        assertThat(ok(admin(get("/api/v1/remittances/" + firstId + "/file")), 200).path("fileName").asText()).isEqualTo("remesa-2026-09-1.xml");
+        assertThat(call(admin(get("/api/v1/remittances/" + firstId + "/spreadsheet"))).getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"remesa-2026-09-1.xlsx\"");
+        ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        var cancelled = ok(admin(get("/api/v1/remittances/" + firstId + "/file")), 200);
+        assertThat(cancelled.path("fileName").asText()).isEqualTo("remesa-2026-09-1-ANULLADA-NO-PUJAR.xml");
+        assertThat(call(get(cancelled.path("downloadUrl").asText())).getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"remesa-2026-09-1-ANULLADA-NO-PUJAR.xml\"");
+        assertThat(call(admin(get("/api/v1/remittances/" + firstId + "/spreadsheet"))).getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"remesa-2026-09-1-ANULLADA-NO-PUJAR.xlsx\"");
+        // The month generated again: the same invoice numbers (R-12-14), another MsgId and another file name.
+        var second = generate();
+        String secondId = second.at("/remittance/id").asText();
+        var link = ok(admin(get("/api/v1/remittances/" + secondId + "/file")), 200);
+        assertThat(link.path("fileName").asText()).isEqualTo("remesa-2026-09-2.xml");
+        assertThat(call(get(link.path("downloadUrl").asText())).getHeader("Content-Disposition")).isEqualTo("attachment; filename=\"remesa-2026-09-2.xml\"");
+        assertThat(ok(admin(get("/api/v1/remittances/" + firstId + "/file")), 200).path("fileName").asText()).isEqualTo("remesa-2026-09-1-ANULLADA-NO-PUJAR.xml");
+        // Each link's audit entry names the file the treasurer got.
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("DATA_EXPORTED").and("details.file").exists(true)), Document.class, "audit_entries")
+                .stream().map(entry -> entry.get("details", Document.class).getString("file")).toList())
+                .contains("remesa-2026-09-1.xml", "remesa-2026-09-1-ANULLADA-NO-PUJAR.xml", "remesa-2026-09-2.xml");
     }
 
     @Test @AuditCovers(AuditAction.REMITTANCE_SUBMITTED)

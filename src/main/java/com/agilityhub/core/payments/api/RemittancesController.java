@@ -46,13 +46,14 @@ public class RemittancesController {
     @GetMapping(value="/api/v1/remittances/{id}/spreadsheet", produces="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     @com.agilityhub.core.shared.application.SupportRestricted
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
-    @Operation(summary="downloadRemittanceSpreadsheet", description=ROLES + "Excel file with one row per bank debit, from the stored remittance.",
+    @Operation(summary="downloadRemittanceSpreadsheet", description=ROLES + "Excel file with one row per bank debit, from the stored remittance, "
+            + "named remesa-{period}-{seq}.xlsx as its XML (SEPA-06: seq is the MsgId's; a ROLLED_BACK one's name ends -ANULLADA-NO-PUJAR).",
             responses=@ApiResponse(responseCode="200", description="Remittance workbook", content=@Content(
                     mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema=@Schema(type="string",format="binary"))))
     public org.springframework.http.ResponseEntity<byte[]> spreadsheet(@PathVariable String id, java.util.Locale locale) {
         var remittance = remittances.get(id);
         return org.springframework.http.ResponseEntity.ok().header("Cache-Control", "no-store")
-                .header("Content-Disposition", "attachment; filename=\"remesa-" + remittance.period() + ".xlsx\"")
+                .header("Content-Disposition", "attachment; filename=\"" + RemittanceService.fileName(remittance, "xlsx") + "\"")
                 .body(remittances.workbook(remittance, messages, locale));
     }
 
@@ -64,7 +65,8 @@ public class RemittancesController {
     @Operation(summary = "remittances", description = ROLES + "D6 «Remeses»: the club's remittances, universal list (CONVENCIONS_API §4), newest "
             + "creationAt first, filters period and status; no free-text search (a q → 400 INVALID_FILTER). A row: month, creation date, collection "
             + "date, invoice count, total, status, fileAvailable (the XML can be downloaded) and submittedAt. A rolled-back remittance stays listed "
-            + "with its file (R-12-14). A club without SEPA_XML has none: an empty page, never an error (R-12-28)." + SERVED,
+            + "with its file (R-12-14), whose download is named as cancelled (SEPA-06). A club without SEPA_XML has none: an empty page, never an "
+            + "error (R-12-28)." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "RemittancePage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = RemittancePage.class))))
     public Object remittances(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
@@ -89,8 +91,10 @@ public class RemittancesController {
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "remittanceFile", description = ROLES + "[Descarrega l'XML]: a signed URL of the pain.008 file valid for five minutes (also "
             + "of a ROLLED_BACK one, whose file is kept); its download answers Content-Type application/xml and Content-Disposition attachment; "
-            + "filename=\"remesa-{period}.xml\" (CONVENCIONS_API §5) and authorises itself (no bearer). Issuing the link is the file access, audited "
-            + "DATA_EXPORTED. A remittance without a file → 404." + SERVED,
+            + "filename=\"remesa-{period}-{seq}.xml\" (CONVENCIONS_API §5), seq being the sequence of the remittance's MsgId ({clubSlug}-{period}-{seq}), "
+            + "so a month generated again after a rollback never reuses a name (SEPA-06); a ROLLED_BACK remittance's is "
+            + "remesa-{period}-{seq}-ANULLADA-NO-PUJAR.xml (cancelled, do not upload it to the bank). fileName is that name. The download authorises "
+            + "itself (no bearer). Issuing the link is the file access, audited DATA_EXPORTED. A remittance without a file → 404." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "RemittanceFile", useReturnTypeSchema = true))
     public RemittanceFile remittanceFile(@PathVariable String id) {
         access.remittance(id);

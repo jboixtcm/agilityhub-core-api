@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · SEPA-06 · Every remittance file has its own name; a rolled-back one is named cancelled
+
+**No operations, schemas or error codes added; 3 operation descriptions changed (`GET /remittances/{id}/file`, `GET /remittances/{id}/spreadsheet`, `GET /remittances`).**
+
+- `GET /remittances/{id}/file`: `fileName` and the download's `Content-Disposition` are `remesa-{period}-{seq}.xml`, `seq` being the sequence of the remittance's `MsgId` (`{clubSlug}-{period}-{seq}`), so the month generated again after a rollback gets another name (`remesa-2026-09-2.xml`); it was `remesa-{period}.xml` for every remittance of the month. A `ROLLED_BACK` remittance's file is still served, named `remesa-{period}-{seq}-ANULLADA-NO-PUJAR.xml` (cancelled, do not upload it to the bank). `GET /remittances/{id}/spreadsheet` names its workbook the same way with `.xlsx`.
+
 ## 2026-11-14 · SEPA-05 · The collection date follows the TARGET calendar
 
 **No operations, schemas or error codes added; 1 operation description changed (`POST /billing/runs`), 2 schema descriptions changed (`BillingRunRequest.collectionDate`, `SimulationKpis.collectionDate`).**
