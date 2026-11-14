@@ -50,7 +50,7 @@
   "classes.riskLookaheadDays": 2,
   "classes.riskAutoCancelSameDay": true,
   "classes.maxInstructorsPerClass": 1,
-  "classes.slotMinutes": 10,
+  "classes.slotMinutes": 5,
   "levels.enabled": true,
   "coverage.thresholds": {
     "ok": 240,
@@ -58,9 +58,9 @@
     "short": 150
   },
   "coverage.activeDogWeeks": 2,
-  "waitlist.mode": "ALL_AT_ONCE",
-  "waitlist.fifoConfirmMinutes": 30,
-  "waitlist.maxPerClass": 3,
+  "waitlist.mode": "FIFO",
+  "waitlist.fifoConfirmMinutes": 15,
+  "waitlist.maxPerClass": 2,
   "waitlist.maxPerDogPerWeek": 2,
   "waitlist.maxPerDogPerWeekIfAttended": 1,
   "waitlist.notifyThresholdMinutes": 30,
