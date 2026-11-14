@@ -61,13 +61,21 @@ email settings before activation; never supply fake credentials to pass it.
    arbitrary client `X-Forwarded-*` values. Confirm no other proxy is in front;
    adding one requires its own reviewed trust configuration.
 2. Record the reviewed current and previous `sha-…` image tags, their registry
-   digests from the green publication, and matching web artifact versions.
+   digests from the green publication, and the web version, commit and CI run of
+   the bundles deployed with them.
    Never select `:main`: INC-88 can leave it on an older successful build.
    Prefer `IMAGE_TAG=sha-<commit>@sha256:<registry-digest>`; Compose accepts this
-   tag-plus-digest form and Docker selects the digest. Pull the target explicitly,
-   copy all three built SPAs to versioned
-   release directories and set `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR`.
-   Verify each contains `index.html`. The checked-in `deploy/local/*/index.html`
+   tag-plus-digest form and Docker selects the digest. Pull the target explicitly.
+   The three SPAs are the artifact of a green web CI run on `main`, never a build
+   made elsewhere (REL-03): check that the run of the reviewed web commit succeeded
+   (`gh run view <run-id> --repo <web repository> --json conclusion,headSha`),
+   download its artifact (`gh run download <run-id> --repo <web repository> --name
+   web-bundles-<version>-<commit>`), check that the three `version.json` name that
+   commit, copy its `clubs/dist`, `clubs-admin/dist` and `id/dist` to versioned
+   release directories and set `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR`, `ID_DIST_DIR`.
+   `bin/release-preflight` refuses a dist whose `version.json` names no commit (a
+   build outside CI) and three dists that name different commits. Verify each
+   contains `index.html`. The checked-in `deploy/local/*/index.html`
    files are proof fixtures, never the release apps. GHCR access uses the recipe
    below; registry credentials remain in the host credential store.
 3. Populate the environment inventory below, including stable backed-up keys.
@@ -117,10 +125,17 @@ email settings before activation; never supply fake credentials to pass it.
    `ah_refresh` has no Domain, with HttpOnly/Secure/SameSite=Strict and
    `Path=/oauth2/token`, and no refresh token is in JSON. Check the real provider
    flows listed below and one scheduler run. Keep responses containing tokens,
-   cookies or personal data out of the operational log.
+   cookies or personal data out of the operational log. Then set the web
+   repository's Actions variable `DEPLOYED_CORE_IMAGE` to the deployed image,
+   `ghcr.io/jboixtcm/agilityhub-core-api:` and the `sha-…` tag of `IMAGE_TAG` (REL-08): the web's
+   scheduled real-core run pulls it and runs the critical flows against it, so the
+   GHCR package must grant the web repository read access (package settings,
+   Actions access).
 6. Release rollback: restore the previous digest-pinned `IMAGE_TAG` **and**
-   previous three `*_DIST_DIR` values, then repeat `pull core`,
-   `bin/release-preflight`, `up -d --wait` and the smoke.
+   previous three `*_DIST_DIR` values (the previous release's directories, copied
+   from its CI artifact; never a rebuild), then repeat `pull core`,
+   `bin/release-preflight`, `up -d --wait` and the smoke, and set
+   `DEPLOYED_CORE_IMAGE` back to the previous image.
    Never use `down -v` on a release. If the new version changed persisted data
    incompatibly, an image rollback alone is unsafe: keep writers stopped and
    use the verified database recovery procedure below. Record the chosen
@@ -140,7 +155,8 @@ holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03), a dist whose
 `content-security-policy.txt` is missing, not one line, or does not allow an inline
 script of its `index.html` by its `sha256` (CFG-04), one without the `robots.txt`
 that disallows every robot (CFG-05), and one without the `version.json` the web build
-writes, exactly `{"version": "x.y.z", "commit": <full commit id> | null}` (REL-02). It also
+writes, exactly `{"version": "x.y.z", "commit": <full commit id> | null}` (REL-02), whose
+`commit` is null (a build outside CI) or differs from the other two dists' (REL-03). It also
 checks each mounted SPA's compiled entry module exists and fingerprints every
 file of its distinct read-only dist directory. Its JSON output contains only image
 identifiers, artifact hashes and each bundle's `version` and `commit`, suitable for the release record. Keep the reviewed
@@ -669,7 +685,7 @@ and URIs are included because they must remain consistent across recovery.
 | `CORE_CONCURRENCY_LOCALLANES` | `true` for R1; infrastructure switch explained below, no secret or regular rotation. |
 | `ACME_EMAIL` | Operator contact for Caddy/ACME certificate notifications; keep monitored. |
 | `ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`, `CORE_HOST` | Four approved public DNS hostnames; default ADR-003 domains. DNS/certificate/client change, not a key rotation. |
-| `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned built SPA dist folders. Switch all with the matching backend tag; retain previous paths for rollback. |
+| `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned SPA dist folders, the three of one green web CI run's artifact (REL-03). Switch all with the matching backend tag; retain previous paths for rollback. |
 | `BACKUP_AGE_RECIPIENT` | Public native age recipient from operator `age-keygen`; the only encryption material installed for cron. Change for future backups after verifying its escrowed identity. |
 | `BACKUP_AGE_IDENTITY` | Private age identity, restored from encrypted off-host escrow into the operator environment only for verification/recovery; never in the cron env. Retain old identities through archive expiry. |
 | `BACKUP_S3_BUCKET`, `BACKUP_S3_REGION`, `BACKUP_S3_ENDPOINT` | Pre-provisioned private backup bucket/region; optional HTTPS endpoint. Local override alone uses `http://minio:9000`. |

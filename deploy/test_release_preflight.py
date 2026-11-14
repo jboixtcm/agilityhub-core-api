@@ -420,6 +420,28 @@ class ReleasePreflightTest(unittest.TestCase):
         version.write_text(VERSION_JSON)
         PREFLIGHT.check_spas(self.config)
 
+    def test_REL_03_only_the_three_bundles_of_one_ci_build_are_deployed(self):
+        PREFLIGHT.check_spas(self.config)
+        clubs, admin = self.directory / 'clubs/version.json', self.directory / 'clubsadmin/version.json'
+        # A build outside CI names no commit; the web's version.json shape still allows it, the release does not.
+        clubs.write_text(json.dumps({'version': '1.0.0', 'commit': None}))
+        with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+            PREFLIGHT.check_spas(self.config)
+        self.assertIn('names no commit', str(caught.exception))
+        for target in PREFLIGHT.DIST_TARGETS:
+            (self.directory / target.rsplit('/', 1)[1] / 'version.json').write_text(json.dumps({'version': '1.0.0', 'commit': None}))
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_spas(self.config)
+        # Bundles of two builds (two commits) are not one run's artifact, even when each names a commit.
+        for target in PREFLIGHT.DIST_TARGETS:
+            (self.directory / target.rsplit('/', 1)[1] / 'version.json').write_text(VERSION_JSON)
+        admin.write_text(json.dumps({'version': '1.0.0', 'commit': 'f' * 40}))
+        with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+            PREFLIGHT.check_spas(self.config)
+        self.assertIn('different commits', str(caught.exception))
+        admin.write_text(VERSION_JSON)
+        self.assertEqual({WEB_COMMIT}, {artifact['commit'] for artifact in PREFLIGHT.check_spas(self.config).values()})
+
     def test_path_escape_and_artifact_symlinks_are_refused(self):
         outside = self.directory / 'outside.js'
         outside.write_text('outside')

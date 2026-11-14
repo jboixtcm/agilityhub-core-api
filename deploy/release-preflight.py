@@ -289,7 +289,13 @@ def check_spas(config):
                 f'{target} must have exactly one read-only bind mount')
         selected[target] = Path(matches[0]['source'])
     require(len({path.resolve() for path in selected.values()}) == 3, 'Each SPA must have its own dist directory')
-    return {target: check_dist(path) for target, path in selected.items()}
+    record = {target: check_dist(path) for target, path in selected.items()}
+    # REL-03 (owner decision of 13 Nov 2026): the three bundles are the artifact of one green web CI run on main. Only a CI build
+    # names its commit (a build elsewhere writes null), and one run's three bundles name the same one.
+    commits = {artifact['commit'] for artifact in record.values()}
+    require(None not in commits, 'SPA version.json names no commit: deploy the bundles of a green web CI run, never a build made elsewhere')
+    require(len(commits) == 1, 'The three SPA dists name different commits: deploy the three bundles of one green web CI run')
+    return record
 
 
 def check_image(image, pinned_digest, expected_digest, inspect):
