@@ -115,12 +115,16 @@ public class DemoSeedService {
         }
         var requiredDocuments = ((List<?>) config.get("census.dogDocumentTypes", List.class)).stream().map(item -> (Map<?, ?>) item)
                 .filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("key").toString()).toList();
+        boolean trainingLicenceRequired = Boolean.TRUE.equals(config.get("training.freeTrainingRequiresLicense", Boolean.class));
         for (var row : data.dogs()) {
             var level = require(levels, row.levelCode());
             var dog = new Dog(); dog.id = row.id(); dog.clubId = club; dog.memberId = row.memberId(); dog.name = row.name();
             dog.sourceIds = Map.of("demo", dog.id); dog.breed = "Fictional mixed breed"; dog.sex = "FEMALE"; dog.birthDate = row.birthDate();
             dog.status = "ACTIVE"; dog.registeredAt = reference; dog.levelId = level.get("_id").toString(); dog.levelAssignedAt = reference;
-            dog.levelHistory = List.of(); dog.licenses = List.of(); dog.handlerName = created.get(dog.memberId).firstName;
+            dog.levelHistory = List.of();
+            dog.licenses = trainingLicenceRequired
+                    ? List.of(Map.of("organisation", "Demo", "number", "DEMO-" + dog.id.substring(0, 12))) : List.of();
+            dog.handlerName = created.get(dog.memberId).firstName;
             census.dogs.insert(dog);
             for (String type : requiredDocuments) {
                 var document = new DogDocument(); document.id = documentService.documentId(dog.id, type); document.clubId = club;
