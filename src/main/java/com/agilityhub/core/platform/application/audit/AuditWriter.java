@@ -45,6 +45,8 @@ public class AuditWriter {
             AuditAction.ANNOUNCEMENT_SENT, AuditAction.CARD_CHARGES_STARTED, AuditAction.PAYMENT_REFUNDED, AuditAction.UPFRONT_PAYMENT_RECORDED,
             // S17 R-17-10 (E10-T04 round 2): the club ending a support access has no field diff and no reason.
             AuditAction.SUPPORT_ACCESS_ENDED,
+            // AUTHZ-05: a support write that no other action audits records only that it happened, and what the request was.
+            AuditAction.SUPPORT_WRITE,
             AuditAction.MEMBER_DATA_EXPORTED, AuditAction.ERASURE_REQUESTED, AuditAction.ERASURE_CANCELLED, AuditAction.MEMBER_ERASED,
             AuditAction.ACCOUNT_ERASED);
 

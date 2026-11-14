@@ -194,6 +194,82 @@ class SupportAccessIT extends BillingItSupport {
         assertThat(issued.path("expiresAt").asText()).isEqualTo(NOW.plus(Duration.ofMinutes(60)).toString());
     }
 
+    /**
+     * AUTHZ-05 (owner decision 13-11-2026, S17 R-17-10 «totes les accions auditades amb `origin = PLATFORM_SUPPORT`»): every write
+     * made with a support token leaves an entry in the club's audit, also one whose service audits nothing (a saved view, the
+     * «Surt» of `/oauth2/revoke`): `SUPPORT_WRITE` on the grant, naming the request. A write its service audits keeps its own entry
+     * alone; a read, a refused write, a replayed `Idempotency-Key` and the club's own admin write none. Only the club sees them.
+     */
+    @Test @AuditCovers(AuditAction.SUPPORT_WRITE)
+    void AUTHZ_05_everyWriteOfASupportAccessLeavesAnAuditEntryOfThePlatformTeam() throws Exception {
+        mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "saved_views");
+        String token = token();
+        String grant = SignedJWT.parse(token).getJWTClaimsSet().getJWTID();
+        var supportWrites = Query.query(Criteria.where("clubId").is(CLUB).and("action").is("SUPPORT_WRITE"));
+        String view = mapper.writeValueAsString(Map.of("listKey", "members", "name", "Support view", "columns", List.of("fullName"),
+                "filters", List.of(), "sort", List.of("lastName,asc"), "shared", false));
+        String key = UUID.randomUUID().toString();
+        // A write that no service audits: before AUTHZ-05 it left no trace.
+        var created = as(token, post("/api/v1/saved-views").header("Idempotency-Key", key).contentType("application/json").content(view));
+        assertThat(created.getStatus()).as(created.getContentAsString()).isEqualTo(201);
+        String viewId = mapper.readTree(created.getContentAsString()).path("id").asText();
+        var entries = mongo.find(supportWrites, Document.class, "audit_entries");
+        assertThat(entries).hasSize(1);
+        var entry = entries.getFirst();
+        assertThat(entry.getString("entityType")).isEqualTo("ImpersonationGrant");
+        assertThat(entry.getString("entityId")).isEqualTo(grant);
+        assertThat(entry.getString("origin")).isEqualTo("PLATFORM_SUPPORT");
+        assertThat(entry.getString("actorRole")).isEqualTo("PLATFORM");
+        assertThat(entry.getString("actorAccountId")).isEqualTo(ACTOR);
+        assertThat(entry.getString("actorName")).isEqualTo("Pat Support");
+        assertThat(entry.getBoolean("support")).isTrue();
+        assertThat(entry.getString("traceId")).isNotBlank();
+        assertThat(entry.get("details", Document.class)).isEqualTo(new Document(Map.of("method", "POST", "route", "/api/v1/saved-views",
+                "path", "/api/v1/saved-views", "status", 201)));
+        assertThat(entry.toJson()).doesNotContain(token, "Support view");
+        // The same key again is a replay, not a second write; a refused write (the name is taken) and a read write nothing either.
+        // A DELETE answered 204 is a write.
+        var replayed = as(token, post("/api/v1/saved-views").header("Idempotency-Key", key).contentType("application/json").content(view));
+        assertThat(replayed.getStatus()).as(replayed.getContentAsString()).isEqualTo(201);
+        var refused = as(token, post("/api/v1/saved-views").contentType("application/json").content(view));
+        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(409);
+        assertThat(as(token, get("/api/v1/saved-views/" + viewId)).getStatus()).isEqualTo(200);
+        assertThat(mongo.count(supportWrites, "audit_entries")).isEqualTo(1);
+        var deleted = as(token, delete("/api/v1/saved-views/" + viewId));
+        assertThat(deleted.getStatus()).as(deleted.getContentAsString()).isEqualTo(204);
+        assertThat(mongo.find(supportWrites, Document.class, "audit_entries")).hasSize(2).anySatisfy(write ->
+                assertThat(write.get("details", Document.class)).isEqualTo(new Document(Map.of("method", "DELETE", "route", "/api/v1/saved-views/{id}",
+                        "path", "/api/v1/saved-views/" + viewId, "status", 204))));
+        // A write its service audits keeps its own entry, as the platform team's, and gets no second one.
+        var written = as(token, put("/api/v1/parameters/bookings.lateCancelThresholdMinutes").contentType("application/json")
+                .content("{\"version\":0,\"value\":120,\"reason\":\"Support fix\"}"));
+        assertThat(written.getStatus()).as(written.getContentAsString()).isEqualTo(200);
+        var change = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PARAMETER_CHANGED")), Document.class, "audit_entries");
+        assertThat(change.getString("origin")).isEqualTo("PLATFORM_SUPPORT");
+        assertThat(mongo.count(supportWrites, "audit_entries")).isEqualTo(2);
+        // The club's own admin is not the support access: its unaudited write stays unaudited, as before.
+        var own = call(admin(post("/api/v1/saved-views").contentType("application/json").content(view.replace("Support view", "Admin view"))));
+        assertThat(own.getStatus()).as(own.getContentAsString()).isEqualTo(201);
+        assertThat(mongo.count(supportWrites, "audit_entries")).isEqualTo(2);
+        // «Surt»: ending the access with /oauth2/revoke is a write of the token too.
+        var revoked = as(token, post("/oauth2/revoke").contentType("application/json").content(mapper.writeValueAsString(Map.of("token", token))));
+        assertThat(revoked.getStatus()).as(revoked.getContentAsString()).isEqualTo(200);
+        assertThat(mongo.find(supportWrites, Document.class, "audit_entries")).hasSize(3).anySatisfy(write ->
+                assertThat(write.get("details", Document.class).getString("route")).isEqualTo("/oauth2/revoke"));
+        // The club reads them in its own audit; the console's audit never lists them (R-17-12), nor does another club's.
+        var club = mvc.perform(get("/api/v1/audit-entries").param("filter", "action:eq:SUPPORT_WRITE").header("Host", HOST)
+                .with(jwt().jwt(j -> j.subject("bill-admin").claim("clubId", CLUB)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))).andReturn().getResponse();
+        assertThat(club.getStatus()).as(club.getContentAsString()).isEqualTo(200);
+        assertThat(mapper.readTree(club.getContentAsString()).path("items")).hasSize(3).allSatisfy(item -> {
+            assertThat(item.path("origin").asText()).isEqualTo("PLATFORM_SUPPORT");
+            assertThat(item.path("entityId").asText()).isEqualTo(grant);
+        });
+        var platform = mvc.perform(console(get("/api/v1/platform/audit-entries").param("filter", "action:eq:SUPPORT_WRITE"), ACTOR)).andReturn().getResponse();
+        assertThat(platform.getStatus()).as(platform.getContentAsString()).isEqualTo(200);
+        assertThat(mapper.readTree(platform.getContentAsString()).path("items")).isEmpty();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("action").is("SUPPORT_WRITE")), "audit_entries")).isZero();
+    }
+
     @Test void T_17_10_R_17_12_onlyAnActivePlatformAccountStartsASupportAccess() throws Exception {
         // A token that claims the platform role, for an account that does not hold it (or no longer does).
         accounts.save(new Account("bill-not-platform", "plain@example.test", "Plain Account", "ca", null, Set.of(),

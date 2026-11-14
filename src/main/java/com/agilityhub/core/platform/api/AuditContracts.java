@@ -94,6 +94,8 @@ public final class AuditContracts {
         CLUB_DOMAIN_CHANGED,
         SUPPORT_ACCESS_STARTED,
         SUPPORT_ACCESS_ENDED,
+        /** AUTHZ-05 (owner decision, 13-11-2026): a write made with a support access that no other action audits. */
+        SUPPORT_WRITE,
         PUBLIC_API_KEY_ROTATED,
         CATALOG_CHANGED,
         MIGRATION_APPLIED,

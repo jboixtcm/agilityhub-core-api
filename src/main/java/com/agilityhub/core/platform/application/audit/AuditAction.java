@@ -47,6 +47,12 @@ public enum AuditAction {
      * Round 2 (E123): a live support access ended by the club's ADMIN (R-17-10 «revocable»).
      */
     CLUB_DOMAIN_CHANGED, SUPPORT_ACCESS_STARTED, SUPPORT_ACCESS_ENDED, PUBLIC_API_KEY_ROTATED,
+    /**
+     * S17 R-17-10 (AUTHZ-05, owner decision 13-11-2026): a write made with a support access (POST, PUT, PATCH or DELETE answered
+     * 2xx) that left no audit entry of its own; `entityType = ImpersonationGrant` (the support access), `details {method, route,
+     * path, status}`, `origin = PLATFORM_SUPPORT`. An «event» action: no `changes` ({@link SupportWriteAudit}).
+     */
+    SUPPORT_WRITE,
     JOB_TRIGGERED,
     /**
      * S12 (E8-T02): the invoice state actions (R-12-16, R-12-17, R-12-19), the manual adjustment invoice (R-12-19, S12 §13)

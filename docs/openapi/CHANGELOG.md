@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-13 · AUTHZ-05 · Every write of a support access is audited
+
+**No operations, schemas or error codes added; 1 enum value added (`AuditAction`: `SUPPORT_WRITE`).**
+
+- S17 R-17-10, S14 R-14-09: a `POST`, `PUT`, `PATCH` or `DELETE` made with a support token and answered 2xx that left no audit entry of its own (its service is not audited) is recorded `SUPPORT_WRITE` in the club's audit: `entityType = ImpersonationGrant` (the support access), `origin = PLATFORM_SUPPORT`, `actorRole = PLATFORM`, `details {method, route, path, status}`, no `changes`. `GET /audit-entries` (and its `filter=action:eq:SUPPORT_WRITE`) lists it; `GET /platform/audit-entries` does not. A read, a refused write and the replay of an `Idempotency-Key` write none; an audited write keeps its own entry only.
+
 ## 2026-11-13 · AUTH-01 (c) · A recent sign-in for exports, remittance files, bank accounts and payment providers
 
 **No operations or schemas added; 1 error code added (`RECENT_LOGIN_REQUIRED`, 403, `details.maxAgeMinutes`); 25 operations gain it in their 403 (24 routes with `@RecentLogin`, and `PATCH /members/{id}` when it carries `paymentMethod`); 1 operation description changed (`PATCH /members/{id}`).**
