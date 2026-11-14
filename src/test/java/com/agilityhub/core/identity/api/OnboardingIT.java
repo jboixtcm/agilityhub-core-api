@@ -334,13 +334,61 @@ class OnboardingIT extends IdentityIntegrationSupport {
         mongo.updateFirst(new Query(), new Update().set("phones", List.of(new Document("number", "600000005"))), "members");
         assertThat(state("club-a").at("/fields/2/value").asText()).isEqualTo("600000005");
     }
+    /**
+     * PRIV-05 changed this test (owner's decision of 13-11-2026): a stored grant the member did not give (here set by a data operation,
+     * with no author) is kept, but no longer pre-ticks the onboarding box (`imageConsent: null`, it read `true`).
+     */
     @Test void Word_20261030_existingImageConsentIsReadAndPreservedWithoutANewChoice() throws Exception {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("member-a")), new Update().set("consents.imageRights.granted", true), "members");
-        assertThat(state("club-a").path("imageConsent").asBoolean()).isTrue();
+        assertThat(state("club-a").path("imageConsent").isNull()).isTrue();
         json(call(acceptance("platform-v1"), "club-a", "MEMBER"));
-        assertThat(state("club-a").path("imageConsent").asBoolean()).isTrue();
+        assertThat(state("club-a").path("imageConsent").isNull()).isTrue();
         var member = mongo.findOne(Query.query(Criteria.where("_id").is("member-a")), Document.class, "members");
         assertThat(member.get("consents", Document.class).get("imageRights", Document.class).getBoolean("granted")).isTrue();
+    }
+
+    /**
+     * PRIV-05 (owner's decision of 13-11-2026): the onboarding image box starts ticked only when the member's own account gave the
+     * grant in force; one recorded by staff, the migration or a public sign-up starts it unticked and stays stored as it is.
+     */
+    @Test void PRIV_05_onlyAGrantGivenByTheMembersOwnAccountPreTicksTheImageBox() throws Exception {
+        Query memberA = Query.query(Criteria.where("_id").is("member-a"));
+        var at = java.util.Date.from(clock.instant());
+        // D10's edit records the ADMIN's account; a bulk data operation records none.
+        mongo.updateFirst(memberA, new Update().set("consents.imageRights", new Document("granted", true).append("at", at).append("version", "v1")
+                .append("byAccountId", "admin-account")), "members");
+        assertThat(state("club-a").path("imageConsent").isNull()).isTrue();
+        mongo.updateFirst(memberA, new Update().set("consents.imageRights", new Document("granted", true).append("version", "LEGACY")), "members");
+        assertThat(state("club-a").path("imageConsent").isNull()).isTrue();
+        // A refusal, whoever recorded it, starts unticked as before.
+        mongo.updateFirst(memberA, new Update().set("consents.imageRights", new Document("granted", false).append("byAccountId", "admin-account")), "members");
+        assertThat(state("club-a").path("imageConsent").asBoolean(true)).isFalse();
+        // The member ticks it at onboarding: from then on it starts ticked.
+        call(acceptance("platform-v1").content("""
+                {"consentAccepted":true,"consentVersion":"platform-v1","fields":{"phone":"+34600000003"},"imageConsent":true}
+                """), "club-a", "MEMBER").andExpect(status().isOk());
+        assertThat(state("club-a").path("imageConsent").asBoolean()).isTrue();
+        // The S04 ledger: the latest IMAGE_USE row decides; only a row sent from the member's own app (not impersonated) is theirs.
+        for (var row : List.of(
+                new Document("origin", "APP").append("actorAccountId", "account-a").append("expected", true),
+                new Document("origin", "PUBLIC").append("expected", null),
+                new Document("origin", "BACKOFFICE").append("actorAccountId", "admin-account").append("expected", null))) {
+            var image = new Document("type", "IMAGE_USE").append("granted", true).append("version", "v1").append("acceptedAt", at).append("source", "SIGNUP")
+                    .append("origin", row.getString("origin")).append("actorAccountId", row.getString("actorAccountId"));
+            mongo.updateFirst(memberA, new Update().set("consents", List.of(new Document("type", "PRIVACY_POLICY").append("granted", true).append("version", "v1")
+                    .append("acceptedAt", at), image)), "members");
+            var imageConsent = state("club-a").path("imageConsent");
+            if (row.get("expected") == null) { assertThat(imageConsent.isNull()).as(row.toJson()).isTrue(); }
+            else { assertThat(imageConsent.asBoolean()).as(row.toJson()).isTrue(); }
+        }
+        // An ADMIN's later grant replaces the member's in force: unticked again.
+        var own = new Document("type", "IMAGE_USE").append("granted", true).append("version", "v1").append("acceptedAt", at).append("source", "PROFILE")
+                .append("byAccountId", "account-a");
+        var staff = new Document("type", "IMAGE_USE").append("granted", true).append("version", "v1").append("acceptedAt", at).append("source", "PROFILE")
+                .append("byAccountId", "admin-account");
+        mongo.updateFirst(memberA, new Update().set("consents", List.of(own, staff)), "members");
+        assertThat(state("club-a").path("imageConsent").isNull()).isTrue();
+        assertThat(mongo.findOne(memberA, Document.class, "members").getList("consents", Document.class)).hasSize(2);
     }
     @Test void Word_20261030_profileCanCompleteWithoutReacceptingCurrentPolicies() throws Exception {
         accept("club-a", "platform-v1");

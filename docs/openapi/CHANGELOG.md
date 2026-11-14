@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PRIV-05 · The onboarding image box starts ticked only for the member's own grant
+
+**No operations, schemas or error codes added; 1 schema property description changed (`OnboardingState.imageConsent`).**
+
+- `GET /me/onboarding` and `PUT /me/onboarding` (`OnboardingState.imageConsent`): `true` only when the image permission in force was granted by the caller's own account (its onboarding, or a sign-up or readmission sent from its app); `false` when it is refused; `null` when nothing is recorded or when the grant was recorded by the migration, a data operation, staff (D10, impersonation) or a public sign-up. Such a grant used to read `true` and pre-tick the box. The stored value is unchanged and still changes only when the member sends `imageConsent`.
+
 ## 2026-11-14 · PRIV-04 · An erasure waits while a SEPA collection is refundable
 
 **No operations, schemas or error codes added; 2 operation descriptions changed (`POST /members/{id}/erasure`, `POST /accounts/{id}/erasure`).**
