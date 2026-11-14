@@ -23,6 +23,8 @@ POLICIES = {app: f"default-src 'self'; script-src 'self' 'sha256-fictional-{app}
 API_POLICY = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 # CFG-05: the robots.txt every bundle's build writes.
 ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
+# REL-02 / FE-07: the version.json every bundle's build writes (fictional commits, one per bundle so that a mix-up shows).
+VERSIONS = {app: json.dumps({'version': '1.0.0', 'commit': digit * 40}) + '\n' for app, digit in (('id', '1'), ('clubs', '2'), ('clubsadmin', '3'))}
 
 def port():
     with socket.socket() as sock:
@@ -48,6 +50,7 @@ class GatewayUnavailableTest(unittest.TestCase):
             (root / app / 'assets/app.js').write_text(APP_JS)
             (root / app / 'content-security-policy.txt').write_text(POLICIES[app])
             (root / app / 'robots.txt').write_text(ROBOTS_TXT)
+            (root / app / 'version.json').write_text(VERSIONS[app])
         conf = '''{ admin off }
 ''' + snippets.replace('core:8080', '127.0.0.1:9090') + club + dead + '''
 http://:8080 {
@@ -235,6 +238,29 @@ http://:9090 {
                 self.assertEqual((200, ROBOTS_TXT), (status, body))
                 self.assertTrue(headers['Content-Type'].startswith('text/plain'))
                 self.assertEqual('no-cache', headers['Cache-Control'])
+
+    def test_FE_07_every_spa_host_serves_its_bundles_version_json_revalidated_on_every_load(self):
+        # Owner decision of 13 Nov 2026: both apps compare the deployed bundle's version.json (REL-02) with their own build and
+        # offer a reload when they differ. Every host that serves an app answers the file of the bundle it serves, never the SPA
+        # shell, and with `no-cache`, so no browser or proxy keeps an old one; a new bundle's file is the answer at once.
+        for endpoint, host, app in ((self.product, 'clubs.example.test', 'clubs'), (self.identity, 'id.example.test', 'id'),
+                                    (self.normal, 'members.example.test', 'clubs'), (self.normal, 'office.example.test', 'clubsadmin')):
+            with self.subTest(host=host, endpoint=endpoint):
+                status, headers, body = self.request(endpoint, host, '/version.json', 'application/json')
+                self.assertEqual((200, VERSIONS[app]), (status, body))
+                self.assertTrue(headers['Content-Type'].startswith('application/json'))
+                self.assertEqual('no-cache', headers['Cache-Control'])
+        version = self.root / 'clubsadmin/version.json'
+        try:
+            version.write_text(VERSIONS['clubsadmin'].replace('3' * 40, '4' * 40))
+            self.assertIn('4' * 40, self.request(self.normal, 'office.example.test', '/version.json', 'application/json')[2])
+            # A bundle without the file (refused by release preflight) answers 404, never the shell the app would misread.
+            version.unlink()
+            status, _, body = self.request(self.normal, 'office.example.test', '/version.json', 'application/json')
+            self.assertEqual(404, status)
+            self.assertNotIn('Fictional', body)
+        finally:
+            version.write_text(VERSIONS['clubsadmin'])
 
     def test_CFG_04_every_static_answer_carries_its_bundles_policy_and_the_api_keeps_its_own(self):
         # The product sites (`spa`) and the club catch-all (`club_spa`, the root the Core names) send the served root's policy.

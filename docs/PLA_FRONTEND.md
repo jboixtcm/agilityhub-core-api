@@ -36,6 +36,7 @@ Estructura interna per app: `src/features/<vertical>` (pantalles, hooks, tests),
 ## 4. PWA (`apps/clubs`)
 
 - Manifest per host (nom/icones/colors del club) + service worker (Workbox): precache de la shell, network-first per a l'API, pantalla offline digna, actualització amb avís.
+- **Versió nova** (FE-07, decisió del propietari 13-11-2026; també a `apps/clubs-admin`): l'app compara el `version.json` del bundle desplegat (REL-02, `{version, commit}`, servit sense cache) amb el de la build que s'executa i, quan no coincideixen, mostra l'avís «Hi ha una versió nova · Recarrega» en un moment segur; mai una recàrrega forçada a mig formulari.
 - **Sessió**: refresh token xifrat (WebCrypto) al storage, access token en memòria, interceptor de refresh, tancament net; token d'impersonació només en memòria de sessió + bàner persistent (S01).
 - **Web push**: subscripció VAPID des de 12 en context; iOS ≥ 16.4 instal·lada; el push és millora — correu/SMS són els canals garantits.
 - Objectius: Lighthouse PWA ≥ 90, TTI < 3 s en 4G, bundle inicial < 250 KB gz (code-splitting per ruta; `course-ui` 3D en chunk diferit).

@@ -1739,6 +1739,10 @@ Every host answers `/robots.txt` with `User-agent: *` and `Disallow: /` (CFG-05)
 host and every club alias serve the file their bundle carries (`bin/release-preflight` refuses a bundle without
 exactly those two lines), and the Core host's site block answers the same two lines itself.
 
+Every host that serves an app also answers its bundle's `version.json` (REL-02) as a file with `Cache-Control: no-cache`,
+never the SPA shell (a bundle without it answers 404, and `bin/release-preflight` refuses one): both apps compare it with
+their own build and offer a reload when a new bundle is deployed (FE-07).
+
 Caddy caps request bodies before they reach the Core (CFG-03, snippet `api_body_limit`): 2 MB (2,000,000 bytes)
 for `/api/*` and `/oauth2/*` on every site that proxies them (the three product hosts, the club catch-all and the Core
 host), except the two signed upload PUTs (`/api/v1/attachments/uploads/{id}` and `/api/v1/signup/uploads`), which the
