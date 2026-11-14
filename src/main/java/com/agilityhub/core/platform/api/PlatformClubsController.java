@@ -216,8 +216,11 @@ public class PlatformClubsController {
     @com.agilityhub.core.shared.application.RecentLogin
     @PutMapping(value="/api/v1/platform/clubs/{id}/payment-providers/{provider}")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, STALE_VERSION, PROVIDER_CONFIG_INVALID})
-    @Operation(summary="updatePlatformProvider", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, STALE_VERSION, PROVIDER_CONFIG_INVALID, STRIPE_CONNECTION_FAILED})
+    @Operation(summary="updatePlatformProvider", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted. "
+            + "PAY-10: a STRIPE save with a new secretKey first runs the connection test with that key (as POST …/payment-providers/stripe/test, before anything is written): "
+            + "a key Stripe refuses or cannot be reached with → 422 STRIPE_CONNECTION_FAILED and nothing is saved; a passed test is recorded (lastTestAt, accountIdMasked). "
+            + "On the prod profile, a club whose saved Stripe keys are live switches to mode test only with testModeOverride: true; otherwise 422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}.",
             responses=@ApiResponse(responseCode="200", description="PlatformProviderSummary", useReturnTypeSchema=true))
     public PlatformProviderSummary updatePlatformProvider(@PathVariable String id,
             @PathVariable Provider provider,
@@ -225,10 +228,11 @@ public class PlatformClubsController {
         Map<String,Object> input=mapper.convertValue(request,new com.fasterxml.jackson.core.type.TypeReference<>(){});
         input.put("secretKey",request.secretKey());input.put("webhookSecret",request.webhookSecret());input.put("iban",request.iban());
         // The response is read inside the write's transaction: a later concurrent write is never returned as this one's result.
-        return scoped(id,()->transactions.write(()->{
-            providers.update(provider.name(),input);
+        // PAY-10: a new Stripe secret key's connection test runs first, outside that transaction (network I/O).
+        return scoped(id,()->{var tested=providers.testKey(provider.name(),input);return transactions.write(()->{
+            providers.update(provider.name(),input,tested);
             return views.provider(provider.name(),queries.get(id).paymentProviders().get(provider.name()));
-        }));
+        });});
     }
 
     @com.agilityhub.core.shared.application.RecentLogin

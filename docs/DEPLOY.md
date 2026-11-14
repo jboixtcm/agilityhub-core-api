@@ -684,6 +684,12 @@ test/live prefix; configuration errors are 422. Local and test profiles resolve
 `FakePaymentProvider`; staging and production resolve the SDK. There is no global
 Stripe API key environment setting and no Connect account header. Key rotation
 means re-encrypting the club's secrets; lookups bypass the config cache.
+Saving a new secret key in the console runs the connection test with that key
+first (PAY-10): a key Stripe refuses, or a Stripe that cannot be reached, answers
+422 `STRIPE_CONNECTION_FAILED` and nothing is saved; a passed test is recorded
+(`lastTestAt`, the masked account). On the `prod` profile, a club whose saved keys
+are live switches to test mode only when the request sets `testModeOverride: true`
+(otherwise 422 `PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}`).
 
 Register `/webhooks/stripe/{clubId}` for the Checkout, PaymentIntent, refund,
 SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21,

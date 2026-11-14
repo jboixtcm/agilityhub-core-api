@@ -18918,6 +18918,10 @@
           "suffix" : {
             "type" : "string"
           },
+          "testModeOverride" : {
+            "description" : "PAY-10, STRIPE on the prod profile: true confirms switching a club whose saved keys are live to mode test (otherwise 422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}). Ignored elsewhere.",
+            "type" : "boolean"
+          },
           "version" : {
             "format" : "int64",
             "type" : "integer"
@@ -78589,7 +78593,7 @@
         "tags" : [ "platform" ]
       },
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted. PAY-10: a STRIPE save with a new secretKey first runs the connection test with that key (as POST …/payment-providers/stripe/test, before anything is written): a key Stripe refuses or cannot be reached with → 422 STRIPE_CONNECTION_FAILED and nothing is saved; a passed test is recorded (lastTestAt, accountIdMasked). On the prod profile, a club whose saved Stripe keys are live switches to mode test only with testModeOverride: true; otherwise 422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}.",
         "operationId" : "updatePlatformProvider",
         "parameters" : [ {
           "in" : "path",
@@ -78686,7 +78690,7 @@
                 }
               }
             },
-            "description" : "PROVIDER_CONFIG_INVALID"
+            "description" : "PROVIDER_CONFIG_INVALID, STRIPE_CONNECTION_FAILED"
           },
           "429" : {
             "content" : {

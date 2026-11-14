@@ -292,4 +292,27 @@ class StripePaymentProviderTest {
         }
     }
 
+    /**
+     * PAY-10 (owner decision of 13 Nov 2026, S17 R-17-05): the connection test of a key about to be saved uses that key, not the stored
+     * configuration (none here), after the same mode and prefix checks; a key Stripe refuses throws.
+     */
+    @Test void PAY_10_aKeyAboutToBeSavedIsTestedWithThatKeyAlone() throws Exception {
+        doReturn(client).when(provider).newClient("sk_live_fictional_new");
+        var account = new com.stripe.model.Account(); account.setId("acct_example_new");
+        when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenReturn(account);
+        assertThat(provider.ping("live", "sk_live_fictional_new")).isEqualTo(new PaymentProvider.Connection(true, "acct_example_new", "acct_example_new", "live"));
+        verifyNoInteractions(clubs, vault);
+        for (var refused : List.of(List.of("live", "sk_test_fictional_new"), List.of("other", "sk_other_fictional_new"))) {
+            assertThatThrownBy(() -> provider.ping(refused.get(0), refused.get(1))).isInstanceOfSatisfying(ApiException.class,
+                    e -> assertThat(e.code()).isEqualTo(ErrorCode.PROVIDER_CONFIG_INVALID));
+        }
+        assertThatThrownBy(() -> provider.ping("test", null)).isInstanceOf(ApiException.class);
+        ReflectionTestUtils.setField(provider, "hostedDemo", true);
+        assertThatThrownBy(() -> provider.ping("live", "sk_live_fictional_new")).isInstanceOf(ApiException.class);
+        ReflectionTestUtils.setField(provider, "hostedDemo", false);
+        verify(provider, times(1)).newClient(anyString());
+        when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenThrow(new com.stripe.exception.AuthenticationException("Rejected", null, null, 401));
+        assertThatThrownBy(() -> provider.ping("live", "sk_live_fictional_new")).isInstanceOf(ApiException.class);
+    }
+
 }

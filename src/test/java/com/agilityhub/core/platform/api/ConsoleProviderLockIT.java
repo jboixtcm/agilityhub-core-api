@@ -79,7 +79,7 @@ class ConsoleProviderLockIT extends BillingItSupport {
         try (var pool = Executors.newFixedThreadPool(2)) {
             var console = pool.submit(() -> {
                 try (var tenant = TenantContext.open(CLUB)) {
-                    return transactions.execute(tx -> { providers.update("MANUAL", disabled(version)); inside.countDown(); await(release); return "OK"; });
+                    return transactions.execute(tx -> { providers.update("MANUAL", disabled(version), null); inside.countDown(); await(release); return "OK"; });
                 } catch (ApiException failure) { inside.countDown(); return failure.getMessage(); }
             });
             assertThat(inside.await(20, TimeUnit.SECONDS)).isTrue();

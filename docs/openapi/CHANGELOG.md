@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-11-14 · PAY-10 · Saving Stripe keys tests them; test mode after live keys needs an override on prod
+
+**No operations, schemas or error codes added; `PlatformProviderRequest` gains an optional `testModeOverride`; 1 operation description and its 422 error list changed (`PUT /platform/clubs/{id}/payment-providers/{provider}`).**
+
+- `PUT /platform/clubs/{id}/payment-providers/{provider}` (STRIPE): a save with a new `secretKey` runs the connection test with that key before anything is written; a key Stripe refuses or cannot be reached with answers `422 STRIPE_CONNECTION_FAILED` (now listed for the route) and nothing is saved or audited; a passed test is recorded (`lastTestAt`, `accountIdMasked` in the response). On the `prod` profile, a club whose saved Stripe keys are live switches to `mode: test` only with `testModeOverride: true`; otherwise `422 PROVIDER_CONFIG_INVALID` with `details {field: mode, reason: LIVE_KEYS_SAVED}`. The field is ignored elsewhere.
+
 ## 2026-11-14 · PAY-09 · Only a card payer opens their own card setup
 
 **No operations, schemas or error codes added; 1 operation description and its 409 error list changed (`POST /me/card-setup`).**

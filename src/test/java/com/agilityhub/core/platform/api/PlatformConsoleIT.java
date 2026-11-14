@@ -157,6 +157,70 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getContentAsString()).contains("env:").doesNotContain("sk_test_fictional_console","whsec_fictional_console","secretKeyEnc","ibanEnc","accounts:");
     }
+    @Autowired com.agilityhub.core.payments.application.FakePaymentProvider fakeStripe;
+    @Autowired com.agilityhub.core.platform.application.PlatformProviders platformProviders;
+    long providerAudits() {
+        return mongo.count(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("action")
+                .is("CLUB_PAYMENT_PROVIDER_CHANGED").and("entityId").is("console-target")),"audit_entries");
+    }
+    Map<String,Object> stripeKeys(String mode,String secret) {
+        return Map.of("version",version(),"enabled",true,"secretKey",secret,"webhookSecret","whsec_fictional_console","publishableKey","pk_"+mode+"_console1234","mode",mode);
+    }
+    /**
+     * PAY-10 (owner decision of 13 Nov 2026, S17 R-17-05): saving a Stripe secret key runs the connection test with that key first; a key
+     * Stripe refuses → 422 STRIPE_CONNECTION_FAILED with nothing written or audited, and a passed test is recorded with the save.
+     */
+    @Test void PAY_10_savingStripeKeysRunsTheConnectionTestAndRefusesAKeyThatFailsIt() throws Exception {
+        fakeStripe.refuseKey("sk_test_fictional_refused");
+        try {
+            long before=version();var providersBefore=clubs.findById("console-target").orElseThrow().paymentProviders();
+            assertThat(call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_refused"),422).path("code").asText())
+                    .isEqualTo("STRIPE_CONNECTION_FAILED");
+            assertThat(version()).isEqualTo(before);
+            assertThat(clubs.findById("console-target").orElseThrow().paymentProviders()).isEqualTo(providersBefore);
+            assertThat(providerAudits()).isZero();
+            call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_console"),200);
+            var stripe=call(get(BASE+"/console-target"),null,200).path("paymentProviders").path("STRIPE");
+            assertThat(stripe.path("lastTestAt").asText()).isEqualTo(clock.instant().toString());
+            assertThat(stripe.path("accountIdMasked").asText()).isEqualTo("****5678");
+            assertThat(providerAudits()).isEqualTo(1);
+            // A rotation to a refused key keeps the stored key and its last test.
+            var stored=clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE");
+            call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_refused"),422);
+            assertThat(clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE")).isEqualTo(stored);
+            assertThat(providerAudits()).isEqualTo(1);
+        } finally { fakeStripe.reset(); }
+    }
+    /**
+     * PAY-10 (owner decision of 13 Nov 2026, S17 R-17-05): on the prod profile, once live keys are saved, switching to test mode needs
+     * `testModeOverride: true`; without it 422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED} and the live keys stay.
+     */
+    @Test void PAY_10_onProdSavedLiveKeysSwitchToTestModeOnlyWithTheOverride() throws Exception {
+        Object target=org.springframework.test.util.AopTestUtils.getTargetObject(platformProviders);
+        Object environment=org.springframework.test.util.ReflectionTestUtils.getField(target,"environment");
+        var prod=new org.springframework.mock.env.MockEnvironment();prod.setActiveProfiles("prod");
+        org.springframework.test.util.ReflectionTestUtils.setField(target,"environment",prod);
+        try {
+            call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("live","sk_live_fictional_console"),200);
+            var live=clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE");
+            for(Object override:Arrays.asList(null,false)) {
+                var body=new HashMap<String,Object>(stripeKeys("test","sk_test_fictional_console"));
+                if(override!=null) body.put("testModeOverride",override);
+                var error=call(put(BASE+"/console-target/payment-providers/STRIPE"),body,422);
+                assertThat(error.path("code").asText()).isEqualTo("PROVIDER_CONFIG_INVALID");
+                assertThat(error.path("details").path("field").asText()).isEqualTo("mode");
+                assertThat(error.path("details").path("reason").asText()).isEqualTo("LIVE_KEYS_SAVED");
+            }
+            assertThat(clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE")).isEqualTo(live);
+            var body=new HashMap<String,Object>(stripeKeys("test","sk_test_fictional_console"));body.put("testModeOverride",true);
+            assertThat(call(put(BASE+"/console-target/payment-providers/STRIPE"),body,200).path("mode").asText()).isEqualTo("test");
+            assertThat(((Map<?,?>)clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE")).get("mode")).isEqualTo("test");
+            assertThat(providerAudits()).isEqualTo(2);
+        } finally { org.springframework.test.util.ReflectionTestUtils.setField(target,"environment",environment); }
+        // Outside prod (this test profile) the same switch needs no override.
+        call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("live","sk_live_fictional_console"),200);
+        call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_console"),200);
+    }
     @Test void T_17_06_R_17_06_eachChecklistCellUsesTheRelevantCurrentFact() throws Exception {
         var c=clubs.findById("console-target").orElseThrow();var tree=(ObjectNode)mapper.valueToTree(c);
         tree.putArray("domains").add(mapper.valueToTree(c.domains().getFirst()));

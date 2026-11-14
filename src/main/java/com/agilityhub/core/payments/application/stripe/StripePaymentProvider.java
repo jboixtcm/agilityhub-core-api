@@ -53,9 +53,23 @@ public class StripePaymentProvider implements PaymentProvider {
     private int readTimeout() { return Math.toIntExact(callTimeout().toMillis() / 10); }
     @Override public Connection ping() {
         var client=client(false);
+        return connection(client,settings.stripe(TenantContext.require()).orElseThrow().mode());
+    }
+    /**
+     * PAY-10 (S17 R-17-05): the connection test of a key before it is saved: the same checks as a stored key (the mode, the key's
+     * `sk_{mode}_` prefix, the hosted demo's test mode) before any network call, then the account the key reaches.
+     */
+    @Override public Connection ping(String mode,String secretKey) {
+        if(hostedDemo&&!"test".equals(mode)) { throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID); }
+        if(!Set.of("test","live").contains(Objects.toString(mode,""))||secretKey==null||!secretKey.startsWith("sk_"+mode+"_")) {
+            throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
+        }
+        return connection(newClient(secretKey),mode);
+    }
+    private Connection connection(StripeClient client,String mode) {
         var account=calls.call(()->client.v1().accounts().retrieveCurrent(options(null)));
         String name=account.getBusinessProfile()==null?null:account.getBusinessProfile().getName();
-        return new Connection(true,account.getId(),name==null?account.getId():name,settings.stripe(TenantContext.require()).orElseThrow().mode());
+        return new Connection(true,account.getId(),name==null?account.getId():name,mode);
     }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public Duration callTimeout() { return MAX_CALL_TIMEOUT; }

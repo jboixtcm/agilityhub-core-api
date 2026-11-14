@@ -271,7 +271,8 @@ class E10ContractIT extends AbstractIntegrationTest {
         // E10-T01 review #5: the account id is the one the Stripe probe returned, never a value seeded into Mongo.
         mvc.perform(call(route("PUT","/clubs/{id}/payment-providers/{provider}"),"AGILITYHUB_ADMIN")
                 .content("{\"version\":"+clubs.findById("e10-target").orElseThrow().version()+",\"enabled\":true,\"secretKey\":\"sk_test_fictional_e10\",\"webhookSecret\":\"whsec_fictional_e10\",\"publishableKey\":\"pk_test_fictional1234\",\"mode\":\"test\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.accountIdMasked").value(org.hamcrest.Matchers.nullValue()));
+                // PAY-10 (owner decision of 13 Nov 2026): saving the key runs the connection test, so the save already shows the account it reached.
+                .andExpect(status().isOk()).andExpect(jsonPath("$.accountIdMasked").value("****5678"));
         mvc.perform(call(route("POST","/clubs/{id}/payment-providers/stripe/test"),"AGILITYHUB_ADMIN")).andExpect(status().isOk());
         assertThat(((Map<?,?>)clubs.findById("e10-target").orElseThrow().paymentProviders().get("STRIPE")).get("accountId")).isEqualTo("acct_fictional5678");
         var response=mvc.perform(call(route("GET","/clubs/{id}"),"AGILITYHUB_ADMIN"))
