@@ -18,6 +18,8 @@ SPEC.loader.exec_module(PREFLIGHT)
 REGISTRY_DIGEST = 'sha256:' + 'a' * 64
 IMAGE_ID = 'sha256:' + 'b' * 64
 IMAGE = PREFLIGHT.REPOSITORY + ':sha-de50be0'
+# CFG-04: the policy a web build writes for an index.html without inline scripts (fictional fixture bundles).
+POLICY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'"
 
 
 class ReleasePreflightTest(unittest.TestCase):
@@ -34,6 +36,7 @@ class ReleasePreflightTest(unittest.TestCase):
             (directory / 'assets').mkdir(parents=True)
             (directory / 'index.html').write_text('<!doctype html><script type="module" src="/assets/index-hash.js"></script>')
             (directory / 'assets/index-hash.js').write_text('document.body.textContent="application";')
+            (directory / 'content-security-policy.txt').write_text(POLICY)
             mounts.append({'type': 'bind', 'source': str(directory), 'target': target, 'read_only': True})
         self.config = {'services': {
             'core': {'image': IMAGE, 'environment': {'SPRING_PROFILES_ACTIVE': 'prod', 'TRUSTED_PROXY_PATTERN': r'172\.30\.240\.10'}},
@@ -342,6 +345,38 @@ class ReleasePreflightTest(unittest.TestCase):
                 self.assertIn('mock service worker', str(caught.exception))
                 worker.unlink()
         PREFLIGHT.check_spas(self.config)
+
+    def test_CFG_04_a_dist_needs_its_one_line_policy_and_it_must_allow_every_inline_script(self):
+        PREFLIGHT.check_spas(self.config)
+        policy, index = self.directory / 'clubs/content-security-policy.txt', self.directory / 'clubs/index.html'
+        for content in (None, '', '   ', POLICY + '\n', POLICY + '\r', "default-src 'self';\nscript-src 'self'"):
+            with self.subTest(content=content):
+                if content is None:
+                    policy.unlink()
+                else:
+                    policy.write_text(content, newline='')
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('content-security-policy.txt', str(caught.exception))
+        # MDN's documented example: `<script>alert('Hello, world.');</script>` is allowed by exactly this source.
+        boot = "alert('Hello, world.');"
+        digest = "'sha256-qznLcsROx4GACP2dm0UCKCzCG+HiZ1guq6ZZDob/Tng='"
+        self.assertEqual([digest], PREFLIGHT.inline_script_hashes(f'<script>{boot}</script><script type="module" src="/a.js"></script>'))
+        index.write_text(f'<!doctype html><script>{boot}</script><script type="module" src="/assets/index-hash.js"></script>')
+        for content in (POLICY, POLICY.replace("script-src 'self'", "script-src 'self' 'sha256-AAAA'"),
+                        POLICY.replace("default-src 'self'", f"default-src 'self' {digest}")):
+            with self.subTest(policy=content):
+                policy.write_text(content)
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('inline script', str(caught.exception))
+        policy.write_text(POLICY.replace("script-src 'self'", f"script-src 'self' {digest}"))
+        record = PREFLIGHT.check_spas(self.config)
+        self.assertEqual(3, record['/srv/clubs']['files'])  # the policy is part of the release record's digest
+        # Once the boot script changes, the policy built for the old one no longer fits.
+        index.write_text(f'<!doctype html><script>{boot} </script><script type="module" src="/assets/index-hash.js"></script>')
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_spas(self.config)
 
     def test_path_escape_and_artifact_symlinks_are_refused(self):
         outside = self.directory / 'outside.js'

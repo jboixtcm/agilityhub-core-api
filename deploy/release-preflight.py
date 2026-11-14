@@ -20,6 +20,11 @@ DIGEST = re.compile(r'sha256:[0-9a-f]{64}')
 IMAGE = re.compile(re.escape(REPOSITORY) + r':sha-([0-9a-f]{7,40})(?:@(sha256:[0-9a-f]{64}))?')
 DIST_TARGETS = ('/srv/id', '/srv/clubs', '/srv/clubsadmin')
 MOCK_WORKER = 'mockServiceWorker.js'
+# CFG-04: the policy Caddy sends with a bundle's static answers, written by its build, and the inline scripts it must allow
+# (the expressions of the web's `scripts/bundle-files.mjs`, so both compute the same hashes).
+POLICY_FILE = 'content-security-policy.txt'
+INLINE_SCRIPT = re.compile(r'<script\b([^>]*)>([\s\S]*?)</script\s*>', re.I)
+SRC_ATTRIBUTE = re.compile(r'(?:^|\s)src\s*=', re.I)
 
 
 class PreflightError(Exception):
@@ -190,6 +195,26 @@ class ModuleScripts(HTMLParser):
             self.sources.append(attrs.get('src', ''))
 
 
+def inline_script_hashes(html):
+    """CFG-04: the CSP hash source (`'sha256-<base64>'`) of every inline `<script>` (no `src`) of an index.html, as written."""
+    return ["'sha256-" + base64.b64encode(hashlib.sha256(text.encode('utf-8')).digest()).decode('ascii') + "'"
+            for attributes, text in INLINE_SCRIPT.findall(html) if not SRC_ATTRIBUTE.search(attributes)]
+
+
+def check_policy(directory, html):
+    """CFG-04: the bundle carries the one-line policy Caddy sends, and its script-src allows every inline script of index.html."""
+    policy_file = directory / POLICY_FILE
+    require(policy_file.is_file() and not policy_file.is_symlink(),
+            'SPA dist is missing content-security-policy.txt; rebuild it with the web build')
+    policy = policy_file.read_text(encoding='utf-8')
+    require(bool(policy.strip()) and re.search(r'[\r\n]', policy) is None,
+            'SPA content-security-policy.txt must be one nonempty line, without a line break')
+    directives = {tokens[0].lower(): tokens[1:] for tokens in (part.split() for part in policy.split(';')) if tokens}
+    allowed = directives.get('script-src', [])
+    require(all(digest in allowed for digest in inline_script_hashes(html)),
+            'SPA content-security-policy.txt does not allow an inline script of its index.html (script-src lacks its sha256)')
+
+
 def check_dist(directory):
     require(directory.is_absolute(), 'SPA dist directories must use absolute paths')
     directory = directory.resolve()
@@ -210,6 +235,7 @@ def check_dist(directory):
         asset = (directory / unquote(url.path).lstrip('/')).resolve()
         require(asset.is_relative_to(directory) and asset.is_file() and asset.suffix == '.js',
                 'SPA module is missing, outside its dist directory or not compiled JavaScript')
+    check_policy(directory, html)
     digest, count = hashlib.sha256(), 0
     for file in sorted(directory.rglob('*')):
         require(not file.is_symlink(), 'SPA release artifacts must not contain symlinks')

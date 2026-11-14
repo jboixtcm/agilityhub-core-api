@@ -8,7 +8,8 @@
     }
 }
 
-# E11-T03: baseline for static SPAs as well as API responses. CSP for SPA scripts belongs to the web build.
+# E11-T03: baseline for static SPAs as well as API responses. The SPAs' Content-Security-Policy is set on their static answers
+# only (CFG-04, `static_files`); API answers keep the Core's own policy.
 (security_headers) {
     header {
         X-Content-Type-Options nosniff
@@ -134,9 +135,19 @@
 # revalidated on every load, the entry document at `/` included, except an existing file under /assets/ (Vite names them by
 # content hash), cached for a year. A dot path (`/.env`, `/.git/…`) is a 404, and so is a missing file with one of the listed
 # extensions (`/robots.txt`, `/old.js`): only a path that looks like a route falls back to index.html with 200.
+# CFG-04 (owner decision of 13 Nov 2026): every static answer carries the Content-Security-Policy of the bundle it comes from:
+# the one line its build wrote to `content-security-policy.txt` in the served root, with the sha256 of each inline script of that
+# build's index.html, so the policy and the boot script cannot drift (the web checks the file at build time, release preflight
+# again before a deploy). The file is read per request, so a new bundle brings its policy without a reload.
 (static_files) {
     encode zstd gzip
     header Cache-Control "no-cache"
+    @policy_id vars {http.vars.root} /srv/id
+    header @policy_id Content-Security-Policy "{file./srv/id/content-security-policy.txt}"
+    @policy_clubs vars {http.vars.root} /srv/clubs
+    header @policy_clubs Content-Security-Policy "{file./srv/clubs/content-security-policy.txt}"
+    @policy_clubsadmin vars {http.vars.root} /srv/clubsadmin
+    header @policy_clubsadmin Content-Security-Policy "{file./srv/clubsadmin/content-security-policy.txt}"
     @dot_path path */.*
     respond @dot_path 404
     @asset path /assets/* /pwa/*

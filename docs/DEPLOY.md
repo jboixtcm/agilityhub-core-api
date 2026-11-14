@@ -134,7 +134,9 @@ publication. A local image ID is not a registry digest. The command rejects
 `:main`, local/CI tags, absent or mismatched registry digests, local proof profiles,
 exposed database/API ports, broad proxy trust, reused Mongo passwords, placeholders,
 missing backup configuration, proof HTML in place of the built SPAs and a dist
-holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03). It also
+holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03), and a dist whose
+`content-security-policy.txt` is missing, not one line, or does not allow an inline
+script of its `index.html` by its `sha256` (CFG-04). It also
 checks each mounted SPA's compiled entry module exists and fingerprints every
 file of its distinct read-only dist directory. Its JSON output contains only image
 identifiers and artifact hashes, suitable for the release record. Keep the reviewed
@@ -1684,9 +1686,14 @@ a 300-second cache. Health only accepts configured platform origins without
 looking up a club; other origins still receive its ordinary UP/DOWN response.
 Cookies remain same-origin (A1); CORS never enables credentials or wildcard
 origins. All SPAs receive nosniff, strict-origin-when-cross-origin, DENY and HSTS
-from Caddy. The web build owns its CSP. API JSON, errors, OAuth and files keep the
-Spring Security baseline and E71 download policies. API HSTS is enabled only for
-HTTPS requests under `prod`.
+from Caddy. Caddy also sends each SPA's Content-Security-Policy, on its static answers only (CFG-04): the one line the
+web build writes to `content-security-policy.txt` in the bundle, read from the served root on every request, so a new
+bundle brings its policy (with the `sha256` of its inline boot script) without a reload. `bin/release-preflight` refuses
+a bundle without the file, with more than one line, or whose `script-src` lacks the `sha256` of an inline script of
+its `index.html`. The policy allows only each host's own origin: with `FILE_STORAGE_MODE=s3`, uploads and signed
+downloads go to the bucket's origin, so the web's policy must name it (a new bundle) before such a deployment. API
+JSON, errors, OAuth and files keep the Spring Security baseline and E71 download policies. API HSTS is enabled only
+for HTTPS requests under `prod`.
 
 Caddy caps request bodies before they reach the Core (CFG-03, snippet `api_body_limit`): 2 MB (2,000,000 bytes)
 for `/api/*` and `/oauth2/*` on every site that proxies them (the three product hosts, the club catch-all and the Core
