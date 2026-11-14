@@ -109,8 +109,9 @@ email settings before activation; never supply fake credentials to pass it.
    flight (CFG-06). The live build-session streams do not count: Core closes them at the start of shutdown, before
    the server waits for its requests (a stream opened meanwhile ends at once), and the web reopens them on the new Core.
 
-5. Smoke the deployed hosts: HTTPS health returns `UP` and, as `commit`, the
-   full commit of the reviewed `sha-…` tag (REL-02); each club host's
+5. Smoke the deployed hosts: HTTPS health returns `UP`, as `version` the
+   release version of that commit's `pom.xml` (`1.0.0` at the first release) and,
+   as `commit`, the full commit of the reviewed `sha-…` tag (REL-02); each club host's
    `/api/v1/branding` identifies its intended tenant; all three SPAs load and
    deep links work; sign in and refresh once on a front host. Check the rotated
    `ah_refresh` has no Domain, with HttpOnly/Secure/SameSite=Strict and
@@ -137,11 +138,12 @@ exposed database/API ports, broad proxy trust, reused Mongo passwords, placehold
 missing backup configuration, proof HTML in place of the built SPAs and a dist
 holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03), a dist whose
 `content-security-policy.txt` is missing, not one line, or does not allow an inline
-script of its `index.html` by its `sha256` (CFG-04), and one without the `robots.txt`
-that disallows every robot (CFG-05). It also
+script of its `index.html` by its `sha256` (CFG-04), one without the `robots.txt`
+that disallows every robot (CFG-05), and one without the `version.json` the web build
+writes, exactly `{"version": "x.y.z", "commit": <full commit id> | null}` (REL-02). It also
 checks each mounted SPA's compiled entry module exists and fingerprints every
 file of its distinct read-only dist directory. Its JSON output contains only image
-identifiers and artifact hashes, suitable for the release record. Keep the reviewed
+identifiers, artifact hashes and each bundle's `version` and `commit`, suitable for the release record. Keep the reviewed
 API/web commits and CI run IDs beside that output; matching hashes do not establish
 that a release was reviewed.
 

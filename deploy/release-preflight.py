@@ -28,6 +28,11 @@ SRC_ATTRIBUTE = re.compile(r'(?:^|\s)src\s*=', re.I)
 # CFG-05: every host serves its bundle's robots.txt; the web build writes exactly these two lines.
 ROBOTS_FILE = 'robots.txt'
 ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
+# REL-02: every bundle names its version and the commit it was built from, as the web build writes them (`scripts/bundle-files.mjs`):
+# `{"version": "x.y.z", "commit": "<40 lowercase hex>" | null}`, null for a build outside CI.
+VERSION_FILE = 'version.json'
+SEMANTIC_VERSION = re.compile(r'\d+\.\d+\.\d+')
+COMMIT = re.compile(r'[0-9a-f]{40}')
 
 
 class PreflightError(Exception):
@@ -218,6 +223,22 @@ def check_policy(directory, html):
             'SPA content-security-policy.txt does not allow an inline script of its index.html (script-src lacks its sha256)')
 
 
+def check_version(directory):
+    """REL-02: the bundle's `version.json` holds exactly its x.y.z version and its commit (a full commit id, or null)."""
+    version_file = directory / VERSION_FILE
+    require(version_file.is_file() and not version_file.is_symlink(), 'SPA dist is missing version.json; rebuild it with the web build')
+    try:
+        value = json.loads(version_file.read_text(encoding='utf-8'))
+    except ValueError:
+        raise PreflightError('SPA version.json is not JSON') from None
+    require(isinstance(value, dict) and sorted(value) == ['commit', 'version'], 'SPA version.json must hold exactly version and commit')
+    require(isinstance(value['version'], str) and SEMANTIC_VERSION.fullmatch(value['version']) is not None,
+            'SPA version.json version must be x.y.z')
+    require(value['commit'] is None or (isinstance(value['commit'], str) and COMMIT.fullmatch(value['commit']) is not None),
+            'SPA version.json commit must be a full lowercase commit id or null')
+    return {'version': value['version'], 'commit': value['commit']}
+
+
 def check_dist(directory):
     require(directory.is_absolute(), 'SPA dist directories must use absolute paths')
     directory = directory.resolve()
@@ -242,6 +263,7 @@ def check_dist(directory):
     robots = directory / ROBOTS_FILE
     require(robots.is_file() and not robots.is_symlink() and robots.read_bytes() == ROBOTS_TXT.encode('ascii'),
             'SPA dist must carry the robots.txt that disallows every robot (User-agent: * / Disallow: /)')
+    version = check_version(directory)
     digest, count = hashlib.sha256(), 0
     for file in sorted(directory.rglob('*')):
         require(not file.is_symlink(), 'SPA release artifacts must not contain symlinks')
@@ -255,7 +277,7 @@ def check_dist(directory):
                     file_digest.update(chunk)
             digest.update(file_digest.digest())
             count += 1
-    return {'sha256': digest.hexdigest(), 'files': count}
+    return {'sha256': digest.hexdigest(), 'files': count, **version}
 
 
 def check_spas(config):

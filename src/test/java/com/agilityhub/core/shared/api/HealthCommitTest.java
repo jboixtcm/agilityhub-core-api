@@ -15,7 +15,7 @@ class HealthCommitTest {
 
     private static HealthController controller(String commit, boolean up) {
         var entries = new Properties();
-        entries.setProperty("version", "0.1.0-SNAPSHOT");
+        entries.setProperty("version", "1.0.0");
         entries.setProperty("time", "2026-11-12T08:00:00Z");
         if (commit != null) { entries.setProperty("commit", commit); }
         var database = mock(DatabaseProbe.class);
