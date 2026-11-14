@@ -359,10 +359,15 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
   backup, and rotate it only with the procedure below (PRIV-11), never by just
   editing env. Since E11-T11, Core does not start outside the `local` and
   `test` profiles when the key is missing or is not Base64 of 32 bytes (staging
-  and `prod` included). A run with no active profile is the local stack by
-  design (`spring.profiles.default: local` in `application.yml`, ruling E139): it
-  starts without the key and keeps the IBAN in clear with the WARN, so every
-  deployment sets its profile explicitly (`prod` in the production Compose).
+  and `prod` included). A run of the jar with no active profile is the local
+  stack by design (`spring.profiles.default: local` in `application.yml`, ruling
+  E139): it starts without the key and keeps the IBAN in clear with the WARN, so
+  every deployment sets its profile explicitly (`prod` in the production Compose).
+  The image itself starts on `prod` when no profile is given (CFG-12:
+  `ENV SPRING_PROFILES_ACTIVE=prod` in its runtime stage), so a bare `docker run`
+  of it refuses to start without the production configuration instead of
+  opening the local test routes and fakes; the local, consumer and smoke stacks
+  name `local`.
 - **Rotating `BILLING_BANK_KEY` (PRIV-11).** Every IBAN sealed since PRIV-11
   starts with the id of its key, `{keyId}:` — the first 8 hex characters of the
   SHA-256 of the key's 32 bytes (`printf %s "$KEY" | base64 -d | sha256sum | cut -c1-8`);

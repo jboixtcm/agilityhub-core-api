@@ -73,10 +73,10 @@ so the host does not need to resolve the replica member's Compose hostname.
 
 | Profile | MongoDB | Configuration |
 | --- | --- | --- |
-| `local` (default) | Enabled; development MongoDB 7 replica set | Defaults to `localhost:27017/agilityhub`, `rs0`; Compose supplies `mongo` as the host. `/v3/api-docs` is available. |
+| `local` (default of the jar) | Enabled; development MongoDB 7 replica set | Defaults to `localhost:27017/agilityhub`, `rs0`; Compose supplies `mongo` as the host. `/v3/api-docs` is available. |
 | `test` | Enabled; MongoDB 7 replica set | Integration tests inject a Testcontainers URI for `agilityhub_test`. `MONGODB_TEST_URI` is for manual execution. MVC slice tests need no database. |
 | `staging` | Enabled; MongoDB 7 replica set required | Set `MONGODB_HOST`, `MONGODB_DATABASE`, `MONGODB_USERNAME`, `MONGODB_PASSWORD`; see `.env.example` for port, replica-set and authentication-database defaults. |
-| `prod` | Enabled; MongoDB 7 replica set required | Same required variables as staging. |
+| `prod` (default of the image) | Enabled; MongoDB 7 replica set required | Same required variables as staging. The Docker image sets `SPRING_PROFILES_ACTIVE=prod` (CFG-12), so a run of it that names no profile starts on `prod`; every Compose stack of this repository names its own. |
 
 Activate one profile with `SPRING_PROFILES_ACTIVE`. Virtual threads are enabled
 in every profile. Configure `SERVER_PORT` if port 8080 is occupied.

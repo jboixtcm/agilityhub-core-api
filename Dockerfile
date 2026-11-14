@@ -42,6 +42,9 @@ COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
 ARG GIT_COMMIT=unknown
 LABEL org.opencontainers.image.revision=$GIT_COMMIT
 USER agilityhub
+# CFG-12: a run that names no profile (a bare `docker run`) starts on prod, never on the jar's local default with its test routes
+# and provider fakes; without the production configuration it refuses to start. Every Compose stack names its own profile.
+ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
 HEALTHCHECK --interval=5s --timeout=3s --start-period=40s --retries=12 \
     CMD curl -fsS "http://localhost:${SERVER_PORT:-8080}/api/v1/health" || exit 1
