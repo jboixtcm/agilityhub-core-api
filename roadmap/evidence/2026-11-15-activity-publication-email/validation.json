@@ -28,5 +28,11 @@
   "command": "./mvnw -q clean test-compile failsafe:integration-test failsafe:verify -Dit.test=ActivityPublicationEmailHoldIT,DisabledEmailDeliveryIT,NotificationEngineIT,NotificationDispatcherIT",
   "exitCode": 0,
   "operationsTests": 65,
-  "fullReleaseCi": "Pending publication"
+  "fullReleaseCi": "Pending publication",
+  "caddyRegression": {
+    "command": "python3 deploy/test_e11_t09.py -v",
+    "environment": "Linux Docker runner with host networking",
+    "tests": 12,
+    "exitCode": 0
+  }
 }

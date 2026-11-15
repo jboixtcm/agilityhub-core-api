@@ -7,6 +7,8 @@ import ast
 import collections
 import hashlib
 import http.server
+import http.client
+import io
 import json
 import re
 import socket
@@ -287,6 +289,25 @@ class BodyLimitTest(unittest.TestCase):
                     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
                     def send(port, method, route, size, chunked=False):
+                        if size > 1:
+                            # urllib finishes sendall before reading the response. An early Caddy rejection can
+                            # reset that write and hide its valid error response. curl reads while uploading.
+                            request_file = Path(directory) / 'request.bin'
+                            headers_file = Path(directory) / 'response.headers'
+                            body_file = Path(directory) / 'response.body'
+                            request_file.write_bytes(b'0' * size)
+                            args = ['curl', '--noproxy', '*', '--http1.1', '--silent', '--show-error', '--max-time', '30',
+                                    '--request', method, '--header', 'Content-Type: application/json',
+                                    '--header', 'Expect: 100-continue', '--data-binary', '@' + str(request_file),
+                                    '--dump-header', str(headers_file), '--output', str(body_file)]
+                            if chunked:
+                                args += ['--header', 'Transfer-Encoding: chunked']
+                            subprocess.run(args + [f'http://127.0.0.1:{port}{route}'], check=True, capture_output=True, timeout=35)
+                            responses = [block for block in headers_file.read_bytes().split(b'\r\n\r\n') if block.startswith(b'HTTP/')]
+                            status_line, raw_headers = responses[-1].split(b'\r\n', 1)
+                            status = int(status_line.split()[1])
+                            headers = http.client.parse_headers(io.BytesIO(raw_headers + b'\r\n\r\n'))
+                            return status, headers, body_file.read_text()
                         data = iter([b'0' * size]) if chunked else b'0' * size
                         headers = {'Content-Type': 'application/json'}
                         request = urllib.request.Request(f'http://127.0.0.1:{port}{route}', data=data, method=method, headers=headers)
