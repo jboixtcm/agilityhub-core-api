@@ -80,7 +80,8 @@ class ExportEngineIT extends AbstractIntegrationTest {
     }
     String requesterLocale = "es";
     ResultActions call(MockHttpServletRequestBuilder request, String club, String account, String role) throws Exception {
-        return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject(account).claim("clubId", club).claim("locale", requesterLocale).claim("name", "Example Admin"))
+        return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject(account).claim("clubId", club).claim("locale", requesterLocale).claim("name", "Example Admin")
+                        .claim("auth_time", signedInNow()))
                 .authorities(() -> "ROLE_" + role)));
     }
     ResultActions admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, CLUB, "export-admin-a", "ADMIN"); }

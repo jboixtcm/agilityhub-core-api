@@ -49,7 +49,8 @@ class MessageTemplateSeedChecksTest {
         assertThatThrownBy(() -> load(files)).as(reason).isInstanceOf(IllegalStateException.class).hasMessageContaining(reason);
     }
 
-    @Test void E7_T03_theSeedFilesAsCommittedLoad() throws Exception { assertThat(load(files()).size()).isEqualTo(52); }
+    /** 53 since PAY-06 added N-56 (owner decision of 13 Nov 2026). */
+    @Test void E7_T03_theSeedFilesAsCommittedLoad() throws Exception { assertThat(load(files()).size()).isEqualTo(53); }
 
     @Test void E7_T03_aBrokenSeedFileStopsTheStartWithItsReason() throws Exception {
         fails(files -> files.remove("en"), "Missing /seed/message-templates.en.json");

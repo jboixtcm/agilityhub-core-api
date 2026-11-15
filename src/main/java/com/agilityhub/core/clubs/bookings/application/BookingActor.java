@@ -9,7 +9,22 @@ import com.agilityhub.core.shared.application.CurrentUser;
  * hold), `memberId` the member on whose behalf the action runs (the booker), `impersonatedMemberId` is set only
  * for BACKOFFICE. SYSTEM has neither account nor member (S13/S15 cancellations, payment consumers).
  */
-public record BookingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, BookingOrigin origin, ActorRole role) {
+public record BookingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, BookingOrigin origin, ActorRole role,
+        boolean notifies) {
+    /** An actor whose booking actions notify the member as the catalogue says (COMM-03: only {@link #notifying} turns it off). */
+    public BookingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, BookingOrigin origin, ActorRole role) {
+        this(accountId, memberId, displayName, impersonatedMemberId, origin, role, true);
+    }
+    /**
+     * COMM-03 (owner's decision of 13-11): an ADMIN booking or cancelling for a member (impersonation, BACKOFFICE) may ask not to
+     * notify the member (`notifyMember: false`: no N-36; the booking events carry `notifyMember: false` and the audit entry records it). Anyone
+     * else asking it (the member, an instructor) → 403 FORBIDDEN; null or true changes nothing.
+     */
+    public BookingActor notifying(Boolean notify) {
+        if (notify == null || notify) { return this; }
+        if (!adminDelegation()) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.FORBIDDEN); }
+        return new BookingActor(accountId, memberId, displayName, impersonatedMemberId, origin, role, false);
+    }
     public boolean impersonated() { return impersonatedMemberId != null; }
     public boolean adminDelegation() { return impersonated() && role == ActorRole.ADMIN; }
     public boolean isSystem() { return role == ActorRole.SYSTEM; }

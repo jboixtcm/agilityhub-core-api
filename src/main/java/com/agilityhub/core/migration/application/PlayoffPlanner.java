@@ -29,6 +29,11 @@ public class PlayoffPlanner {
     public record Identity(String memberId,String email,String name,String locale,boolean active,Set<String> roles) { }
     public record Plan(List<Change> changes,List<Identity> identities,int maximumNumber,List<MigrationReport.Entry> rows) { }
     private record Candidate(PlayoffInput.Row row,String status,LocalDate joined,LocalDate left,Integer number) { }
+    /** SEPA-02 (S18 R-18-08): a validated row of the mandates file and the reference's key for the uniqueness checks. */
+    private record Mandate(String reference,LocalDate signedOn,PlayoffInput.Row row) {
+        String key() { return reference.toUpperCase(Locale.ROOT); }
+        boolean same(Mandate other) { return key().equals(other.key()) && signedOn.equals(other.signedOn()); }
+    }
     /** An ACTIVE record left without account because another record owns its email (R-18-12). */
     private record Shared(PlayoffInput.Row row,String memberId,PlayoffInput.Row ownerRow,String ownerMemberId) { }
     public Plan plan(PlayoffInput input,MappingConfig mapping) {
@@ -50,6 +55,8 @@ public class PlayoffPlanner {
         final Map<String,String> joins=new HashMap<>(), confirmedDocuments=new HashMap<>(), personBySource=new HashMap<>();
         // E146 (E11-T15 step 3): the last month Playoff charged each record (`pagat_fins.csv`), by source id.
         final Map<String,YearMonth> paidUntil=new HashMap<>();
+        // SEPA-02 (S18 R-18-08): the mandate of each destination member (or unknown source id) from the mandates file.
+        final Map<String,Mandate> mandates=new HashMap<>();
         final Map<String,PlayoffInput.Row> emailOwners=new HashMap<>(); final List<Shared> shared=new ArrayList<>();
         // R-18-14: records that are themselves a rejected re-execution transition → the report field; the protected members
         // (every member of such a record, every member two persons of this load would share, every member whose stored
@@ -103,11 +110,13 @@ public class PlayoffPlanner {
             candidates.sort(Comparator.comparing((Candidate c) -> joins.containsKey(c.row().get("id"))).thenComparing(c -> !c.status().equals("ACTIVE"))
                     .thenComparing(Candidate::joined).thenComparing(Candidate::number,Comparator.nullsLast(Comparator.naturalOrder())).thenComparingInt(c -> c.row().row()));
             destinations(candidates,skipped);
+            mandates();
             for (var row:skipped) { if (!rejected(row)) { incident(row,"members","SKIPPED",""); } }
             for (var candidate:candidates) {
                 try { memberAndDog(candidate); }
                 catch (ApiException | IllegalArgumentException bad) { incident(candidate.row(),"members","ERROR",bad instanceof ApiException api ? api.code().name() : "INPUT_SCHEMA_MISMATCH"); }
             }
+            mandatesOfOtherMembers();
             for (String file:List.of("plans","levels","groups")) {
                 for (var row:input.files().get(file)) { if (!sourceIds.contains(row.get("id"))) { incident(row,file,"ERROR","INPUT_SCHEMA_MISMATCH"); } }
             }
@@ -200,6 +209,44 @@ public class PlayoffPlanner {
                 paidUntil.merge(source,month,(a,b) -> a.isAfter(b) ? a : b);
             }
         }
+        /**
+         * SEPA-02 (S18 R-18-08): the club continues its previous system's mandates. Each `mandats.csv` row gives a record's mandate
+         * reference and signature date, and reaches the member through every record that lands on it. A row with an empty reference
+         * gives no mandate. A row is an `ERROR` (field `mandateRef`) when its reference breaks the EPC rules or is another member's in
+         * this file; (field `mandateSignedAt`) when its date is missing, unreadable or after the club's today; (field `memberId`) when
+         * its member already has another mandate in the file. Nothing is written while any of them stands.
+         */
+        void mandates() {
+            LocalDate now=clubClock.today(club); var owners=new HashMap<String,String>();
+            for (var row:input.files().getOrDefault("mandates",List.of())) {
+                String reference=row.get("mandateRef");
+                if (reference.isEmpty()) { continue; }
+                String member=destinations.getOrDefault(row.get("memberId"),"source:"+row.get("memberId"));
+                LocalDate signed;
+                try { signed=date(row.get("mandateSignedAt")); } catch (ApiException unreadable) { signed=null; }
+                if (!census.validMandateRef(reference)) { mandateError(row,"mandateRef"); continue; }
+                if (signed==null || signed.isAfter(now)) { mandateError(row,"mandateSignedAt"); continue; }
+                var mandate=new Mandate(reference,signed,row);
+                if (!owners.getOrDefault(mandate.key(),member).equals(member)) { mandateError(row,"mandateRef"); continue; }
+                var previous=mandates.putIfAbsent(member,mandate);
+                if (previous!=null && !previous.same(mandate)) { mandateError(row,"memberId"); continue; }
+                owners.put(mandate.key(),member);
+            }
+        }
+        /**
+         * SEPA-02: a mandate reference identifies one mandate of the creditor. A reference of the file that a member this load does not
+         * write already holds is an `ERROR` (field `mandateRef`) on the row that brings it.
+         */
+        void mandatesOfOtherMembers() {
+            var written=new HashSet<String>(); changes.stream().filter(c -> c.entity().equals("members")).forEach(c -> written.add(c.id()));
+            var held=new HashSet<String>();
+            storedMembers.forEach((id,member) -> {
+                String reference=string(map(member.get("paymentMethod")).get("mandateRef"));
+                if (!written.contains(id) && reference!=null) { held.add(reference.toUpperCase(Locale.ROOT)); }
+            });
+            mandates.forEach((member,mandate) -> { if (written.contains(member) && held.contains(mandate.key())) { mandateError(mandate.row(),"mandateRef"); } });
+        }
+        void mandateError(PlayoffInput.Row row,String field) { rows.add(new MigrationReport.Entry(row.file(),row.row(),"members","ERROR","INPUT_SCHEMA_MISMATCH",field)); }
         /**
          * E11-T15 round 2 (the kit's review 1, E156): the member's «paid until» is the latest month over every record that lands on it
          * — a `persones.csv` join, a same-NIF record (one per dog), an alias of an earlier load — not only the record that creates it.
@@ -296,28 +343,16 @@ public class PlayoffPlanner {
                 var payment=payment(row);
                 if ("SEPA_DD".equals(payment.get("type"))) {
                     var previousPayment=map(old==null ? null : old.get("paymentMethod"));
-                    // Playoff exports no mandates. Preserve the first cutover mandate on reapply. R-18-08, E43 (E11-T15 step 7): the
-                    // reference is `{clubSlug}-{memberNumber}-1`, at most 35 characters (a long slug is cut); a record without a number
-                    // (NUMBER_CONFLICT) has none until it gets one (MANDATE_PENDING), never a `{slug}-{memberId}-1` pain.008 refuses.
-                    String kept=string(previousPayment.get("mandateRef"));
-                    String reference=census.usableMandateRef(kept) ? kept : number==null ? null : census.mandateRef(config.club().slug(),number);
-                    payment.put("mandateRef",reference);
-                    // Round 2 (the kit's review 3): a stored null signature (a NUMBER_CONFLICT load) is no signature — the new reference is
-                    // signed on the cut-over, never left unsigned for the SEPA writer to refuse.
-                    payment.put("mandateSignedAt",reference==null ? null : Objects.requireNonNullElse(previousPayment.get("mandateSignedAt"),instant(today)));
-                    // Other clubs can supply their original mandate; the Cànic's export carries none (R-18-08).
-                    var mandate = input.files().getOrDefault("mandates", List.of()).stream().filter(m -> m.get("memberId").equals(row.get("id"))).findFirst();
-                    if (mandate.isPresent() && !mandate.get().get("mandateRef").isEmpty()) {
-                        try {
-                            var signed = PlayoffBillingPlanner.date(mandate.get().get("mandateSignedAt"));
-                            payment.put("mandateRef", mandate.get().get("mandateRef"));
-                            payment.put("mandateSignedAt", instant(signed));
-                        } catch (ApiException | java.time.format.DateTimeParseException invalid) {
-                            incident(mandate.get(), "members", "ERROR", "INPUT_SCHEMA_MISMATCH");
-                        }
-                    }
-                    if (payment.get("mandateRef")==null) { warn(row,"MANDATE_PENDING"); }
+                    // SEPA-02 (S18 R-18-08): the club continues its previous system's mandates. The mandates file gives the reference and
+                    // its signature date (checked in mandates()), and a reapply replaces what an earlier load stored. Without a row the
+                    // member gets no mandate — none is invented — and a MANDATE_PENDING line the operator resolves: S12's run skips it.
+                    var mandate=memberId==null ? null : mandates.get(memberId);
+                    payment.put("mandateRef",mandate==null ? null : mandate.reference());
+                    payment.put("mandateSignedAt",mandate==null ? null : instant(mandate.signedOn()));
+                    if (mandate==null) { warn(row,"MANDATE_PENDING"); }
                     payment.put("holderTaxId",document.isEmpty() ? null : document);
+                    // E92: the replaced mandate's `{clubSlug}-{memberNumber}-n` sequence is kept, so no later mandate reuses its reference.
+                    payment=census.keepMandateSequence(config.club().slug(),number,previousPayment,payment);
                 }
                 fields.put("paymentMethod",payment);
                 Set<String> roles=new HashSet<>(Set.of("MEMBER")); linkPlan(row,memberId,fields,roles);

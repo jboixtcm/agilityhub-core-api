@@ -3,7 +3,8 @@
 useDefault = true
 
 [[allowlists]]
-description = "Roadmap reports are prose and command outputs with truncated tokens (organizer-reviewed); the generic-api-key rule matches test descriptions there. Code and resources stay fully scanned."
+description = "Roadmap reports are prose and command outputs with truncated tokens (organizer-reviewed); the generic-api-key rule matches test descriptions there. Only that rule is exempt (REL-07): every other rule (private keys, provider tokens) still scans them. Code and resources stay fully scanned."
+targetRules = ["generic-api-key"]
 paths = [
   '''roadmap/tasks/.*\.md$''',
   '''roadmap/MESSAGES\.md$''',

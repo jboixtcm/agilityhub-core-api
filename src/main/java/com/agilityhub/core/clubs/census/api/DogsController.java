@@ -38,7 +38,7 @@ public class DogsController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "handlerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {"name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"},
             columns = {"name*", "breed*", "level*#levels.enabled", "owner*", "handler", "freeTraining*@FREE_TRAINING", "licenses*", "displayStatus*", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack@PACKS", "registeredAt"}, paged = true, exportable = true,
-            fields = {"id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version"})
+            fields = {"id", "name", "photoUrl", "photoThumbnailUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "List dogs",
             description = "R-03-22. Tenant-scoped universal list, with literal search and role/module-safe projections; fields selects a sparse response.",
@@ -94,9 +94,9 @@ public class DogsController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({LEVELS_DISABLED, LEVEL_NOT_ACTIVE, LEVEL_UNCHANGED, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update dog level",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING. COMM-03: notifyMember false changes the level without N-09 to the member; recorded in DOG_LEVEL_CHANGED details.notifyMember.",
             responses = @ApiResponse(responseCode = "200", description = "LevelChangeResult", content = @Content(schema = @Schema(implementation = LevelChangeResult.class))))
-    public java.util.Map<String,Object> updateDogLevel(@PathVariable String id, @Valid @RequestBody DogLevelRequest request) { return transactions.run(() -> { dogs.level(id, request.levelId()); return com.agilityhub.core.clubs.census.application.CensusValues.object("level", queries.detail(id).get("level"), "levelAssignedAt", queries.dog(id).get("levelAssignedAt")); }); }
+    public java.util.Map<String,Object> updateDogLevel(@PathVariable String id, @Valid @RequestBody DogLevelRequest request) { return transactions.run(() -> { dogs.level(id, request.levelId(), !Boolean.FALSE.equals(request.notifyMember())); return com.agilityhub.core.clubs.census.application.CensusValues.object("level", queries.detail(id).get("level"), "levelAssignedAt", queries.dog(id).get("levelAssignedAt")); }); }
 
     @PatchMapping("/api/v1/dogs/{id}/free-training")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")

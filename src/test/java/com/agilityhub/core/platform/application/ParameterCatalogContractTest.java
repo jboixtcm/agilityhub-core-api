@@ -72,6 +72,111 @@ class ParameterCatalogContractTest {
         assertThat(catalog.get("signup.onboardingFields").block()).isEqualTo("signup");
         assertThat(catalog.get("learn.baseUrl").editableBy()).isEqualTo("PLATFORM");
     }
+    /**
+     * PRIV-02 (owner's decision of 13-11): the legal floors of the retention keys. Each «**mínim N**» / «**mínims a · b · c**» of
+     * the document's notes (one value per key of the row, «—» = none) is the catalogue's `min`, and a value under it is refused.
+     */
+    @Test void PRIV_02_theRetentionFloorsOfTheDocumentAreTheCatalogMinimums() throws Exception {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var floors = new LinkedHashMap<String, Integer>();
+        var floor = Pattern.compile("\\*\\*mínims? ([^*]+)\\*\\*");
+        for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {
+            if (!line.startsWith("| `")) { continue; }
+            String[] cells = Arrays.stream(line.split("\\|", -1)).map(String::strip).toArray(String[]::new);
+            var matcher = floor.matcher(cells[cells.length - 3]);
+            if (!matcher.find()) { continue; }
+            List<String> keys = new ArrayList<>();
+            var key = Pattern.compile("`([^`]+)`").matcher(cells[1]);
+            while (key.find()) { keys.add(key.group(1)); }
+            List<String> values = Arrays.asList(matcher.group(1).strip().split(" · "));
+            assertThat(values).as(line).hasSameSizeAs(keys);
+            for (int i = 0; i < keys.size(); i++) { if (!values.get(i).equals("—")) { floors.put(keys.get(i), Integer.valueOf(values.get(i))); } }
+        }
+        assertThat(floors).containsExactlyInAnyOrderEntriesOf(Map.of("audit.retentionYears", 6, "rgpd.erasureMinDaysAfterLeave", 30, "rgpd.retentionYearsAfterLeave", 1));
+        var validator = new ParameterValidator();
+        floors.forEach((name, minimum) -> {
+            var entry = catalog.get(name);
+            assertThat(((Number) entry.constraints().get("min")).intValue()).as(name).isEqualTo(minimum);
+            assertThat(entry.editableBy()).as(name).isEqualTo("CLUB");
+            assertThatCode(() -> validator.validate(entry, minimum, "ca", "EUR")).as(name).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validate(entry, minimum + 1, "ca", "EUR")).as(name).doesNotThrowAnyException();
+            assertThatThrownBy(() -> validator.validate(entry, minimum - 1, "ca", "EUR")).as(name)
+                    .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                            refused -> assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.PARAMETER_INVALID));
+            assertThatThrownBy(() -> validator.validate(entry, 0, "ca", "EUR")).as(name).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+        });
+        // The rejected-signup retention has no floor in the decision.
+        assertThat(catalog.get("rgpd.rejectedSignupRetentionDays").constraints()).containsEntry("min", 0);
+    }
+    /**
+     * AUTH-08 (owner's decision of 13-11): the floors of the access keys, so that none can be set to 0. Each «**mínim N**» /
+     * «**mínims a · b**» of a row's last column (the notes of a section table, the «Spec» cell of Annex A) is the catalogue's
+     * `min`: the password length 8, the lock 1 minute and 3 attempts. A value under it is refused, and 0 always.
+     */
+    @Test void AUTH_08_theAccessFloorsOfTheDocumentAreTheCatalogMinimums() throws Exception {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var floors = new LinkedHashMap<String, Integer>();
+        var floor = Pattern.compile("\\*\\*mínims? ([^*]+)\\*\\*");
+        for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {
+            if (!line.startsWith("| `auth.")) { continue; }
+            String[] cells = Arrays.stream(line.split("\\|", -1)).map(String::strip).toArray(String[]::new);
+            var matcher = floor.matcher(cells[cells.length - 2]);
+            if (!matcher.find()) { continue; }
+            List<String> keys = new ArrayList<>();
+            var key = Pattern.compile("`([^`]+)`").matcher(cells[1]);
+            while (key.find()) { keys.add(key.group(1)); }
+            List<String> values = Arrays.asList(matcher.group(1).strip().split(" · "));
+            assertThat(values).as(line).hasSameSizeAs(keys);
+            for (int i = 0; i < keys.size(); i++) { if (!values.get(i).equals("—")) { floors.put(keys.get(i), Integer.valueOf(values.get(i))); } }
+        }
+        assertThat(floors).containsExactlyInAnyOrderEntriesOf(Map.of("auth.passwordMinLength", 8, "auth.lockoutMinutes", 1, "auth.lockoutMaxAttempts", 3));
+        var validator = new ParameterValidator();
+        floors.forEach((name, minimum) -> {
+            var entry = catalog.get(name);
+            assertThat(((Number) entry.constraints().get("min")).intValue()).as(name).isEqualTo(minimum);
+            assertThat(entry.editableBy()).as(name).isEqualTo("PLATFORM");
+            assertThat(((Number) entry.defaultValue()).intValue()).as(name).isGreaterThanOrEqualTo(minimum);
+            assertThatCode(() -> validator.validate(entry, minimum, "ca", "EUR")).as(name).doesNotThrowAnyException();
+            assertThatThrownBy(() -> validator.validate(entry, minimum - 1, "ca", "EUR")).as(name)
+                    .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                            refused -> assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.PARAMETER_INVALID));
+            assertThatThrownBy(() -> validator.validate(entry, 0, "ca", "EUR")).as(name).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+        });
+        // Members keep 8: the floor is the product default, not a higher minimum.
+        assertThat(catalog.get("auth.passwordMinLength").defaultValue()).isEqualTo(8);
+    }
+    /**
+     * AUTHZ-05 (owner's decision of 13-11): the support access's lifetime has a ceiling. Each «**màxim N**» / «**màxims a · b**» of a
+     * row's last column is the catalogue's `max`: `platform.supportAccessMinutes` 60, its product default. Above it is refused.
+     */
+    @Test void AUTHZ_05_theSupportAccessCeilingOfTheDocumentIsTheCatalogMaximum() throws Exception {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var ceilings = new LinkedHashMap<String, Integer>();
+        var ceiling = Pattern.compile("\\*\\*màxims? ([^*]+)\\*\\*");
+        for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {
+            if (!line.startsWith("| `")) { continue; }
+            String[] cells = Arrays.stream(line.split("\\|", -1)).map(String::strip).toArray(String[]::new);
+            var matcher = ceiling.matcher(cells[cells.length - 2]);
+            if (!matcher.find()) { continue; }
+            List<String> keys = new ArrayList<>();
+            var key = Pattern.compile("`([^`]+)`").matcher(cells[1]);
+            while (key.find()) { keys.add(key.group(1)); }
+            List<String> values = Arrays.asList(matcher.group(1).strip().split(" · "));
+            assertThat(values).as(line).hasSameSizeAs(keys);
+            for (int i = 0; i < keys.size(); i++) { if (!values.get(i).equals("—")) { ceilings.put(keys.get(i), Integer.valueOf(values.get(i))); } }
+        }
+        assertThat(ceilings).containsExactlyInAnyOrderEntriesOf(Map.of("platform.supportAccessMinutes", 60));
+        var entry = catalog.get("platform.supportAccessMinutes");
+        assertThat(((Number) entry.constraints().get("max")).intValue()).isEqualTo(60);
+        assertThat(entry.defaultValue()).isEqualTo(60);
+        assertThat(entry.editableBy()).isEqualTo("PLATFORM");
+        var validator = new ParameterValidator();
+        assertThatCode(() -> validator.validate(entry, 60, "ca", "EUR")).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(entry, 30, "ca", "EUR")).doesNotThrowAnyException();
+        assertThatThrownBy(() -> validator.validate(entry, 61, "ca", "EUR"))
+                .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                        refused -> assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.PARAMETER_INVALID));
+    }
     static final Map<String, String> BLOCKS = Map.ofEntries(Map.entry("sistema", "system"), Map.entry("Alta i consentiments", "signup"),
             Map.entry("Classes", "classes"), Map.entry("Llista d'espera", "waitlist"), Map.entry("Entrenaments", "training"),
             Map.entry("Club i pistes", "club"), Map.entry("Quotes i remesa", "billing"), Map.entry("Comunicacions", "messaging"),

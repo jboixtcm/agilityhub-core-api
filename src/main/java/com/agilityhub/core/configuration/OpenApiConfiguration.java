@@ -168,6 +168,7 @@ public class OpenApiConfiguration {
                 }
             }
             if (com.agilityhub.core.shared.api.KeyedRoutes.keyed(handler)) { declareKeyedConflict(result); }
+            if (handler.hasMethodAnnotation(com.agilityhub.core.shared.application.RecentLogin.class)) { declareRecentLogin(result); }
             if (result.getResponses().containsKey("429")) {
                 result.getResponses().get("429").addHeaderObject("Retry-After",
                         new io.swagger.v3.oas.models.headers.Header().description("Seconds before retrying")
@@ -175,6 +176,17 @@ public class OpenApiConfiguration {
             }
             return result;
         };
+    }
+
+    /**
+     * AUTH-01 (S01 R-01-18): a `@RecentLogin` handler answers `403 RECENT_LOGIN_REQUIRED` to a staff caller whose sign-in is older than
+     * 15 minutes; its 403 names the code next to the route's own.
+     */
+    static void declareRecentLogin(Operation operation) {
+        var current = operation.getResponses().get("403");
+        String codes = current == null || current.getDescription() == null || current.getDescription().equals("Forbidden") ? "" : current.getDescription();
+        if (!List.of(codes.split(", ")).contains("RECENT_LOGIN_REQUIRED")) { codes = codes.isEmpty() ? "RECENT_LOGIN_REQUIRED" : codes + ", RECENT_LOGIN_REQUIRED"; }
+        operation.getResponses().addApiResponse("403", new ApiResponse().description(codes).content(json(new Schema<>().$ref("#/components/schemas/ApiError"))));
     }
 
     /** The shared 409 of the keyed routes (`#/components/responses/StaleVersion`). */

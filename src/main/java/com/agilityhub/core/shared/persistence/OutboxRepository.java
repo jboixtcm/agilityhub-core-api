@@ -17,6 +17,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OutboxRepository extends GlobalRepository<DomainEventRecord> {
     public static final Duration LEASE = Duration.ofMinutes(5);
+    /** OUT-01: the longest wait between two attempts of a record (before OUT-01, 300 s). */
+    public static final Duration MAX_BACKOFF = Duration.ofHours(1);
     static final String FORMER_TTL = "outbox_retention";
 
     public OutboxRepository(MongoTemplate mongo) { super(mongo, DomainEventRecord.class); }
@@ -65,13 +67,22 @@ public class OutboxRepository extends GlobalRepository<DomainEventRecord> {
                 .set("publishedAt", now).unset("error").unset("claimToken"));
     }
 
-    public void failed(DomainEventRecord record, Instant now, int maxAttempts, Exception failure) {
-        long seconds = Math.min(300, 1L << Math.min(9, record.attempts() - 1));
-        requireOwnedUpdate(record, new Update().set("status", record.attempts() >= maxAttempts
-                ? DomainEventRecord.Status.FAILED : DomainEventRecord.Status.PENDING)
-                .set("nextAttemptAt", now.plusSeconds(seconds)).unset("claimToken")
+    /**
+     * OUT-01 (owner decision of 13 Nov 2026): the back-off after the n-th failed attempt doubles from 1 s up to {@link #MAX_BACKOFF}
+     * (1, 2, 4 … 2,048 s, then every hour), so with `SharedConfiguration`'s {@code maxAttempts} the record keeps being retried for
+     * about a day before it ends `FAILED`. True when this failure was the last one (the record is `FAILED` now).
+     */
+    public boolean failed(DomainEventRecord record, Instant now, int maxAttempts, Exception failure) {
+        boolean last = record.attempts() >= maxAttempts;
+        requireOwnedUpdate(record, new Update().set("status", last ? DomainEventRecord.Status.FAILED : DomainEventRecord.Status.PENDING)
+                .set("nextAttemptAt", now.plus(backoff(record.attempts()))).unset("claimToken")
                 // Exception messages may contain payloads or credentials; persist the type only.
                 .set("error", failure.getClass().getSimpleName()));
+        return last;
+    }
+    /** The wait after the {@code attempts}-th failed attempt: 2^(attempts − 1) seconds, at most {@link #MAX_BACKOFF}. */
+    public static Duration backoff(int attempts) {
+        return Duration.ofSeconds(Math.min(MAX_BACKOFF.toSeconds(), 1L << Math.min(30, Math.max(0, attempts - 1))));
     }
 
     public long count(DomainEventRecord.Status status) {

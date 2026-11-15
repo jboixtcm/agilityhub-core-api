@@ -194,7 +194,8 @@ public abstract class BillingItSupport extends AbstractIntegrationTest {
 
     protected MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String clubId, String role, String memberId) {
         return request.header("Host", clubId.equals(CLUB) ? HOST : OTHER_HOST).with(jwt().jwt(j -> j.subject("bill-" + role.toLowerCase(Locale.ROOT))
-                .claim("clubId", clubId).claim("memberId", memberId == null ? "none" : memberId)).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
+                .claim("clubId", clubId).claim("memberId", memberId == null ? "none" : memberId).claim("auth_time", signedInNow()))
+                .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
     }
     protected MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return as(request, CLUB, "ADMIN", null); }
     protected MockHttpServletRequestBuilder keyed(MockHttpServletRequestBuilder request, Object body) throws Exception {

@@ -13,6 +13,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.boot.web.server.context.WebServerApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -38,9 +40,15 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * streams), so a burst of healthy subscribers (a heartbeat to more than {@link #SENDERS} of them) closes none. Only when every
  * sender is held by a send blocked for longer than {@link #WRITE_TIMEOUT} (stalled clients) is a new stream refused at once and
  * a waiting one closed by the watchdog; EventSource retries. A full queue refuses too.
+ * <p>
+ * CFG-06 (owner decision of 13 Nov 2026): an open stream is a request in flight, which the web server's graceful shutdown would
+ * wait for up to `spring.lifecycle.timeout-per-shutdown-phase` (45 s), holding a deploy. So the streams stop as a
+ * {@link SmartLifecycle} one phase before that wait ({@link #PHASE}): every live stream is closed at the start of shutdown (what
+ * is queued is sent first), and one opened meanwhile ends at once. The web's client reopens a closed stream with a fresh token
+ * after a back-off and reads the session again, so it reaches the new instance once it is up.
  */
 @Component
-class BuildSessionStreams implements DisposableBean {
+class BuildSessionStreams implements DisposableBean, SmartLifecycle {
     static final Duration HEARTBEAT = Duration.ofSeconds(20);
     static final Duration POLL = Duration.ofSeconds(1);
     /** A stream ends after this long at most; the browser's EventSource reconnects by itself. */
@@ -53,6 +61,8 @@ class BuildSessionStreams implements DisposableBean {
     static final int SENDERS = 64;
     /** INC-63: the streams that may wait for a sender (one entry per stream at most); one more is refused. */
     static final int PENDING = 1024;
+    /** CFG-06: stopped just before the web server's graceful shutdown waits for the requests in flight (a higher phase stops first). */
+    static final int PHASE = WebServerApplicationContext.GRACEFUL_SHUTDOWN_PHASE + 1;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(BuildSessionStreams.class);
     record Key(String clubId, String sessionId) { }
 
@@ -68,6 +78,9 @@ class BuildSessionStreams implements DisposableBean {
     private final Set<Subscriber> sendingNow = ConcurrentHashMap.newKeySet();
     private final int maxSenders;
     private volatile Duration writeTimeout = WRITE_TIMEOUT;
+    private volatile boolean running;
+    /** CFG-06: the server is stopping: no stream stays open. */
+    private volatile boolean stopping;
 
     @org.springframework.beans.factory.annotation.Autowired
     BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock) { this(sessions, mapper, clock, SENDERS, true); }
@@ -105,6 +118,8 @@ class BuildSessionStreams implements DisposableBean {
         if (!BuildSessionRules.open(session.status())) { subscriber.finish(session); return emitter; }
         if (sessions.over(session)) { subscriber.outlived(session); return emitter; }
         topics.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(subscriber);
+        // CFG-06: read after the subscriber is listed, so a stop that runs meanwhile either closes it or is seen here.
+        if (stopping) { subscriber.close(); return emitter; }
         // Commits the response headers now, so the client knows the stream is open before the first change or heartbeat.
         subscriber.comment("open");
         return emitter;
@@ -169,6 +184,16 @@ class BuildSessionStreams implements DisposableBean {
     private void remove(Key key, Subscriber subscriber) {
         topics.computeIfPresent(key, (k, set) -> { set.remove(subscriber); return set.isEmpty() ? null : set; });
     }
+    @Override public void start() { stopping = false; running = true; }
+    /** CFG-06: the start of shutdown: every live stream ends (after what it has queued), so none holds the server's graceful stop. */
+    @Override public void stop() {
+        stopping = true; running = false;
+        int open = subscribers();
+        topics.values().forEach(set -> List.copyOf(set).forEach(Subscriber::close));
+        if (open > 0) { LOG.info("Build session streams closed for shutdown streams={}", open); }
+    }
+    @Override public boolean isRunning() { return running; }
+    @Override public int getPhase() { return PHASE; }
     @Override public void destroy() {
         timer.shutdownNow();
         topics.values().forEach(set -> List.copyOf(set).forEach(Subscriber::close));

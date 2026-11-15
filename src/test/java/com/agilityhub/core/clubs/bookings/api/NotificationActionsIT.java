@@ -70,6 +70,7 @@ class NotificationActionsIT extends BookingFixtures {
     @Autowired ClassSessionService classes; @Autowired AttendanceSheetService attendance; @Autowired TaskService tasks; @Autowired DogService dogs;
     @Autowired ActivityService activities; @Autowired ActivityLifecycleService lifecycle; @Autowired ActivityRegistrationService registrations;
     @Autowired JobRunner runner; @Autowired RiskReviewJob riskReview; @Autowired NoShowNoticesJob noShows; @Autowired RemindersJob reminders;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
 
     enum Action {
         MEMBER_BOOKS, MEMBER_CANCELS, CLUB_BOOKS_AND_CANCELS, TRAINING_BOOKED_AND_CANCELLED, TRAINING_BY_THE_CLUB, SEAT_RELEASED, CLASS_CANCELLED_BY_THE_CLUB,
@@ -140,9 +141,11 @@ class NotificationActionsIT extends BookingFixtures {
                 String duna = prepare(() -> book("s08-laura", "s08-m-laura", "Laura", "last", "s08-d-duna"));
                 prepare(() -> as("s08-pere", "MEMBER", () -> waitlist.join(member("s08-pere", "s08-m-pere", "Pere"), "s08-last", "s08-d-nit").id()));
                 act(() -> cancel(member("s08-laura", "s08-m-laura", "Laura"), duna));
-                // The club's waitlist mode is ALL_AT_ONCE: no `confirm_by`.
+                // The club's waitlist mode is ALL_AT_ONCE: no `confirm_by`. COMM-02 (owner decision of 13 Nov 2026): N-15 also has its
+                // e-mail, which Pere's default OPERATIONAL preference (off) skips, as N-13's below.
                 expect(notice("N-15", "MEMBER", "s08-pere", "en", "A place has been freed up!",
-                                "Classe last class · Thursday 8 · 20:00. You are on the waiting list: the place goes to whoever confirms first.", APP, PUSH, SMS),
+                                "Classe last class · Thursday 8 · 20:00. You are on the waiting list: the place goes to whoever confirms first.", APP,
+                                "EMAIL:SKIPPED_BY_PREFERENCE", PUSH, SMS),
                         notice("N-05", "MEMBER", "s08-laura", "ca", "Reserva anul·lada", "Dijous 8 · 20:00, amb Duna. L'has anul·lada dins el termini.", APP));
                 assertThat(only("N-15").action().type().name()).isEqualTo("CLAIM_SEAT");
             }
@@ -185,12 +188,19 @@ class NotificationActionsIT extends BookingFixtures {
                                 "Example Agility Club: avui · 18:50 · Classe wed — classe anul·lada automàticament perquè no ha arribat al mínim (1 gos inscrit).", APP, EMAIL),
                         notice("N-17", "INSTRUCTORS", "s08-inst", "es", "Clase cancelada por falta de alumnos",
                                 "Example Agility Club: hoy · 18:50 · Classe wed — clase cancelada automáticamente porque no ha llegado al mínimo (1 perro inscrito).", APP, EMAIL),
+                        // COMM-06 (owner decision of 13 Nov 2026): 7:30 is inside the SMS quiet hours (22:00–08:00), so Joan's SMS waits.
                         notice("N-08a", "MEMBER", "s08-joan", "es", "Clase cancelada por el club", "Hoy · 18:50 · Classe wed, con Toby. «No se ha llegado al mínimo de 2 perros: "
-                                + "la clase queda cancelada. ¡Disculpad las molestias!» — Example Agility Club. Esta sesión no cuenta en tu cómputo.", APP, EMAIL, SMS),
+                                + "la clase queda cancelada. ¡Disculpad las molestias!» — Example Agility Club. Esta sesión no cuenta en tu cómputo.", APP, EMAIL, "SMS:QUEUED"),
                         notice("N-16", "MEMBER", "s08-pere", "en", "Class may be cancelled", "Tomorrow · 18:50 · Classe thu, with Nit: the class does not have enough students "
                                 + "yet. If nobody else books before 7:30 tomorrow, the class will be cancelled. We suggest booking another one.", APP, EMAIL),
                         atRisk("demà · 17:40 · Classe levelD", "demà"), atRisk("demà · 18:50 · Classe thu", "demà"), atRisk("demà · 20:00 · Classe last", "demà"),
                         atRisk("divendres 9 · 20:00 · Classe fri", "divendres"));
+                // …until 8:00, when it goes.
+                var joan = only("N-08a");
+                clock.setInstant(local("2026-10-07T08:00"));
+                try (var tenant = TenantContext.open(CLUB)) { notificationDispatcher.dispatch(List.of(joan.id())); }
+                assertThat(mongo.findById(joan.id(), Notification.class).deliveries()).filteredOn(d -> "SMS".equals(d.channel().name()))
+                        .extracting(d -> d.status().name()).containsExactly("SENT");
             }
             case BELOW_THE_MINIMUM -> {
                 prepare(() -> book("s08-laura", "s08-m-laura", "Laura", "thu", "s08-d-duna"));

@@ -71,10 +71,30 @@ class HealthControllerTest {
         mvc.perform(get("/api/v1/health"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.version").value(build.getVersion()))
-                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()))
+                .andExpect(jsonPath("$.commit").value(recordedCommit()));
+    }
+
+    /**
+     * REL-02 (owner decision of 13 Nov 2026): the build is a real release version, `x.y.z` from 1.0.0 on, never a `-SNAPSHOT` or
+     * a 0.x, and the health answers the version the pom names (build-info records it).
+     */
+    @Test
+    void REL_02_healthAnswersTheReleaseVersionThePomNames() throws Exception {
+        var pom = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new java.io.File("pom.xml"));
+        String version = javax.xml.xpath.XPathFactory.newInstance().newXPath().evaluate("/project/version", pom);
+        org.assertj.core.api.Assertions.assertThat(version).as("pom.xml project version").matches("[1-9][0-9]*\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)");
+        org.assertj.core.api.Assertions.assertThat(build.getVersion()).as("build-info version").isEqualTo(version);
+        mvc.perform(get("/api/v1/health")).andExpect(status().isOk()).andExpect(jsonPath("$.version").value(version));
+    }
+
+    /** REL-02: the commit build-info recorded (pom.xml `git.commit`), or null for a build given none (`unknown`). */
+    private org.hamcrest.Matcher<Object> recordedCommit() {
+        String commit = build.get("commit");
+        return commit == null || commit.equals("unknown") ? org.hamcrest.Matchers.nullValue() : org.hamcrest.Matchers.equalTo(commit);
     }
 
     /**
@@ -87,10 +107,11 @@ class HealthControllerTest {
         mvc.perform(get("/api/v1/health").header("X-Club-Host", "club-a.example.test"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$.status").value("DOWN"))
                 .andExpect(jsonPath("$.version").value(build.getVersion()))
-                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()))
+                .andExpect(jsonPath("$.commit").value(recordedCommit()));
     }
 
     @ParameterizedTest

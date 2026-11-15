@@ -73,7 +73,7 @@ abstract class ActivityFixtures extends AbstractIntegrationTest {
         mongo.save(new Document("_id","dog-"+id).append("clubId",CLUB).append("memberId",id).append("name","Example dog").append("status","ACTIVE").append("levelId",id.equals("m31")?"s07-B":"s07-D").append("version",0),"dogs");
     }
     MockHttpServletRequestBuilder auth(MockHttpServletRequestBuilder request,String member,String role) {
-        return request.header("Host",HOST).with(jwt().jwt(j -> j.subject("s07-"+member).claim("clubId",CLUB).claim("memberId",member)).authorities(() -> "ROLE_"+role));
+        return request.header("Host",HOST).with(jwt().jwt(j -> j.subject("s07-"+member).claim("clubId",CLUB).claim("memberId",member).claim("auth_time",signedInNow())).authorities(() -> "ROLE_"+role));
     }
     JsonNode call(String method,String path,Object body,String member,String role,int expected) throws Exception {
         var request=auth(request(HttpMethod.valueOf(method),"/api/v1"+path),member,role);

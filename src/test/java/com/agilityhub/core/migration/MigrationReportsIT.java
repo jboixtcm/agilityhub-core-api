@@ -27,6 +27,7 @@ class MigrationReportsIT extends AbstractIntegrationTest {
     static final String CLUB="migration-report-test",OTHER="migration-report-other",RUN="migration-report-run";
     @Autowired MongoTemplate mongo; @Autowired MigrationRunRepository runs; @Autowired MigrationReports reports; @Autowired MockMvc mvc;
     @Autowired MigrationResetRepository reset; @Autowired TransactionTemplate transactions;
+    @Autowired MigrationReportPurgeCommand purge; @Autowired com.agilityhub.core.platform.persistence.ClubRepository clubs;
     @MockitoBean MigrationReportStore store;
     Instant expiry;
     @BeforeEach void seed() {
@@ -41,7 +42,7 @@ class MigrationReportsIT extends AbstractIntegrationTest {
     }
     String path(String club,String run) { return "/api/v1/platform/clubs/"+club+"/migrations/"+run+"/report"; }
     org.springframework.test.web.servlet.request.RequestPostProcessor actor(String club,String role) {
-        return jwt().jwt(token->token.subject("fictional-operator").claim("clubId",club)).authorities(()->"ROLE_"+role);
+        return jwt().jwt(token->token.subject("fictional-operator").claim("clubId",club).claim("auth_time",signedInNow())).authorities(()->"ROLE_"+role);
     }
     @Test void T_18_16_onlyClubAdminOrPlatformAdminCanReceiveSignedLink() throws Exception {
         mvc.perform(get(path(CLUB,RUN))).andExpect(status().isUnauthorized());
@@ -94,5 +95,39 @@ class MigrationReportsIT extends AbstractIntegrationTest {
             assertThat(retained.inputManifest()).isNotNull();
         }
         verify(store).delete("migration-reports/"+CLUB+"/"+RUN+"/report.xlsx");
+    }
+    /**
+     * MIG-13 (owner decision, 13-11-2026): `migration:report-purge` deletes the run's named report right after the run, long before
+     * its 30-day deadline: the object goes, `reportPurgedAt` is now and the pointer is gone, the run and its manifest stay; the
+     * link is then refused (EXPORT_EXPIRED, nothing audited), the report cannot be published again, the retention job no longer
+     * lists it, and a second purge changes nothing. Another club's run is NOT_FOUND.
+     */
+    @Test void MIG_13_theOperatorPurgesTheReportRightAfterTheRunIdempotently() throws Exception {
+        clubs.save(com.agilityhub.core.platform.support.PlatformFixtures.club(CLUB,CLUB+".example.test"));
+        try {
+            String key="migration-reports/"+CLUB+"/"+RUN+"/report.xlsx"; Instant purgedAt=clock.instant();
+            var out=new java.io.ByteArrayOutputStream(); var previous=System.out;
+            System.setOut(new java.io.PrintStream(out,true,java.nio.charset.StandardCharsets.UTF_8));
+            try {
+                purge.run(new org.springframework.boot.DefaultApplicationArguments("--club="+CLUB,"--run="+RUN));
+                clock.advance(Duration.ofMinutes(5));
+                purge.run(new org.springframework.boot.DefaultApplicationArguments("--club="+CLUB,"--run="+RUN));
+            } finally { System.setOut(previous); }
+            assertThat(out.toString(java.nio.charset.StandardCharsets.UTF_8)).contains("Migration report purged for run "+RUN,"Migration report of run "+RUN+" was already purged");
+            verify(store,times(2)).delete(key);
+            try(var scope=TenantContext.open(CLUB)) {
+                var retained=runs.findById(RUN).orElseThrow();
+                assertThat(retained.reportPurgedAt()).isEqualTo(purgedAt); assertThat(retained.reportFileKey()).isNull();
+                assertThat(retained.status()).isEqualTo("COMPLETED"); assertThat(retained.inputManifest()).isNotNull();
+                assertThat(runs.reportPublished(RUN,key,clock.instant())).isFalse();
+                assertThat(reports.expired(expiry.plusSeconds(1))).doesNotContain(RUN);
+            }
+            mvc.perform(get(path(CLUB,RUN)).with(actor(CLUB,"ADMIN"))).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("EXPORT_EXPIRED"));
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)),"audit_entries")).isZero();
+            try(var scope=TenantContext.open(OTHER)) {
+                assertThatThrownBy(()->reports.purgeNow(RUN)).isInstanceOfSatisfying(ApiException.class,error->assertThat(error.code()).isEqualTo(ErrorCode.NOT_FOUND));
+            }
+            verify(store,times(2)).delete(anyString());
+        } finally { mongo.remove(Query.query(Criteria.where("_id").is(CLUB)),"clubs"); }
     }
 }

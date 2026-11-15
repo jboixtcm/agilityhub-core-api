@@ -116,13 +116,22 @@ class E8ScheduledProcessesIT extends BillingItSupport {
         assertThat(invoices()).isEmpty();
     }
 
-    @Test void T_15_23_submittedSepaIsSettledOnCollectionDayOnce() throws Exception {
+    /**
+     * SEPA-04 (c) changed this test (it settled on the collection date): P5i takes a submitted remittance as collected
+     * `billing.sepa.settlementBusinessDays` (5) TARGET business days after its collection date — Tuesday 01-09 → Tuesday 08-09 —
+     * and only once; `paidAt` stays the collection date.
+     */
+    @Test void T_15_23_SEPA_04_c_submittedSepaIsSettledFiveTargetBusinessDaysAfterTheCollectionDateOnce() throws Exception {
         var result = run("2026-09", simulate("2026-09").path("id").asText());
         String remittance = result.at("/remittance/id").asText();
         ok(admin(keyed(post("/api/v1/remittances/" + remittance + "/submission"), Map.of("submittedAt", "2026-08-25"))), 200);
-        clock.setInstant(Instant.parse("2026-08-31T21:59:00Z"));
-        assertThat(counter(runJob(JobName.EXPIRATIONS, false), "settledInvoices")).isZero();
-        clock.setInstant(Instant.parse("2026-09-01T04:00:00Z"));
+        for (String day : List.of("2026-09-01T04:00:00Z", "2026-09-04T04:00:00Z", "2026-09-07T21:59:00Z")) {
+            clock.setInstant(Instant.parse(day));
+            assertThat(runJob(JobName.EXPIRATIONS, true).items()).as(day).noneSatisfy(i -> assertThat(i.action()).isEqualTo("WOULD_SETTLE"));
+            assertThat(counter(runJob(JobName.EXPIRATIONS, false), "settledInvoices")).as(day).isZero();
+        }
+        assertThat(invoices().stream().filter(i -> remittance.equals(i.getString("remittanceId")))).allSatisfy(i -> assertThat(i.getString("status")).isEqualTo("COLLECTING"));
+        clock.setInstant(Instant.parse("2026-09-08T04:00:00Z"));
         var dry = runJob(JobName.EXPIRATIONS, true);
         assertThat(dry.items()).anySatisfy(i -> assertThat(i.action()).isEqualTo("WOULD_SETTLE"));
         assertThat(counter(runJob(JobName.EXPIRATIONS, false), "settledInvoices")).isEqualTo(4);

@@ -32,6 +32,11 @@ public class Dog extends CensusEntity {
     /** Explicit identity of the handler; null retains the legacy name comparison. */
     public Boolean handlerIsMember;
     public String photoFileKey;
+    /**
+     * WEB-05 (owner's decision of 13 Nov 2026): the key of {@link #photoFileKey}'s small rendition, for the lists; null without one.
+     * Written only by {@link DogPhotoRows} beside a change of the photo, never by a census save; not audited.
+     */
+    @ForeignOwned public String photoThumbnailFileKey;
     public String levelId;
     public Instant levelAssignedAt;
     public List<Map<String,Object>> levelHistory;

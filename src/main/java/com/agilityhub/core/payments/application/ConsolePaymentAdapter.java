@@ -11,4 +11,5 @@ public class ConsolePaymentAdapter implements ConsolePaymentAccess {
     public String decrypt(String value,String club,String provider,String field) {return vault.decrypt(value,club,provider,field);}
     public void validateSepa(String name,String creditor,String iban,String suffix) {ConsolePaymentValidation.sepa(name,creditor,iban,suffix);}
     public Connection ping() {var result=providers.ping();return new Connection(result.ok(),result.accountId(),result.accountName(),result.mode());}
+    public Connection ping(String mode,String secretKey) {var result=providers.ping(mode,secretKey);return new Connection(result.ok(),result.accountId(),result.accountName(),result.mode());}
 }

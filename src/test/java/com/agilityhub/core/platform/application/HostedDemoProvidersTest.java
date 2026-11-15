@@ -21,7 +21,7 @@ class HostedDemoProvidersTest {
                 .withBean(ClubRepository.class, () -> clubs).withBean(TransactionTemplate.class, () -> mock(TransactionTemplate.class))
                 .withBean(PlatformProviders.class, () -> providers).run(context -> {
                     assertThat(context).hasNotFailed();
-                    assertThatThrownBy(() -> providers.update("STRIPE", Map.of("mode", "live", "publishableKey", "pk_live_example")))
+                    assertThatThrownBy(() -> providers.update("STRIPE", Map.of("mode", "live", "publishableKey", "pk_live_example"), null))
                             .isInstanceOfSatisfying(ApiException.class, error -> assertThat(error.code()).isEqualTo(ErrorCode.PROVIDER_CONFIG_INVALID));
                     verifyNoInteractions(clubs, changes, vault, projection);
                 });

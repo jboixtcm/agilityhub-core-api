@@ -32,7 +32,7 @@ public final class PasswordGrantProvider implements AuthenticationProvider {
                 case "password" -> tokens.password(grant.username(), (String) grant.getCredentials(), grant.clientId(), grant.userAgent(), scopes);
                 case "authorization_code" -> oidc.exchange((String) grant.getCredentials(), grant.clientId(), grant.redirectUri(), grant.verifier(), grant.userAgent(), grant.consoleHost());
                 case "refresh_token" -> oidc.refresh((String) grant.getCredentials(), grant.clientId(), grant.scope() == null ? null : scopes, grant.consoleHost());
-                case com.agilityhub.core.identity.application.HandoffService.GRANT -> handoffs.exchange((String) grant.getCredentials(), grant.clientId(), grant.userAgent(), grant.consoleHost());
+                case com.agilityhub.core.identity.application.HandoffService.GRANT -> handoffs.exchange((String) grant.getCredentials(), grant.clientId(), grant.userAgent(), grant.consoleHost(), grant.hostRefresh());
                 default -> tokens.magicLink((String) grant.getCredentials(), grant.clientId(), grant.userAgent(), grant.consoleHost());
             };
             var jwt = issued.access();

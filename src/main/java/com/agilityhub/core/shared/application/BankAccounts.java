@@ -8,7 +8,8 @@ import java.util.Map;
  * vault implements it; only the SEPA remittance writer reads an IBAN back (R-12-12). A stored account is one of two shapes of
  * the {@link #FIELDS}: `{ibanEncrypted, ibanLast4}` (sealed for the member: AES-GCM with `BILLING_BANK_KEY`, the club and the
  * member as associated data) or, only where `BILLING_BANK_KEY` is not set (a local stack; production Compose requires it),
- * `{iban}`. `census:seal-ibans` turns the second shape into the first.
+ * `{iban}`. `census:seal-ibans` turns the second shape into the first. Since PRIV-11 `ibanEncrypted` starts with the id of the key
+ * that sealed it (`{keyId}:`), and `census:rekey-ibans` seals every stored one again with the current key ({@link #reseal}).
  */
 public interface BankAccounts {
     /** The fields that hold a member's account, in either shape. */
@@ -25,4 +26,20 @@ public interface BankAccounts {
      * answers only yes or no: the census decides on it whether a mandate or a readmission changed (R-03-07, R-04-06).
      */
     boolean same(Map<String, Object> first, Map<String, Object> second, String clubId, String memberId);
+
+    /** PRIV-11: the id of the current key (`BILLING_BANK_KEY`), which prefixes every value sealed with it. */
+    String keyId();
+
+    /** PRIV-11: the id of the key a rotation replaces (`BILLING_BANK_KEY_PREVIOUS`), or null when none is set. */
+    String previousKeyId();
+
+    /** PRIV-11: whether a stored `ibanEncrypted` is already sealed with the current key. */
+    boolean sealedWithCurrentKey(String ibanEncrypted);
+
+    /**
+     * PRIV-11: a member's stored `ibanEncrypted`, read with whichever configured key sealed it and sealed again with the current
+     * key. The IBAN never leaves the vault; a value that no configured key reads is an {@link IllegalStateException} that names
+     * neither the value nor a key.
+     */
+    String reseal(String ibanEncrypted, String clubId, String memberId);
 }

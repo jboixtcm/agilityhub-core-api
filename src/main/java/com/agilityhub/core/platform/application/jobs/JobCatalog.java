@@ -36,8 +36,18 @@ public final class JobCatalog {
             new JobDefinition(JobName.RETENTION_SWEEP, "retention-sweep", Cadence.MONTHLY, "jobs.dailyTime", null, null,
                     CatchUpWindow.END_OF_LOCAL_MONTH, null));
 
+    /**
+     * JOB-01 (owner decision of 13 Nov 2026, R-15-10): the processes that affect members — the risk review (P2), the reminders
+     * (P4), the expirations (P5) and the billing-related runs, payment timeouts (P7) and the remittance reminder (P10) — whose
+     * PARTIAL run also publishes `JobFailed` (N-42 to the club's admins), as a FAILED run of any process does.
+     */
+    private static final java.util.Set<JobName> ALERT_ON_PARTIAL = java.util.EnumSet.of(JobName.RISK_REVIEW, JobName.REMINDERS, JobName.EXPIRATIONS,
+            JobName.PAYMENT_TIMEOUTS, JobName.BILLING_REMINDER);
+
     private JobCatalog() { }
     public static List<JobDefinition> all() { return ROWS; }
+    /** JOB-01: whether a PARTIAL run of the process alerts the club's admins like a FAILED one. */
+    public static boolean alertsOnPartial(JobName name) { return ALERT_ON_PARTIAL.contains(name); }
     public static Optional<JobDefinition> find(JobName name) { return ROWS.stream().filter(row -> row.name() == name).findFirst(); }
     public static JobDefinition definition(JobName name) {
         return find(name).orElseThrow(() -> new IllegalArgumentException("No catalog row for " + name));

@@ -130,16 +130,45 @@ public class ClassSessionService {
         if (edit.capacity < edit.counters.booked()) { throw new ApiException(ErrorCode.CAPACITY_BELOW_BOOKINGS); }
         var zone = ZoneId.of(config.club().timeZone());
         edit.startsAt = WeekCalendarRules.resolve(edit.before.date(), start, zone).instant(); edit.endsAt = WeekCalendarRules.resolve(edit.before.date(), end, zone).instant();
-        if (moving && edit.ringId != null) {
-            if (blocks.between(edit.startsAt, edit.endsAt).stream().anyMatch(b -> b.ringId().equals(edit.ringId))) { throw new ApiException(ErrorCode.RING_BLOCKED); }
-            // R-09-13: the ring-slot sequences a training booking of those slots also touches, so it conflicts in Mongo.
-            if (config.modules().contains(Module.FREE_TRAINING)) { training.lockSlots(edit.ringId, edit.startsAt, edit.endsAt); }
-            var booked = config.modules().contains(Module.FREE_TRAINING) ? training.findActiveBookings(edit.ringId, edit.startsAt, edit.endsAt) : List.<TrainingConflictPort.Booking>of();
-            if (!booked.isEmpty()) {
-                if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", booked)); }
-                training.cancelByClub(booked.stream().map(TrainingConflictPort.Booking::bookingId).toList(), "CLASS_SESSION");
-            }
+        if (moving && edit.ringId != null) { ringFree(edit.ringId, edit.startsAt, edit.endsAt, cancelBookings, config.modules()); }
+    }
+    /** A class placed on a ring (created, moved or restored): no ACTIVE block there, and live training bookings only with `cancelBookings`. */
+    private void ringFree(String ringId, Instant startsAt, Instant endsAt, boolean cancelBookings, Set<Module> modules) {
+        if (blocks.between(startsAt, endsAt).stream().anyMatch(b -> b.ringId().equals(ringId))) { throw new ApiException(ErrorCode.RING_BLOCKED); }
+        // R-09-13: the ring-slot sequences a training booking of those slots also touches, so it conflicts in Mongo.
+        if (modules.contains(Module.FREE_TRAINING)) { training.lockSlots(ringId, startsAt, endsAt); }
+        var booked = modules.contains(Module.FREE_TRAINING) ? training.findActiveBookings(ringId, startsAt, endsAt) : List.<TrainingConflictPort.Booking>of();
+        if (!booked.isEmpty()) {
+            if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", booked)); }
+            training.cancelByClub(booked.stream().map(TrainingConflictPort.Booking::bookingId).toList(), "CLASS_SESSION");
         }
+    }
+    /**
+     * SCH-01 (owner request, 12-11-2026): an ADMIN restores a CANCELLED class that has not started and was not deleted
+     * ({@link ClassSessionRules#restorable}, else INVALID_STATE) to ACTIVE, with its cancellation cleared. What the cancellation
+     * removed (bookings, waiting-list entries, holds) stays removed and nobody is notified: the class is bookable again with its
+     * counters at {0, 0}. The ring must still be free, as for a new class: another DRAFT/ACTIVE class of the ring at that time →
+     * CLASS_CONFLICT, an ACTIVE block → RING_BLOCKED, a live training booking → RING_HAS_BOOKINGS (never cancelled here). A class
+     * without a ring has no ring to check. `ClassSessionUpdated{diff: state}` with `bookedCount` 0 (no N-08b) refreshes S09's
+     * grid; the restoration is audited as CLASS_RESTORED.
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    public ClassSession restore(String id) {
+        return transactions.write(() -> {
+            var before = require(id);
+            ClassSessionRules.restorable(before.state(), before.cancellation() == null ? null : before.cancellation().reason(), before.startsAt(), clock.instant());
+            if (before.ringId() != null) {
+                boolean taken = classes.between(before.startsAt(), before.endsAt()).stream().anyMatch(c -> !c.id().equals(id)
+                        && before.ringId().equals(c.ringId()) && (c.state() == ClassState.DRAFT || c.state() == ClassState.ACTIVE));
+                if (taken) { throw new ApiException(ErrorCode.CLASS_CONFLICT); }
+                ringFree(before.ringId(), before.startsAt(), before.endsAt(), false, context.config().modules());
+            }
+            var edit = new SessionEdit(before); edit.state = ClassState.ACTIVE; edit.cancellation = null;
+            var after = classes.update(edit.snapshot(clock.instant(), events.actor()), before.version());
+            events.publish(SchedulingEvent.Kind.ClassSessionUpdated, id, Map.of("classId", id,
+                    "diff", Map.of("state", Map.of("before", before.state(), "after", after.state())), "bookedCount", 0));
+            audit.restored(before, after); return after;
+        });
     }
     /** `bin/core scheduling:finish-ended`: every class {@link #endedBy} {@code now}, finished in one transaction (the P8 job finishes one per item). */
     public int finishEnded(Instant now) {

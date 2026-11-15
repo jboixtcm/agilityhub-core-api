@@ -177,7 +177,7 @@ public class BookingCancellationService {
         events.publish(BookingEvent.Kind.BookingCancelled, b.id(), payload, actor);
         boolean waitlistNotified = now.isBefore(session.startsAt()) && seatReleased(after, now, outcome.minutesBefore(), actor);
         counters.recount(b.classSessionId(), !late && !sameClassSwap, actor);
-        if (actor.impersonated()) { audit.cancelledByClub(b, after); }
+        if (actor.impersonated()) { audit.cancelledByClub(b, after, actor.notifies()); }
         if (late) { audit.cancelledLate(b, after); } // S14 R-14-09: every late cancellation, impersonated ones too
         return new Cancellation(after, late, outcome.minutesBefore(), true, waitlistNotified, refund != null);
     }

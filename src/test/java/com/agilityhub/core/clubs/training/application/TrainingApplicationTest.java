@@ -89,6 +89,32 @@ class TrainingApplicationTest {
         assertThat(TrainingNotificationFacts.applies("N-07", trigger(new TrainingEvent(TrainingEvent.Kind.TrainingCancelled, "club-a", "tb", Instant.EPOCH, Map.of(), null, null, null))))
                 .as("a payload without origin/by is a member cancellation").isTrue();
     }
+    /**
+     * COMM-03 (owner's decision of 13-11): an ADMIN booking or cancelling a training slot for a member may skip N-47; only an ADMIN
+     * acting for the member (impersonation, BACKOFFICE) may ask it, and the choice survives the actor's `as` (an ADMIN_LATE
+     * cancellation). The events then carry `notifyMember: false` and neither N-47 nor N-06/N-07 applies.
+     */
+    @Test void COMM_03_onlyAnAdminActingForTheMemberMaySkipN47() {
+        var admin = new TrainingActor("admin-account", "member-a", "Fictional Admin", "member-a", TrainingOrigin.BACKOFFICE, TrainingCancelledBy.MEMBER);
+        assertThat(admin.notifies()).isTrue();
+        assertThat(admin.notifying(null)).isSameAs(admin); assertThat(admin.notifying(true)).isSameAs(admin);
+        var silent = admin.notifying(false);
+        assertThat(silent.notifies()).isFalse(); assertThat(silent.as(TrainingCancelledBy.ADMIN).notifies()).isFalse();
+        var delegated = new TrainingActor("instructor-account", "member-a", "Fictional Instructor", "member-a", TrainingOrigin.INSTRUCTOR, TrainingCancelledBy.MEMBER);
+        var own = new TrainingActor("member-account", "member-a", "Fictional Member", null, TrainingOrigin.APP, TrainingCancelledBy.MEMBER);
+        for (var actor : new TrainingActor[] {delegated, own, TrainingActor.system()}) {
+            assertThat(actor.notifying(true)).isSameAs(actor);
+            assertThatThrownBy(() -> actor.notifying(false)).isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                    refused -> assertThat(refused.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.FORBIDDEN));
+        }
+        for (var kind : new TrainingEvent.Kind[] {TrainingEvent.Kind.TrainingBooked, TrainingEvent.Kind.TrainingCancelled}) {
+            var club = event(kind, "BACKOFFICE", kind == TrainingEvent.Kind.TrainingCancelled ? "MEMBER" : null, kind == TrainingEvent.Kind.TrainingCancelled ? "MEMBER_REQUEST" : null);
+            assertThat(TrainingNotificationFacts.applies("N-47", trigger(club))).isTrue();
+            var payload = new LinkedHashMap<String, Object>(club.payload()); payload.put("notifyMember", false);
+            var quiet = trigger(new TrainingEvent(kind, "club-a", "tb-1", Instant.EPOCH, payload, null, null, DomainEvent.Origin.BACKOFFICE));
+            for (String code : new String[] {"N-47", "N-06", "N-07"}) { assertThat(TrainingNotificationFacts.applies(code, quiet)).as(kind + " " + code).isFalse(); }
+        }
+    }
     /** The event as the S11 engine reads it from the outbox (E7-T02). */
     private static com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger trigger(TrainingEvent e) {
         return new com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger("event-1", e.type(), e.clubId(), e.aggregateType(), e.aggregateId(),

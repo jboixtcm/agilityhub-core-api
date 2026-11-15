@@ -69,6 +69,41 @@ class ChannelResolverTest {
         assertThatThrownBy(() -> new ChannelResolver.EmailAddress(null, false)).isInstanceOf(NullPointerException.class);
     }
 
+    /**
+     * COMM-02 (owner decision of 13 Nov 2026): N-15 (seat released) and N-13 (reminder) also go by e-mail with their seed
+     * matrix, as the member's OPERATIONAL e-mail preference says; N-15 is mandatory and that does not bypass the preference.
+     */
+    @Test void COMM_02_theSeatOfferAndTheReminderGoByEmailWhenTheOperationalPreferenceIsOn() {
+        var on = new ChannelResolver.Modules(true, true); var phones = List.of("+34600000001");
+        for (String code : List.of("N-15", "N-13")) {
+            var seed = spec(code).defaultMatrix().get(MEMBER);
+            assertThat(seed).as(code).containsEntry(EMAIL, true);
+            assertThat(ChannelResolver.resolve(spec(code), MEMBER, seed, on, laura(email(NotificationCategory.OPERATIONAL, true), phones))).as(code)
+                    .contains(new ChannelResolver.Planned(EMAIL, "laura@example.test", QUEUED));
+            assertThat(ChannelResolver.resolve(spec(code), MEMBER, seed, on, laura(NotificationPreference.DEFAULTS, phones))).as(code + " default (off)")
+                    .contains(new ChannelResolver.Planned(EMAIL, null, SKIPPED_BY_PREFERENCE))
+                    .noneMatch(planned -> planned.channel() == EMAIL && planned.status() == QUEUED);
+        }
+        assertThat(spec("N-15").mandatory()).isTrue();
+        assertThat(ChannelResolver.resolve(spec("N-15"), MEMBER, spec("N-15").defaultMatrix().get(MEMBER), on, laura(email(NotificationCategory.OPERATIONAL, true), phones)))
+                .containsExactly(new ChannelResolver.Planned(APP, "account-laura", DELIVERED), new ChannelResolver.Planned(EMAIL, "laura@example.test", QUEUED),
+                        new ChannelResolver.Planned(SMS, "+34600000001", QUEUED), new ChannelResolver.Planned(PUSH, null, SKIPPED_NO_CONTACT));
+    }
+
+    /**
+     * COMM-06 (owner decision of 13 Nov 2026, R-11-06): an SMS goes to every mobile of the member; a landline gets none and is
+     * recorded (`SKIPPED_NO_CONTACT` with its number and the reason). Before the decision every stored number was `QUEUED`.
+     */
+    @Test void T_11_06_COMM_06_aLandlineGetsNoSmsAndIsRecordedWhileTheMobileGetsIt() {
+        var n08a = spec("N-08a"); var on = new ChannelResolver.Modules(true, true);
+        assertThat(ChannelResolver.resolve(n08a, MEMBER, n08a.defaultMatrix().get(MEMBER), on, laura(NotificationPreference.DEFAULTS, List.of("+34931234567", "+34600000001"))))
+                .containsExactly(new ChannelResolver.Planned(APP, "account-laura", DELIVERED), new ChannelResolver.Planned(EMAIL, "laura@example.test", QUEUED),
+                        new ChannelResolver.Planned(SMS, "+34931234567", SKIPPED_NO_CONTACT, MobileNumbers.NOT_MOBILE), new ChannelResolver.Planned(SMS, "+34600000001", QUEUED));
+        // Only a landline: no SMS at all, the number recorded.
+        assertThat(ChannelResolver.resolve(n08a, MEMBER, n08a.defaultMatrix().get(MEMBER), on, laura(NotificationPreference.DEFAULTS, List.of("+34931234567"))))
+                .filteredOn(planned -> planned.channel() == SMS).containsExactly(new ChannelResolver.Planned(SMS, "+34931234567", SKIPPED_NO_CONTACT, MobileNumbers.NOT_MOBILE));
+    }
+
     @Test void T_11_03_preferencesOnlyRemoveWhatTheTemplateAllowsAndOnlyForMembers() {
         var on = new ChannelResolver.Modules(true, true); var phones = List.of("+34600000001");
         // emailByCategory.CLUB_CHANGES = false removes EMAIL and never SMS («+SMS» is fixed).

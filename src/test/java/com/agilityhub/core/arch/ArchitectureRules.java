@@ -272,6 +272,74 @@ final class ArchitectureRules {
             .allowEmptyShould(true);
 
     /**
+     * AUTHZ-03 (pre-production audit, 11-11-2026): the routes that a security chain opens on purpose and whose handlers therefore
+     * carry no `@PreAuthorize`. An entry is `{package below com.agilityhub.core}.{Class}.{method}`; keep the reason next to it.
+     */
+    static final List<String> OPEN_HANDLERS = List.of(
+            // Main chain (SecurityConfiguration), permitAll: health, branding, public club pages and the country profile.
+            "shared.api.HealthController.health",
+            "platform.api.BrandingController.branding", "platform.api.BrandingController.manifest",
+            "platform.api.SettingsController.countryProfile", "platform.api.SettingsController.postalCodeTowns",
+            "platform.api.PlatformThemeFilesController.publicClubLogo",
+            "clubs.catalogs.api.PublicPlansController.publicPlans",
+            "clubs.content.api.PublicClubPagesController.get",
+            "clubs.activities.api.PublicActivitiesController.publicActivities",
+            "clubs.activities.api.PublicActivitiesController.publicActivity",
+            "clubs.activities.api.PublicActivitiesController.publicFile",
+            // Main chain, permitAll: the OIDC browser endpoints and the magic-link request (R-01-04, neutral 202).
+            "identity.api.OAuthController.discovery", "identity.api.OAuthController.authorize", "identity.api.OAuthController.logout",
+            "identity.api.AuthController.magicLink",
+            // Token chain (IdentityConfiguration.oauthEndpoints): client authentication and the public keys.
+            "identity.api.OAuthController.token", "identity.api.OAuthController.wellKnownJwks", "identity.api.OAuthController.jwks",
+            // Main chain, SignedFileRequests and the .ics link (R-08-08): the URL's own signature or token authorises the request.
+            "clubs.followup.api.AttachmentsController.putLocal", "clubs.followup.api.AttachmentsController.getLocal",
+            "clubs.followup.api.SignupFilesController.upload", "clubs.followup.api.SignupFilesController.download",
+            "migration.api.MigrationFilesController.download", "payments.api.RemittanceFilesController.download",
+            "clubs.bookings.api.BookingsController.bookingCalendar",
+            // Main chain, permitAll: provider webhooks (signature checked by the handler) and the signed unsubscribe link (R-11-08).
+            "clubs.messaging.api.BrevoWebhookController.receive", "clubs.messaging.api.SendGridWebhookController.receive",
+            "payments.api.StripeWebhookController.receiveStripeEvent",
+            "clubs.messaging.api.EmailUnsubscribesController.unsubscribeEmail",
+            // COMM-08: the RFC 8058 one-click POST of the List-Unsubscribe header, authorised by the same signed token.
+            "clubs.messaging.api.EmailUnsubscribesController.unsubscribeEmailOneClick",
+            // Internal chain (E10ContractConfiguration): loopback and private peers only (Caddy's ask and forward_auth).
+            "platform.api.InternalDomainsController.allowed", "platform.api.InternalDomainsController.app");
+
+    /**
+     * AUTHZ-03 (pre-production audit, 11-11-2026): the main chain ends with `anyRequest().authenticated()` (SecurityConfiguration),
+     * so a route's roles come only from `@PreAuthorize`. Every request mapping of a controller declares one, on the method or on
+     * its class, or is listed in {@link #OPEN_HANDLERS}; a handler added without a rule would otherwise answer any signed-in
+     * account of any role. A listed entry that names no unannotated handler fails too, so the list stays the inventory of open routes.
+     */
+    static ArchRule handlersDeclareTheirRoles(List<String> open) {
+        return com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods()
+                .that().areMetaAnnotatedWith(org.springframework.web.bind.annotation.RequestMapping.class)
+                .and().areDeclaredInClassesThat().areMetaAnnotatedWith(org.springframework.stereotype.Controller.class)
+                .should(new ArchCondition<>("declare @PreAuthorize on the method or its class, or be a listed open route") {
+                    private final java.util.Set<String> listed = new java.util.HashSet<>();
+                    @Override public void init(java.util.Collection<com.tngtech.archunit.core.domain.JavaMethod> handlers) { listed.clear(); }
+                    @Override public void check(com.tngtech.archunit.core.domain.JavaMethod handler, ConditionEvents events) {
+                        if (authorized(handler) || authorized(handler.getOwner())) { return; }
+                        String owner = handler.getOwner().getName();
+                        String name = (owner.startsWith(BASE_PACKAGE) ? owner.substring(BASE_PACKAGE.length()) : owner) + "." + handler.getName();
+                        if (open.contains(name)) { listed.add(name); return; }
+                        events.add(SimpleConditionEvent.violated(handler, handler.getFullName() + " has no @PreAuthorize and is not a listed open route"));
+                    }
+                    @Override public void finish(ConditionEvents events) {
+                        open.stream().filter(name -> !listed.contains(name)).forEach(name -> events.add(SimpleConditionEvent.violated(name,
+                                name + " is listed as an open route but names no handler without @PreAuthorize")));
+                    }
+                })
+                .because("AUTHZ-03: the HTTP chain only requires authentication; the roles of a route are its @PreAuthorize");
+    }
+    static final ArchRule HANDLER_ROLES = handlersDeclareTheirRoles(OPEN_HANDLERS);
+
+    private static boolean authorized(com.tngtech.archunit.core.domain.properties.CanBeAnnotated element) {
+        return element.isAnnotatedWith(org.springframework.security.access.prepost.PreAuthorize.class)
+                || element.isMetaAnnotatedWith(org.springframework.security.access.prepost.PreAuthorize.class);
+    }
+
+    /**
      * E5-T15 (review E5-T06 #4): a demo seed class is a top-level `Demo*Seeder`, `DemoMembers` or `DemoSeed*` (or a class
      * nested in one), never in an `..api..` package: not any `Demo*` name (`DemoIdentityService`, a `Demo*Controller`).
      */

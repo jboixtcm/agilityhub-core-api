@@ -399,7 +399,7 @@ def main():
                 elapsed_origin = time.monotonic() - started_at
             finally:
                 command(unpause, env=env)
-            require(down == dict(status="DOWN", version=up["version"], builtAt=up["builtAt"]), "Health DOWN must keep the envelope")
+            require(down == dict(status="DOWN", version=up["version"], builtAt=up["builtAt"], commit=up["commit"]), "Health DOWN must keep the envelope")
             require(elapsed < 3, "Health must answer within its 1 s bound")
             require(down_origin == down and elapsed_origin < 3, "Health with a club Origin must answer DOWN within its bound")
             require(origin_headers.get("Access-Control-Allow-Origin") is None, "Health must not allow a club Origin")

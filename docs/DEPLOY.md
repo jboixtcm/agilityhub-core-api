@@ -61,13 +61,21 @@ email settings before activation; never supply fake credentials to pass it.
    arbitrary client `X-Forwarded-*` values. Confirm no other proxy is in front;
    adding one requires its own reviewed trust configuration.
 2. Record the reviewed current and previous `sha-…` image tags, their registry
-   digests from the green publication, and matching web artifact versions.
+   digests from the green publication, and the web version, commit and CI run of
+   the bundles deployed with them.
    Never select `:main`: INC-88 can leave it on an older successful build.
    Prefer `IMAGE_TAG=sha-<commit>@sha256:<registry-digest>`; Compose accepts this
-   tag-plus-digest form and Docker selects the digest. Pull the target explicitly,
-   copy all three built SPAs to versioned
-   release directories and set `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR`.
-   Verify each contains `index.html`. The checked-in `deploy/local/*/index.html`
+   tag-plus-digest form and Docker selects the digest. Pull the target explicitly.
+   The three SPAs are the artifact of a green web CI run on `main`, never a build
+   made elsewhere (REL-03): check that the run of the reviewed web commit succeeded
+   (`gh run view <run-id> --repo <web repository> --json conclusion,headSha`),
+   download its artifact (`gh run download <run-id> --repo <web repository> --name
+   web-bundles-<version>-<commit>`), check that the three `version.json` name that
+   commit, copy its `clubs/dist`, `clubs-admin/dist` and `id/dist` to versioned
+   release directories and set `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR`, `ID_DIST_DIR`.
+   `bin/release-preflight` refuses a dist whose `version.json` names no commit (a
+   build outside CI) and three dists that name different commits. Verify each
+   contains `index.html`. The checked-in `deploy/local/*/index.html`
    files are proof fixtures, never the release apps. GHCR access uses the recipe
    below; registry credentials remain in the host credential store.
 3. Populate the environment inventory below, including stable backed-up keys.
@@ -104,16 +112,37 @@ email settings before activation; never supply fake credentials to pass it.
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml up -d --wait --wait-timeout 420
    ```
 
-5. Smoke the deployed hosts: HTTPS health returns `UP`; each club host's
+   A recreated or stopped Core gets SIGTERM and up to its `stop_grace_period` (60 s; Mongo 120 s) before Docker kills
+   it, so Spring's graceful shutdown (`spring.lifecycle.timeout-per-shutdown-phase`, 45 s) can finish the requests in
+   flight (CFG-06). The live build-session streams do not count: Core closes them at the start of shutdown, before
+   the server waits for its requests (a stream opened meanwhile ends at once), and the web reopens them on the new Core.
+
+5. Smoke the deployed hosts: HTTPS health returns `UP`, as `version` the
+   release version of that commit's `pom.xml` (`1.0.0` at the first release) and,
+   as `commit`, the full commit of the reviewed `sha-…` tag (REL-02); each club host's
    `/api/v1/branding` identifies its intended tenant; all three SPAs load and
    deep links work; sign in and refresh once on a front host. Check the rotated
    `ah_refresh` has no Domain, with HttpOnly/Secure/SameSite=Strict and
    `Path=/oauth2/token`, and no refresh token is in JSON. Check the real provider
    flows listed below and one scheduler run. Keep responses containing tokens,
-   cookies or personal data out of the operational log.
+   cookies or personal data out of the operational log. Then set the web
+   repository's Actions variable `DEPLOYED_CORE_IMAGE` to the deployed image,
+   `ghcr.io/jboixtcm/agilityhub-core-api:` and the `sha-…` tag of `IMAGE_TAG` (REL-08): the web's
+   scheduled real-core run pulls it and runs the critical flows against it, so the
+   GHCR package must grant the web repository read access (package settings,
+   Actions access).
+   Once, at the release that brings the dog photos' list thumbnails (WEB-05) and on any
+   database with dog photos stored before it, make the missing ones club by club:
+   `bin/core census:photo-thumbnails --club=<slug> --dry-run` (one line per dog id,
+   writes nothing), then `bin/core census:photo-thumbnails --club=<slug>`; a second run
+   makes nothing new (idempotent, safe to repeat). A dog reported `NOT_MADE` (a WebP,
+   HEIC or damaged photo) keeps showing its original photo in the lists. New photos get
+   their thumbnail when they are claimed.
 6. Release rollback: restore the previous digest-pinned `IMAGE_TAG` **and**
-   previous three `*_DIST_DIR` values, then repeat `pull core`,
-   `bin/release-preflight`, `up -d --wait` and the smoke.
+   previous three `*_DIST_DIR` values (the previous release's directories, copied
+   from its CI artifact; never a rebuild), then repeat `pull core`,
+   `bin/release-preflight`, `up -d --wait` and the smoke, and set
+   `DEPLOYED_CORE_IMAGE` back to the previous image.
    Never use `down -v` on a release. If the new version changed persisted data
    incompatibly, an image rollback alone is unsafe: keep writers stopped and
    use the verified database recovery procedure below. Record the chosen
@@ -128,10 +157,16 @@ stay outside the checkout without group/other permissions (0600, or read-only
 publication. A local image ID is not a registry digest. The command rejects
 `:main`, local/CI tags, absent or mismatched registry digests, local proof profiles,
 exposed database/API ports, broad proxy trust, reused Mongo passwords, placeholders,
-missing backup configuration and proof HTML in place of the built SPAs. It also
+missing backup configuration, proof HTML in place of the built SPAs and a dist
+holding `mockServiceWorker.js` (a `VITE_MOCK=1` build, REL-03), a dist whose
+`content-security-policy.txt` is missing, not one line, or does not allow an inline
+script of its `index.html` by its `sha256` (CFG-04), one without the `robots.txt`
+that disallows every robot (CFG-05), and one without the `version.json` the web build
+writes, exactly `{"version": "x.y.z", "commit": <full commit id> | null}` (REL-02), whose
+`commit` is null (a build outside CI) or differs from the other two dists' (REL-03). It also
 checks each mounted SPA's compiled entry module exists and fingerprints every
 file of its distinct read-only dist directory. Its JSON output contains only image
-identifiers and artifact hashes, suitable for the release record. Keep the reviewed
+identifiers, artifact hashes and each bundle's `version` and `commit`, suitable for the release record. Keep the reviewed
 API/web commits and CI run IDs beside that output; matching hashes do not establish
 that a release was reviewed.
 
@@ -345,15 +380,54 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
   launch, and once on any database written by an earlier release, run
   `bin/core census:seal-ibans` (a dry run: it lists the members with an IBAN in
   clear, never the IBAN) and then `bin/core census:seal-ibans --apply`; a second
-  `--apply` reports `0` (idempotent). No online
-  re-encryption tool is provided here: keep it for every retained record and
-  backup, and rotate it only with a reviewed re-encryption. Never rotate it by
-  just editing env. Since E11-T11, Core does not start outside the `local` and
+  `--apply` reports `0` (idempotent). Keep the key for every retained record and
+  backup, and rotate it only with the procedure below (PRIV-11), never by just
+  editing env. Since E11-T11, Core does not start outside the `local` and
   `test` profiles when the key is missing or is not Base64 of 32 bytes (staging
-  and `prod` included). A run with no active profile is the local stack by
-  design (`spring.profiles.default: local` in `application.yml`, ruling E139): it
-  starts without the key and keeps the IBAN in clear with the WARN, so every
-  deployment sets its profile explicitly (`prod` in the production Compose).
+  and `prod` included). A run of the jar with no active profile is the local
+  stack by design (`spring.profiles.default: local` in `application.yml`, ruling
+  E139): it starts without the key and keeps the IBAN in clear with the WARN, so
+  every deployment sets its profile explicitly (`prod` in the production Compose).
+  The image itself starts on `prod` when no profile is given (CFG-12:
+  `ENV SPRING_PROFILES_ACTIVE=prod` in its runtime stage), so a bare `docker run`
+  of it refuses to start without the production configuration instead of
+  opening the local test routes and fakes; the local, consumer and smoke stacks
+  name `local`.
+- **Rotating `BILLING_BANK_KEY` (PRIV-11).** Every IBAN sealed since PRIV-11
+  starts with the id of its key, `{keyId}:` — the first 8 hex characters of the
+  SHA-256 of the key's 32 bytes (`printf %s "$KEY" | base64 -d | sha256sum | cut -c1-8`);
+  values sealed before have no prefix and are read with the current key, then the
+  previous one. `BILLING_BANK_KEY_PREVIOUS` (empty outside a rotation) is the key
+  being replaced: Core reads with it and never seals with it, and does not start
+  when it is set but malformed or equal to `BILLING_BANK_KEY`.
+  `bin/core census:rekey-ibans` reads every sealed IBAN (payment method, flat or
+  under `sepa`, and a pending readmission's) with the configured keys and seals
+  it again with the current one; it prints member ids, clubs, places, key ids
+  and counts, never an IBAN or a ciphertext. Procedure, in one maintenance window,
+  with the bank key as the only key changed:
+  1. Take and verify a backup. Generate the new key (`openssl rand -base64 32`)
+     and escrow it next to the current one, off this host.
+  2. Run `bin/core census:seal-ibans` first: its count must be `0` (the re-key
+     does not touch an IBAN in clear).
+  3. Set `BILLING_BANK_KEY_PREVIOUS` to the current value and `BILLING_BANK_KEY`
+     to the new one in the deployment env; restart Core so that it and the CLI
+     read both. The header line `Current key: …, previous key: …` of the next
+     command shows the two ids.
+  4. `bin/core census:rekey-ibans` (dry run, writes nothing): `unreadable: 0` is
+     required; a member listed `UNREADABLE` has a value neither key reads (stop
+     and investigate; the command exits with an error).
+  5. `bin/core census:rekey-ibans --apply`, then again until it reports
+     `re-encrypted: 0, skipped …: 0` (idempotent; a member edited meanwhile is
+     `SKIPPED` and taken by the rerun). A last dry run reports `to re-encrypt: 0`.
+  6. Empty `BILLING_BANK_KEY_PREVIOUS` and restart Core; a dry run still reports
+     `to re-encrypt: 0, unreadable: 0` and `previous key: none`.
+  7. Keep the old key in escrow for as long as any backup taken before step 5
+     is retained: restoring such a backup needs it as `BILLING_BANK_KEY_PREVIOUS`
+     and a new `census:rekey-ibans --apply`.
+  The same command with no previous key set only adds the key id to the values
+  sealed before PRIV-11 (optional; they are read without it). The club's own
+  creditor IBAN is not under this key: it is a provider setting sealed with
+  `BILLING_SECRETS_KEY` (below).
 - `MIGRATION_BANK_KEY` is retired (ruling E85): Core no longer reads it. No
   release imported bank data with it; a local database imported before needs a
   new `migration:apply` with `BILLING_BANK_KEY`. The production Compose stops
@@ -391,8 +465,23 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
 
 `docker compose … logs --since 1h core` and `… mongo`/`… caddy` are the container
 logs. Production services use Docker json-file rotation, **5 × 10 MB per
-container** (size-based, no promised number of days). Caddy access logging is
-off: query strings can contain signed capabilities. Do not enable header/body or
+container** (size-based, no promised number of days).
+
+Caddy's HTTP access log (CFG-07) is on for every public site (the three product
+hosts, the Core host and every club alias; not the internal ask listener). Each
+request is one JSON line in `/var/log/caddy/access.log` of the `caddy-logs` volume,
+never in the container log: client address, method, host, path, status, size,
+duration and request headers. The query string is dropped from the logged URI and
+from the `Referer` and `Location` values (codes, signatures, signed file URLs and
+the stream's `access_token` travel there); Caddy redacts `Authorization`, `Cookie`
+and `Set-Cookie`, and the filter deletes the two other credential headers,
+`X-Signup-Token` (public signup) and `X-Api-Key` (a club's website key). The file rolls every 50 MiB; rolled files are compressed, at most
+30 are kept and none older than 30 days, so the client addresses (personal data)
+are kept about a month (the live file rolls by size only, so under very light
+traffic its oldest lines can be older). An erasure (S14 R-14-15) does not rewrite
+it: its lines expire on their own. Read it with `docker compose … exec caddy cat
+/var/log/caddy/access.log` (rolled files: `… exec caddy sh -c 'zcat
+/var/log/caddy/access-*.log.gz'`). Do not enable header/body or
 DEBUG logging on live identity/payment traffic. Keep the cron log outside the
 repo, mode 0600; configure daily logrotate with 30 compressed files and an
 alerting collector for failures before rotation. The Mongo audit/event retention
@@ -551,7 +640,7 @@ and URIs are included because they must remain consistent across recovery.
 | `MONGO_REPLICA_KEY` | Base64 512 random bytes, operator-generated replica-set shared secret; Mongo recreates a private 0400 key file on tmpfs. Coordinated restart to rotate. |
 | `DEPLOY_SUBNET`, `CADDY_IPV4_ADDRESS`, `TRUSTED_PROXY_PATTERN` | Operator-selected free bridge subnet, fixed proxy IP and exact escaped Java regex; update together and re-check forwarded scheme/address. |
 | `AUTH_ISSUER` | Stable public ID HTTPS origin from the approved DNS plan. Changing invalidates issuer validation and client discovery. |
-| `PLATFORM_PRIVACY_POLICY_VERSION`, `PLATFORM_PRIVACY_POLICY_URL` | Approved legal version and public URL; changing the version requires renewed consent. |
+| `PLATFORM_PRIVACY_POLICY_VERSION`, `PLATFORM_PRIVACY_POLICY_URL` | The platform privacy policy every account accepts at first sign-in (S01 §14). Defaults: `2` and `https://id.agilitydoghub.com/privacy`, the page `apps/id` serves from its versioned content file (`PRIVACY_POLICY_VERSION` there and the «Versió» of `docs/legal/POLITICA_PRIVACITAT_AGILITYHUB_ID.md`; PRIV-01). Keep the three equal: a new version asks every account to accept again. The text names Brevo (e-mail and SMS), DigitalOcean and Stripe as the processors: a production that sends through another provider (the `EMAIL_PROVIDER`/`SMS_PROVIDER` defaults are SendGrid and Twilio) or reports to Sentry contradicts it until the text and its version change. |
 | `OIDC_MASTER_KEY` | Base64 32 random bytes generated once and escrowed; encrypts persisted RSA signing keys. No replacement without a reviewed re-encryption migration. |
 | `OIDC_LEARN_CLIENT_SECRET` | Generated shared client secret configured in Learn and Core; rotate together. A30 leaves Learn unconnected, but prod configuration still requires a value. |
 | `OIDC_LOGIN_URL` | ID SPA login URL on the issuer origin; update with the ID web build/DNS. |
@@ -575,6 +664,7 @@ and URIs are included because they must remain consistent across recovery.
 | `MAIL_FROM_PLATFORM` | Platform address verified by the selected provider; change only after sender-domain verification. Brevo always sends from this address. |
 | `SENDGRID_WEBHOOK_PUBLIC_KEY` | Required only for SendGrid: Event Webhook verification public key (base64 DER/PEM); coordinate with provider signing-key change and verify a signed event. |
 | `EMAIL_UNSUBSCRIBE_KEY` | Base64 32 random bytes; HMAC for 30-day unsubscribe links. Rotation invalidates outstanding links. |
+| `ANNOUNCEMENT_EMAILS_PER_MINUTE` | COMM-07: at most this many announcement e-mails («Enviar comunicat», N-24) per clock minute, set from the e-mail provider's plan; default 60, at least 1 (the API refuses to start otherwise). Platform-wide, not per club. Change it with the plan. |
 | `SMS_PROVIDER` | SMS transport, `twilio` (default) or `brevo`. Brevo uses the existing `BREVO_API_KEY` and the club’s registered SMS sender ID. |
 | `SMS_DELIVERY_ENABLED` | Defaults to `true`. Set to `false` to block SMS regardless of credentials. Hosted demo requires an explicit club ID and Brevo. |
 | `SMS_CLUB_ID` | Restricts SMS to that club. Leave empty on hosted demo to disable SMS. To enable later, select Brevo, configure the approved sender ID, enable the club SMS module and set a monthly cap and SMS delivery switch. |
@@ -586,7 +676,8 @@ and URIs are included because they must remain consistent across recovery.
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Retired (ruling E85): Core no longer reads it, and `migration:apply` encrypts with `BILLING_BANK_KEY`. Leave it empty; E11-T04 removes it from the production Compose. |
-| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); Core refuses to start without a usable one outside `local`/`test` (E11-T11); preserve and re-encrypt before rotation. |
+| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); Core refuses to start without a usable one outside `local`/`test` (E11-T11); preserve it, and rotate it only with `census:rekey-ibans` («Keys and provider rotation», PRIV-11). |
+| `BILLING_BANK_KEY_PREVIOUS` | Empty except during a `BILLING_BANK_KEY` rotation (PRIV-11): the key being replaced, read-only, until `bin/core census:rekey-ibans --apply` has re-encrypted every IBAN. When set it must be Base64 of 32 bytes and another key than `BILLING_BANK_KEY`, or Core does not start. |
 | `BILLING_SECRETS_KEY` | Operator-generated, escrowed base64 32 random bytes, `ProviderSecretVault`'s key for the clubs' encrypted Stripe secrets (ADR-009); without it every Stripe webhook answers 401. Required and forwarded by production Compose and the local rehearsal; rotation means re-entering every club's secrets. |
 | `FILE_STORAGE_MODE` | Default `s3`. Explicit `filesystem` is available only in hosted demo on a deployed profile; it uses the encrypted private volume and constructs no S3 clients. |
 | `FILE_STORAGE_ROOT`, `FILE_STORAGE_SIGNING_KEY` | Filesystem mode requires `/storage` and stable base64 of at least 32 random bytes. Back up the signing key privately; rotation invalidates existing signed links. |
@@ -601,7 +692,7 @@ and URIs are included because they must remain consistent across recovery.
 | `CORE_CONCURRENCY_LOCALLANES` | `true` for R1; infrastructure switch explained below, no secret or regular rotation. |
 | `ACME_EMAIL` | Operator contact for Caddy/ACME certificate notifications; keep monitored. |
 | `ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`, `CORE_HOST` | Four approved public DNS hostnames; default ADR-003 domains. DNS/certificate/client change, not a key rotation. |
-| `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned built SPA dist folders. Switch all with the matching backend tag; retain previous paths for rollback. |
+| `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned SPA dist folders, the three of one green web CI run's artifact (REL-03). Switch all with the matching backend tag; retain previous paths for rollback. |
 | `BACKUP_AGE_RECIPIENT` | Public native age recipient from operator `age-keygen`; the only encryption material installed for cron. Change for future backups after verifying its escrowed identity. |
 | `BACKUP_AGE_IDENTITY` | Private age identity, restored from encrypted off-host escrow into the operator environment only for verification/recovery; never in the cron env. Retain old identities through archive expiry. |
 | `BACKUP_S3_BUCKET`, `BACKUP_S3_REGION`, `BACKUP_S3_ENDPOINT` | Pre-provisioned private backup bucket/region; optional HTTPS endpoint. Local override alone uses `http://minio:9000`. |
@@ -643,12 +734,29 @@ test/live prefix; configuration errors are 422. Local and test profiles resolve
 `FakePaymentProvider`; staging and production resolve the SDK. There is no global
 Stripe API key environment setting and no Connect account header. Key rotation
 means re-encrypting the club's secrets; lookups bypass the config cache.
+Saving a new secret key in the console runs the connection test with that key
+first (PAY-10): a key Stripe refuses, or a Stripe that cannot be reached, answers
+422 `STRIPE_CONNECTION_FAILED` and nothing is saved; a passed test is recorded
+(`lastTestAt`, the masked account). On the `prod` profile, a club whose saved keys
+are live switches to test mode only when the request sets `testModeOverride: true`
+(otherwise 422 `PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}`).
 
 Register `/webhooks/stripe/{clubId}` for the Checkout, PaymentIntent, refund,
-SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21.
+SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21,
+and for `charge.dispute.created`, `charge.dispute.updated` and
+`charge.dispute.closed` (PAY-06: a dispute flags the card payment and notifies the
+club's admins, N-56; it changes nothing else, and the dispute is answered in the
+Stripe dashboard).
 Receipts are signature-checked, stored uniquely, then processed transactionally;
-failed work and durable provider commands retry internally. Stripe's default
-24-hour Checkout expiration is separate from Core's shorter booking deadline;
+failed work and durable provider commands retry internally. A webhook event whose
+processing fails is retried for about 24 hours (1 min up to 8 h apart, ten attempts;
+a Stripe outage, 401/403 or 429 spends none) and then stays `FAILED`, with the WARN
+`Stripe event recovery exhausted`; the club's admin sees the failed events in
+billing (`GET /billing/stripe-events`), and resending one from the Stripe dashboard
+processes it again (PAY-02). Every Checkout session is sent an `expires_at`
+(PAY-08): a signup or S12 checkout ends at Stripe 5 minutes before Core's 24 hours,
+a PAY_TO_BOOK one at the booking deadline but never sooner than Stripe's 30-minute
+minimum (P7 expires it at Stripe when Core's deadline passes first);
 late booking captures are refunded once per payment intent. `compose.yaml`
 forwards the billing key. The administrative credential-entry UI remains a
 platform-console concern; never put plaintext credentials into seed files.
@@ -1041,8 +1149,12 @@ the deployment environment. Limit the export principal to Get/Put/DeleteObject
 under `exports/`; limit the attachment principal to Get/PutObject (including HEAD)
 under `attachments/` and `signup/`, plus `s3:DeleteObject` under `signup/`: the S15
 cleanup job (`CleanupJob`, `jobs.retention.orphanUploadsHours`) deletes the signup
-uploads that no submission claimed (R-04-08). A shared principal needs the union of
-those permissions, restricted to those three prefixes. Public access must remain disabled.
+uploads that no submission claimed (R-04-08); and `s3:DeleteObject` under `attachments/`:
+a replaced dog photo's list thumbnail is deleted there (WEB-05), as are the files the S14
+erasure deletes (R-14-15). Without it those deletes fail and are only logged: the
+thumbnail's upload record stays bound to its dog for the erasure. A shared principal
+needs the union of those permissions, restricted to those three prefixes. Public access
+must remain disabled.
 
 Example attachment policy (replace the fictional bucket name):
 
@@ -1053,7 +1165,7 @@ Example attachment policy (replace the fictional bucket name):
     {"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject"],
      "Resource": ["arn:aws:s3:::example-attachments/attachments/*", "arn:aws:s3:::example-attachments/signup/*"]},
     {"Effect": "Allow", "Action": ["s3:DeleteObject"],
-     "Resource": ["arn:aws:s3:::example-attachments/signup/*"]}
+     "Resource": ["arn:aws:s3:::example-attachments/attachments/*", "arn:aws:s3:::example-attachments/signup/*"]}
   ]
 }
 ```
@@ -1108,18 +1220,26 @@ runbook (E12-T02). They are rules of the specs, not defects:
 - **The series is the year of the issue date** (`InvoiceNumbering.series`, S12
   R-12-08). The January-2027 run, issued around 26-12-2026, is numbered
   `2026-NNNN`. This is what the spec says; tell the bookkeeper.
-- **Count TARGET holidays yourself.** `CollectionDates.earliest` counts Monday to
-  Friday only (two business days, R-12-12). The bank also closes on TARGET
-  holidays (25-12 and 01-01 around the first runs). Choose a collection date at
-  least two TARGET business days after the run.
+- **The collection date follows the TARGET calendar** (SEPA-05, R-12-12). The
+  default day of the billed month moves to the next TARGET business day when it
+  falls on a weekend, 01-01, Good Friday, Easter Monday, 01-05, 25-12 or 26-12
+  (with the club's day 1: January 2027 asks for 04-01, May 2027 for 03-05,
+  August 2027 for 02-08). The two business days of lead time are counted on the
+  same calendar. A date chosen in D6's generate dialog must be a TARGET business
+  day (`400 VALIDATION_ERROR {field: collectionDate}` names the next one) and
+  leave the two days (`422 COLLECTION_DATE_TOO_SOON` names the earliest).
 - **Mark the remittance as sent the day you upload it.** From its collection
   date on, a remittance still `GENERATED` blocks the rollback
   (`COLLECTION_DATE_PASSED`, E147). From the day before, D6 shows
-  `submissionDue`. P5i settles only a `SUBMITTED` remittance.
+  `submissionDue`. P5i settles only a `SUBMITTED` remittance, and only
+  `billing.sepa.settlementBusinessDays` (5) TARGET business days after its
+  collection date (SEPA-04): record the bank's returns in those days. A
+  remittance marked sent whose file the bank refused can be set back to
+  `GENERATED` before its collection date, while none of its receipts moved
+  (`POST /remittances/{id}/submission-undo`), and then rolled back.
 - **`--cut-over` is a day of the launch month**, never the rehearsal's today
-  (`PlayoffCommand`: the club's today when omitted). It sets the mandates'
-  signature date and every monthly member's first `nextInvoiceDate` (01 of the
-  next month, R-18-13).
+  (`PlayoffCommand`: the club's today when omitted). It sets every monthly
+  member's first `nextInvoiceDate` (01 of the next month, R-18-13).
 - **Cash members already paid in Playoff**: list them in `pagat_fins.csv`
   (`Member ID;Paid until`, `YYYY-MM`). Without it, the first run bills the months
   of their half-year that Playoff already charged. After the load, correct one
@@ -1132,12 +1252,22 @@ runbook (E12-T02). They are rules of the specs, not defects:
 - **`--cut-over` is mandatory in production** (round 2, E156):
   `migration:playoff --apply --env production` without it is refused before
   anything is read. The production `--dry-run` keeps the club's today.
-- **Resolve every `NUMBER_CONFLICT` on an ACTIVE SEPA record in Playoff before
-  the real cut-over.** Such a record is loaded without a mandate
-  (`MANDATE_PENDING`). The rehearsal's simulation lists each one as a
-  `MANDATE_PENDING` incident and the run skips it (E156). Fix the number in
-  Playoff and load again: the member gets `{slug}-{number}-1`, signed on the
-  cut-over.
+- **The mandates come from `mandats.csv`** (SEPA-02, S18 R-18-08): one row per
+  record with its Playoff mandate reference and signature date. Its headings in
+  `playoff-v2.yaml` are the rehearsal's (`Member ID;Mandate reference;Signed
+  on`): put the real export's in the `--mapping`. Nothing is invented: every
+  SEPA member without a row is loaded without a mandate and listed as `members
+  WARNING MANDATE_PENDING`; the simulation shows it as a `MANDATE_PENDING`
+  incident and the run skips it (E156). A reference outside the SEPA rules, a
+  reference given to two members, two mandates for one member, or a missing or
+  future date is an `ERROR` on its row (field `mandateRef`, `mandateSignedAt` or
+  `memberId`) and nothing is loaded. To resolve listed members after the load,
+  add their rows and run an approved reapply of step 5 (`--steps=5`,
+  `MIGRATION_STEPS.md`): it replaces the stored reference and date of every
+  member with a row and leaves without a mandate every member without one.
+  Step 5 also rewrites the IBAN, holder, plan, price and `nextInvoiceDate` from
+  the export: read the dry run before applying, and do it before a billing run
+  has moved any `nextInvoiceDate` (or correct those dates afterwards).
 - **`previsio.csv` is optional.** It only feeds the reconciliation (R-18-13).
   One unreadable row of it, or one short, long or broken row of `rebuts.csv`,
   `packs.csv`, `mandats.csv` or `pagat_fins.csv`, is a warning on its line and is
@@ -1192,6 +1322,43 @@ from the environment ([.env.example](../.env.example)); none is ever logged.
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | The product's P-256 key pair, base64url (uncompressed public point, 32-byte private scalar). The public key is published on `GET /branding` as `pushPublicKey`. Required in staging/prod. Generate once, e.g. `npx web-push generate-vapid-keys`; rotating it invalidates every browser subscription. |
 | `VAPID_SUBJECT` | `mailto:` or `https:` contact sent to the push services. |
 | `EMAIL_UNSUBSCRIBE_KEY` | HMAC key (base64, 32 bytes) of the signed 30-day «Deixar de rebre aquests comunicats» links of `CLUB_NEWS` mails (`List-Unsubscribe`). Required in staging/prod. |
+| `ANNOUNCEMENT_EMAILS_PER_MINUTE` | COMM-07: the pace of announcement e-mails, per clock minute (default 60, at least 1); the next ones wait `QUEUED` for the following minute. Set it from the e-mail provider's plan. |
+
+COMM-08 (owner decision of 13 November 2026, RFC 8058): a `CLUB_NEWS` mail's
+`List-Unsubscribe` header names `https://<club app host>/api/v1/email-unsubscribes/one-click?t=…`
+with `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, so Gmail and Yahoo offer their
+one-click unsubscribe; the provider's anonymous `POST` reaches the API through the club
+host's `/api/*` proxy (no Caddy change). The footer link still opens the club app's page.
+Mailbox providers honour the one-click header only on DKIM-signed mail whose signature
+covers both headers: check in Brevo that the sending domain is authenticated (DKIM) and
+send a test announcement to a Gmail address to see «Unsubscribe» next to the sender.
+
+COMM-02 (owner decision of 13 November 2026): the seat-released notice (N-15) also
+goes by e-mail, like the class reminder (N-13), to members whose «Operativa» e-mail
+preference is on. A club's stored templates keep their channel matrix (the start-up
+upgrade only brings texts up to date), so a club whose N-15 template already exists,
+such as the Cànic, gets the e-mail only once an admin ticks «Correu» for «Alumne» on
+«S'ha alliberat una plaça!» in D9 (`/comunicats`); a club seeded afterwards gets it
+ticked.
+
+COMM-07 (owner decision of 13 November 2026): announcement e-mails go at the pace
+of `ANNOUNCEMENT_EMAILS_PER_MINUTE`, and the provider's quota answers (429, 402,
+Brevo's `not_enough_credits`) are retried 1, 5, 15, 60 minutes later and then every
+hour for about a day before a delivery is `FAILED`. A daily allowance smaller than an
+announcement still leaves the rest for the next day, and transactional mail (sign-in
+links included) shares that allowance: choose a plan above the club's largest
+announcement plus a day's notices. «Reenvia els fallits»
+(`POST /api/v1/announcements/{batchId}/resend-failed`) queues the failed e-mails of
+a batch again.
+
+COMM-06 (owner decision of 13 November 2026): an SMS goes only to a mobile number
+(a Spanish one starts with 6 or 7; another country's must be a valid mobile); a
+landline gets none and its delivery is recorded `SKIPPED_NO_CONTACT` with the
+number and «Not a mobile number». Between `messaging.sms.quietHoursStart` (22:00)
+and `messaging.sms.quietHoursEnd` (08:00), in the club's time zone, a non-urgent SMS
+stays `QUEUED` until 08:00 (`lastError` «SMS quiet hours», nothing counted); a seat
+offer with a deadline (FIFO) is sent at once. The app, e-mail and push copies are
+not delayed. Equal bounds switch the quiet hours off for a club.
 
 The dispatcher sends right after each notice is stored and polls every 5 s for
 retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS state
@@ -1220,6 +1387,9 @@ Run from the API checkout with Docker, Compose, Python 3 and curl:
 bin/e7-smoke
 bin/e7-smoke     # a fresh stack per run: re-runnable
 ```
+
+Run it in the daytime (Madrid): its class cancellation uses the real clock and waits for every SMS to settle, and
+between 22:00 and 08:00 the SMS quiet hours (COMM-06) keep that SMS queued until 08:00.
 
 P4 `reminders` runs **every minute** on the single scheduler (switch `jobs.reminders.enabled`, on by default; at most one
 `SKIPPED{DISABLED}` per hour while off) and reminds each booking once, at the lead its dog's owner chose
@@ -1567,9 +1737,28 @@ a 300-second cache. Health only accepts configured platform origins without
 looking up a club; other origins still receive its ordinary UP/DOWN response.
 Cookies remain same-origin (A1); CORS never enables credentials or wildcard
 origins. All SPAs receive nosniff, strict-origin-when-cross-origin, DENY and HSTS
-from Caddy. The web build owns its CSP. API JSON, errors, OAuth and files keep the
-Spring Security baseline and E71 download policies. API HSTS is enabled only for
-HTTPS requests under `prod`.
+from Caddy. Caddy also sends each SPA's Content-Security-Policy, on its static answers only (CFG-04): the one line the
+web build writes to `content-security-policy.txt` in the bundle, read from the served root on every request, so a new
+bundle brings its policy (with the `sha256` of its inline boot script) without a reload. `bin/release-preflight` refuses
+a bundle without the file, with more than one line, or whose `script-src` lacks the `sha256` of an inline script of
+its `index.html`. The policy allows only each host's own origin: with `FILE_STORAGE_MODE=s3`, uploads and signed
+downloads go to the bucket's origin, so the web's policy must name it (a new bundle) before such a deployment. API
+JSON, errors, OAuth and files keep the Spring Security baseline and E71 download policies. API HSTS is enabled only
+for HTTPS requests under `prod`.
+
+Every host answers `/robots.txt` with `User-agent: *` and `Disallow: /` (CFG-05): the product hosts, the identity
+host and every club alias serve the file their bundle carries (`bin/release-preflight` refuses a bundle without
+exactly those two lines), and the Core host's site block answers the same two lines itself.
+
+Every host that serves an app also answers its bundle's `version.json` (REL-02) as a file with `Cache-Control: no-cache`,
+never the SPA shell (a bundle without it answers 404, and `bin/release-preflight` refuses one): both apps compare it with
+their own build and offer a reload when a new bundle is deployed (FE-07).
+
+Caddy caps request bodies before they reach the Core (CFG-03, snippet `api_body_limit`): 2 MB (2,000,000 bytes)
+for `/api/*` and `/oauth2/*` on every site that proxies them (the three product hosts, the club catch-all and the Core
+host), except the two signed upload PUTs (`/api/v1/attachments/uploads/{id}` and `/api/v1/signup/uploads`), which the
+Core bounds by the club's `files.maxSizeMb` while it streams them; 1 MiB for the Core host's `/webhooks/*`. A refused
+body gets `400 VALIDATION_ERROR` in the standard error envelope, with Caddy's error id as `traceId`.
 
 The per-instance token buckets below use the injected clock and reset at their
 interval boundary. R1 is a single instance (ADR-003). Every refusal returns the
@@ -1582,13 +1771,15 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 
 | Configuration key (each has `.capacity` and `.period`) | Default | Key / scope |
 |---|---|---|
-| `core.security.rate-limits.token` | 30 / 1m | IP, shared token + magic-link entry point |
+| `core.security.rate-limits.token` | 30 / 1m | IP, shared token (every grant except refresh) + magic-link entry point |
+| `core.security.rate-limits.token-refresh` | 120 / 1m | IP; the refresh grant of `/oauth2/token` only, apart from the bucket above (AUTH-09) |
 | `core.security.rate-limits.token-account` | 10 / 1m | Digest of normalized token username, across IPs |
 | `core.security.rate-limits.magic-link-email` | 10 / 1h | Digest of normalized e-mail (existing magic-link rule) |
 | `core.security.rate-limits.magic-link-ip` | 60 / 1h | IP (existing magic-link rule) |
+| `core.security.rate-limits.access-resend-club` | 60 / 1h | Club; the D10 welcome e-mail (`POST /members/{id}/access-resend`, WEB-01), with the per-address bucket above and without the IP one |
 | `core.security.rate-limits.branding` | 120 / 1m | IP |
 | `core.security.rate-limits.public-routes` | 60 / 1m | IP for the public API |
-| `core.security.rate-limits.me` | 600 / 1m | Account across IPs and `/me` children |
+| `core.security.rate-limits.me` | 600 / 1m | Account across IPs: `/me` and its children, `/platform/**` and, since CFG-14, every other authenticated `/api/` route without a family of its own in this table (one bucket per account for all of them; health and webhooks are never in it) |
 | `core.security.rate-limits.anonymous` | 120 / 1m | IP; discovery/authorize/logout, signup form, manifest, country/postal lookup, unsubscribe, other checkout-session paths |
 | `core.security.rate-limits.webhook` | 600 / 1m | IP; email provider signature validation is still required |
 | `core.security.rate-limits.stripe-webhook` | 600 / 1m | IP; independent Stripe delivery quota; signature validation still required |
@@ -1646,6 +1837,16 @@ scrubbed with the same exclusion list, stack locations and the three IDs remain.
 Every handled 500 is captured explicitly in `ApiExceptionHandler` with the response trace id: unexpected
 exceptions, framework 5xx and `INTERNAL_ERROR` answers the code gives (for example a payment provider outage).
 The default Sentry exception resolver keeps its later order, so one error produces one event.
+A scheduled-process run that ends `FAILED` or `PARTIAL` (S15 R-15-07, audit JOB-01) is captured once by the call that
+closed it (`JobRunner.report`), with its first exception, if any, and the trace id of its first error, which the job's error log line also prints.
+Apart from Sentry, the club's admins get N-42 (in the app and by e-mail, at most once per process and local day, while
+`jobs.alertAdminsOnFailure` is on) for any `FAILED` run and, since JOB-01 (owner decision of 13 November 2026), for a `PARTIAL`
+run of the processes that affect members: `risk-review`, `reminders`, `expirations`, `payment-timeouts` and `billing-reminder`.
+An outbox event whose consumer keeps failing is retried with a growing back-off (1 s doubling to one hour) for about
+24 hours (36 attempts, OUT-01, owner decision of 13 November 2026); when it ends `FAILED` (gauge `outbox.failed`) the
+dispatcher e-mails every active platform admin (N-57 «Esdeveniment intern no processat», at most once per admin, event type
+and UTC day; the error line `Outbox event FAILED after its retries` is logged with the event id). Its consumers that had not
+processed it will not do so on their own: find it in `domain_events` with `status: FAILED`.
 Handled 4xx errors, `NOT_IMPLEMENTED` stubs, an expired async (SSE) request and a client that went away are not captured.
 
 The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled
@@ -1711,7 +1912,7 @@ Set `EMAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `BREVO_WEBHOOK_TOKEN`, `MAIL_FROM_P
 
 Verify the sender/domain in Brevo, then configure a **transactional email** webhook at `https://<API_HOST>/webhooks/email/brevo` using `auth.type=bearer` and `auth.token` equal to the private `BREVO_WEBHOOK_TOKEN`. The subscription API names are `delivered`, `hardBounce`, `invalid`, `blocked`, `spam` and `unsubscribed`; their callback event values include `hard_bounce` and `invalid_email`. The endpoint also accepts `error` callbacks. Configure error callbacks in the provider UI if offered. Do not substitute the account API key for this independent webhook token or put either credential in a query string.
 
-The sender uses Brevo's HTTPS `/v3/smtp/email` API and preserves rendered subject, HTML, text and reply-to. HTTP 201 means accepted (`SENT`), not delivered. The returned message reference and opaque notification/club metadata correlate callbacks to the stored tenant and recipient. Duplicate message/recipient/event callbacks are idempotent; the webhook subscription `id` is not an event ID. A hard bounce, invalid address, blocked address or spam complaint marks a permanent failure. Unsubscribe suppresses future Brevo sends and the club-news preference without calling it a bounce. Temporary deferral/soft bounce and open/click tracking do not suppress or regress a delivery. Account-wide provider suppression stores an address digest, still pseudonymous personal data, with no automatic unblock.
+The sender uses Brevo's HTTPS `/v3/smtp/email` API and preserves rendered subject, HTML, text and reply-to. HTTP 201 means accepted (`SENT`), not delivered. The returned message reference and opaque notification/club metadata correlate callbacks to the stored tenant and recipient. Duplicate message/recipient/event callbacks are idempotent; the webhook subscription `id` is not an event ID. A hard bounce, invalid address or spam complaint marks a permanent failure. A `blocked` event is temporary (AUTH-02, owner decision of 13 November 2026), like a soft bounce: it records a temporary incident and never suppresses the address, the member's contact e-mail or the account's login e-mail. Unsubscribe suppresses future Brevo sends and the club-news preference without calling it a bounce. Temporary deferral/soft bounce and open/click tracking do not suppress or regress a delivery. Account-wide provider suppression stores an address digest, still pseudonymous personal data, with no automatic unblock.
 
 Before activating email delivery, verify in the actual delivered message that login/reset links are not rewritten or individually tracked. Brevo tracking settings require provider-side verification; the adapter does not invent an unsupported tracking header. Then prove one allowed tester message is accepted, actually delivered and reflected by an authenticated callback; prove an unauthorized callback is rejected. Separately confirm the inbox and sender/reply-to rendering. Local tests use a loopback HTTP server and synthetic callbacks, not real Brevo delivery.
 
@@ -1723,3 +1924,7 @@ The deployment Caddyfile explicitly selects the Let's Encrypt production ACME di
 ## 8 November 2026: authorized public email delivery
 
 Jordi authorized enabling emails and deploying the pending November 8 feedback. The Clubs release tool now pins `email_delivery_enabled`; when true it supplies both `EMAIL_DELIVERY_ENABLED=true` and `EMAIL_PUBLIC_DELIVERY_ENABLED=true`. Historical releases default both settings to false when selected for rollback. Recovery retains its separately pinned setting. This activation does not replay terminal skipped notifications. Inspect pending outbox/notification work and the provider sender before activation, then record the live runtime and delivery evidence separately. The earlier October restrictions above describe the historical internal-review phase.
+
+### Pausing SEPA generation for a club
+
+Set `SEPA_GENERATION_PAUSED_CLUB_IDS` to the comma-separated club UUIDs to hold. A billing run that would create a remittance returns HTTP 422 with `SEPA_NOT_CONFIGURED` and reason `GENERATION_PAUSED` before numbering invoices or creating a file. Simulation and member registration remain available. Remove the club from the setting and redeploy only after its mandate references and signature dates have been reconciled. The gateway rotates access logs daily at 00:00 UTC and after 50 MiB, and retains at most 28 rolled files for up to 28 days.

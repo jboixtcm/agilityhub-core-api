@@ -95,6 +95,47 @@ class ErasureServiceTest {
         verify(requests, never()).insert(any()); verifyNoInteractions(events, audit);
     }
 
+    /**
+     * PRIV-04 (owner's decision of 13-11-2026): a SEPA collection inside its refund window refuses nothing; the request is created
+     * BLOCKED with the reason, executed no earlier than the day the window closes (or its margin, if later).
+     */
+    @Test void PRIV_04_aSepaRefundWindowMakesTheRequestWaitBlockedUntilItCloses() {
+        when(directory.member("montse")).thenReturn(Optional.of(montse("LEFT", null)));
+        when(checks.blockReasons(any(), any())).thenReturn(EnumSet.of(ErasureBlockReason.SEPA_REFUND_WINDOW));
+        Instant closes = Instant.parse("2026-10-22T22:00:00Z");
+        when(checks.waitsUntil(any(), any())).thenReturn(Optional.of(closes));
+        var request = service.requestMember("montse", null);
+        assertThat(request.status()).isEqualTo("BLOCKED");
+        assertThat(request.blockReasons()).containsExactly("SEPA_REFUND_WINDOW");
+        assertThat(request.live()).isTrue();
+        assertThat(request.executeAt()).isEqualTo(closes);
+        verify(checks).waitsUntil(List.of("montse"), NOW);
+        verify(events).publish(argThat(event -> "2026-10-22T22:00:00Z".equals(event.payload().get("executeAt"))));
+        verify(audit).write(argThat((AuditCommand command) -> command.action() == AuditAction.ERASURE_REQUESTED));
+        // A window that closes before the margin leaves the margin.
+        when(checks.waitsUntil(any(), any())).thenReturn(Optional.of(Instant.parse("2026-09-10T22:00:00Z")));
+        assertThat(service.requestMember("montse", null).executeAt()).isEqualTo(Instant.parse("2026-09-29T22:00:00Z"));
+    }
+
+    @Test void PRIV_04_anotherReasonStillRefusesAndListsOnlyTheRefusingReasons() {
+        when(directory.member("montse")).thenReturn(Optional.of(montse("LEFT", null)));
+        when(checks.blockReasons(any(), any())).thenReturn(EnumSet.of(ErasureBlockReason.INVOICES_OPEN, ErasureBlockReason.SEPA_REFUND_WINDOW));
+        assertThatThrownBy(() -> service.requestMember("montse", null)).isInstanceOfSatisfying(ApiException.class, error -> {
+            assertThat(error.code()).isEqualTo(ErrorCode.ERASURE_BLOCKED);
+            assertThat(error.details()).containsEntry("reasons", List.of("INVOICES_OPEN"));
+        });
+        verify(requests, never()).insert(any()); verifyNoInteractions(events, audit);
+    }
+
+    @Test void PRIV_04_aRetentionRequestIsScheduledAndLeftToTheExecutorsChecks() {
+        when(checks.blockReasons(any(), any())).thenReturn(EnumSet.of(ErasureBlockReason.SEPA_REFUND_WINDOW));
+        var request = service.requestRetention(montse("LEFT", null), "retention-sweep");
+        assertThat(request.status()).isEqualTo("SCHEDULED");
+        assertThat(request.blockReasons()).isEmpty();
+        assertThat(request.executeAt()).isEqualTo(NOW);
+        verify(checks, never()).waitsUntil(any(), any());
+    }
+
     @Test void T_14_18_unknownErasedAndAlreadyRequestedMembersAreRefused() {
         when(directory.member("ghost")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.requestMember("ghost", null)).hasMessage("NOT_FOUND");
@@ -159,6 +200,27 @@ class ErasureServiceTest {
             when(accounts.memberships("laura-account")).thenReturn(List.of(new ErasureAccounts.Membership("club-a", "laura-a", "ACTIVE")));
             assertThatThrownBy(() -> service.requestAccount("laura-account", null)).isInstanceOfSatisfying(ApiException.class,
                     error -> assertThat(error.details()).containsEntry("reasons", List.of("OTHER_MEMBERSHIPS_ACTIVE")));
+        } finally { tenant = TenantContext.open("club-a"); }
+    }
+
+    /** PRIV-04: an account request waits BLOCKED too, until the latest refund window of its clubs closes. */
+    @Test void PRIV_04_anAccountRequestWaitsForTheLatestRefundWindowOfItsClubs() {
+        tenant.close(); tenant = null;
+        try {
+            when(accounts.account("laura-account")).thenReturn(Optional.of(new ErasureAccounts.Account("laura-account", "laura@example.test", "ca", false, false)));
+            when(accounts.memberships("laura-account")).thenReturn(List.of(new ErasureAccounts.Membership("club-a", "laura-a", "SUSPENDED"),
+                    new ErasureAccounts.Membership("club-b", "laura-b", "SUSPENDED")));
+            when(directory.ofAccount("laura-account")).thenAnswer(call -> List.of(new ErasureMember("laura-" + TenantContext.require().substring(5), "laura-account", 3,
+                    "LEFT", LocalDate.of(2026, 8, 31), null, null, null, List.of())));
+            when(checks.blockReasons(any(), any())).thenAnswer(call -> TenantContext.require().equals("club-b")
+                    ? EnumSet.of(ErasureBlockReason.SEPA_REFUND_WINDOW) : EnumSet.noneOf(ErasureBlockReason.class));
+            when(checks.waitsUntil(any(), any())).thenAnswer(call -> TenantContext.require().equals("club-b")
+                    ? Optional.of(Instant.parse("2026-10-22T22:00:00Z")) : Optional.empty());
+            var request = service.requestAccount("laura-account", null);
+            assertThat(request.status()).isEqualTo("BLOCKED");
+            assertThat(request.blockReasons()).containsExactly("SEPA_REFUND_WINDOW");
+            assertThat(request.executeAt()).isEqualTo(Instant.parse("2026-10-22T22:00:00Z"));
+            verifyNoInteractions(executor);
         } finally { tenant = TenantContext.open("club-a"); }
     }
 

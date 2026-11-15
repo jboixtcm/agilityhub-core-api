@@ -410,6 +410,72 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(metrics.find("jobs.last_success_age_seconds").tags("job", "TEST_NOOP", "club", CLUB).gauge().value()).isZero();
     }
 
+    /**
+     * JOB-01 (owner decision of 13 Nov 2026, R-15-10): a PARTIAL run of a process that affects members — here the risk review —
+     * publishes one `JobFailed{status: PARTIAL}` and the club's admins get N-42 (APP + e-mail) with the run's error count; a
+     * redelivery of that event sends nothing more, and N-42 keeps its one-per-process-and-local-day cap. A PARTIAL run of a
+     * process that does not affect members (the clean-up) still alerts nobody (Sentry only). Before, no PARTIAL run published it.
+     */
+    @Test void T_15_10_JOB_01_aPartialRunOfAProcessThatAffectsMembersAlertsTheAdminsOnce() throws Exception {
+        java.util.function.Function<JobName, JobDefinition> daily = name -> new JobDefinition(name, JobCatalog.definition(name).routeId(), Cadence.DAILY,
+                "jobs.dailyTime", null, null, CatchUpWindow.UNLIMITED, null);
+        job.configure(daily.apply(JobName.RISK_REVIEW), 3, 2, false);
+        var partial = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(partial.status()).isEqualTo(JobStatus.PARTIAL);
+        assertThat(partial.job()).isEqualTo(JobName.RISK_REVIEW);
+        assertThat(job.applied()).isEqualTo(2);
+        assertThat(events("JobFailed")).singleElement().satisfies(event -> assertThat(((Document) event.get("payload")))
+                .containsEntry("job", "RISK_REVIEW").containsEntry("status", "PARTIAL").containsEntry("errorCount", 1).containsEntry("runId", partial.id()));
+        // Job#failed stays for FAILED runs only.
+        assertThat(job.failedRuns()).isEmpty();
+        var event = events("JobFailed").getFirst();
+        alert(event);
+        var n42 = NotificationRows.rows(mongo, CLUB, "N-42");
+        assertThat(n42).extracting(n -> n.getString("channel")).containsExactlyInAnyOrder("APP", "EMAIL");
+        assertThat(n42).allSatisfy(n -> assertThat(n.getString("accountId")).isEqualTo(ADMIN));
+        assertThat(n42.getFirst().get("variables", Document.class)).containsEntry("error_count", 1);
+        // Once per run: the outbox redelivering the same event sends nothing more.
+        alert(event);
+        assertThat(NotificationRows.rows(mongo, CLUB, "N-42")).hasSize(2);
+        // A second PARTIAL run of the same process the same local day publishes its own event; N-42's daily cap (R-15-10) holds.
+        clock.setInstant(at("2026-10-05T09:00:00Z"));
+        assertThat(runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN).status()).isEqualTo(JobStatus.PARTIAL);
+        assertThat(events("JobFailed")).hasSize(2);
+        alert(events("JobFailed").getLast());
+        assertThat(NotificationRows.rows(mongo, CLUB, "N-42")).hasSize(2);
+        // A process that does not affect members: its PARTIAL run publishes SchedulerRun only.
+        job.configure(daily.apply(JobName.CLEANUP), 3, 2, false);
+        assertThat(runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN).status()).isEqualTo(JobStatus.PARTIAL);
+        assertThat(events("JobFailed")).hasSize(2);
+        assertThat(events("SchedulerRun")).hasSize(3);
+    }
+
+    /** R-15-07, R-15-10 (audit JOB-01): the call that closes a FAILED or PARTIAL run sends one Sentry event; a dry or SUCCEEDED run none. */
+    @Test void T_15_10_failedAndPartialRunsAreReportedToSentryOnce() {
+        var sentry = org.mockito.Mockito.mock(io.sentry.IScopes.class);
+        JobRunner target = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(runner);
+        Object previous = org.springframework.test.util.ReflectionTestUtils.getField(target, "sentry");
+        org.springframework.test.util.ReflectionTestUtils.setField(target, "sentry", sentry);
+        try {
+            job.configure(DAILY, 3, 2, false);
+            var partial = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+            assertThat(partial.status()).isEqualTo(JobStatus.PARTIAL);
+            var event = org.mockito.ArgumentCaptor.forClass(io.sentry.SentryEvent.class);
+            org.mockito.Mockito.verify(sentry).captureEvent(event.capture());
+            assertThat(event.getValue().getThrowable()).isInstanceOf(ApiException.class);
+            assertThat(event.getValue().getTag("traceId")).isEqualTo(partial.errors().getFirst().traceId());
+            job.configure(DAILY, 1, 0, false);
+            runner.manual(CLUB, JobName.TEST_NOOP, true, ADMIN);
+            assertThat(runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN).status()).isEqualTo(JobStatus.SUCCEEDED);
+            org.mockito.Mockito.verify(sentry, org.mockito.Mockito.times(1)).captureEvent(org.mockito.ArgumentMatchers.any(io.sentry.SentryEvent.class));
+            job.configure(DAILY, 3, 0, true);
+            assertThat(runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN).status()).isEqualTo(JobStatus.FAILED);
+            org.mockito.Mockito.verify(sentry, org.mockito.Mockito.times(2)).captureEvent(org.mockito.ArgumentMatchers.any(io.sentry.SentryEvent.class));
+        } finally {
+            org.springframework.test.util.ReflectionTestUtils.setField(target, "sentry", previous);
+        }
+    }
+
     @Test void T_15_04_missedWindowSkipsAndAlerts() throws Exception {
         job.configure(new JobDefinition(JobName.TEST_NOOP, "test-noop", Cadence.DAILY, "jobs.dailyTime", null, null,
                 CatchUpWindow.END_OF_LOCAL_DAY, "jobs.cleanup.enabled"), 1, 0, false);

@@ -20,14 +20,14 @@ public class CensusMigrationService {
         this.repository=repository; this.leaves=leaves; this.clock=clock; this.dashboard=dashboard;
     }
     public List<Map<String,Object>> snapshot(String entity) { return repository.snapshot(entity); }
-    /** S18 R-18-08, E43 (E11-T15 step 7): a migrated member's first mandate, `{clubSlug}-{memberNumber}-1`, at most 35 characters. */
-    public String mandateRef(String clubSlug, int memberNumber) {
-        return com.agilityhub.core.clubs.census.domain.CensusRules.mandateRef(clubSlug, memberNumber, null);
-    }
-    /** A stored mandate reference a pain.008 `MndtId` can carry (`Max35Text` in the SEPA set): a reapply keeps it. */
-    public boolean usableMandateRef(String reference) {
-        return reference != null && !reference.isBlank() && reference.length() <= com.agilityhub.core.clubs.census.domain.CensusRules.MANDATE_REF_MAX
-                && com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(reference);
+    /** SEPA-02 (S18 R-18-08): a mandate reference of the mandates file a pain.008 `MndtId` can carry under the EPC rules. */
+    public boolean validMandateRef(String reference) { return CensusRules.validMandateRef(reference); }
+    /**
+     * SEPA-02 (E92): a reapply that replaces a member's mandate carries its last `{clubSlug}-{memberNumber}-n` sequence over, so a
+     * later new mandate of the member never reuses a reference an earlier load or the club already used.
+     */
+    public Map<String,Object> keepMandateSequence(String clubSlug, Integer memberNumber, Map<String,Object> previous, Map<String,Object> replacement) {
+        return CensusRules.keepMandateSequence(clubSlug, memberNumber, previous, replacement);
     }
     public void lock() { repository.lock(); }
     public void member(String id, Map<String,Object> fields) { repository.write("members",id,fields); }

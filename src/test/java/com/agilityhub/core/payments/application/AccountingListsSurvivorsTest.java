@@ -30,6 +30,24 @@ class AccountingListsSurvivorsTest {
 
     @AfterEach void clear() { SecurityContextHolder.clearContext(); }
 
+    /** SEPA-09 (owner decision of 13-11-2026): the two new columns come after the original sixteen, which keep their order. */
+    @Test void SEPA_09_theLastCollectionsStatusAndTheReturnDateAreAddedAfterTheOriginalColumns() {
+        assertThat(AccountingLists.COLUMNS).containsExactly("displayNumber", "issueDate", "period", "memberNumber", "fullName", "holderTaxId",
+                "concept", "base", "taxPercent", "tax", "total", "method", "status", "collectionDate", "remittance", "paymentReference",
+                "lastCollectionStatus", "failedAt");
+        var jwt = Jwt.withTokenValue("token").header("alg", "none").subject("account-admin").build();
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        when(configs.get(CLUB)).thenReturn(new ClubConfig(null, Map.of(), Set.of(Module.BILLING), null, Map.of()));
+        when(invoices.rolledBackRunIds()).thenReturn(List.of());
+        try (var tenant = TenantContext.open(CLUB)) {
+            var dataset = lists.dataset("accounting");
+            assertThat(dataset.projection()).containsEntry("lastCollectionStatus", new Document("$first", "$accountingCollection.status"))
+                    .containsEntry("failedAt", "$failedAt").containsEntry("collectionDate", "$paidAt");
+            assertThat(dataset.nullablePaths()).contains("lastCollectionStatus", "failedAt");
+            assertThat(dataset.definition().defaultColumns()).endsWith("lastCollectionStatus", "failedAt");
+        }
+    }
+
     @Test void T_12_19_theProviderServesTheAccountingKey() {
         assertThat(lists.keys()).containsExactly("accounting");
     }

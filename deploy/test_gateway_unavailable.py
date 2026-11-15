@@ -1,4 +1,7 @@
-"""F08: exercise the real Caddy image against dead, failed and recovered fictional upstreams."""
+"""F08: exercise the real Caddy image against dead, failed and recovered fictional upstreams.
+
+CFG-05: the same fixture checks how both SPA snippets deliver static files. CFG-04: and which Content-Security-Policy they send."""
+import gzip
 import json
 import os
 from pathlib import Path
@@ -11,7 +14,17 @@ import urllib.error
 import urllib.request
 
 SOURCE = Path(os.environ.get('CADDYFILE', Path(__file__).with_name('Caddyfile')))
-IMAGE = 'caddy:2.10.2-alpine'
+IMAGE = 'caddy:2.11.9-alpine'
+# Above Caddy's 512-byte minimum for compression.
+APP_JS = 'console.log("fictional");\n' * 200
+# CFG-04: each fictional bundle's policy, as its build writes it (one line, no newline), and the Core's own for API answers.
+POLICIES = {app: f"default-src 'self'; script-src 'self' 'sha256-fictional-{app}'; object-src 'none'; frame-ancestors 'none'"
+            for app in ('id', 'clubs', 'clubsadmin')}
+API_POLICY = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+# CFG-05: the robots.txt every bundle's build writes.
+ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
+# REL-02 / FE-07: the version.json every bundle's build writes (fictional commits, one per bundle so that a mix-up shows).
+VERSIONS = {app: json.dumps({'version': '1.0.0', 'commit': digit * 40}) + '\n' for app, digit in (('id', '1'), ('clubs', '2'), ('clubsadmin', '3'))}
 
 def port():
     with socket.socket() as sock:
@@ -29,11 +42,15 @@ class GatewayUnavailableTest(unittest.TestCase):
         root = Path(cls.directory.name)
         (root / 'maintenance').mkdir()
         cls.maintenance_flag = root / 'maintenance/enabled'
-        for app in ('clubs', 'clubsadmin'):
+        for app in ('clubs', 'clubsadmin', 'id'):
             (root / app).mkdir()
             (root / app / 'index.html').write_text('<h1>Fictional ' + app + '</h1>')
             (root / app / 'assets').mkdir()
             (root / app / 'assets/app.css').write_text('body{color:navy}')
+            (root / app / 'assets/app.js').write_text(APP_JS)
+            (root / app / 'content-security-policy.txt').write_text(POLICIES[app])
+            (root / app / 'robots.txt').write_text(ROBOTS_TXT)
+            (root / app / 'version.json').write_text(VERSIONS[app])
         conf = '''{ admin off }
 ''' + snippets.replace('core:8080', '127.0.0.1:9090') + club + dead + '''
 http://:8080 {
@@ -52,6 +69,9 @@ http://:8081 {
 http://:8082 {
     import spa /srv/clubs
 }
+http://:8083 {
+    import spa /srv/id
+}
 http://:9090 {
     @unavailable query host=unavailable.example.test
     respond @unavailable 502
@@ -64,22 +84,26 @@ http://:9090 {
     @api path /api/*
     handle @api {
         header Content-Type application/json
+        header Content-Security-Policy "API_POLICY"
         respond `{"code":"INTERNAL_ERROR","message":"Fictional application error","details":{},"traceId":"original-trace"}` 500
     }
     respond 200
 }
 '''
+        conf = conf.replace('API_POLICY', API_POLICY)
         # Caddyfile blocks must have their directives on separate lines.
         conf = conf.replace('{ admin off }', '{\n admin off\n}').replace('handle { import club_spa }', 'handle {\n import club_spa\n}').replace('handle { import club_spa_dead }', 'handle {\n import club_spa_dead\n}').replace('handle @api { reverse_proxy 127.0.0.1:59999 }', 'handle @api {\n reverse_proxy 127.0.0.1:59999\n}')
         (root / 'Caddyfile').write_text(conf)
-        cls.normal, cls.dead, cls.product = port(), port(), port()
+        cls.root = root
+        cls.normal, cls.dead, cls.product, cls.identity = port(), port(), port(), port()
         cls.container = subprocess.check_output(['docker','run','--rm','-d',
             '-p',f'127.0.0.1:{cls.normal}:8080','-p',f'127.0.0.1:{cls.dead}:8081',
-            '-p',f'127.0.0.1:{cls.product}:8082',
+            '-p',f'127.0.0.1:{cls.product}:8082','-p',f'127.0.0.1:{cls.identity}:8083',
             '-e','CADDY_APP_UPSTREAM=127.0.0.1:9090',
             '-v',f'{root / "Caddyfile"}:/etc/caddy/Caddyfile:ro',
             '-v',f'{root / "maintenance"}:/maintenance:ro',
-            '-v',f'{root / "clubs"}:/srv/clubs:ro','-v',f'{root / "clubsadmin"}:/srv/clubsadmin:ro',IMAGE],text=True).strip()
+            '-v',f'{root / "clubs"}:/srv/clubs:ro','-v',f'{root / "clubsadmin"}:/srv/clubsadmin:ro',
+            '-v',f'{root / "id"}:/srv/id:ro',IMAGE],text=True).strip()
         cls.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
         for _ in range(50):
             try:
@@ -180,6 +204,85 @@ http://:9090 {
                 status, _, body = self.request(endpoint, 'members.example.test', '/assets/old.css', 'text/css')
                 self.assertEqual(404, status)
                 self.assertNotIn('Fictional clubs', body)
+
+    def test_CFG_05_static_files_are_compressed_cached_by_kind_and_never_answered_with_the_shell(self):
+        for endpoint in (self.normal, self.product):
+            with self.subTest(endpoint=endpoint):
+                # An existing file under /assets/ (content-hashed) is cached for a year; everything else revalidates.
+                status, headers, _ = self.request(endpoint, 'members.example.test', '/assets/app.css', 'text/css')
+                self.assertEqual((200, 'public, max-age=31536000, immutable'), (status, headers['Cache-Control']))
+                for path in ('/', '/agenda', '/index.html'):
+                    status, headers, body = self.request(endpoint, 'members.example.test', path)
+                    self.assertEqual((200, 'no-cache', '<h1>Fictional clubs</h1>'), (status, headers['Cache-Control'], body), path)
+                status, headers, _ = self.request(endpoint, 'members.example.test', '/assets/old.css', 'text/css')
+                self.assertEqual((404, 'no-cache'), (status, headers['Cache-Control']))
+                # A dot path or a missing file is a 404, never the SPA shell with 200. (CFG-05 pass 2: every real bundle now
+                # carries robots.txt, so the missing text file of this list is another one; robots.txt is checked below.)
+                for path in ('/.env', '/.git/config', '/assets/.hidden', '/humans.txt', '/sitemap.xml', '/app.js.map', '/wp-login.php'):
+                    status, _, body = self.request(endpoint, 'members.example.test', path, '*/*')
+                    self.assertEqual(404, status, path)
+                    self.assertNotIn('Fictional', body, path)
+                request = urllib.request.Request(f'http://127.0.0.1:{endpoint}/assets/app.js',
+                                                 headers={'Host': 'members.example.test', 'Accept-Encoding': 'gzip'})
+                with self.opener.open(request, timeout=3) as response:
+                    self.assertEqual('gzip', response.headers['Content-Encoding'])
+                    self.assertEqual(APP_JS, gzip.decompress(response.read()).decode())
+
+    def test_CFG_05_every_spa_host_serves_its_bundles_robots_txt(self):
+        # Owner decision of 13 Nov 2026: `Disallow: /` on every host. The product hosts, the identity host and the club aliases
+        # (both apps) each serve the robots.txt of their bundle, never the SPA shell.
+        for endpoint, host in ((self.product, 'clubs.example.test'), (self.identity, 'id.example.test'),
+                               (self.normal, 'members.example.test'), (self.normal, 'office.example.test')):
+            with self.subTest(host=host):
+                status, headers, body = self.request(endpoint, host, '/robots.txt', 'text/plain')
+                self.assertEqual((200, ROBOTS_TXT), (status, body))
+                self.assertTrue(headers['Content-Type'].startswith('text/plain'))
+                self.assertEqual('no-cache', headers['Cache-Control'])
+
+    def test_FE_07_every_spa_host_serves_its_bundles_version_json_revalidated_on_every_load(self):
+        # Owner decision of 13 Nov 2026: both apps compare the deployed bundle's version.json (REL-02) with their own build and
+        # offer a reload when they differ. Every host that serves an app answers the file of the bundle it serves, never the SPA
+        # shell, and with `no-cache`, so no browser or proxy keeps an old one; a new bundle's file is the answer at once.
+        for endpoint, host, app in ((self.product, 'clubs.example.test', 'clubs'), (self.identity, 'id.example.test', 'id'),
+                                    (self.normal, 'members.example.test', 'clubs'), (self.normal, 'office.example.test', 'clubsadmin')):
+            with self.subTest(host=host, endpoint=endpoint):
+                status, headers, body = self.request(endpoint, host, '/version.json', 'application/json')
+                self.assertEqual((200, VERSIONS[app]), (status, body))
+                self.assertTrue(headers['Content-Type'].startswith('application/json'))
+                self.assertEqual('no-cache', headers['Cache-Control'])
+        version = self.root / 'clubsadmin/version.json'
+        try:
+            version.write_text(VERSIONS['clubsadmin'].replace('3' * 40, '4' * 40))
+            self.assertIn('4' * 40, self.request(self.normal, 'office.example.test', '/version.json', 'application/json')[2])
+            # A bundle without the file (refused by release preflight) answers 404, never the shell the app would misread.
+            version.unlink()
+            status, _, body = self.request(self.normal, 'office.example.test', '/version.json', 'application/json')
+            self.assertEqual(404, status)
+            self.assertNotIn('Fictional', body)
+        finally:
+            version.write_text(VERSIONS['clubsadmin'])
+
+    def test_CFG_04_every_static_answer_carries_its_bundles_policy_and_the_api_keeps_its_own(self):
+        # The product sites (`spa`) and the club catch-all (`club_spa`, the root the Core names) send the served root's policy.
+        for endpoint, host, app in ((self.product, 'clubs.example.test', 'clubs'), (self.identity, 'id.example.test', 'id'),
+                                    (self.normal, 'members.example.test', 'clubs'), (self.normal, 'office.example.test', 'clubsadmin')):
+            for path, accept, status in (('/', 'text/html', 200), ('/agenda', 'text/html', 200), ('/index.html', 'text/html', 200),
+                                         ('/assets/app.css', 'text/css', 200), ('/assets/old.css', 'text/css', 404)):
+                with self.subTest(host=host, endpoint=endpoint, path=path):
+                    answer, headers, _ = self.request(endpoint, host, path, accept)
+                    self.assertEqual((status, POLICIES[app]), (answer, headers['Content-Security-Policy']))
+                    self.assertEqual(1, len(headers.get_all('Content-Security-Policy')))
+        # A proxied API answer keeps the Core's own policy and never gets a bundle's.
+        status, headers, _ = self.request(self.normal, 'members.example.test', '/api/v1/me', 'application/json')
+        self.assertEqual((500, [API_POLICY]), (status, headers.get_all('Content-Security-Policy')))
+        # A new bundle's policy applies at once: the file is read per request, with no reload.
+        policy = self.root / 'clubsadmin/content-security-policy.txt'
+        try:
+            policy.write_text(POLICIES['clubsadmin'].replace('fictional-clubsadmin', 'fictional-next-build'))
+            headers = self.request(self.normal, 'office.example.test')[1]
+            self.assertIn("'sha256-fictional-next-build'", headers['Content-Security-Policy'])
+        finally:
+            policy.write_text(POLICIES['clubsadmin'])
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

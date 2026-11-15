@@ -98,7 +98,7 @@ class NotificationCatalogContractTest {
     @Test void WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections() throws Exception {
         var rows = rows();
         assertThat(rows.stream().filter(r -> !r.annex())).hasSize(43);
-        assertThat(rows.stream().filter(Row::annex)).hasSize(19);
+        assertThat(rows.stream().filter(Row::annex)).as("Annex A: 19 rows, N-56 since PAY-06 and N-57 since OUT-01 (owner decisions of 13 Nov 2026)").hasSize(21);
         assertThat(rows.stream().map(Row::code).toList()).as("both directions, the document's order").containsExactlyElementsOf(NotificationCatalog.codes())
                 .doesNotContain("N-12");
         var additions = annexVariables();
@@ -285,7 +285,8 @@ class NotificationCatalogContractTest {
             named.removeAll(NOT_EMITTED.getOrDefault(spec.code(), Set.of())); named.addAll(EXTRA_EVENTS.getOrDefault(spec.code(), Set.of()));
             assertThat(spec.eventTypes()).as(spec.code() + " event types").containsExactlyInAnyOrderElementsOf(named);
         }
-        assertThat(NotificationCatalog.specs().stream().filter(s -> s.eventTypes().isEmpty()).map(NotificationSpec::code)).containsExactly("N-50", "N-53");
+        // OUT-01: N-57 is triggered by the outbox dispatcher itself, not by an event (as N-53 by the console's request).
+        assertThat(NotificationCatalog.specs().stream().filter(s -> s.eventTypes().isEmpty()).map(NotificationSpec::code)).containsExactly("N-50", "N-53", "N-57");
         String s11 = Files.readString(S11);
         for (String extra : List.of("WaitlistNotified", "DogDocumentPending")) { assertThat(s11).contains("`" + extra); }
         // Variables: «Variables disponibles», the Annex's «Variables noves», the 24-09 additions and the S11 formatting list.

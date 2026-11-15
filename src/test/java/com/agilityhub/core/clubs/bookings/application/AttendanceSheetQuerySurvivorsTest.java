@@ -111,6 +111,22 @@ class AttendanceSheetQuerySurvivorsTest {
                 .containsEntry("handlerName", "Pau Vidal");
     }
 
+    /** WEB-05: each row carries the photo (the enlarged view) and its small rendition (the row), both signed by S03. */
+    @Test @SuppressWarnings("unchecked") void WEB_05_eachRowCarriesThePhotosRenditionBesideThePhoto() {
+        stubSheet(false);
+        when(bookings.forClass("class-1")).thenReturn(List.of(booking()));
+        var pair = new AttendanceCensusAccess.Pair("dog-1", "Duna", null, null, "F", null, "photo-key", "ACTIVE", null, null, "member-1", "Joan",
+                "Joan Serra", null, null, "thumbnail-key");
+        when(census.pairs(List.of("dog-1"))).thenReturn(Map.of("dog-1", pair));
+        when(census.photoUrl(pair)).thenReturn("/signed/photo");
+        when(census.photoThumbnailUrl(pair)).thenReturn("/signed/thumbnail");
+
+        var rows = (List<Map<String, Object>>) query.build(cls(List.of("instructor-neus"), "Neus", 6, 1, 0), caller).get("rows");
+
+        assertThat(rows).singleElement().satisfies(row -> assertThat(row).containsEntry("dogPhotoUrl", "/signed/photo")
+                .containsEntry("dogPhotoThumbnailUrl", "/signed/thumbnail").doesNotContainKeys("photoThumbnailFileKey", "photoFileKey"));
+    }
+
     private void stubSheet(boolean waitlistOn) {
         when(context.now()).thenReturn(NOW);
         when(context.zone()).thenReturn(MADRID);

@@ -50,6 +50,6 @@ public class SingleClassCharges implements SingleClassChargePort {
                 null, base + "?payment=success", base + "?payment=cancel", pending.expiresAt());
         return gateways.getObject().createCheckoutSession(request);
     }
-    @Override public void abandon(String checkoutSessionId) { checkouts.expire(checkoutSessionId); }
+    @Override public void abandon(String checkoutSessionId) { checkouts.abandonBooking(checkoutSessionId); }
     @Override public void lateCompletion(String checkoutSessionId) { checkouts.bookingCancelledBeforeCompletion(checkoutSessionId); }
 }

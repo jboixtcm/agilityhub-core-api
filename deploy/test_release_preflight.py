@@ -18,6 +18,11 @@ SPEC.loader.exec_module(PREFLIGHT)
 REGISTRY_DIGEST = 'sha256:' + 'a' * 64
 IMAGE_ID = 'sha256:' + 'b' * 64
 IMAGE = PREFLIGHT.REPOSITORY + ':sha-de50be0'
+# CFG-04: the policy a web build writes for an index.html without inline scripts (fictional fixture bundles).
+POLICY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'"
+# REL-02: the version.json a web build writes (a fictional commit id).
+WEB_COMMIT = '0123456789abcdef0123456789abcdef01234567'
+VERSION_JSON = json.dumps({'version': '1.0.0', 'commit': WEB_COMMIT}) + '\n'
 
 
 class ReleasePreflightTest(unittest.TestCase):
@@ -34,6 +39,9 @@ class ReleasePreflightTest(unittest.TestCase):
             (directory / 'assets').mkdir(parents=True)
             (directory / 'index.html').write_text('<!doctype html><script type="module" src="/assets/index-hash.js"></script>')
             (directory / 'assets/index-hash.js').write_text('document.body.textContent="application";')
+            (directory / 'content-security-policy.txt').write_text(POLICY)
+            (directory / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
+            (directory / 'version.json').write_text(VERSION_JSON)
             mounts.append({'type': 'bind', 'source': str(directory), 'target': target, 'read_only': True})
         self.config = {'services': {
             'core': {'image': IMAGE, 'environment': {'SPRING_PROFILES_ACTIVE': 'prod', 'TRUSTED_PROXY_PATTERN': r'172\.30\.240\.10'}},
@@ -232,6 +240,9 @@ class ReleasePreflightTest(unittest.TestCase):
         self.assertEqual('PASS', result['result'])
         self.assertEqual(IMAGE_ID, result['image']['imageId'])
         self.assertEqual(3, len(result['webArtifacts']))
+        # REL-02: the release record names each bundle's version and commit next to its hash.
+        for artifact in result['webArtifacts'].values():
+            self.assertEqual(('1.0.0', WEB_COMMIT), (artifact['version'], artifact['commit']))
         self.assertEqual('', errors.getvalue())
         self.assertNotIn('private', output.getvalue())
         self.assertEqual(['config', '--format', 'json'], calls[0][-3:])
@@ -330,6 +341,106 @@ class ReleasePreflightTest(unittest.TestCase):
                 index.write_text(html)
                 with self.assertRaises(PREFLIGHT.PreflightError):
                     PREFLIGHT.check_spas(self.config)
+
+    def test_REL_03_a_mock_build_with_the_msw_worker_is_refused(self):
+        PREFLIGHT.check_spas(self.config)
+        for location in ('clubs/mockServiceWorker.js', 'id/assets/mockServiceWorker.js'):
+            with self.subTest(location=location):
+                worker = self.directory / location
+                worker.write_text('/* Mock Service Worker */')
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('mock service worker', str(caught.exception))
+                worker.unlink()
+        PREFLIGHT.check_spas(self.config)
+
+    def test_CFG_04_a_dist_needs_its_one_line_policy_and_it_must_allow_every_inline_script(self):
+        PREFLIGHT.check_spas(self.config)
+        policy, index = self.directory / 'clubs/content-security-policy.txt', self.directory / 'clubs/index.html'
+        for content in (None, '', '   ', POLICY + '\n', POLICY + '\r', "default-src 'self';\nscript-src 'self'"):
+            with self.subTest(content=content):
+                if content is None:
+                    policy.unlink()
+                else:
+                    policy.write_text(content, newline='')
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('content-security-policy.txt', str(caught.exception))
+        # MDN's documented example: `<script>alert('Hello, world.');</script>` is allowed by exactly this source.
+        boot = "alert('Hello, world.');"
+        digest = "'sha256-qznLcsROx4GACP2dm0UCKCzCG+HiZ1guq6ZZDob/Tng='"
+        self.assertEqual([digest], PREFLIGHT.inline_script_hashes(f'<script>{boot}</script><script type="module" src="/a.js"></script>'))
+        index.write_text(f'<!doctype html><script>{boot}</script><script type="module" src="/assets/index-hash.js"></script>')
+        for content in (POLICY, POLICY.replace("script-src 'self'", "script-src 'self' 'sha256-AAAA'"),
+                        POLICY.replace("default-src 'self'", f"default-src 'self' {digest}")):
+            with self.subTest(policy=content):
+                policy.write_text(content)
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('inline script', str(caught.exception))
+        policy.write_text(POLICY.replace("script-src 'self'", f"script-src 'self' {digest}"))
+        record = PREFLIGHT.check_spas(self.config)
+        self.assertEqual(5, record['/srv/clubs']['files'])  # the policy (and REL-02's version.json) is part of the release record's digest
+        # Once the boot script changes, the policy built for the old one no longer fits.
+        index.write_text(f'<!doctype html><script>{boot} </script><script type="module" src="/assets/index-hash.js"></script>')
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_spas(self.config)
+
+    def test_CFG_05_a_dist_without_the_robots_txt_that_disallows_everything_is_refused(self):
+        PREFLIGHT.check_spas(self.config)
+        robots = self.directory / 'id/robots.txt'
+        for content in (None, '', 'User-agent: *\nDisallow:\n', 'User-agent: *\nAllow: /\n', 'User-agent: *\r\nDisallow: /\r\n'):
+            with self.subTest(content=content):
+                if content is None:
+                    robots.unlink()
+                else:
+                    robots.write_text(content, newline='')
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('robots.txt', str(caught.exception))
+        robots.write_text('User-agent: *\nDisallow: /\n')
+        PREFLIGHT.check_spas(self.config)
+
+    def test_REL_02_a_dist_needs_the_version_json_that_names_its_version_and_commit(self):
+        self.assertEqual({'version': '1.0.0', 'commit': WEB_COMMIT},
+                         {key: PREFLIGHT.check_spas(self.config)['/srv/clubs'][key] for key in ('version', 'commit')})
+        version = self.directory / 'clubs/version.json'
+        for content in (None, '', 'not json', '[]', '{"version": "1.0.0"}', json.dumps({'version': '1.0.0', 'commit': WEB_COMMIT, 'built': 'x'}),
+                        json.dumps({'version': '1.0.0-SNAPSHOT', 'commit': WEB_COMMIT}), json.dumps({'version': '1.0', 'commit': WEB_COMMIT}),
+                        json.dumps({'version': 1, 'commit': WEB_COMMIT}), json.dumps({'version': '1.0.0', 'commit': WEB_COMMIT[:7]}),
+                        json.dumps({'version': '1.0.0', 'commit': WEB_COMMIT.upper()}), json.dumps({'version': '1.0.0', 'commit': WEB_COMMIT + '-dirty'})):
+            with self.subTest(content=content):
+                if content is None:
+                    version.unlink()
+                else:
+                    version.write_text(content)
+                with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+                    PREFLIGHT.check_spas(self.config)
+                self.assertIn('version.json', str(caught.exception))
+        version.write_text(VERSION_JSON)
+        PREFLIGHT.check_spas(self.config)
+
+    def test_REL_03_only_the_three_bundles_of_one_ci_build_are_deployed(self):
+        PREFLIGHT.check_spas(self.config)
+        clubs, admin = self.directory / 'clubs/version.json', self.directory / 'clubsadmin/version.json'
+        # A build outside CI names no commit; the web's version.json shape still allows it, the release does not.
+        clubs.write_text(json.dumps({'version': '1.0.0', 'commit': None}))
+        with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+            PREFLIGHT.check_spas(self.config)
+        self.assertIn('names no commit', str(caught.exception))
+        for target in PREFLIGHT.DIST_TARGETS:
+            (self.directory / target.rsplit('/', 1)[1] / 'version.json').write_text(json.dumps({'version': '1.0.0', 'commit': None}))
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_spas(self.config)
+        # Bundles of two builds (two commits) are not one run's artifact, even when each names a commit.
+        for target in PREFLIGHT.DIST_TARGETS:
+            (self.directory / target.rsplit('/', 1)[1] / 'version.json').write_text(VERSION_JSON)
+        admin.write_text(json.dumps({'version': '1.0.0', 'commit': 'f' * 40}))
+        with self.assertRaises(PREFLIGHT.PreflightError) as caught:
+            PREFLIGHT.check_spas(self.config)
+        self.assertIn('different commits', str(caught.exception))
+        admin.write_text(VERSION_JSON)
+        self.assertEqual({WEB_COMMIT}, {artifact['commit'] for artifact in PREFLIGHT.check_spas(self.config).values()})
 
     def test_path_escape_and_artifact_symlinks_are_refused(self):
         outside = self.directory / 'outside.js'

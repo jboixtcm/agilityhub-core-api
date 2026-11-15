@@ -173,9 +173,12 @@ public class MessagingConfiguration {
     @Bean NotificationDispatcher notificationDispatcher(NotificationRepository notifications, PushSubscriptionRepository subscriptions, EmailSender email,
             SmsSender sms, PushSender push, ClubConfigService configs, ClubEmailSettings emailSettings, ClubSmsUsage usage, NotificationEmailRenderer emails,
             UnsubscribeTokens unsubscribes, MemberDirectoryPort members, NotificationAccounts accounts, EventPublisher events, PlatformTransactionManager transactions,
-            List<NotificationFactsPort> owners, Clock clock, @Value("${email.platform-from:}") String from) {
+            List<NotificationFactsPort> owners, Clock clock, @Value("${email.platform-from:}") String from,
+            @Value("${notifications.announcements.emails-per-minute:60}") int announcementEmailsPerMinute) {
+        // COMM-07: the pace of announcement e-mails, the provider plan's (ANNOUNCEMENT_EMAILS_PER_MINUTE ≥ 1, else the API refuses to start).
         return new NotificationDispatcher(notifications, subscriptions, email, sms, push, configs, emailSettings, usage, emails, unsubscribes, members, accounts, events,
-                new TransactionTemplate(transactions), owners, clock, from.isBlank() ? "no-reply@example.test" : from);
+                new TransactionTemplate(transactions), owners, clock, from.isBlank() ? "no-reply@example.test" : from,
+                new com.agilityhub.core.clubs.messaging.application.engine.AnnouncementEmailPace(announcementEmailsPerMinute));
     }
 
     @Bean NotificationEngine notificationEngine(ClubConfigService configs, IcuMessageSource messages, TemplateProvider templates, RecipientResolver recipients,

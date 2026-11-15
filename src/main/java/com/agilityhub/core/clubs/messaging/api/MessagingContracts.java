@@ -101,6 +101,9 @@ public final class MessagingContracts {
     public record AnnouncementRequest(@NotNull @Valid AnnouncementRecipients recipients,
             @NotNull @Schema(description = "true: count only («S'enviarà a {n} abonats»), 200 and nothing written") Boolean dryRun) { }
     public record AnnouncementResult(@Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on dryRun") String batchId, int recipientCount) { }
+    /** COMM-07: «Reenvia els fallits» of an announcement batch. */
+    public record AnnouncementResendResult(String batchId,
+            @Schema(description = "The batch's failed e-mails put back in the queue (0: nothing to resend, nothing written)") int resent) { }
     /** `details` of `VALIDATION_ERROR` for a missing required variable (S11 §6 `TEMPLATE_MISSING_VARIABLE` is a catalog proposal). */
     public record MissingVariablesDetails(@Schema(description = "The template's required variables absent from the text (N-08a admin_text; N-02's link is its "
             + "welcome e-mail's only, E76)") List<String> missingVariables) { }
@@ -219,4 +222,8 @@ public final class MessagingContracts {
     public record PushSubscriptionCreated(String id) { }
     public record EmailUnsubscribeRequest(@NotBlank @Schema(description = "The signed token of the «Deixar de rebre aquests comunicats» link (30 days)") String token) { }
     public record EmailUnsubscribeResult(@Schema(description = "The category whose e-mail was turned off: always CLUB_NEWS") NotificationCategory category) { }
+    /** COMM-08 (RFC 8058 §3.2): the form body a mailbox provider posts to the one-click URL of the `List-Unsubscribe` header. */
+    @Schema(description = "RFC 8058 one-click body, form-encoded or multipart: exactly List-Unsubscribe=One-Click")
+    public record EmailOneClickUnsubscribeForm(@JsonProperty("List-Unsubscribe") @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = "One-Click")
+            String listUnsubscribe) { }
 }

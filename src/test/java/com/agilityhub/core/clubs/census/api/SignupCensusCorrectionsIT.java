@@ -90,7 +90,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     MockHttpServletRequestBuilder postJson(String path,Object body) throws Exception {return post("/api/v1"+path).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body));}
     MockHttpServletRequestBuilder from(MockHttpServletRequestBuilder request,String ip) { return request.with(r->{r.setRemoteAddr(ip);return r;}); }
     String ip() { return "198.51.100."+(++sequence%250+1); }
-    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("corrections-admin").claim("clubId",club)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
+    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("corrections-admin").claim("clubId",club).claim("auth_time",signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
     JsonNode result(MockHttpServletRequestBuilder request,int status) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();var body=mapper.readTree(response.getContentAsString().isEmpty()?"{}":response.getContentAsString());
         assertThat(response.getStatus()).as("HTTP code=%s details=%s",body.path("code").asText(),body.path("details")).isEqualTo(status);return body;
@@ -304,8 +304,50 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         // The answer is stored now: the same key replays it, and the provider is not asked again.
         assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201)).isEqualTo(again);
         verify(fake,times(2)).createCheckoutSession(any());
-        // Another key cannot open a second checkout of the same rows while this one is open.
+        // PAY-04 (owner decision of 13 Nov 2026) changed this assertion: another key used to answer 409 INVALID_STATE while this
+        // checkout was open. It now expires this checkout at the provider and on our side, and opens a new one for the same rows.
+        var replaced=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",UUID.randomUUID()),ip),201);
+        assertThat(replaced.path("checkoutSessionId").asText()).isNotEqualTo(sid);
+        assertThat(fake.expired(sid)).isTrue();
+        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))
+                &&replaced.path("checkoutSessionId").asText().equals(p.getString("checkoutSessionId")));
+    }
+    /**
+     * PAY-04 (owner decision of 13 Nov 2026, S04 R-04-26): the applicant backs out of Stripe Checkout and pays at once. The form
+     * sends a new Idempotency-Key after `?cs=cancel` (as the e-mail's link and another device do): the open checkout expires at the
+     * provider first and on our side, its rows go to the new one, and the new one settles them. A completion of the old checkout
+     * that still arrived would be a late one (E34). When the provider does not expire the open checkout (it was paid meanwhile),
+     * the request answers 409 INVALID_STATE and that checkout stays open with its rows.
+     */
+    @Test void PAY_04_anApplicantWhoBacksOutOfCheckoutPaysAgainAtOnceWithANewKey() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);String id=submitted.path("memberId").asText();var request=checkout(submitted);String ip=ip();
+        String first=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",UUID.randomUUID()),ip),201).path("checkoutSessionId").asText();
+        var rows=collection("upfront_payments").stream().map(p->p.getString("_id")).toList();
+        assertThat(rows).isNotEmpty();
+        // Back from Stripe with ?cs=cancel: the form asks again with a new key and gets a new checkout at once.
+        var again=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",UUID.randomUUID()),ip),201);
+        String second=again.path("checkoutSessionId").asText();
+        assertThat(second).isNotEqualTo(first);
+        assertThat(again.path("checkoutUrl").asText()).isEqualTo("https://checkout.test/"+second);
+        verify(fake).expire(first);
+        assertThat(fake.expired(first)).isTrue();
+        assertThat(session(first).getString("status")).isEqualTo("EXPIRED");
+        assertThat(session(second).getString("status")).isEqualTo("PENDING");
+        assertThat(session(second).getList("upfrontPaymentIds",String.class)).containsExactlyInAnyOrderElementsOf(rows);
+        assertThat(collection("upfront_payments")).allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&second.equals(p.getString("checkoutSessionId")));
+        // The provider does not expire the open checkout (Stripe: completed meanwhile): 409, and nothing changes.
+        doThrow(new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID)).when(fake).expire(second);
         assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",UUID.randomUUID()),ip),409).path("code").asText()).isEqualTo("INVALID_STATE");
+        assertThat(session(second).getString("status")).isEqualTo("PENDING");
+        assertThat(collection("checkout_sessions")).hasSize(2);
+        assertThat(collection("upfront_payments")).allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&second.equals(p.getString("checkoutSessionId")));
+        // The new checkout is paid: its rows are PAID and the card is saved.
+        fake.complete(second);
+        assertThat(session(second).getString("status")).isEqualTo("COMPLETE");
+        assertThat(collection("upfront_payments")).allMatch(p->"PAID".equals(p.getString("status")));
+        assertThat(member(id).get("paymentMethod",Document.class).get("card")).isNotNull();
     }
     /**
      * E5-T30 step 1 (review #1 of E5-T28 round 2, CONVENCIONS_API §7, R-04-26): between the lost answer and its retry, an admin
@@ -375,14 +417,19 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         var submitted=submit(body);String id=submitted.path("memberId").asText();
         String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
         var rows=collection("upfront_payments").stream().map(p->p.getString("_id")).toList();
-        // Until its expiry the rows wait for that session: another checkout is refused.
-        assertThat(result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),409).path("code").asText()).isEqualTo("INVALID_STATE");
+        // PAY-04 (owner decision of 13 Nov 2026) changed this step: another checkout before the expiry used to be refused (409
+        // INVALID_STATE). It now replaces the open one (expired at the provider and here), and the rows wait for the new one.
+        String open=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
+        assertThat(open).isNotEqualTo(sid);
+        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");
         clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plusSeconds(60));
         // The next day the admin opens the checkout again from D2 (the applicant's signupToken no longer lives that long).
         var again=Map.of("memberId",id,"successUrl","https://"+host+"/success","cancelUrl","https://"+host+"/cancel");
         String next=result(admin(postJson("/checkout-sessions",again).header("Idempotency-Key",UUID.randomUUID())),201).path("checkoutSessionId").asText();
-        assertThat(next).isNotEqualTo(sid);
-        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");assertThat(session(sid).get("lateCompletionAt")).isNull();
+        assertThat(next).isNotIn(sid,open);
+        assertThat(session(open).getString("status")).isEqualTo("EXPIRED");assertThat(session(open).get("lateCompletionAt")).isNull();
+        // Past its expiry the provider can take no money for it: it expires here only.
+        assertThat(fake.expired(open)).isFalse();
         assertThat(fake.request(next).lines()).extracting(PaymentProvider.Item::paymentId).containsExactlyInAnyOrderElementsOf(rows);
         assertThat(collection("upfront_payments")).allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&next.equals(p.getString("checkoutSessionId")));
     }

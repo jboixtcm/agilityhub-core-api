@@ -84,6 +84,19 @@ public class MigrationReports implements MigrationReportRetention {
         store.delete(key(run));
         return runs.reportPurged(id,at);
     }
+    /**
+     * MIG-13 (owner decision, 13-11-2026), `migration:report-purge`: the operator purges a production run's named report right
+     * after the run instead of waiting for the 30-day retention. As P9's {@link #purge}: the object first, then `reportPurgedAt`
+     * (now) with the pointer removed, so a storage failure leaves the run unpurged and retryable. Idempotent: on an already
+     * purged report the object is deleted again (a late upload included) and the answer is false. A purged report is never
+     * downloaded or published again (EXPORT_EXPIRED). Another club's, an unknown or a non-production run is NOT_FOUND.
+     */
+    public boolean purgeNow(String id) {
+        var run=runs.findById(id).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
+        if (!"PRODUCTION".equals(run.env())) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        store.delete(key(run));
+        return run.reportPurgedAt()==null && runs.reportPurgedNow(id,clock.instant());
+    }
     private void active(MigrationRun run) {
         if (run.reportExpiresAt()==null || !clock.instant().isBefore(run.reportExpiresAt()) || run.reportPurgedAt()!=null) { throw new ApiException(ErrorCode.EXPORT_EXPIRED); }
     }

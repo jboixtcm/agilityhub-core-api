@@ -58,6 +58,9 @@ notifications:
     vapid-public-key: ${VAPID_PUBLIC_KEY:}
     vapid-private-key: ${VAPID_PRIVATE_KEY:}
     vapid-subject: ${VAPID_SUBJECT:}
+  # COMM-07: at most this many announcement e-mails (N-24) per minute, set to the e-mail provider's plan.
+  announcements:
+    emails-per-minute: ${ANNOUNCEMENT_EMAILS_PER_MINUTE:60}
 
 identity:
   issuer: ${AUTH_ISSUER:https://id.agilitydoghub.com}
@@ -65,7 +68,9 @@ identity:
 
 agilityhub:
   legal:
-    privacyPolicyVersion: ${PLATFORM_PRIVACY_POLICY_VERSION:v1}
+    # PRIV-01: the platform policy apps/id serves at /privacy; the version is its PRIVACY_POLICY_VERSION and the «Versió» of
+    # docs/legal/POLITICA_PRIVACITAT_AGILITYHUB_ID.md (LegalPolicyDefaultsTest). A new version asks every account to accept again.
+    privacyPolicyVersion: ${PLATFORM_PRIVACY_POLICY_VERSION:2}
     privacyPolicyUrl: ${PLATFORM_PRIVACY_POLICY_URL:https://id.agilitydoghub.com/privacy}
 
 spring:
@@ -76,6 +81,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  # CFG-06: how long a stop waits for the requests in flight (graceful shutdown is Boot's default); a billing run or an
+  # export has no HTTP deadline. deploy/compose.prod.yaml gives Core a longer stop_grace_period (60 s) before SIGKILL. The live
+  # build-session streams are closed before this wait starts (BuildSessionStreams), so they never hold it.
+  lifecycle:
+    timeout-per-shutdown-phase: 45s
   autoconfigure:
     exclude:
       - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
@@ -144,7 +154,11 @@ core:
   billing:
     # Rulings E43/E85 (E8-T01): BankAccountVault, the only bank key: the members' encrypted IBANs of both origins (migration:apply
     # encrypts with it too); only the SEPA writer decrypts.
+    sepa-generation-paused-club-ids: ${SEPA_GENERATION_PAUSED_CLUB_IDS:}
     bank-key: ${BILLING_BANK_KEY:}
+    # PRIV-11: the bank key a rotation replaces, read-only (values it sealed are read until census:rekey-ibans re-encrypts them).
+    # Empty outside a rotation; when set it must be Base64 of 32 bytes and differ from BILLING_BANK_KEY (docs/DEPLOY.md).
+    bank-key-previous: ${BILLING_BANK_KEY_PREVIOUS:}
     # ProviderSecretVault (ADR-009, E8-T01 round 2): the clubs' encrypted payment-provider secrets (paymentProviders.STRIPE.*Enc).
     secrets-key: ${BILLING_SECRETS_KEY:}
   platform:
@@ -192,8 +206,11 @@ core:
     rateLimits:
       enabled: true
       token: {capacity: 30, period: 1m}
+      # AUTH-09: the refresh grant's own per-address bucket (members behind the club's Wi-Fi share one address).
+      token-refresh: {capacity: 120, period: 1m}
       branding: {capacity: 120, period: 1m}
       public-routes: {capacity: 60, period: 1m}
+      # CFG-14: one bucket per account for /me, /platform and every other authenticated /api/ route without its own family below.
       me: {capacity: 600, period: 1m}
       # E11-T03: independent per-IP buckets; handoff also per account, token-account across IPs.
       anonymous: {capacity: 120, period: 1m}
@@ -206,6 +223,8 @@ core:
       token-account: {capacity: 10, period: 1m}
       magic-link-email: {capacity: 10, period: 1h}
       magic-link-ip: {capacity: 60, period: 1h}
+      # WEB-01: the D10 welcome e-mails of one club, whatever the administrator's address (per-address bucket above as well).
+      access-resend-club: {capacity: 60, period: 1h}
     cors:
       platform-hosts: ${CORS_PLATFORM_HOSTS:id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
 

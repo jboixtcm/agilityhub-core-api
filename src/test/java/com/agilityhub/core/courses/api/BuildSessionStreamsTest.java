@@ -238,6 +238,48 @@ class BuildSessionStreamsTest {
         assertThat(first.completed || second.completed).as("their blocked sends have not returned").isFalse();
     }
 
+    /**
+     * CFG-06 (owner decision of 13 Nov 2026): the start of shutdown ends every live stream (an open stream is a request in flight,
+     * which the server's graceful stop would wait for), without a `finished` event, since the session goes on; a stream opened
+     * meanwhile ends at once, before its `:open`; started again, streams stay open as before.
+     */
+    @Test void CFG_06_stoppingEndsEveryLiveStreamAndOneOpenedMeanwhileEndsAtOnce() throws Exception {
+        var streams = quiet(BuildSessionStreams.SENDERS);
+        streams.start();
+        assertThat(streams.isRunning()).isTrue();
+        var open = session(1, BuildStatus.IN_PROGRESS, ObstacleStatus.PLACED);
+        var first = new Reader();
+        var second = new Reader();
+        streams.subscribe(open, first);
+        streams.subscribe(open, second);
+        first.next(":open"); second.next(":open");
+        assertThat(streams.subscribers()).isEqualTo(2);
+        streams.stop();
+        await(first.done, "the first stream ended");
+        await(second.done, "the second stream ended");
+        assertThat(streams.subscribers()).isZero();
+        assertThat(streams.isRunning()).isFalse();
+        assertThat(first.frames).noneMatch(frame -> frame.contains("finished"));
+        var late = new Reader();
+        streams.subscribe(open, late);
+        await(late.done, "a stream opened while stopping ended at once");
+        assertThat(late.frames).isEmpty();
+        assertThat(streams.subscribers()).isZero();
+        streams.start();
+        var again = new Reader();
+        streams.subscribe(open, again);
+        again.next(":open");
+        assertThat(again.completed).isFalse();
+        assertThat(streams.subscribers()).isEqualTo(1);
+    }
+
+    /** CFG-06: the streams stop before the web server's graceful shutdown starts waiting (a higher phase stops first), by themselves. */
+    @Test void CFG_06_theStreamsStopBeforeTheServerWaitsForItsRequests() {
+        assertThat(streams.isAutoStartup()).isTrue();
+        assertThat(streams.getPhase()).isEqualTo(BuildSessionStreams.PHASE)
+                .isGreaterThan(org.springframework.boot.web.server.context.WebServerApplicationContext.GRACEFUL_SHUTDOWN_PHASE);
+    }
+
     /** Review #6: the stream's timeout is the smaller of 30 minutes and what is left of the access token. */
     @Test void T_16_10_aStreamLivesNoLongerThanItsToken() {
         assertThat(BuildSessionStreams.lifetime(NOW, null)).isEqualTo(BuildSessionStreams.TIMEOUT);

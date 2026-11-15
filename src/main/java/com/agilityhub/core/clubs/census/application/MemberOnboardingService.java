@@ -16,13 +16,25 @@ public class MemberOnboardingService implements MemberOnboardingAccess {
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     public MemberOnboardingService(CensusRepository<Member> members, CountryContacts countries) { this.members = members; this.countries = countries; }
     private Optional<Member> member(String id, String account) { return members.findById(id).filter(item -> account.equals(item.accountId) && !"ERASED".equals(item.status)); }
+    /**
+     * The initial state of onboarding's image box. PRIV-05 (owner's decision of 13-11-2026): `true` only when the image permission
+     * in force was granted by the member's own account (onboarding, or a sign-up or readmission sent from the member's app:
+     * `byAccountId` / `actorAccountId`); a grant recorded by the migration, by a data operation or by staff (an ADMIN's edit, an
+     * impersonation), or by a public sign-up sent before the member had an account, does not pre-tick it and reads as no answer
+     * (`null`). A refusal reads `false`. The stored values are kept as they are.
+     */
     @Override public Boolean imageConsent(String memberId, String accountId) {
         return member(memberId, accountId).map(member -> {
             var original = map(map(member.consents).get("imageRights"));
             if (original.isEmpty()) return null;
             var image = com.agilityhub.core.shared.domain.ConsentGrant.image(original);
-            return image.get("granted") instanceof Boolean granted ? granted : null;
+            if (!Boolean.TRUE.equals(image.get("granted"))) { return Boolean.FALSE; }
+            return grantedByOwnAccount(image, member.accountId) ? Boolean.TRUE : null;
         }).orElse(null);
+    }
+    /** PRIV-05: the account that wrote the entry (an edit's `byAccountId`, a sign-up row's `actorAccountId`) is the member's own. */
+    static boolean grantedByOwnAccount(Map<String, Object> image, String accountId) {
+        return accountId != null && (accountId.equals(image.get("byAccountId")) || accountId.equals(image.get("actorAccountId")));
     }
     @Override public String phone(String memberId, String accountId) {
         return member(memberId, accountId).map(member -> {

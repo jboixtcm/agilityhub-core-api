@@ -41,17 +41,28 @@ final class BillingViews {
         return new BillingContracts.Collection(collection.id(), collection.invoiceId(), collection.provider(), collection.amount(), collection.status(),
                 collection.publishedReference(), collection.remittanceId(), collection.attempt(), collection.failureCode(), collection.failureMessage(),
                 collection.refunds() == null ? List.of() : collection.refunds().stream().map(refund -> new CollectionRefund(refund.amount(), refund.providerRef(),
-                        refund.at(), refund.reason(), refund.byAccountId())).toList(), collection.createdAt(), collection.resolvedAt());
+                        refund.at(), refund.reason(), refund.byAccountId())).toList(), collection.createdAt(), collection.resolvedAt(),
+                BillingContracts.PaymentDispute.of(collection.dispute()));
     }
 
     static BillingContracts.BillingSimulation simulation(BillingSimulation simulation) {
         return new BillingContracts.BillingSimulation(simulation.id(), simulation.period(), simulation.at(), incidents(simulation.incidents()),
-                cash(simulation), kpis(simulation.kpis()), preview(simulation));
+                cash(simulation), kpis(simulation.kpis()), preview(simulation), comparison(simulation));
     }
     static List<InvoicePreview> preview(BillingSimulation simulation) {
         return simulation.invoicesPreview().stream().map(item -> new InvoicePreview(item.memberId(), item.memberName(), item.paymentMethodType(),
                 item.lines().stream().map(line -> new PreviewLine(line.origin(), line.description(), line.total())).toList(), item.total(),
                 item.invoiceId(), item.displayNumber())).toList();
+    }
+    /** SEPA-10 (R-12-11): the stored comparison with its difference and percentage; null for a simulation stored before it. */
+    static SimulationComparison comparison(BillingSimulation simulation) {
+        var comparison = simulation.comparison();
+        if (comparison == null) { return null; }
+        var total = simulation.kpis().total(); var previous = comparison.previousTotal();
+        var difference = previous == null ? null : new com.agilityhub.core.shared.domain.Money(total.amountMinor() - previous.amountMinor(), total.currency());
+        return new SimulationComparison(comparison.previousPeriod(), previous, difference,
+                com.agilityhub.core.payments.domain.TotalComparison.percent(previous == null ? null : previous.amountMinor(), total.amountMinor()),
+                comparison.thresholdPercent(), comparison.secondConfirmationRequired());
     }
     static List<BillingIncident> incidents(List<BillingSimulation.Incident> incidents) {
         return incidents.stream().map(incident -> new BillingIncident(incident.memberId(), incident.memberName(), incident.code(), incident.invoiceId(), incident.displayNumber())).toList();
@@ -122,7 +133,7 @@ final class BillingViews {
             }
         }
         return new BillingPeriod(period.period().toString(), simulation == null ? null : new PeriodSimulation(simulation.id(), simulation.at(),
-                kpis(simulation.kpis()), incidents(simulation.incidents()), cash(simulation), preview(simulation)), run, remittance,
+                kpis(simulation.kpis()), incidents(simulation.incidents()), cash(simulation), preview(simulation), comparison(simulation)), run, remittance,
                 new InvoiceCounts(all, counts.getOrDefault("PENDING", 0L), counts.getOrDefault("COLLECTING", 0L), counts.getOrDefault("PAID", 0L),
                         counts.getOrDefault("FAILED", 0L)));
     }

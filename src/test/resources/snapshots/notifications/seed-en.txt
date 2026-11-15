@@ -321,4 +321,8 @@ body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C (Central) is below the 
 title: Manual refund required
 body: Review the refund for Laura Serra Puig: €45.00.
 
-# 52 codes, 21 staff texts
+## N-56 ADMINS
+title: Card payment disputed
+body: Laura Serra Puig has disputed a card payment of €45.00 with their bank (reason: Documentació pendent). The payment is flagged in the app. Respond to the dispute from the Stripe dashboard before the deadline.
+
+# 53 codes, 22 staff texts

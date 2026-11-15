@@ -28,7 +28,8 @@ class E2ResponseContractTest {
 
     @Test void T_03_09_T_03_33_memberProjectionsAndWriteBodiesExcludeSensitiveAndReadOnlyFields() throws Exception {
         var forbidden = Map.of(
-                CensusResponses.MemberInstructorView.class, java.util.Set.of("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "bookingBlock"),
+                CensusResponses.MemberInstructorView.class, java.util.Set.of("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "bookingBlock", "address"),
+                CensusResponses.MemberInstructorListItem.class, java.util.Set.of("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "bookingBlock", "address"),
                 CensusResponses.MeDog.class, java.util.Set.of("chip", "memberId", "remarks", "remarksMeta", "observations"),
                 CensusResponses.PaymentMethodView.class, java.util.Set.of("iban", "stripeSetupIntentId", "holderTaxId"),
                 CensusRequests.MeProfilePatch.class, java.util.Set.of("idDocument", "firstName", "paymentMethod", "planId", "roles"),

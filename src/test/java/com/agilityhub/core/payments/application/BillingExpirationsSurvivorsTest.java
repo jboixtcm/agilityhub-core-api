@@ -47,7 +47,37 @@ class BillingExpirationsSurvivorsTest {
     final CollectionRepository collections = mock(CollectionRepository.class);
     final BillingExpirations expirations = new BillingExpirations(packs, mock(PackBalanceService.class), remittances, invoices, collections,
             mock(BillingEvents.class), Clock.fixed(NOW, ZoneOffset.UTC));
-    final JobContext context = new JobContext(CLUB, ZoneOffset.UTC, NOW, TODAY, false, null, mock(JobRunRecorder.class), "job-run-1");
+    /** SEPA-04 changed this fixture: P5i reads `billing.sepa.settlementBusinessDays`; 0 keeps these tests on the collection day. */
+    final JobContext context = context(TODAY, 0);
+
+    static JobContext context(LocalDate today, int margin) {
+        var config = new com.agilityhub.core.platform.application.ClubConfig(null, Map.of(BillingExpirations.SETTLEMENT_DAYS, margin), java.util.Set.of(), null, Map.of());
+        return new JobContext(CLUB, ZoneOffset.UTC, NOW, today, false, config, mock(JobRunRecorder.class), "job-run-1");
+    }
+
+    /**
+     * SEPA-04 (c), R-12-15 (owner decision of 13-11-2026): a submitted remittance is settled `billing.sepa.settlementBusinessDays`
+     * TARGET business days after its collection date (5: Tuesday 01-09 → Tuesday 08-09), not on the day; the receipts' `paidAt`
+     * stays the collection date, and the run records the parameter.
+     */
+    @Test void SEPA_04_c_aSubmittedRemittanceIsSettledFiveTargetBusinessDaysAfterItsCollectionDate() {
+        var remittance = remittance("remittance-1", RemittanceStatus.SUBMITTED, List.of("c-open"));
+        when(remittances.findAll()).thenReturn(List.of(remittance));
+        when(remittances.findById("remittance-1")).thenReturn(Optional.of(remittance));
+        stub(attempt("c-open", "remittance-1", CollectionStatus.CREATED), invoice("inv-open", InvoiceStatus.COLLECTING, "remittance-1"));
+        when(invoices.transition(anyString(), anyLong(), any())).thenReturn(true);
+        for (var day : List.of(TODAY, LocalDate.of(2026, 9, 4), LocalDate.of(2026, 9, 7))) {
+            var early = context(day, 5);
+            assertThat(expirations.remittances(early)).as(day.toString()).isEmpty();
+            assertThat(expirations.apply(early, new JobItem("Remittance", "remittance-1", "SETTLE")).action()).as(day.toString()).isEqualTo("NOT_IN_SCOPE");
+            verify(early.recorder(), atLeastOnce()).parameter(BillingExpirations.SETTLEMENT_DAYS, 5);
+        }
+        verify(invoices, never()).transition(anyString(), anyLong(), any());
+        var due = context(LocalDate.of(2026, 9, 8), 5);
+        assertThat(expirations.remittances(due)).singleElement().satisfies(item -> assertThat(item.action()).isEqualTo("SETTLE"));
+        assertThat(expirations.apply(due, new JobItem("Remittance", "remittance-1", "SETTLE")).counters()).isEqualTo(Map.of("settledInvoices", 1L));
+        verify(collections).resolve("c-open", CollectionStatus.SUCCEEDED, null, Instant.parse("2026-09-01T00:00:00Z"));
+    }
 
     @Test void T_15_23_aRemittanceNotSubmittedOrWithNothingLeftToSettleIsNotPlanned() {
         when(remittances.findAll()).thenReturn(List.of(

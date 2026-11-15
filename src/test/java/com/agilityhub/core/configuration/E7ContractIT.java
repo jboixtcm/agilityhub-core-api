@@ -46,7 +46,7 @@ class E7ContractIT extends AbstractIntegrationTest {
     static final String CLUB = "e7-club-a", OTHER = "e7-club-b", HOST = "e7-a.example.test", OTHER_HOST = "e7-b.example.test";
     static final List<String> ROLES = List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN");
     static final List<String> DATA = List.of("message_templates", "notifications", "push_subscriptions", "members", "memberships", "faq_entries", "domain_events",
-            "audit_entries", "idempotency_records");
+            "audit_entries", "idempotency_records", "announcements");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired ClubRepository clubs;
@@ -60,7 +60,8 @@ class E7ContractIT extends AbstractIntegrationTest {
         boolean club() { return scope.equals("CLUB"); }
         /** E7-T02 implements the unsubscribe link (the fixture's token is not valid → 422), E7-T03 the rest but the send, E7-T04 the send. */
         boolean implemented() { return true; }
-        boolean unsubscribe() { return label().equals("POST /api/v1/email-unsubscribes"); }
+        /** The page's call and COMM-08's RFC 8058 one-click POST: both reject the fixture's token with 422. */
+        boolean unsubscribe() { return label().equals("POST /api/v1/email-unsubscribes") || label().equals("POST /api/v1/email-unsubscribes/one-click"); }
         int allowedStatus() { return unsubscribe() ? 422 : implemented() ? success : 501; }
         /** The error code of the allowed call, `null` when it succeeds. */
         String allowedCode() { return unsubscribe() ? "UNSUBSCRIBE_TOKEN_INVALID" : implemented() ? null : "NOT_IMPLEMENTED"; }
@@ -87,6 +88,9 @@ class E7ContractIT extends AbstractIntegrationTest {
         mongo.insert(new MessageTemplate("e7-template-custom", CLUB, null, TemplateKind.CUSTOM, NotificationCategory.CLUB_NEWS, news, news, null, TemplateIcon.flag,
                 TemplateColor.ACCENT, Map.of(NotificationAudience.MEMBER, Map.of(NotificationChannel.APP, true)), true, false, false, TemplateStatus.ACTIVE, 0L, now, "seed", now, "seed"));
         mongo.insert(new Notification("e7-notification-a", CLUB, "e7-MEMBER", "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
+        // COMM-07: a sent announcement batch of the club, for «Reenvia els fallits» (nothing failed: it answers 0 and writes nothing).
+        mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.Announcement("e7-batch-a", CLUB, "e7-template-custom", null,
+                com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS, List.of(), null, List.of("e7-member-a"), 1, "e7-ADMIN", now));
         for (String owner : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
             mongo.insert(new Notification("e7-own-" + owner, CLUB, "e7-" + owner, "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
             mongo.insert(new PushSubscription("e7-sub-" + owner, CLUB, "e7-" + owner, "https://push.example.test/send/" + owner, null,
@@ -111,7 +115,7 @@ class E7ContractIT extends AbstractIntegrationTest {
                 : r.path().startsWith("/api/v1/message-templates") ? "e7-template-a"
                 : r.path().startsWith("/api/v1/notifications/") ? "e7-notification-a"
                 : r.path().startsWith("/api/v1/me/notifications/") ? "e7-own-" + owner : r.path().startsWith("/api/v1/members/") ? "e7-member-a" : "e7-sub-" + owner;
-        return r.path().replace("{id}", id);
+        return r.path().replace("{id}", id).replace("{batchId}", "e7-batch-a");
     }
     private MockHttpServletRequestBuilder call(Route r, String clubId, String role) throws Exception { return call(r, clubId, role, role); }
     private MockHttpServletRequestBuilder call(Route r, String clubId, String role, String owner) throws Exception {
@@ -120,13 +124,13 @@ class E7ContractIT extends AbstractIntegrationTest {
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (!role.equals("ANON")) {
-            request.with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", clubId).claim("memberId", "e7-member-a"))
+            request.with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", clubId).claim("memberId", "e7-member-a").claim("auth_time", signedInNow()))
                     .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         }
         return request;
     }
     private MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String role) {
-        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", CLUB).claim("memberId", "e7-member-a"))
+        return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", CLUB).claim("memberId", "e7-member-a").claim("auth_time", signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
     }
     /** The allowed call: its success status, or the error of a stub (501) or of the unsubscribe fixture (422). */
@@ -282,12 +286,13 @@ class E7ContractIT extends AbstractIntegrationTest {
             int status = mvc.perform(call(route, CLUB, "ANON")).andReturn().getResponse().getStatus();
             assertThat(status == 401).as(route.label() + " without a token → " + status).isEqualTo(!route.roles().contains("ANON"));
         }
-        assertThat(routes().filter(r -> r.roles().contains("ANON")).map(Route::label)).containsExactly("POST /api/v1/email-unsubscribes");
+        assertThat(routes().filter(r -> r.roles().contains("ANON")).map(Route::label)).containsExactly("POST /api/v1/email-unsubscribes",
+                "POST /api/v1/email-unsubscribes/one-click");
     }
 
     @Test void WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(22); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10
+        assertThat(routes().count()).isEqualTo(24); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10; COMM-07: the resend; COMM-08: the one-click POST
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
@@ -302,7 +307,8 @@ class E7ContractIT extends AbstractIntegrationTest {
             assertThat(key.isPresent()).as(route.label() + " Idempotency-Key").isEqualTo(route.idempotency());
             if (route.idempotency()) { assertThat(key.orElseThrow().path("required").asBoolean()).isTrue(); assertThat(key.orElseThrow().at("/schema/format").asText()).isEqualTo("uuid"); }
         }
-        assertThat(routes().filter(Route::idempotency).map(Route::label)).containsExactly("POST /api/v1/message-templates/{id}/send");
+        assertThat(routes().filter(Route::idempotency).map(Route::label)).containsExactly("POST /api/v1/message-templates/{id}/send",
+                "POST /api/v1/announcements/{batchId}/resend-failed");
         var send = api.at("/paths/~1api~1v1~1message-templates~1{id}~1send/post/responses");
         assertThat(send.has("202")).isTrue(); assertThat(send.has("200")).isTrue();
         // Canonical statuses (CATALEG_ERRORS rule 0), whatever S11 §6 writes.
@@ -315,6 +321,14 @@ class E7ContractIT extends AbstractIntegrationTest {
         assertThat(api.at("/paths/~1api~1v1~1push-subscriptions/post/responses/422/description").asText()).contains("PUSH_SUBSCRIPTION_INVALID");
         assertThat(api.at("/paths/~1api~1v1~1me~1notification-preferences/put/responses/422/description").asText()).contains("INVALID_REMINDER_OPTION");
         assertThat(api.at("/paths/~1api~1v1~1email-unsubscribes/post/responses/422/description").asText()).contains("UNSUBSCRIBE_TOKEN_INVALID");
+        // COMM-08 (RFC 8058): the one-click POST takes the token in the query and the form body List-Unsubscribe=One-Click.
+        var oneClick = api.at("/paths/~1api~1v1~1email-unsubscribes~1one-click/post");
+        assertThat(oneClick.path("responses").path("422").path("description").asText()).contains("UNSUBSCRIBE_TOKEN_INVALID");
+        assertThat(oneClick.path("responses").path("400").path("description").asText()).contains("VALIDATION_ERROR");
+        assertThat(oneClick.path("parameters").findValuesAsText("name")).containsExactly("t");
+        assertThat(oneClick.path("parameters").get(0).path("in").asText()).isEqualTo("query");
+        assertThat(oneClick.path("requestBody").path("content").fieldNames()).toIterable()
+                .containsExactlyInAnyOrder("application/x-www-form-urlencoded", "multipart/form-data");
         // The log: a universal list, exportable, and its export publishes the same contract (S14 R-14-12).
         var log = api.at("/paths/~1api~1v1~1notifications/get");
         assertThat(strings(log.path("x-filterable"))).containsExactly("code", "category", "channel", "status", "memberId", "createdAt");

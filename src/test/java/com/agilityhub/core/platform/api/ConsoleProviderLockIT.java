@@ -79,7 +79,7 @@ class ConsoleProviderLockIT extends BillingItSupport {
         try (var pool = Executors.newFixedThreadPool(2)) {
             var console = pool.submit(() -> {
                 try (var tenant = TenantContext.open(CLUB)) {
-                    return transactions.execute(tx -> { providers.update("MANUAL", disabled(version)); inside.countDown(); await(release); return "OK"; });
+                    return transactions.execute(tx -> { providers.update("MANUAL", disabled(version), null); inside.countDown(); await(release); return "OK"; });
                 } catch (ApiException failure) { inside.countDown(); return failure.getMessage(); }
             });
             assertThat(inside.await(20, TimeUnit.SECONDS)).isTrue();
@@ -112,7 +112,7 @@ class ConsoleProviderLockIT extends BillingItSupport {
             long version = version();
             var disabling = pool.submit(() -> mvc.perform(put("/api/v1/platform/clubs/" + CLUB + "/payment-providers/MANUAL")
                     .contentType("application/json").content(mapper.writeValueAsString(disabled(version)))
-                    .header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject("console-actor"))
+                    .header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject("console-actor").claim("auth_time", signedInNow()))
                             .authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))).andReturn().getResponse());
             // Without the shared lock the disabling counts zero users and commits while the assignment is still open.
             MockHttpServletResponse early = within(disabling, 2);
@@ -150,7 +150,7 @@ class ConsoleProviderLockIT extends BillingItSupport {
             assertThat(inside.await(20, TimeUnit.SECONDS)).isTrue();
             long version = version();
             var removal = pool.submit(() -> mvc.perform(delete("/api/v1/platform/clubs/" + CLUB + "/payment-providers/MANUAL").param("version", Long.toString(version))
-                    .header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject("console-actor"))
+                    .header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject("console-actor").claim("auth_time", signedInNow()))
                             .authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))).andReturn().getResponse());
             // Without the shared lock the removal counts zero users and commits while the assignment is still open.
             MockHttpServletResponse early = within(removal, 2);

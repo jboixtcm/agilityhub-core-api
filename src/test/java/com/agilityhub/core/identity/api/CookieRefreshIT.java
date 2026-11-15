@@ -24,8 +24,9 @@ class CookieRefreshIT extends IdentityIntegrationSupport {
                     .contentType("application/x-www-form-urlencoded").param("grant_type", "password")
                     .param("client_id", client).param("username", "admin@example.test").param("password", PASSWORD))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.refresh_token").doesNotExist()).andReturn().getResponse();
+            // AUTH-01 (S01 R-01-06): the back office's session lasts 12 hours; the member app and the ID keep auth.sessionDays (30).
             assertThat(response.getHeader("Set-Cookie")).contains("ah_refresh=", "HttpOnly", "Secure", "SameSite=Strict",
-                    "Path=/oauth2/token", "Max-Age=2592000").doesNotContain("Domain=");
+                    "Path=/oauth2/token", client.equals("clubs-admin") ? "Max-Age=43200" : "Max-Age=2592000").doesNotContain("Domain=");
             assertThat(response.getCookie(RefreshCookies.NAME).getValue()).hasSize(43);
         }
     }

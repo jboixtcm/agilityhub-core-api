@@ -112,6 +112,132 @@ class InvoiceActionsIT extends BillingItSupport {
         error(admin(keyed(post("/api/v1/invoices/" + id("vila") + "/failure"), Map.of("reason", "x", "at", "2026-09-04", "version", 0))), 409, "INVALID_STATE");
     }
 
+    /**
+     * SEPA-04 (b), R-12-17 (owner decision of 13-11-2026): two bank returns of September's remittance marked in one request, all or
+     * none: each receipt FAILED with its own FAILED{BANK_RETURN} attempt and audit entry, its InvoiceFailed `summarized`, and the
+     * admins get ONE N-10 listing both members and numbers with the summed amount (InvoicesFailed). A receipt of no remittance is
+     * refused before anything moves, and the same Idempotency-Key answers the same result.
+     */
+    @Test void SEPA_04_b_severalReturnsOfARemittanceInOneRequestGiveOneSummaryNotice() throws Exception {
+        admin("bill-admin-1", CLUB);
+        clock.setInstant(java.time.Instant.parse("2026-09-04T09:00:00Z"));
+        String remittance = byMember.get("puig").getString("remittanceId");
+        String returns = "/api/v1/remittances/" + remittance + "/returns";
+        var both = List.of(id("puig"), id("mas"));
+        // A cash receipt is in no remittance: the whole request is refused and nothing moves.
+        error(admin(keyed(post(returns), Map.of("invoiceIds", List.of(id("puig"), id("vila")), "reason", "Devolució del banc", "at", "2026-09-04"))), 400, "VALIDATION_ERROR");
+        error(admin(keyed(post(returns), Map.of("invoiceIds", both, "reason", "Devolució del banc", "at", "2026-09-05"))), 400, "VALIDATION_ERROR");
+        assertThat(both).allSatisfy(id -> assertThat(stored(id).getString("status")).isEqualTo("COLLECTING"));
+        String key = UUID.randomUUID().toString();
+        var body = mapper.writeValueAsString(Map.of("invoiceIds", both, "reason", "Devolució del banc", "at", "2026-09-04"));
+        var result = ok(admin(post(returns).header("Idempotency-Key", key).contentType("application/json").content(body)), 200);
+        assertThat(result.path("returned").asInt()).isEqualTo(2);
+        assertThat(result.path("invoices")).hasSize(2).allSatisfy(invoice -> {
+            assertThat(invoice.path("status").asText()).isEqualTo("FAILED");
+            assertThat(invoice.path("failureReason").asText()).isEqualTo("Devolució del banc");
+        });
+        assertThat(ok(admin(post(returns).header("Idempotency-Key", key).contentType("application/json").content(body)), 200)).isEqualTo(result);
+        for (String id : both) {
+            assertThat(collections(id)).extracting(c -> c.getString("status") + " " + c.getString("failureCode")).containsExactly("CREATED null", "FAILED BANK_RETURN");
+            assertThat(stored(id).getBoolean("includeInNextRun")).isFalse();
+        }
+        assertThat(events("InvoiceFailed")).hasSize(2).allSatisfy(event -> assertThat(event.get("payload", Document.class).getBoolean("summarized")).isTrue());
+        assertThat(events("InvoicesFailed")).singleElement().satisfies(event -> {
+            assertThat(event.get("payload", Document.class).getString("remittanceId")).isEqualTo(remittance);
+            assertThat(event.get("payload", Document.class).getList("invoiceIds", String.class)).containsExactlyElementsOf(both);
+        });
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("INVOICE_MARKED_FAILED")), "audit_entries")).isEqualTo(2);
+        outbox.dispatch();
+        var notices = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-10")), Document.class, "notifications");
+        long total = byMember.get("puig").get("total", Document.class).getLong("amountMinor") + byMember.get("mas").get("total", Document.class).getLong("amountMinor");
+        String sum = String.format(java.util.Locale.ROOT, "%d,%02d", total / 100, total % 100);
+        assertThat(notices).singleElement().satisfies(notice -> assertThat(notice.getString("body")).contains("Eva Puig", "Mia Mas",
+                byMember.get("puig").getString("displayNumber"), byMember.get("mas").getString("displayNumber"), sum, "Devolució del banc"));
+        // A second request on returns already marked is refused whole (409), with no notice.
+        error(admin(keyed(post(returns), Map.of("invoiceIds", both, "reason", "Devolució del banc", "at", "2026-09-04"))), 409, "INVALID_STATE");
+    }
+
+    /**
+     * SEPA-04 (b), R-12-17/19: a periodic receipt returned with `includeInNextRun` waits FAILED for the next run, whose remittance
+     * presents it again (attempt 2, the member's current mandate, COLLECTING; the simulation counts it); one returned without it
+     * waits for none. A rollback of that run puts it back FAILED in September's remittance with the flag, so the next run takes it
+     * again; returned again from the new remittance without the flag, it waits for nothing.
+     */
+    @Test void SEPA_04_b_aReturnedPeriodicReceiptReEntersTheNextRemittanceAndARollbackPutsItBack() throws Exception {
+        clock.setInstant(java.time.Instant.parse("2026-09-10T09:00:00Z"));
+        String september = byMember.get("puig").getString("remittanceId"), puig = id("puig"), mas = id("mas");
+        // Only a periodic receipt can wait for the next remittance: a manual one with the flag → 400.
+        var manual = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "torres", "note", "Ajust", "lines", List.of(Map.of("description", "Ajust",
+                "base", Map.of("amountMinor", 1000, "currency", "EUR"), "taxPercent", 0))))), 201);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(manual.path("id").asText())), new org.springframework.data.mongodb.core.query.Update()
+                .set("status", "COLLECTING").set("remittanceId", september), "invoices");
+        error(admin(keyed(post("/api/v1/invoices/" + manual.path("id").asText() + "/failure"), Map.of("reason", "Devolució", "at", "2026-09-10",
+                "version", version(manual.path("id").asText()), "includeInNextRun", true))), 400, "VALIDATION_ERROR");
+        ok(admin(keyed(post("/api/v1/remittances/" + september + "/returns"), Map.of("invoiceIds", List.of(puig), "reason", "Fons insuficients",
+                "at", "2026-09-10", "includeInNextRun", true))), 200);
+        ok(admin(keyed(post("/api/v1/invoices/" + mas + "/failure"), Map.of("reason", "Mandat anul·lat", "at", "2026-09-10", "version", version(mas)))), 200);
+        assertThat(stored(puig).getBoolean("includeInNextRun")).isTrue();
+        assertThat(stored(mas).getBoolean("includeInNextRun")).isFalse();
+        var simulation = simulate("2026-10");
+        assertThat(simulation.path("invoicesPreview").findValuesAsText("memberId")).contains("puig");
+        var october = run("2026-10", simulation.path("id").asText());
+        String octoberRemittance = october.at("/remittance/id").asText(), octoberRun = october.at("/run/id").asText();
+        var presented = stored(puig);
+        assertThat(presented.getString("status")).isEqualTo("COLLECTING");
+        assertThat(presented.getString("remittanceId")).isEqualTo(octoberRemittance);
+        assertThat(presented.getString("runId")).isEqualTo(byMember.get("puig").getString("runId"));
+        Document attempt = collections(puig).getLast();
+        assertThat(attempt.getString("remittanceId")).isEqualTo(octoberRemittance);
+        assertThat(attempt.getInteger("attempt")).isEqualTo(2);
+        assertThat(attempt.getString("status")).isEqualTo("CREATED");
+        assertThat(attempt.getString("mandateRef")).isEqualTo("bill-a-208-1");
+        assertThat(stored(mas).getString("status")).isEqualTo("FAILED");
+        assertThat(stored(mas).getString("remittanceId")).isEqualTo(september);
+        // R-12-14: the rollback puts it back where it was, FAILED in September's remittance, still waiting.
+        ok(admin(keyed(post("/api/v1/billing/runs/" + octoberRun + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        var back = stored(puig);
+        assertThat(back.getString("status")).isEqualTo("FAILED");
+        assertThat(back.getString("remittanceId")).isEqualTo(september);
+        assertThat(back.getBoolean("includeInNextRun")).isTrue();
+        assertThat(back.getString("failureReason")).isEqualTo("Fons insuficients");
+        Document rolledBack = collections(puig).getLast();
+        assertThat(rolledBack.getString("status")).isEqualTo("FAILED");
+        assertThat(rolledBack.getString("failureCode")).isEqualTo("ROLLBACK");
+        assertThat(rolledBack.getString("remittanceId")).isEqualTo(octoberRemittance);
+        // Presented again by the next run, then returned again without the flag: it waits for no remittance.
+        var again = run("2026-10", simulate("2026-10").path("id").asText());
+        String againRemittance = again.at("/remittance/id").asText();
+        assertThat(stored(puig).getString("remittanceId")).isEqualTo(againRemittance);
+        ok(admin(keyed(post("/api/v1/remittances/" + againRemittance + "/returns"), Map.of("invoiceIds", List.of(puig), "reason", "Fons insuficients", "at", "2026-09-10"))), 200);
+        assertThat(stored(puig).getString("status")).isEqualTo("FAILED");
+        assertThat(stored(puig).getBoolean("includeInNextRun")).isFalse();
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(invoiceRepository.forNextRun()).extracting(Invoice::id).doesNotContain(puig, mas); }
+    }
+
+    /**
+     * SEPA-04 (b), review: a periodic receipt that P5i settled (its September debit SUCCEEDED, the receipt PAID) and the bank
+     * returned later re-enters October's remittance; that earlier, returned debit is not one of October's, so October's run can
+     * still be rolled back (R-12-14), and the rollback puts the receipt back FAILED in September's remittance.
+     */
+    @Test void SEPA_04_b_aRunThatRePresentsAPaidThenReturnedReceiptCanStillBeRolledBack() throws Exception {
+        clock.setInstant(java.time.Instant.parse("2026-09-10T09:00:00Z"));
+        String september = byMember.get("puig").getString("remittanceId"), puig = id("puig");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(collections(puig).getFirst().get("_id"))),
+                new org.springframework.data.mongodb.core.query.Update().set("status", "SUCCEEDED"), "collections");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(puig)), new org.springframework.data.mongodb.core.query.Update().set("status", "PAID")
+                .set("paidAt", java.util.Date.from(java.time.Instant.parse("2026-08-31T22:00:00Z"))), "invoices");
+        ok(admin(keyed(post("/api/v1/remittances/" + september + "/returns"), Map.of("invoiceIds", List.of(puig), "reason", "Fons insuficients",
+                "at", "2026-09-10", "includeInNextRun", true))), 200);
+        var october = run("2026-10", simulate("2026-10").path("id").asText());
+        String octoberRun = october.at("/run/id").asText();
+        assertThat(stored(puig).getString("remittanceId")).isEqualTo(october.at("/remittance/id").asText());
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-10")), 200).at("/run/rollbackable").asBoolean()).isTrue();
+        ok(admin(keyed(post("/api/v1/billing/runs/" + octoberRun + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        assertThat(stored(puig).getString("status")).isEqualTo("FAILED");
+        assertThat(stored(puig).getString("remittanceId")).isEqualTo(september);
+        assertThat(stored(puig).getBoolean("includeInNextRun")).isTrue();
+    }
+
     @Test @AuditCovers({AuditAction.INVOICE_CREATED_MANUAL, AuditAction.INVOICE_CANCELLED})
     void T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled() throws Exception {
         var adjustment = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "serra-laura", "lines", List.of(Map.of("description", "Ajust quota setembre",

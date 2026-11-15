@@ -142,12 +142,20 @@ public class MemberService {
                 "address", person.address, "paymentMethod", person.paymentMethod == null ? null : CensusAudit.bank(person.paymentMethod), "signup", member.signup,
                 "remarks", member.remarks, "internalNotes", member.internalNotes, "consents", member.consents);
     }
+    /**
+     * D10 payment-method edit (ADMIN). COMM-03 (owner's decision of 13-11): `notifyMember: false` changes it without N-38 to the member:
+     * `MemberPaymentMethodChanged` carries `notifyMember: false` and the entry records it (`details.notifyMember`).
+     */
     @Transactional
-    @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id")
+    @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id",
+            details = "#request['notifyMember'] == false ? {notifyMember: false} : null")
     public void payment(String id, Map<String,Object> request) {
         // R-04-06 (INC-39): a pending readmission's method waits in its request (D2 edits it with PATCH /members/{id}).
         var member = CensusAccess.unfrozen(access.mutableMember(id)); access.require(Module.BILLING);
-        allow(request, Set.of("type", "sepa", "card", "manual"));
+        allow(request, Set.of("type", "sepa", "card", "manual", "notifyMember"));
+        Object notifyValue = request.get("notifyMember");
+        if (notifyValue != null && !(notifyValue instanceof Boolean)) { throw invalid("notifyMember", "INVALID_VALUE"); }
+        boolean notify = !Boolean.FALSE.equals(notifyValue);
         String type = string(request.get("type"));
         String provider = PaymentProviderFlags.provider(type);
         if (provider == null) { throw invalid("type", "INVALID_VALUE"); }
@@ -204,8 +212,10 @@ public class MemberService {
         if (payment.equals(member.paymentMethod)) { return; }
         member.paymentMethod = payment; access.members.save(member);
         String last4 = string(payment.get("ibanLast4"));
-        events.emit("MemberPaymentMethodChanged", "Member", id, object("memberId", id, "type", type,
-                "masked", com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(last4 != null ? last4 : string(payment.get("iban")))));
+        var changed = object("memberId", id, "type", type,
+                "masked", com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(last4 != null ? last4 : string(payment.get("iban"))));
+        if (!notify) { changed.put("notifyMember", false); } // COMM-03: no N-38
+        events.emit("MemberPaymentMethodChanged", "Member", id, changed);
     }
     @Transactional
     @Audited(action = AuditAction.BOOKING_BLOCK_SET, entityType = "'Member'", entity = "#id", member = "#id", reason = "#reason")
@@ -225,12 +235,25 @@ public class MemberService {
         member.bookingBlock = object("active", false); access.members.save(member);
         events.emit("BookingBlockChanged", "Member", id, object("memberId", id, "active", false, "reason", lifted));
     }
+    /** AUTH-02 (S03 R-03-06b): an ADMIN's change of the member's login e-mail, checked; nothing changes until the link is used. */
+    public record LoginEmailChange(String accountId, String email, String requestedByAccountId) { }
     @Transactional
-    @Audited(action = AuditAction.ACCESS_RESENT, entityType = "'Member'", entity = "#id", member = "#id", reason = "'ACCESS_RESENT'")
-    public String resend(String id, String ip) {
+    public LoginEmailChange loginEmail(String id, String email, String ip) {
         var member = access.mutableMember(id);
         if (!"ACTIVE".equals(member.status) || member.accountId == null) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
-        String email = identities.accessEmail(member.accountId); identities.limitResend(email, ip);
+        return new LoginEmailChange(member.accountId, identities.checkLoginEmailChange(member.accountId, email, ip), CurrentUser.current().accountId());
+    }
+    /** AUTH-02: the confirmation link to the new address, outside the request's transaction (the token has its own). */
+    public void sendLoginEmail(LoginEmailChange change) {
+        identities.sendLoginEmailChange(change.accountId(), change.email(), change.requestedByAccountId());
+    }
+    @Transactional
+    @Audited(action = AuditAction.ACCESS_RESENT, entityType = "'Member'", entity = "#id", member = "#id", reason = "'ACCESS_RESENT'")
+    public String resend(String id) {
+        var member = access.mutableMember(id);
+        if (!"ACTIVE".equals(member.status) || member.accountId == null) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
+        // WEB-01 (S03 R-03-06): the welcome is sent only here, one member at a time; limited per address and per club.
+        String email = identities.accessEmail(member.accountId); identities.limitWelcome(email);
         events.emit("AccessResent", "Member", id, object("memberId", id, "accountId", member.accountId)); return email;
     }
 }

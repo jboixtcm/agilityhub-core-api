@@ -113,7 +113,17 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant erasedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String erasureRequestId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) PlanReference plan,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String billedViaMemberId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String billedViaMemberId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "S03 R-03-06b (AUTH-02): the login e-mail of the member's "
+                    + "account and its suppression mark; null without an account or after erasure") MemberLogin login) { }
+    /** AUTH-02 (S03 R-03-06b): the account's login e-mail on D10 and why mail may not reach it (S11 R-11-08). */
+    public record MemberLogin(
+            @Schema(requiredMode = REQUIRED, format = "email") String email,
+            @Schema(requiredMode = REQUIRED, nullable = true, description = "BOUNCED (hard bounce or invalid address) or COMPLAINED "
+                    + "(spam complaint): no system e-mail (sign-in links, recovery, welcome) reaches this address; null: none") LoginEmailStatus emailStatus,
+            @Schema(requiredMode = REQUIRED, nullable = true, description = "AUTH-03 (S03 R-03-06b): when the account's last access or "
+                    + "recovery e-mail (N-25, N-27) finally failed, after its one retry; null: none, or a later one was accepted by the provider") Instant accessEmailFailedAt) { }
+    public enum LoginEmailStatus { BOUNCED, COMPLAINED }
     public record LevelSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
@@ -123,8 +133,9 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl") String photoThumbnailUrl,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level) { }
-    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
+    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.")
     public record MemberInstructorView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
@@ -134,7 +145,6 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = REQUIRED) List<ContactEmail> contactEmails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones,
-            @Schema(requiredMode = NOT_REQUIRED) Address address,
             @Schema(requiredMode = REQUIRED) MemberStatus status,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
             @Schema(requiredMode = REQUIRED) List<DogSummary> dogs,
@@ -144,11 +154,11 @@ public final class CensusResponses {
      * An INSTRUCTOR row of `GET /members` (E5-T22, CONVENCIONS_API §4): {@link MemberInstructorView}'s keys; `fields` makes it
      * sparse, so only `id` is required. `GET /members/{id}` keeps {@link MemberInstructorView} whole.
      */
-    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
+    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes, booking-block reason and (AUTHZ-02) the postal address; only ACTIVE and PENDING members.")
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record MemberInstructorListItem(
             @Schema(format = "uuid") String id, Integer memberNumber, String firstName, String lastName1, String lastName2, String fullName,
-            List<ContactEmail> contactEmails, List<Phone> phones, Address address, MemberStatus status, DisplayStatus displayStatus,
+            List<ContactEmail> contactEmails, List<Phone> phones, MemberStatus status, DisplayStatus displayStatus,
             List<DogSummary> dogs, boolean bookingBlocked, long version) { }
     public record NamedReference(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -301,6 +311,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl") String photoThumbnailUrl,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
@@ -383,6 +394,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED, description = "Short-lived signed dog photo URL") String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "WEB-05: short-lived signed URL of the photo's small rendition (JPEG, longest side 256 px) for list rows; absent or null when there is none (no photo, or one the server cannot reduce, such as WebP): show photoUrl") String photoThumbnailUrl,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = REQUIRED) DogStatus status,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,

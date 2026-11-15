@@ -46,7 +46,7 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     private java.util.function.Consumer<Call> beforeRefund = call -> {};
     /** Stripe's own checks before a refund moves money (more than is left of the charge is refused); may throw. */
     public void beforeRefund(java.util.function.Consumer<Call> check) { beforeRefund = check; }
-    public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = "succeeded"; refundRejections.clear(); }
+    public void reset() { refusedKeys.clear(); calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = "succeeded"; refundRejections.clear(); cardReadFailures.clear(); }
     /** Model Stripe pruning keys after 24 hours, including a lost response after the remote effect. */
     private Object moneyResult(String key, java.util.function.Supplier<Object> create) {
         return results.compute(key, (ignored, previous) -> {
@@ -55,6 +55,14 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
         });
     }
     @Override public Connection ping() { return new Connection(true,"acct_fictional5678","Fictional Stripe account","test"); }
+    private final Set<String> refusedKeys = ConcurrentHashMap.newKeySet();
+    /** PAY-10: the provider refuses {@code secretKey} (an invalid or revoked key: Stripe's 401) when its connection is tested. */
+    public void refuseKey(String secretKey) { refusedKeys.add(secretKey); }
+    /** PAY-10: the connection test of a key about to be saved; a refused key fails as the adapter fails on Stripe's 401. */
+    @Override public Connection ping(String mode, String secretKey) {
+        if (secretKey == null || refusedKeys.contains(secretKey)) { throw new PaymentNotSubmitted(com.agilityhub.core.shared.domain.ErrorCode.PROVIDER_CONFIG_INVALID); }
+        return new Connection(true, "acct_fictional5678", "Fictional Stripe account", mode);
+    }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public String createCheckoutSession(Request request) {
         String url = super.createCheckoutSession(request);
@@ -95,7 +103,12 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     @Override public WebhookEvent parseWebhook(String payload, String signature, String secret) { return PaymentWebhookParser.authenticate(payload, signature, secret, clock); }
     private final Map<String, com.agilityhub.core.shared.application.BillingCensusAccess.Card> cards = new ConcurrentHashMap<>();
     public void card(String method, com.agilityhub.core.shared.application.BillingCensusAccess.Card card) { cards.put(method, card); }
+    private final Queue<RuntimeException> cardReadFailures = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    /** PAY-02: the next card read of a webhook fails with {@code failure} (what Stripe's outage or refusal makes the adapter throw). */
+    public void failCardRead(RuntimeException failure) { cardReadFailures.add(failure); }
     @Override public com.agilityhub.core.shared.application.BillingCensusAccess.Card cardDetails(com.fasterxml.jackson.databind.JsonNode object) {
+        var failure = cardReadFailures.poll();
+        if (failure != null) { throw failure; }
         return cards.get(object.path("payment_method").asText(object.path("payment_intent").asText()));
     }
     @Override public void forgetCustomer(String customerId) {

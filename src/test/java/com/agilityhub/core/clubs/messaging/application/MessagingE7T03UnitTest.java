@@ -51,6 +51,22 @@ class MessagingE7T03UnitTest {
         });
     }
 
+    @Test void COMM_05_anEndpointOnAnAddressOrPortNoPushServiceUsesIsRefused() {
+        String p256dh = PushKeyFixtures.p256dh(), auth = key(16, 1);
+        for (String endpoint : new String[] {"https://fcm.googleapis.com/fcm/send/abc", "https://updates.push.services.mozilla.com/wpush/v2/abc",
+                "https://web.push.apple.com/QGuQyavXutnMH8", "https://wns2-par02p.notify.windows.com/w/?token=abc", "https://fcm.googleapis.com:443/fcm/send/abc",
+                "https://fcm.googleapis.com./fcm/send/abc"}) {
+            assertThatCode(() -> PushSubscriptionService.validate(endpoint, p256dh, auth)).as(endpoint).doesNotThrowAnyException();
+        }
+        for (String endpoint : new String[] {"https://127.0.0.1/x", "https://10.0.0.5:443/x", "https://[::1]/x", "https://2130706433/x", "https://localhost/x",
+                "https://localhost:443/x", "https://mongo/x", "https://core.localhost/x", "https://push.example.test:8443/x", "https://fcm.googleapis.com:8080/x"}) {
+            var failure = catchThrowableOfType(() -> PushSubscriptionService.validate(endpoint, p256dh, auth), ApiException.class);
+            assertThat(failure).as(endpoint).isNotNull();
+            assertThat(failure.code()).isEqualTo(ErrorCode.PUSH_SUBSCRIPTION_INVALID);
+            assertThat(failure.details()).containsEntry("field", "endpoint");
+        }
+    }
+
     @Test void R_11_07_theDeviceLabelOfTheUserAgent() {
         Map<String, String> cases = new LinkedHashMap<>();
         cases.put("Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/129.0 Mobile/15E148 Safari/604.1", "iPad · Chrome");

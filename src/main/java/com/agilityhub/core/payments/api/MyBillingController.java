@@ -92,15 +92,16 @@ public class MyBillingController {
     @PostMapping("/api/v1/me/card-setup")
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, INVALID_STATE, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "myCardSetup", description = ROLES + "R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in "
-            + "mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. STRIPE not enabled → 422 "
-            + "PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host." + BillingController.SERVED,
+            + "mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. Only a caller whose "
+            + "current payment method is CARD (PAY-09); SEPA_DD, MANUAL or no method → 409 INVALID_STATE (they move to card through the admin's "
+            + "card-setup link). STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host." + BillingController.SERVED,
             responses = @ApiResponse(responseCode = "201", description = "CardSetupLink", useReturnTypeSchema = true))
     public CardSetupLink myCardSetup(@Valid @RequestBody CardSetupRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         // E8-T01 round 2: the caller's own member of the club first (a token without one → 404; erased → 409), then the stub.
         access.mutableMember(access.me());
-        var result = checkouts.create(access.me(), null, java.util.List.of(), true, request.successUrl(), request.cancelUrl(), created -> {
+        var result = checkouts.createOwnCardSetup(access.me(), request.successUrl(), request.cancelUrl(), created -> {
             try { return mapper.writeValueAsBytes(new CardSetupLink(created.checkoutUrl())); }
             catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
         });

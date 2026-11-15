@@ -151,6 +151,19 @@ class BillingRunServiceSurvivorsTest {
         assertThat(sepaTotals.remittanceId()).isEqualTo(outcome.remittance().id());
     }
 
+    @Test void pausedClubCanSimulateButCannotGenerateAFileOrAllocateInvoiceNumbers() {
+        var draft = new InvoicingRules.Draft("member-sepa", List.of(line(4500, null)), List.of());
+        var plan = plan(List.of(draft), List.of(), Map.of("member-sepa", member("member-sepa", "SEPA_DD", null)), List.of());
+        generating(plan, List.of());
+        service.setSepaGenerationPausedClubIds(Set.of(CLUB));
+        assertThatThrownBy(() -> service.generate(PERIOD, "simulation-1", COLLECTION))
+                .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class, error -> {
+                    assertThat(error.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.SEPA_NOT_CONFIGURED);
+                    assertThat(error.details()).containsEntry("reason", "GENERATION_PAUSED");
+                });
+        org.mockito.Mockito.verifyNoInteractions(numbers, writer, events);
+    }
+
     @Test void T_12_21_anUnknownSimulationIsNotFound() {
         assertThatThrownBy(() -> service.generate(PERIOD, "simulation-unknown", COLLECTION)).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class)
                 .hasMessage("NOT_FOUND");
@@ -218,7 +231,7 @@ class BillingRunServiceSurvivorsTest {
         when(invoices.forRun("run-1")).thenReturn(List.of(invoice("invoice-1", "member-sepa", InvoiceStatus.FAILED, "run-1", "remittance-1"),
                 invoice("invoice-2", "member-other", InvoiceStatus.COLLECTING, "run-1", "remittance-1")));
         var receipt = receipt("receipt-r1", "member-waiting", InvoiceStatus.COLLECTING, "remittance-1");
-        when(invoices.includedIn("remittance-1")).thenReturn(List.of(receipt));
+        when(invoices.includedIn("remittance-1", "run-1")).thenReturn(List.of(receipt));
         var invoiceAttempts = List.of(
                 attempt("a-1", "invoice-1", 1, "remittance-1", "MANDATE-1", "2026-0001", SIGNED, CollectionStatus.CREATED),
                 attempt("a-2", "invoice-2", 1, "remittance-1", "MANDATE-2", "2026-0002", SIGNED_LATER, CollectionStatus.CREATED),

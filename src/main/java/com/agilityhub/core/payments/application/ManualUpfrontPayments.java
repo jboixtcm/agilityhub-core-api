@@ -51,6 +51,7 @@ public class ManualUpfrontPayments {
         var provider = new LinkedHashMap<String,Object>(); provider.put("type", p.provider()); provider.put("channel", p.channel()); provider.put("paidAt", p.paidAt()); provider.put("reference", p.reference());
         provider.put("checkoutSessionId", p.checkoutSessionId()); provider.put("paymentIntentId", p.stripe() == null ? null : p.stripe().paymentIntentId()); provider.put("chargeId", p.stripe() == null ? null : p.stripe().chargeId());
         out.put("provider", p.provider() == null ? null : provider); out.put("bookingId", p.bookingId()); out.put("activityRegistrationId", p.activityRegistrationId());
-        out.put("packBalanceId", p.packBalanceId()); out.put("refunds", p.refunds() == null ? List.of() : p.refunds()); out.put("note", p.note()); out.put("createdAt", p.createdAt()); out.put("paidAt", p.paidAt()); return out;
+        out.put("packBalanceId", p.packBalanceId()); out.put("refunds", p.refunds() == null ? List.of() : p.refunds()); out.put("note", p.note()); out.put("createdAt", p.createdAt()); out.put("paidAt", p.paidAt());
+        out.put("dispute", p.dispute()); return out; // PAY-06: the Stripe dispute (chargeback) flag
     }
 }

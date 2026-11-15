@@ -23,10 +23,18 @@ public class ClassCancellationUseCase {
     }
     /** The admin's own cancellation (reason CLUB_MANUAL) for callers outside S06, which hold no S06 domain type (the E6-T04 demo seed). */
     public void cancelByClub(String id,String adminText,String actor) { cancel(id,ClassCancellationReason.CLUB_MANUAL,adminText,actor); }
-    public ClassSession cancel(String id,ClassCancellationReason reason,String adminText,String actor) {
+    /**
+     * PLAN-02 (owner decision, 13-11-2026): the ADMIN's route (`POST /class-sessions/{id}/cancellation`, D4c) is refused with
+     * 409 INVALID_STATE once the class has started; nothing changes. The other callers (S15's review, which skips a started
+     * class itself; S07's activity conflicts; the demo seed) keep {@link #cancel}.
+     */
+    public ClassSession cancelByAdmin(String id,ClassCancellationReason reason,String adminText,String actor) { return cancel(id,reason,adminText,actor,true); }
+    public ClassSession cancel(String id,ClassCancellationReason reason,String adminText,String actor) { return cancel(id,reason,adminText,actor,false); }
+    private ClassSession cancel(String id,ClassCancellationReason reason,String adminText,String actor,boolean beforeStart) {
         return transactions.write(() -> {
             var before=sessions.require(id);
             ClassSessionRules.transition(before.state(),ClassState.CANCELLED,reason);
+            if(beforeStart) ClassSessionRules.cancellableByAdmin(before.startsAt(),clock.instant());
             var live=bookings.activeBookings(id); var waiting=bookings.liveWaitlist(id);
             if((before.counters().booked()>0 || before.counters().waiting()>0 || !live.isEmpty() || !waiting.isEmpty())
                     && (adminText==null || adminText.isBlank() || adminText.length()>500)) throw new ApiException(ErrorCode.ADMIN_TEXT_REQUIRED);

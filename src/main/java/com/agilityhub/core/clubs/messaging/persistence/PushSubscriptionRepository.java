@@ -68,6 +68,20 @@ public class PushSubscriptionRepository extends TenantRepository<PushSubscriptio
         var query = tenantQuery().addCriteria(Criteria.where("_id").is(current.id()).and("accountId").is(current.accountId()).and("version").is(current.version()));
         return mongo.updateFirst(query, update, PushSubscription.class).getModifiedCount() == 1;
     }
+    /** COMM-10 (S14 R-14-16): the tenant's `EXPIRED` subscriptions whose `expiredAt` is at or before `cutoff`, oldest first. */
+    public java.util.List<String> expiredBefore(java.time.Instant cutoff) {
+        var query = tenantQuery().addCriteria(Criteria.where("status").is(PushSubscription.Status.EXPIRED).and("expiredAt").lte(cutoff))
+                .with(org.springframework.data.domain.Sort.by("expiredAt", "_id"));
+        return mongo.find(query, PushSubscription.class).stream().map(PushSubscription::id).toList();
+    }
+    /**
+     * COMM-10: deletes the subscription (endpoint, keys and device) only while it is still `EXPIRED` since at or before `cutoff`
+     * — one the browser subscribed again meanwhile is `ACTIVE` and stays; `false` when nothing was deleted.
+     */
+    public boolean deleteExpired(String id, java.time.Instant cutoff) {
+        return mongo.remove(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is(PushSubscription.Status.EXPIRED).and("expiredAt").lte(cutoff)),
+                PushSubscription.class).getDeletedCount() == 1;
+    }
     /** A subscription of the tenant owned by the account (`DELETE /push-subscriptions/{id}`, «pròpia»): another account's is absent. */
     public Optional<PushSubscription> findOwn(String id, String accountId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("accountId").is(accountId)), PushSubscription.class));

@@ -66,7 +66,7 @@ class AuditQueriesIT extends AbstractIntegrationTest {
     }
     ResultActions call(MockHttpServletRequestBuilder request, String club, String role) throws Exception {
         return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject("audit-admin").claim("name", "Example Admin")
-                .claim("clubId", club).claim("locale", requesterLocale)).authorities(() -> "ROLE_" + role)));
+                .claim("clubId", club).claim("locale", requesterLocale).claim("auth_time", signedInNow())).authorities(() -> "ROLE_" + role)));
     }
     ResultActions admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, CLUB, "ADMIN"); }
     JsonNode json(ResultActions result) throws Exception { return mapper.readTree(result.andExpect(status().isOk()).andReturn().getResponse().getContentAsString()); }

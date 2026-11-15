@@ -13,9 +13,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TrainingAudit {
-    @Audited(action = AuditAction.TRAINING_BOOKED_BY_CLUB, entityType = "'TrainingBooking'", member = "#after.memberId", reason = "#reason", events = "{#eventId}")
-    public TrainingBooking bookedByClub(TrainingBooking after, String reason, String eventId) { return after; }
+    /** COMM-03: the entry of a club action that did not notify the member says so (`details.notifyMember = false`). */
+    static final String SILENCED = "#notify ? null : {notifyMember: false}";
+    @Audited(action = AuditAction.TRAINING_BOOKED_BY_CLUB, entityType = "'TrainingBooking'", member = "#after.memberId", reason = "#reason", events = "{#eventId}",
+            details = SILENCED)
+    public TrainingBooking bookedByClub(TrainingBooking after, String reason, String eventId, boolean notify) { return after; }
     @Audited(action = AuditAction.TRAINING_CANCELLED_BY_CLUB, entityType = "'TrainingBooking'", before = "#before", member = "#after.memberId", reason = "#reason",
-            events = "{#eventId}")
-    public TrainingBooking cancelledByClub(TrainingBooking before, TrainingBooking after, String reason, String eventId) { return after; }
+            events = "{#eventId}", details = SILENCED)
+    public TrainingBooking cancelledByClub(TrainingBooking before, TrainingBooking after, String reason, String eventId, boolean notify) { return after; }
 }

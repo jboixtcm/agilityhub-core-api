@@ -109,4 +109,7 @@ class ArchitectureTest {
     static final ArchRule E8_T02_T_12_12_noPaymentsRepositoryUpdatesAnInvoiceOrItsLines = ArchitectureRules.INVOICE_LINES_IMMUTABLE;
     @ArchTest static final ArchRule E9_T01_coursesKeepsItsContextBoundary = ArchitectureRules.COURSES_DEPENDENCIES;
     @ArchTest static final ArchRule E9_T01_clubsReachesCoursesOnlyThroughPorts = ArchitectureRules.CLUBS_WITHOUT_COURSES;
+
+    /** AUTHZ-03: every controller mapping declares its roles with `@PreAuthorize`, or is a listed open route. */
+    @ArchTest static final ArchRule AUTHZ_03_everyHandlerDeclaresItsRolesOrIsAListedOpenRoute = ArchitectureRules.HANDLER_ROLES;
 }

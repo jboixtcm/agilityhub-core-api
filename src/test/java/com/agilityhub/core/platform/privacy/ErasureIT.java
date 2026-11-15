@@ -356,7 +356,8 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(erased.path("accountMissing").asBoolean()).isFalse();
         assertThat(erased.at("/paymentMethod/type").asText()).isEqualTo("SEPA_DD");
         assertThat(erased.at("/displayStatus/kind").asText()).isEqualTo("ERASED");
-        assertThat(json(call(get("/api/v1/members/montse"), CLUB, "instructor-account", "INSTRUCTOR"), 200).has("address")).isFalse();
+        // AUTHZ-02 (S03 R-03-31): an INSTRUCTOR no longer reads an ex-member (Montse is LEFT); before, the record came without its address.
+        assertThat(json(call(get("/api/v1/members/montse"), CLUB, "instructor-account", "INSTRUCTOR"), 404).path("code").asText()).isEqualTo("NOT_FOUND");
         var overview = json(admin(get("/api/v1/members/montse/overview")), 200);
         assertThat(overview.path("dogs").findValuesAsText("name")).containsOnly("Gos suprimit");
         assertThat(overview.path("dogs")).hasSize(2);
@@ -618,6 +619,76 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(document("members", "montse").getString("firstName")).isEqualTo("Fictional");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("invoice-late")), new org.springframework.data.mongodb.core.query.Update().set("status", "PAID"), "invoices");
         clock.setInstant(DUE.plusSeconds(86400));
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(request(id).status()).isEqualTo("ERASING");
+        assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
+    }
+
+    /** PRIV-04: one SEPA collection of {@code invoiceId} in a remittance with this status and collection date (as S12 stores them). */
+    void sepaCollection(String id, String invoiceId, String provider, String remittanceId, String remittanceStatus, String collectionDate) {
+        raw("collections", "_id", id, "clubId", CLUB, "invoiceId", invoiceId, "provider", provider, "status", "SUCCEEDED", "attempt", 1, "remittanceId", remittanceId);
+        if (mongo.findById(remittanceId, Document.class, "remittances") == null) {
+            raw("remittances", "_id", remittanceId, "clubId", CLUB, "messageId", "rgpd-" + remittanceId, "status", remittanceStatus,
+                    "requestedCollectionDate", collectionDate);
+        }
+    }
+
+    /**
+     * PRIV-04 (owner's decision of 13-11-2026): a SEPA collection of the member inside its 8-week refund window does not refuse the
+     * request; it waits BLOCKED with the reason, the daily run leaves it, and it runs the day the window closes. Only the member's
+     * own SEPA debits of a remittance not rolled back count, and only for 8 weeks.
+     */
+    @Test void PRIV_04_aRequestWaitsBlockedWhileASepaCollectionIsRefundableAndRunsWhenTheWindowCloses() throws Exception {
+        raw("invoices", "_id", "invoice-august", "clubId", CLUB, "memberId", "montse", "status", "PAID", "series", "2026", "number", 901);
+        sepaCollection("collection-august", "invoice-august", "SEPA_XML", "remittance-august", "SUBMITTED", "2026-08-27");
+        raw("invoices", "_id", "invoice-other", "clubId", CLUB, "memberId", "montse", "status", "PAID", "series", "2026", "number", 902);
+        sepaCollection("collection-rolled-back", "invoice-other", "SEPA_XML", "remittance-rolled-back", "ROLLED_BACK", "2026-09-03");
+        sepaCollection("collection-card", "invoice-other", "STRIPE", "remittance-september", "SUBMITTED", "2026-09-04");
+        sepaCollection("collection-july", "invoice-other", "SEPA_XML", "remittance-july", "SUBMITTED", "2026-07-10");
+        raw("invoices", "_id", "invoice-active", "clubId", CLUB, "memberId", "active", "status", "PAID", "series", "2026", "number", 903);
+        sepaCollection("collection-active", "invoice-active", "SEPA_XML", "remittance-september", "SUBMITTED", "2026-09-04");
+
+        var created = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201);
+        assertThat(created.path("status").asText()).isEqualTo("BLOCKED");
+        assertThat(created.path("blockReasons").toString()).isEqualTo("[\"SEPA_REFUND_WINDOW\"]");
+        // 27-08 + 8 weeks = 22-10, the last day a refund can be claimed: it runs from the start of 23-10 (club-local), not at its margin.
+        assertThat(created.path("executeAt").asText()).isEqualTo("2026-10-22T22:00:00Z");
+        String id = created.path("id").asText();
+        assertThat(json(admin(get("/api/v1/members/montse/erasure")), 200).path("blockReasons").toString()).isEqualTo("[\"SEPA_REFUND_WINDOW\"]");
+        assertThat(count("domain_events", Criteria.where("type").is("AccountErasureRequested").and("payload.executeAt").is("2026-10-22T22:00:00Z"))).isEqualTo(1);
+        assertThat(documents("audit_entries", "action", "ERASURE_REQUESTED")).hasSize(1);
+
+        // At its margin the daily run does not take it; on the last day of the window it is still not due.
+        for (Instant day : List.of(DUE, Instant.parse("2026-10-22T05:00:00Z"))) {
+            clock.setInstant(day);
+            runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+            assertThat(request(id).status()).isEqualTo("BLOCKED");
+            assertThat(document("members", "montse").getString("firstName")).isEqualTo("Fictional");
+        }
+        clock.setInstant(Instant.parse("2026-10-23T05:00:00Z"));
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(request(id).status()).isEqualTo("ERASING");
+        assertThat(request(id).blockReasons()).isEmpty();
+        assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
+    }
+
+    /** PRIV-04: a debit collected after the request makes the execution wait BLOCKED, retried daily, until its window closes. */
+    @Test void PRIV_04_aDebitCollectedAfterTheRequestKeepsTheExecutionBlockedUntilItsWindowCloses() throws Exception {
+        var created = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201);
+        assertThat(created.path("status").asText()).isEqualTo("SCHEDULED");
+        String id = created.path("id").asText();
+        raw("invoices", "_id", "invoice-last", "clubId", CLUB, "memberId", "montse", "status", "PAID", "series", "2026", "number", 904);
+        sepaCollection("collection-last", "invoice-last", "SEPA_XML", "remittance-last", "SUBMITTED", "2026-09-20");
+        clock.setInstant(DUE);
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(request(id).status()).isEqualTo("BLOCKED");
+        assertThat(request(id).blockReasons()).containsExactly("SEPA_REFUND_WINDOW");
+        // 20-09 + 8 weeks = 15-11: still blocked that day, erased on 16-11.
+        clock.setInstant(Instant.parse("2026-11-15T05:00:00Z"));
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(request(id).status()).isEqualTo("BLOCKED");
+        assertThat(document("members", "montse").getString("firstName")).isEqualTo("Fictional");
+        clock.setInstant(Instant.parse("2026-11-16T05:00:00Z"));
         runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
         assertThat(request(id).status()).isEqualTo("ERASING");
         assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");

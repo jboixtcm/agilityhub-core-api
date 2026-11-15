@@ -69,7 +69,8 @@ class NotificationMatrixTest {
     static final String CLUB = "e7t04-matrix", MEMBER_ID = "member-matrix", INSTRUCTOR_ID = "instructor-matrix", STAFF_ID = "member-staff";
     static final Instant NOW = Instant.parse("2026-10-07T08:00:00Z");
     /** The catalog codes the engine can never produce from an event: no event at all (the S14 worker triggers N-50, E11-T01) or a request (N-53, S17). */
-    static final List<String> WITHOUT_EVENT = List.of("N-50", "N-53");
+    /** OUT-01: N-57 is triggered by the outbox dispatcher itself, never by an event, like N-53 by the console. */
+    static final List<String> WITHOUT_EVENT = List.of("N-50", "N-53", "N-57");
     static final Map<String, AtomicInteger> COUNTS = new TreeMap<>();
     static final ClubConfig.ClubView VIEW = new ClubConfig.ClubView(CLUB, CLUB, "Club Matriu", List.of("ca", "es", "en"), "ca", "Europe/Madrid", "EUR", null, null,
             "ACTIVE", null);

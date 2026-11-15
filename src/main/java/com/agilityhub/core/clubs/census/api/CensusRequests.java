@@ -44,6 +44,13 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 2) List<@Valid Phone> phones,
             @Schema(requiredMode = NOT_REQUIRED) @Valid Address address,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
+    /** `PATCH /members/{id}/payment-method`: the method and, COMM-03, whether the member is notified (N-38). */
+    public record PaymentMethodUpdate(
+            @Schema(requiredMode = REQUIRED) @NotNull PaymentMethodType type,
+            @Schema(requiredMode = NOT_REQUIRED) @Valid SepaInput sepa,
+            @Schema(requiredMode = NOT_REQUIRED) @Valid CardInput card,
+            @Schema(requiredMode = NOT_REQUIRED) @Valid ManualInput manual,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "COMM-03: false = do not notify the member (no N-38). Absent or true: notify. Recorded in the audit entry") Boolean notifyMember) { }
     public record PaymentMethodPatch(
             @Schema(requiredMode = REQUIRED) @NotNull PaymentMethodType type,
             @Schema(requiredMode = NOT_REQUIRED) @Valid SepaInput sepa,
@@ -62,6 +69,10 @@ public final class CensusRequests {
             @Schema(requiredMode = REQUIRED) @NotBlank String channel) { }
     public record BookingBlockRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank @Size(max = 200) String reason) { }
+    /** AUTH-02 (S03 R-03-06b): the new login e-mail an ADMIN enters on D10. */
+    @Schema(name = "LoginEmailChangeRequest")
+    public record LoginEmailChangeRequest(
+            @Schema(requiredMode = REQUIRED, format = "email") @NotBlank @Email @Size(max = 254) String email) { }
     public record ReasonRequest(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record RolesRequest(
@@ -95,7 +106,8 @@ public final class CensusRequests {
                     + "At most 10 new files per request (kept files do not count). Sending back the view's keys is no change.") List<SignupRequests.SignupDocument> documents,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record DogLevelRequest(
-            @Schema(requiredMode = REQUIRED) @NotBlank String levelId) { }
+            @Schema(requiredMode = REQUIRED) @NotBlank String levelId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "COMM-03: false = do not notify the member (no N-09). Absent or true: notify. Recorded in the audit entry") Boolean notifyMember) { }
     public record FreeTrainingRequest(
             @Schema(requiredMode = REQUIRED, types = {"boolean", "null"}) Boolean override) { }
     public record DogTransferRequest(

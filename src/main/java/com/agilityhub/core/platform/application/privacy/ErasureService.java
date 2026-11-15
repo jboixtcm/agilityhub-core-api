@@ -32,7 +32,9 @@ import org.springframework.stereotype.Service;
  * S14 R-14-14: an erasure request and its cancellation. The checks run first and nothing is created when one fails (`422
  * ERASURE_BLOCKED {reasons}`); a live request is unique per member (`409 ERASURE_ALREADY_REQUESTED`, also under a race through
  * the unique partial index, T-14-24). Each request publishes `AccountErasureRequested` (S01 revokes sessions, S11 sends N-52 unless
- * `source = RETENTION`) and audits `ERASURE_REQUESTED`, in one transaction.
+ * `source = RETENTION`) and audits `ERASURE_REQUESTED`, in one transaction. PRIV-04 (owner's decision of 13-11-2026): a reason that
+ * waits (`SEPA_REFUND_WINDOW`) refuses nothing: the request is created `BLOCKED` with it, `executeAt` no earlier than the day the
+ * refund window closes, and the daily run executes it from then on (R-14-15 checks again).
  */
 @Service
 public class ErasureService {
@@ -64,8 +66,10 @@ public class ErasureService {
             if (member.erased()) { throw new ApiException(ErrorCode.MEMBER_ERASED); }
             if (requests.live(memberId).isPresent()) { throw new ApiException(ErrorCode.ERASURE_ALREADY_REQUESTED); }
             Instant now = clock.instant();
-            blocked(eligibility.check(List.of(member), now));
-            var request = schedule(member, "ADMIN", reason, CurrentUser.current() == null ? null : CurrentUser.current().accountId(), now);
+            var reasons = eligibility.check(List.of(member), now);
+            blocked(reasons);
+            var request = schedule(member, "ADMIN", reason, CurrentUser.current() == null ? null : CurrentUser.current().accountId(), now,
+                    reasons, eligibility.waitsUntil(List.of(member), now).orElse(null));
             audit.write(new AuditCommand(AuditAction.ERASURE_REQUESTED, "ErasureRequest", request.id(), memberId, null, null, reason));
             return request;
         });
@@ -77,20 +81,23 @@ public class ErasureService {
      */
     public ErasureRequest requestRetention(ErasureMember member, String process) {
         return transactions.write(() -> {
-            var request = schedule(member, "RETENTION", null, null, clock.instant());
+            var request = schedule(member, "RETENTION", null, null, clock.instant(), Set.of(), null);
             audit.writeAsSystem(new AuditCommand(AuditAction.ERASURE_REQUESTED, "ErasureRequest", request.id(), member.id(), null, null, null), process);
             return request;
         });
     }
 
-    private ErasureRequest schedule(ErasureMember member, String source, String reason, String by, Instant now) {
+    /** {@code reasons} the checks gave (only waiting ones are left here); {@code waitsUntil} when they stop holding, or null. */
+    private ErasureRequest schedule(ErasureMember member, String source, String reason, String by, Instant now, Set<ErasureBlockReason> reasons,
+            Instant waitsUntil) {
         String clubId = TenantContext.require();
         var config = configs.get(clubId);
         ZoneId zone = ZoneId.of(config.club().timeZone());
         int margin = config.get("rgpd.erasureMinDaysAfterLeave", Integer.class);
-        Instant executeAt = ErasurePolicy.executeAt(now, member, zone, margin, "RETENTION".equals(source));
+        Instant executeAt = later(ErasurePolicy.executeAt(now, member, zone, margin, "RETENTION".equals(source)), waitsUntil);
+        var waiting = waiting(reasons);
         var request = requests.insert(new ErasureRequest(UUID.randomUUID().toString(), clubId, "MEMBER", member.accountId(), List.of(member.id()),
-                List.of(clubId), source, by, now, reason, "SCHEDULED", executeAt, List.of(), null, null, null, List.of(), List.of(), false, true, null, 0));
+                List.of(clubId), source, by, now, reason, status(waiting), executeAt, waiting, null, null, null, List.of(), List.of(), false, true, null, 0));
         events.publish(requested(request, clubId, by, now));
         return request;
     }
@@ -113,6 +120,7 @@ public class ErasureService {
                     var members = directory.ofAccount(accountId).stream().filter(member -> !member.erased()).toList();
                     if (members.isEmpty()) { continue; }
                     reasons.addAll(eligibility.check(members, now));
+                    executeAt = later(executeAt, eligibility.waitsUntil(members, now).orElse(null));
                     var config = configs.get(clubId);
                     for (var member : members) {
                         memberIds.add(member.id()); clubIds.add(clubId);
@@ -125,8 +133,9 @@ public class ErasureService {
             blocked(reasons);
             for (String memberId : memberIds) { if (requests.live(memberId).isPresent()) { throw new ApiException(ErrorCode.ERASURE_ALREADY_REQUESTED); } }
             String by = CurrentUser.current() == null ? null : CurrentUser.current().accountId();
+            var waiting = waiting(reasons);
             var created = requests.insert(new ErasureRequest(UUID.randomUUID().toString(), null, "ACCOUNT", accountId, memberIds, List.copyOf(clubIds),
-                    "PLATFORM", by, now, reason, "SCHEDULED", executeAt, List.of(), null, null, null, List.of(), List.of(), false, true, null, 0));
+                    "PLATFORM", by, now, reason, status(waiting), executeAt, waiting, null, null, null, List.of(), List.of(), false, true, null, 0));
             events.publish(requested(created, null, by, now));
             audit.write(new AuditCommand(AuditAction.ERASURE_REQUESTED, "ErasureRequest", created.id(), null, null, null, reason));
             return created;
@@ -183,11 +192,18 @@ public class ErasureService {
         if (!requests.update(request, update)) { throw new ApiException(ErrorCode.STALE_VERSION); }
     }
 
+    /** R-14-14: the reasons that refuse a request (`422 ERASURE_BLOCKED`, only those listed); a waiting one (PRIV-04) does not. */
     private static void blocked(Set<ErasureBlockReason> reasons) {
-        if (!reasons.isEmpty()) {
-            throw new ApiException(ErrorCode.ERASURE_BLOCKED, Map.of("reasons", reasons.stream().map(Enum::name).sorted().toList()));
-        }
+        var refusing = reasons.stream().filter(blockReason -> !blockReason.waits()).map(Enum::name).sorted().toList();
+        if (!refusing.isEmpty()) { throw new ApiException(ErrorCode.ERASURE_BLOCKED, Map.of("reasons", refusing)); }
     }
+    /** PRIV-04: the waiting reasons a new request carries as its `blockReasons`. */
+    private static List<String> waiting(Set<ErasureBlockReason> reasons) {
+        return reasons.stream().filter(ErasureBlockReason::waits).map(Enum::name).sorted().toList();
+    }
+    /** PRIV-04: a request with a waiting reason is created `BLOCKED` (visible on D10 and the console), otherwise `SCHEDULED`. */
+    private static String status(List<String> waiting) { return waiting.isEmpty() ? "SCHEDULED" : "BLOCKED"; }
+    private static Instant later(Instant executeAt, Instant waitsUntil) { return waitsUntil != null && waitsUntil.isAfter(executeAt) ? waitsUntil : executeAt; }
 
     static PrivacyEvent requested(ErasureRequest request, String clubId, String by, Instant now) {
         var payload = new LinkedHashMap<String, Object>();

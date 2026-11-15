@@ -19,6 +19,7 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -81,6 +82,26 @@ class MyBillingControllerSurvivorsTest {
         when(mapper.convertValue(view, BillingContracts.PackBalanceDetail.class)).thenReturn(detail);
 
         assertThat(controller.myPackBalances()).containsExactly(detail);
+    }
+
+    /**
+     * PAY-09 (owner decision of 13 Nov 2026, S12 R-12-22): `POST /me/card-setup` opens the caller's own setup through the guarded
+     * {@code createOwnCardSetup} (only a card payer), never the admin link's unguarded {@code create}; its refusal reaches the caller.
+     */
+    @Test void PAY_09_theMembersOwnCardSetupGoesThroughTheCardPayerGuard() {
+        var checkouts = mock(com.agilityhub.core.payments.application.PaymentCheckouts.class);
+        ReflectionTestUtils.setField(controller, "checkouts", checkouts);
+        when(access.me()).thenReturn("member-1");
+        var request = new BillingRequests.CardSetupRequest("https://club-a.example.test/ok", "https://club-a.example.test/ko");
+        when(checkouts.createOwnCardSetup(eq("member-1"), eq(request.successUrl()), eq(request.cancelUrl()), any()))
+                .thenReturn(new com.agilityhub.core.payments.application.CheckoutService.Result("https://checkout.example.test/setup", "session-1"));
+
+        assertThat(controller.myCardSetup(request, java.util.UUID.randomUUID()).checkoutUrl()).isEqualTo("https://checkout.example.test/setup");
+
+        when(checkouts.createOwnCardSetup(eq("member-1"), any(), any(), any())).thenThrow(new ApiException(ErrorCode.INVALID_STATE));
+        assertCode(() -> controller.myCardSetup(request, java.util.UUID.randomUUID()), ErrorCode.INVALID_STATE);
+        verify(access, times(2)).mutableMember("member-1");
+        verify(checkouts, never()).create(any(), any(), any(), anyBoolean(), any(), any(), any());
     }
 
     static void assertCode(ThrowingCallable call, ErrorCode code) {

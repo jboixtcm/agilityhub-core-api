@@ -122,9 +122,12 @@ public class MeController {
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Set or change the current account password",
             description = "Account token, never impersonated. R-01-05: current is required only when a password already exists, except once in a session "
-                    + "opened by a RESET magic link, within 15 minutes of the link's exchange (ruling E49); a LOGIN link never allows it.",
+                    + "opened by a RESET magic link, within 15 minutes of the link's exchange (ruling E49); a LOGIN link never allows it. "
+                    + "AUTH-01: the new password has at least auth.passwordMinLength characters (code points), and at least 12 for a staff account "
+                    + "(ADMIN or INSTRUCTOR in a club, or AGILITYHUB_ADMIN); PASSWORD_TOO_SHORT carries details.minLength, the account's minimum. "
+                    + "Existing passwords stay valid.",
             responses = {@ApiResponse(responseCode = "200", description = "Password changed", content = @Content),
-                    @ApiResponse(responseCode = "400", description = "PASSWORD_TOO_SHORT, PASSWORD_MISMATCH, PASSWORD_COMPROMISED"),
+                    @ApiResponse(responseCode = "400", description = "PASSWORD_TOO_SHORT {minLength}, PASSWORD_MISMATCH, PASSWORD_COMPROMISED"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS for current password"),
                     @ApiResponse(responseCode = "403", description = "FORBIDDEN for impersonated accounts")})
     public ResponseEntity<Void> password(@Valid @RequestBody PasswordRequest request, @AuthenticationPrincipal Jwt jwt) {

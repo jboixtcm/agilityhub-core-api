@@ -84,7 +84,8 @@ public class BookingNotificationFacts implements NotificationFactsPort, Waitlist
             case "N-04" -> created && Set.of("APP", "INSTRUCTOR").contains(origin);
             case "N-05" -> !created && (Set.of("MEMBER", "INSTRUCTOR").contains(by) || "INSTRUCTOR".equals(origin)) && !"BACKOFFICE".equals(origin)
                     && !"PAYMENT_TIMEOUT".equals(reason);
-            case "N-36" -> "BACKOFFICE".equals(origin);
+            // COMM-03: an ADMIN acting for the member may have asked not to notify (`notifyMember: false`).
+            case "N-36" -> "BACKOFFICE".equals(origin) && !"false".equals(trigger.text("notifyMember"));
             case "N-40" -> !created && "PAYMENT_TIMEOUT".equals(reason) && !trigger.flag("checkoutFailed");
             default -> false;
         };
@@ -245,6 +246,21 @@ public class BookingNotificationFacts implements NotificationFactsPort, Waitlist
                 .value("class_description", new NotificationValues.Localized(locale -> classes.labels(session, locale).description()))
                 .value("ring_name", new NotificationValues.Localized(locale -> Objects.toString(classes.labels(session, locale).ringName(), "")))
                 .subject(NotificationSubject.classSession(session.id()));
+    }
+
+    /**
+     * COMM-10 (S11 R-11-07): a class reminder's push never reaches the device after the class start (`classStartsAt` of its
+     * booking); a FIFO seat offer's lives until the entry's `confirmBy`. An ALL_AT_ONCE offer has no deadline (the club's TTL).
+     */
+    @Override public Optional<Instant> pushDeadline(StoredNotification notification) {
+        var subject = notification.subject();
+        if ("N-13".equals(notification.code()) && subject.bookingId() != null) {
+            return bookings.findById(subject.bookingId()).map(com.agilityhub.core.clubs.bookings.persistence.Booking::classStartsAt);
+        }
+        if ("N-15".equals(notification.code()) && subject.waitlistEntryId() != null) {
+            return waitlist.findById(subject.waitlistEntryId()).map(com.agilityhub.core.clubs.bookings.persistence.WaitlistEntry::confirmBy);
+        }
+        return Optional.empty();
     }
 
     /** R-11-11 `CLAIM_SEAT.enabled`: the entry is still `NOTIFIED` and, in FIFO, `confirmBy` is after now. */

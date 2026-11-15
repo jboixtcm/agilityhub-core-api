@@ -20,7 +20,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Document("billing_simulations")
 public record BillingSimulation(@Id String id, String clubId, String period, Instant at, List<Incident> incidents, List<CashMember> cashMembers,
-        List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds, List<String> conceptIds) implements TenantEntity {
+        List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds, List<String> conceptIds,
+        Comparison comparison) implements TenantEntity {
+    /** The simulation before SEPA-10 (no comparison with the previous month). */
+    public BillingSimulation(String id, String clubId, String period, Instant at, List<Incident> incidents, List<CashMember> cashMembers,
+            List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds, List<String> conceptIds) {
+        this(id, clubId, period, at, incidents, cashMembers, invoicesPreview, kpis, createdByAccountId, chargeIds, waitingInvoiceIds, conceptIds, null);
+    }
     public BillingSimulation(String id, String clubId, String period, Instant at, List<Incident> incidents, List<CashMember> cashMembers,
             List<PreviewInvoice> invoicesPreview, Kpis kpis, String createdByAccountId, List<String> chargeIds, List<String> waitingInvoiceIds) {
         this(id, clubId, period, at, incidents, cashMembers, invoicesPreview, kpis, createdByAccountId, chargeIds, waitingInvoiceIds, null);
@@ -51,4 +57,9 @@ public record BillingSimulation(@Id String id, String clubId, String period, Ins
     public record ByProvider(Totals sepaXml, Totals stripe, Totals manual) { }
     public record Totals(int count, Money total) { }
     public record InactivityFees(int count, Money firstMonth, Money following) { }
+    /**
+     * SEPA-10 (R-12-11): the simulated total against the previous month's live run, as simulated: `previousTotal` null without one,
+     * `thresholdPercent` = `billing.totalDifferenceConfirmPercent`, and whether D6 must ask a second explicit confirmation.
+     */
+    public record Comparison(String previousPeriod, Money previousTotal, int thresholdPercent, boolean secondConfirmationRequired) { }
 }

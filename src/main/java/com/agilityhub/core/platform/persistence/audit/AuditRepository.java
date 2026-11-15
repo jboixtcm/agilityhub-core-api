@@ -50,6 +50,14 @@ public class AuditRepository {
         return tenants.lastChanges(entityType, entityIds);
     }
 
+    /**
+     * AUTHZ-05 (S17 R-17-10): whether the current club's audit holds an entry of the support access request {@code traceId}
+     * (`origin = PLATFORM_SUPPORT`) written at or after {@code since}; the time bound keeps the lookup on `audit_club_at`.
+     */
+    public boolean supportEntrySince(String traceId, Instant since) {
+        return tenants.supportEntrySince(traceId, since);
+    }
+
     /** Explicit global operation selects only platform entries, never all tenants. */
     public Optional<AuditEntry> lastPlatformChange(String entityType, String entityId) {
         requirePlatformScope();
@@ -127,6 +135,10 @@ public class AuditRepository {
         TenantEntries(MongoTemplate mongo) { super(mongo, AuditEntry.class); }
         Optional<AuditEntry> lastChange(String entityType, String entityId) {
             return findLast(tenantQuery(), entityType, entityId);
+        }
+        boolean supportEntrySince(String traceId, Instant since) {
+            return mongo.exists(tenantQuery().addCriteria(Criteria.where("at").gte(since).and("traceId").is(traceId)
+                    .and("origin").is("PLATFORM_SUPPORT")), AuditEntry.class);
         }
         java.util.Map<String, AuditEntry> lastChanges(String entityType, Collection<String> entityIds) {
             var result = new java.util.HashMap<String, AuditEntry>();

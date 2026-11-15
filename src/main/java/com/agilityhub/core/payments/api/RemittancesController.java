@@ -34,22 +34,26 @@ public class RemittancesController {
     static final String SERVED = BillingController.SERVED;
     private final BillingContractAccess access; private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final RemittanceService remittances; private final BillingTransactions transactions; private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    private final com.agilityhub.core.payments.application.InvoiceActions actions;
     public RemittancesController(BillingContractAccess access, com.agilityhub.core.shared.application.lists.ListEngine lists, RemittanceService remittances,
-            BillingTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper, org.springframework.context.MessageSource messages) {
+            BillingTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper, org.springframework.context.MessageSource messages,
+            com.agilityhub.core.payments.application.InvoiceActions actions) {
         this.messages = messages;
-        this.access = access; this.lists = lists; this.remittances = remittances; this.transactions = transactions; this.mapper = mapper;
+        this.access = access; this.lists = lists; this.remittances = remittances; this.transactions = transactions; this.mapper = mapper; this.actions = actions;
     }
 
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping(value="/api/v1/remittances/{id}/spreadsheet", produces="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     @com.agilityhub.core.shared.application.SupportRestricted
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
-    @Operation(summary="downloadRemittanceSpreadsheet", description=ROLES + "Excel file with one row per bank debit, from the stored remittance.",
+    @Operation(summary="downloadRemittanceSpreadsheet", description=ROLES + "Excel file with one row per bank debit, from the stored remittance, "
+            + "named remesa-{period}-{seq}.xlsx as its XML (SEPA-06: seq is the MsgId's; a ROLLED_BACK one's name ends -ANULLADA-NO-PUJAR).",
             responses=@ApiResponse(responseCode="200", description="Remittance workbook", content=@Content(
                     mediaType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema=@Schema(type="string",format="binary"))))
     public org.springframework.http.ResponseEntity<byte[]> spreadsheet(@PathVariable String id, java.util.Locale locale) {
         var remittance = remittances.get(id);
         return org.springframework.http.ResponseEntity.ok().header("Cache-Control", "no-store")
-                .header("Content-Disposition", "attachment; filename=\"remesa-" + remittance.period() + ".xlsx\"")
+                .header("Content-Disposition", "attachment; filename=\"" + RemittanceService.fileName(remittance, "xlsx") + "\"")
                 .body(remittances.workbook(remittance, messages, locale));
     }
 
@@ -61,7 +65,8 @@ public class RemittancesController {
     @Operation(summary = "remittances", description = ROLES + "D6 «Remeses»: the club's remittances, universal list (CONVENCIONS_API §4), newest "
             + "creationAt first, filters period and status; no free-text search (a q → 400 INVALID_FILTER). A row: month, creation date, collection "
             + "date, invoice count, total, status, fileAvailable (the XML can be downloaded) and submittedAt. A rolled-back remittance stays listed "
-            + "with its file (R-12-14). A club without SEPA_XML has none: an empty page, never an error (R-12-28)." + SERVED,
+            + "with its file (R-12-14), whose download is named as cancelled (SEPA-06). A club without SEPA_XML has none: an empty page, never an "
+            + "error (R-12-28)." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "RemittancePage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = RemittancePage.class))))
     public Object remittances(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
@@ -81,12 +86,15 @@ public class RemittancesController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/remittances/{id}/file")
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "remittanceFile", description = ROLES + "[Descarrega l'XML]: a signed URL of the pain.008 file valid for five minutes (also "
             + "of a ROLLED_BACK one, whose file is kept); its download answers Content-Type application/xml and Content-Disposition attachment; "
-            + "filename=\"remesa-{period}.xml\" (CONVENCIONS_API §5) and authorises itself (no bearer). Issuing the link is the file access, audited "
-            + "DATA_EXPORTED. A remittance without a file → 404." + SERVED,
+            + "filename=\"remesa-{period}-{seq}.xml\" (CONVENCIONS_API §5), seq being the sequence of the remittance's MsgId ({clubSlug}-{period}-{seq}), "
+            + "so a month generated again after a rollback never reuses a name (SEPA-06); a ROLLED_BACK remittance's is "
+            + "remesa-{period}-{seq}-ANULLADA-NO-PUJAR.xml (cancelled, do not upload it to the bank). fileName is that name. The download authorises "
+            + "itself (no bearer). Issuing the link is the file access, audited DATA_EXPORTED. A remittance without a file → 404." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "RemittanceFile", useReturnTypeSchema = true))
     public RemittanceFile remittanceFile(@PathVariable String id) {
         access.remittance(id);
@@ -107,6 +115,47 @@ public class RemittancesController {
         access.remittance(id);
         var submitted = transactions.keyed(200, () -> remittances.submit(id, request.submittedAt()), result -> json(BillingViews.remittance(result)));
         return BillingViews.remittance(submitted);
+    }
+
+    @PostMapping("/api/v1/remittances/{id}/submission-undo")
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
+    @Operation(summary = "undoRemittanceSubmission", description = ROLES + "SEPA-04 (a), R-12-15 [Desfés «enviada al banc»]: the file did not "
+            + "reach the bank (refused, or marked by mistake): SUBMITTED → GENERATED, submittedAt and submittedByAccountId removed; "
+            + "REMITTANCE_SUBMISSION_UNDONE audit with the reason. Only before the remittance's collection date (club-local) → otherwise "
+            + "409 INVALID_STATE {reason: COLLECTION_DATE_PASSED}; and only while every receipt of the remittance is still COLLECTING in it "
+            + "with its attempt here open and last (none marked returned or paid, cancelled or charged by card since) → otherwise 409 "
+            + "INVALID_STATE {reason: INVOICE_CHANGED, invoiceIds}. Not SUBMITTED → 409 INVALID_STATE {status}. The run can then be rolled "
+            + "back (R-12-14). The same Idempotency-Key answers the same remittance." + SERVED,
+            responses = @ApiResponse(responseCode = "200", description = "Remittance", useReturnTypeSchema = true))
+    public Remittance undoRemittanceSubmission(@PathVariable String id, @Valid @RequestBody SubmissionUndoRequest request,
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        access.remittance(id);
+        var undone = transactions.keyed(200, () -> remittances.undoSubmission(id, request.reason()), result -> json(BillingViews.remittance(result)));
+        return BillingViews.remittance(undone);
+    }
+
+    @PostMapping("/api/v1/remittances/{id}/returns")
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
+    @Operation(summary = "markRemittanceReturns", description = ROLES + "SEPA-04 (b), R-12-17 [Marca impagats (selecció)]: several bank returns of "
+            + "this remittance in one request, all or none — each receipt as POST /invoices/{id}/failure makes it (a COLLECTING SEPA receipt, or a "
+            + "PAID one with a SEPA collection: Collection FAILED{BANK_RETURN} appended, FAILED with the reason, InvoiceFailed{summarized: true}, "
+            + "its own INVOICE_MARKED_FAILED audit), and the admins get ONE N-10 for the request (InvoicesFailed) instead of one per receipt. "
+            + "A receipt whose SEPA collection is not of this remittance → 400 VALIDATION_ERROR {field: invoiceIds}; one in another state → "
+            + "409 INVALID_STATE {status}; another club's → 404. at is a club-local day, not after today. includeInNextRun true → the returned "
+            + "PERIODIC receipts wait, FAILED, for the next run's remittance (R-12-19); a manual one → 400 VALIDATION_ERROR {field: "
+            + "includeInNextRun}. The same Idempotency-Key answers the same result." + SERVED,
+            responses = @ApiResponse(responseCode = "200", description = "RemittanceReturnsResult", useReturnTypeSchema = true))
+    public RemittanceReturnsResult markRemittanceReturns(@PathVariable String id, @Valid @RequestBody RemittanceReturnsRequest request,
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        access.remittance(id);
+        access.invoices(request.invoiceIds());
+        var returned = transactions.keyed(200, () -> actions.markReturned(id, request.invoiceIds(), request.reason(), request.at(), request.includeInNextRun()),
+                result -> json(returns(result)));
+        return returns(returned);
+    }
+    private static RemittanceReturnsResult returns(java.util.List<com.agilityhub.core.payments.application.InvoiceActions.InvoiceDetail> details) {
+        return new RemittanceReturnsResult(details.size(), details.stream()
+                .map(detail -> BillingViews.invoice(detail.invoice(), detail.collections(), detail.rolledBack())).toList());
     }
 
     private byte[] json(Object body) {

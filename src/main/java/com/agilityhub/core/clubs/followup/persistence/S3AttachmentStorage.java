@@ -32,6 +32,18 @@ public class S3AttachmentStorage implements AttachmentStorage {
         try { return client.getObjectAsBytes(request -> request.bucket(bucket).key(objectKey(key))).asByteArray(); }
         catch (software.amazon.awssdk.services.s3.model.NoSuchKeyException missing) { throw new ApiException(ErrorCode.NOT_FOUND); }
     }
+    /** WEB-05: an object whose stored length is over {@code maxBytes} is refused before its body is read, and the transfer aborted. */
+    @Override public byte[] read(String key, long maxBytes) throws java.io.IOException {
+        software.amazon.awssdk.core.ResponseInputStream<software.amazon.awssdk.services.s3.model.GetObjectResponse> object;
+        try { object = client.getObject(request -> request.bucket(bucket).key(objectKey(key))); }
+        catch (software.amazon.awssdk.services.s3.model.NoSuchKeyException missing) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        try (object) {
+            Long length = object.response().contentLength();
+            if (length != null && length > maxBytes) { object.abort(); throw new ApiException(ErrorCode.FILE_TOO_LARGE); }
+            try { return AttachmentStorage.bounded(object, maxBytes); }
+            catch (ApiException tooLarge) { object.abort(); throw tooLarge; }
+        }
+    }
     @Override public Metadata metadata(String key) {
         try {
             var result = client.headObject(request -> request.bucket(bucket).key(objectKey(key)));

@@ -51,6 +51,14 @@ public class BillingContractAccess {
             List.of("period", "creationAt", "requestedCollectionDate", "count", "total", "status", "submittedAt"),
             List.of("period", "creationAt", "count", "total", "status"), List.of("creationAt,desc"),
             Set.of("id", "period", "messageId", "creationAt", "requestedCollectionDate", "count", "total", "status", "fileAvailable", "submittedAt"));
+    /**
+     * `GET /billing/stripe-events` (PAY-02, owner decision of 13 Nov 2026): the club's Stripe events whose processing failed,
+     * newest first; no filter and no free-text search (CONVENCIONS_API §4, E75).
+     */
+    public static final ListDefinition STRIPE_EVENTS = new ListDefinition("stripe-events", Map.of(), Map.of("receivedAt", "receivedAt"), List.of(),
+            List.of("type", "receivedAt", "attempts", "nextAttemptAt", "processedAt"),
+            List.of("type", "receivedAt", "attempts", "nextAttemptAt", "processedAt"), List.of("receivedAt,desc"),
+            Set.of("id", "type", "receivedAt", "attempts", "nextAttemptAt", "processedAt"));
     private static final Pattern MONTH = Pattern.compile("\\d{4}-(0[1-9]|1[0-2])");
 
     private final InvoiceRepository invoices; private final BillingRunRepository runs; private final BillingSimulationRepository simulations;
@@ -151,6 +159,7 @@ public class BillingContractAccess {
     /** The universal list query of `GET /invoices`: an undeclared filter, sort, size, `q` or `fields` key is `400 INVALID_FILTER`. */
     public ListQuery invoiceList(MultiValueMap<String, String> params) { return ListQuery.parse(INVOICES, params); }
     public ListQuery remittanceList(MultiValueMap<String, String> params) { return ListQuery.parse(REMITTANCES, params); }
+    public ListQuery stripeEventList(MultiValueMap<String, String> params) { return ListQuery.parse(STRIPE_EVENTS, params); }
     /**
      * `POST /webhooks/stripe/{clubId}` runs outside the tenant filter (no JWT, no host). Once {@link StripeWebhookSignatures}
      * authenticated the body (E8-T01 round 2: before anything else), the club needs `BILLING` (404 MODULE_DISABLED) and an

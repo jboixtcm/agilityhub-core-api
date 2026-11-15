@@ -148,5 +148,11 @@ public class MigrationRunRepository extends TenantRepository<MigrationRun> {
                 .and("reportPurgedAt").is(null)),new Update().unset("reportFileKey").set("reportPurgedAt",now),MigrationRun.class).getModifiedCount()==1;
     }
 
+    /** MIG-13: the operator's purge, before or after the deadline; only a production run whose report is not purged yet. */
+    public boolean reportPurgedNow(String id, Instant now) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("env").is("PRODUCTION").and("reportPurgedAt").is(null)),
+                new Update().unset("reportFileKey").set("reportPurgedAt",now),MigrationRun.class).getModifiedCount()==1;
+    }
+
     private Query lockQuery() { return tenantQuery().addCriteria(Criteria.where("_id").is(TenantContext.require())); }
 }

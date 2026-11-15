@@ -80,6 +80,50 @@ class AccountingExportIT extends BillingItSupport {
         error(as(get("/api/v1/exports/" + id), OTHER, "ADMIN", null), 404, "NOT_FOUND");
         assertThat(events("DataExported")).hasSize(1);
     }
+    /**
+     * SEPA-09 (owner decision of 13-11-2026): two columns after the original sixteen, which keep their place and content — the status of
+     * the receipt's last collection attempt and its return date (`failedAt`). A SEPA receipt settled on 01-09 and returned on 04-09
+     * still shows its collection date, now beside «Fallit» and 04/09/2026.
+     */
+    @Test void SEPA_09_theExportAddsTheLastCollectionsStatusAndTheReturnDateAfterTheOriginalColumns() throws Exception {
+        run("2026-09", simulate("2026-09").path("id").asText());
+        var returned = invoices().stream().filter(i -> "puig".equals(i.getString("memberId"))).findFirst().orElseThrow();
+        String id = returned.getString("_id");
+        // As P5i leaves it: PAID on the collection date, its SEPA attempt SUCCEEDED.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),
+                new Update().set("status", "PAID").set("paidAt", Date.from(java.time.Instant.parse("2026-08-31T22:00:00Z"))), "invoices");
+        mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB).and("invoiceId").is(id)), new Update().set("status", "SUCCEEDED"), "collections");
+        clock.setInstant(java.time.Instant.parse("2026-09-04T09:00:00Z"));
+        long version = ((Number) mongo.findById(id, Document.class, "invoices").get("version")).longValue();
+        ok(admin(keyed(post("/api/v1/invoices/" + id + "/failure"), Map.of("reason", "Devolució del banc", "at", "2026-09-04", "version", version))), 200);
+        var csv = call(admin(get("/api/v1/billing/exports").param("period", "2026-09").param("format", "csv").header("Accept-Language", "ca")));
+        assertThat(csv.getStatus()).isEqualTo(200);
+        var rows = com.agilityhub.core.migration.application.PlayoffTable.csv(csv.getContentAsString(StandardCharsets.UTF_8));
+        assertThat(rows.getFirst()).hasSize(18).startsWith("Número", "Data", "Mes", "Número d’abonat", "Nom", "NIF del titular", "Concepte", "Base", "Impost %",
+                "Impost", "Total", "Mètode", "Estat", "Data de cobrament", "Remesa", "Referència de pagament").endsWith("Estat de l’últim cobrament", "Data de devolució");
+        assertThat(rows).filteredOn(r -> r.getFirst().equals(returned.getString("displayNumber"))).isNotEmpty().allSatisfy(r -> {
+            assertThat(r.get(12)).isEqualTo("Impagat");
+            assertThat(r.get(13)).isEqualTo("01/09/2026");
+            assertThat(r.get(16)).isEqualTo("Fallit");
+            assertThat(r.get(17)).isEqualTo("04/09/2026");
+        });
+        // A receipt still in the remittance: its attempt not sent yet, no return date; a cash receipt waits for its payment.
+        var other = invoices().stream().filter(i -> "serra-laura".equals(i.getString("memberId"))).findFirst().orElseThrow();
+        assertThat(rows).filteredOn(r -> r.getFirst().equals(other.getString("displayNumber"))).isNotEmpty()
+                .allSatisfy(r -> { assertThat(r.get(12)).isEqualTo("Remesat"); assertThat(r.get(16)).isEqualTo("Pendent"); assertThat(r.get(17)).isEmpty(); });
+        var cash = invoices().stream().filter(i -> "vila".equals(i.getString("memberId"))).findFirst().orElseThrow();
+        assertThat(rows).filteredOn(r -> r.getFirst().equals(cash.getString("displayNumber"))).isNotEmpty()
+                .allSatisfy(r -> { assertThat(r.get(12)).isEqualTo("Pendent"); assertThat(r.get(16)).isEqualTo("Pendent"); assertThat(r.get(17)).isEmpty(); });
+        // The same columns in the workbook, translated.
+        var xlsx = call(admin(get("/api/v1/billing/exports").param("period", "2026-09").param("format", "xlsx").header("Accept-Language", "en")));
+        assertThat(xlsx.getStatus()).isEqualTo(200);
+        try (var book = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new java.io.ByteArrayInputStream(xlsx.getContentAsByteArray()))) {
+            var header = book.getSheetAt(0).getRow(0);
+            assertThat(header.getCell(16).getStringCellValue()).isEqualTo("Last collection status");
+            assertThat(header.getCell(17).getStringCellValue()).isEqualTo("Return date");
+        }
+    }
+
     @Test void T_12_19_xlsxAndCsvKeepThePaidCardReferenceAndCollectionDate() throws Exception {
         club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), providers(true, true, true));
         run("2026-09", simulate("2026-09").path("id").asText());

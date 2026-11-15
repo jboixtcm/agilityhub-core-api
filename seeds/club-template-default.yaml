@@ -247,7 +247,7 @@ catalogs:
         en: "[Text pendent — el club l'omplirà des de Paràmetres]"
       order: 20
       active: true
-# S11 §8 and R-11-01: every templated code of CATALEG_NOTIFICACIONS (the 52 of the product seed, N-55 included), with the
+# S11 §8 and R-11-01: every templated code of CATALEG_NOTIFICACIONS (the 53 of the product seed, N-55 and N-56 included), with the
 # product texts of src/main/resources/seed/message-templates.{ca,es,en}.json and the catalog's default channels; the club's
 # name is their `[[club_name]]` variable.
 messageTemplates:
@@ -303,3 +303,4 @@ messageTemplates:
   - {code: "N-51"}
   - {code: "N-54"}
   - {code: "N-55"}
+  - {code: "N-56"}

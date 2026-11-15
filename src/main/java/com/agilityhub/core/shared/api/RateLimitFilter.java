@@ -51,6 +51,9 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         var jwt = authentication instanceof JwtAuthenticationToken token && token.isAuthenticated() ? token : null;
         if (jwt != null) { RequestTraceFilter.identity(jwt.getName(), jwt.getToken().getClaimAsString("clubId")); }
         Route route = route(request.getMethod(), path, jwt != null);
+        // AUTH-09 (owner decision 13-11-2026, S01 R-01-08): a refresh grant takes its own per-address bucket, never the one of the
+        // password and link grants. One `grant_type` only: a request with two is refused by the grant converter anyway.
+        if (route == Route.TOKEN && path.equals("/oauth2/token") && refreshGrant(request)) { route = Route.TOKEN_REFRESH; }
         if (route != null) {
             String subject = route == Route.ME ? jwt.getName() : request.getRemoteAddr();
             // INC-67 (E11-T08), CONVENCIONS_API §9: a member's or an administrator's status polls count per account, not per shared NAT.
@@ -134,10 +137,20 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         if (path.startsWith("/oauth2/") || path.startsWith("/.well-known/") || path.equals("/connect/logout")
                 || path.equals("/api/v1/manifest.webmanifest") || path.equals("/api/v1/signup")
                 || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/")
-                || path.equals("/api/v1/email-unsubscribes") || path.startsWith("/api/v1/checkout-sessions/")) {
+                || path.equals("/api/v1/email-unsubscribes") || path.equals("/api/v1/email-unsubscribes/one-click")
+                || path.startsWith("/api/v1/checkout-sessions/")) {
             return Route.ANONYMOUS;
         }
+        // CFG-14 (owner decision 13-11-2026, CONVENCIONS_API §9): every other authenticated API route counts in the account's own
+        // bucket, the one `/me` and `/platform` already use (600/min); the routes above, health and webhooks keep their own.
+        if (authenticated && path.startsWith("/api/")) { return Route.ME; }
         return null;
+    }
+
+    /** AUTH-09: whether a token request is the refresh grant (exactly one `grant_type`, `refresh_token`). */
+    static boolean refreshGrant(HttpServletRequest request) {
+        String[] grants = request.getParameterValues("grant_type");
+        return grants != null && grants.length == 1 && "refresh_token".equals(grants[0]);
     }
 
     /**

@@ -15,6 +15,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class MigrationReportsController {
     private final MigrationReports reports;
     public MigrationReportsController(MigrationReports reports) { this.reports=reports; }
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/platform/clubs/{clubId}/migrations/{runId}/report")
     @PreAuthorize("(hasRole('AGILITYHUB_ADMIN') or hasRole('ADMIN')) and principal.claims['imp'] != true")
     @SupportRestricted

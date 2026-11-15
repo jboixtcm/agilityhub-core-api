@@ -11,6 +11,9 @@ public class SchedulingAudit {
     public Week validated(Week before, Week after) { return after; }
     @Audited(action = AuditAction.CLASS_CANCELLED, entityType = "'ClassSession'", before = "#before")
     public ClassSession cancelled(ClassSession before, ClassSession after) { return after; }
+    /** SCH-01: a CANCELLED class restored to ACTIVE by an ADMIN (`changes`: its state and the cleared cancellation). */
+    @Audited(action = AuditAction.CLASS_RESTORED, entityType = "'ClassSession'", before = "#before")
+    public ClassSession restored(ClassSession before, ClassSession after) { return after; }
     @Audited(action = AuditAction.CLASS_UPDATED_WITH_BOOKINGS, entityType = "'ClassSession'", before = "#before")
     public ClassSession updated(ClassSession before, ClassSession after) { return after; }
     @Audited(action = AuditAction.CLASS_RISK_EXEMPTION_CHANGED, entityType = "'ClassSession'", before = "#before")

@@ -89,7 +89,7 @@ public class AuditController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({ERASURE_BLOCKED, ERASURE_ALREADY_REQUESTED, MEMBER_ERASED})
     @Operation(summary = "Request member erasure",
-            description = "S14 R-14-14. Checks first (LEFT member, no open invoice or upfront payment, no future booking): any failure is 422 ERASURE_BLOCKED {reasons[]} and nothing is created. SCHEDULED at max(now, leaveDate + rgpd.erasureMinDaysAfterLeave); one live request per member (409 ERASURE_ALREADY_REQUESTED); an erased member is 409 MEMBER_ERASED. Emits AccountErasureRequested (N-52 to the account), audited ERASURE_REQUESTED. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
+            description = "S14 R-14-14. Checks first (LEFT member, no open invoice or upfront payment, no future booking): any failure is 422 ERASURE_BLOCKED {reasons[]} and nothing is created. SCHEDULED at max(now, leaveDate + rgpd.erasureMinDaysAfterLeave). PRIV-04: a SEPA collection of the member still inside its 8-week refund window refuses nothing; the request is created BLOCKED with blockReasons [SEPA_REFUND_WINDOW], executeAt no earlier than the first day the window is closed, and the daily run erases it then. One live request per member (409 ERASURE_ALREADY_REQUESTED); an erased member is 409 MEMBER_ERASED. Emits AccountErasureRequested (N-52 to the account), audited ERASURE_REQUESTED. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "ErasureRequest"))
     public ErasureRequest requestMemberErasure(@PathVariable String id, @Valid @RequestBody ErasureInput request) {
         return clubView(erasures.requestMember(id, request.reason()), id);
@@ -118,7 +118,7 @@ public class AuditController {
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({NOT_FOUND, ERASURE_BLOCKED, ERASURE_ALREADY_REQUESTED})
     @Operation(summary = "Request account erasure",
-            description = "S14 R-14-14. Global account erasure (scope ACCOUNT, every membership); AGILITYHUB_ADMIN only, no request tenant. The checks of every club of the account's members, plus no ACTIVE membership left (OTHER_MEMBERSHIPS_ACTIVE): 422 ERASURE_BLOCKED {reasons[]}. A live request, or an erased account, is 409 ERASURE_ALREADY_REQUESTED; an unknown account 404. An account without members is erased at once (ERASING).",
+            description = "S14 R-14-14. Global account erasure (scope ACCOUNT, every membership); AGILITYHUB_ADMIN only, no request tenant. The checks of every club of the account's members, plus no ACTIVE membership left (OTHER_MEMBERSHIPS_ACTIVE): 422 ERASURE_BLOCKED {reasons[]}. PRIV-04: a SEPA collection inside its 8-week refund window in any club makes it BLOCKED [SEPA_REFUND_WINDOW] until the latest window closes instead. A live request, or an erased account, is 409 ERASURE_ALREADY_REQUESTED; an unknown account 404. An account without members is erased at once (ERASING).",
             responses = @ApiResponse(responseCode = "201", description = "ErasureRequest"))
     public ErasureRequest requestAccountErasure(@PathVariable String id, @Valid @RequestBody ErasureInput request) {
         return view(erasures.requestAccount(id, request.reason()));

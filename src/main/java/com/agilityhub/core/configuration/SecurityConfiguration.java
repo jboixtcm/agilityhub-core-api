@@ -65,7 +65,8 @@ public class SecurityConfiguration {
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",
                     "/api/v1/signup/family-group-lookups", "/api/v1/checkout-sessions").permitAll();
             // S11 R-11-08 (E7-T01): the CLUB_NEWS unsubscribe link authorises itself with its signed token; the club comes from the host.
-            authorize.requestMatchers(HttpMethod.POST, "/api/v1/email-unsubscribes").permitAll();
+            // COMM-08: so does the RFC 8058 one-click POST of the List-Unsubscribe header (the mailbox provider sends no credential).
+            authorize.requestMatchers(HttpMethod.POST, "/api/v1/email-unsubscribes", "/api/v1/email-unsubscribes/one-click").permitAll();
             // S12 R-12-21 (E8-T01): Stripe signs its webhook with the club's secret, no bearer; S12 §6: the signup's return screen
             // polls its checkout session with the signup capability (a member or an admin with their bearer).
             authorize.requestMatchers(HttpMethod.POST, "/webhooks/stripe/*").permitAll();

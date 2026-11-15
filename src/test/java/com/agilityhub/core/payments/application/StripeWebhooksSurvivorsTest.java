@@ -34,7 +34,8 @@ import static org.mockito.Mockito.*;
  * hash and only the whitelisted fields (an expanded object by its id, the decline codes); the handler runs under the row's
  * lock and publishes its outcome; an expired-card decline that changed the ledger invalidates the card; a Checkout payment
  * intent is left to Checkout and an off-session charge goes to the card ledger; a detached method nobody uses is ignored; a failed processing warns when
- * its attempts run out and publishes `FAILED` once.
+ * its attempts run out and publishes `FAILED` once. PAY-02 (13 Nov 2026): the retries follow a constant backoff, an outage spends no attempt and
+ * a redelivery of a FAILED event processes it again.
  */
 class StripeWebhooksSurvivorsTest {
     static final String CLUB = "club-a", ID = "evt_fake_1";
@@ -49,6 +50,7 @@ class StripeWebhooksSurvivorsTest {
     final BillingCensusAccess census = mock(BillingCensusAccess.class);
     final BillingEvents events = mock(BillingEvents.class);
     final PaymentRetryPolicy retries = mock(PaymentRetryPolicy.class);
+    final PaymentProviderRegistry provider = mock(PaymentProviderRegistry.class);
     final ObjectMapper mapper = new ObjectMapper();
     final com.agilityhub.core.platform.application.ClubPaymentProviders clubSettings=mock(com.agilityhub.core.platform.application.ClubPaymentProviders.class);
     StripeWebhooks webhooks;
@@ -57,7 +59,7 @@ class StripeWebhooksSurvivorsTest {
         TenantContext.open(CLUB);
         doAnswer(call -> call.<Supplier<?>>getArgument(0).get()).when(tx).run(any());
         webhooks = new StripeWebhooks(inbox, tx, cards, refunds, mock(CheckoutService.class), mock(SignupCheckoutRepository.class),
-                mock(UpfrontPaymentRepository.class), census, events, Clock.fixed(NOW, ZoneOffset.UTC), mapper, mock(PaymentProviderRegistry.class));
+                mock(UpfrontPaymentRepository.class), census, events, Clock.fixed(NOW, ZoneOffset.UTC), mapper, provider);
         ReflectionTestUtils.setField(webhooks, "retries", retries);
         ReflectionTestUtils.setField(webhooks,"clubSettings",clubSettings);
     }
@@ -143,10 +145,9 @@ class StripeWebhooksSurvivorsTest {
     }
 
     @Test void T_12_15_aFailedProcessingWarnsWhenItsAttemptsRunOutAndPublishesFailed() {
-        when(retries.maxAttempts()).thenReturn(3);
         when(inbox.findById(ID)).thenReturn(Optional.of(event("payment_intent.succeeded", null)));
         when(inbox.work(ID)).thenThrow(new IllegalStateException("Mongo unavailable"));
-        when(inbox.failed(ID, NOW, 3)).thenReturn(true);
+        when(inbox.failed(ID, NOW, StripeWebhooks.RETRY_BACKOFF)).thenReturn(true);
 
         webhooks.process(ID);
 
@@ -156,16 +157,72 @@ class StripeWebhooksSurvivorsTest {
     }
 
     @Test void T_12_15_aFailedRetryWithAttemptsLeftNeitherWarnsNorPublishesFailedTwice() {
-        when(retries.maxAttempts()).thenReturn(3);
         when(inbox.findById(ID)).thenReturn(Optional.of(event("payment_intent.succeeded", StripeEventOutcome.FAILED)));
         when(inbox.work(ID)).thenThrow(new IllegalStateException("Mongo unavailable"));
-        when(inbox.failed(ID, NOW, 3)).thenReturn(false);
+        when(inbox.failed(ID, NOW, StripeWebhooks.RETRY_BACKOFF)).thenReturn(false);
 
         webhooks.process(ID);
 
-        verify(inbox).failed(ID, NOW, 3);
+        verify(inbox).failed(ID, NOW, StripeWebhooks.RETRY_BACKOFF);
         verify(retries, never()).warn(any(), any());
         verifyNoInteractions(events);
+    }
+
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026): the webhook retries are a constant growing backoff over about a day — ten attempts,
+     * the waits never shrinking — and not the club's `billing.stripeMaxAttempts` (R-12-18's card retries), which is never read.
+     */
+    @Test void PAY_02_aFailedProcessingFollowsTheConstantBackoffOverAboutADayAndNeverTheClubsAttemptLimit() {
+        assertThat(StripeWebhooks.RETRY_BACKOFF).hasSize(9);
+        for (int i = 1; i < StripeWebhooks.RETRY_BACKOFF.size(); i++) {
+            assertThat(StripeWebhooks.RETRY_BACKOFF.get(i)).isGreaterThanOrEqualTo(StripeWebhooks.RETRY_BACKOFF.get(i - 1));
+        }
+        assertThat(StripeWebhooks.RETRY_BACKOFF.stream().reduce(java.time.Duration.ZERO, java.time.Duration::plus))
+                .isEqualTo(java.time.Duration.ofHours(23).plusMinutes(51));
+        stored("checkout.session.completed", null, new Document("id", "cs_fake_1").append("payment_status", "paid"));
+        when(provider.cardDetails(any())).thenThrow(new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NO_PAYMENT_METHOD));
+
+        webhooks.process(ID);
+
+        verify(inbox).failed(ID, NOW, StripeWebhooks.RETRY_BACKOFF);
+        verify(inbox, never()).postpone(any(), any());
+        verify(retries, never()).maxAttempts();
+    }
+
+    /** PAY-02: an outage of the provider (here Stripe's 429) spends no attempt: the event is FAILED and waits E8-T11's deferral. */
+    @Test void PAY_02_anOutageOfTheProviderSpendsNoAttempt() {
+        assertThat(StripeWebhooks.OUTAGE_DEFERRAL).isEqualTo(java.time.Duration.ofMinutes(5));
+        stored("checkout.session.completed", null, new Document("id", "cs_fake_1").append("payment_status", "paid"));
+        when(provider.cardDetails(any())).thenThrow(new PaymentNotSubmitted(com.agilityhub.core.shared.domain.ErrorCode.RATE_LIMITED));
+
+        webhooks.process(ID);
+
+        verify(inbox).postpone(ID, NOW.plus(java.time.Duration.ofMinutes(5)));
+        verify(inbox, never()).failed(any(), any(), any());
+        verify(retries, never()).warn(any(), any());
+        verify(events).publish(BillingEvent.Kind.StripeWebhookReceived, ID,
+                Map.of("eventId", ID, "type", "checkout.session.completed", "outcome", "FAILED"));
+    }
+
+    /** PAY-02: a new delivery of a stored event is processed again only when the inbox re-queued it (it was FAILED). */
+    @Test void PAY_02_aRedeliveryIsProcessedOnlyWhenTheInboxRequeuedAFailedEvent() {
+        byte[] body = ("{\"id\":\"" + ID + "\",\"type\":\"payment_method.detached\",\"created\":" + CREATED
+                + ",\"data\":{\"object\":{\"id\":\"pm_fake_9\"}}}").getBytes(StandardCharsets.UTF_8);
+        doThrow(new org.springframework.dao.DuplicateKeyException("evt_fake_1")).when(inbox).receive(any(), any());
+        stored("payment_method.detached", StripeEventOutcome.FAILED, new Document("id", "pm_fake_9"));
+        when(census.invalidateCards(null, "pm_fake_9")).thenReturn(List.of());
+
+        when(inbox.requeue(eq(ID), any())).thenReturn(false);
+        webhooks.receive(CLUB, body);
+        verify(inbox, never()).lock(any());
+
+        when(inbox.requeue(eq(ID), any())).thenReturn(true);
+        webhooks.receive(CLUB, body);
+        var work = ArgumentCaptor.forClass(Document.class);
+        verify(inbox, times(2)).requeue(eq(ID), work.capture());
+        assertThat(work.getValue().get("object", Document.class)).containsEntry("id", "pm_fake_9");
+        verify(inbox).lock(ID);
+        verify(inbox).outcome(ID, "IGNORED", NOW);
     }
 
     @Test void T_12_15_anExpandedObjectIsReadByItsId() throws Exception {

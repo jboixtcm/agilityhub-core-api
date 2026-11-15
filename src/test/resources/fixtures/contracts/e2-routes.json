@@ -132,6 +132,21 @@
     "rejectImpersonation": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/login-email",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "email": "new-address@example.test"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
     "method": "PUT",
     "path": "/api/v1/members/{id}/roles",
     "roles": [

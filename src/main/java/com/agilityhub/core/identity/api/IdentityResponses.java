@@ -53,7 +53,7 @@ public final class IdentityResponses {
             @Schema(requiredMode = NOT_REQUIRED) RequiredConsent requiredConsent,
             @Schema(requiredMode = REQUIRED, description = "Keys and required flags from signup.onboardingFields")
             List<OnboardingField> fields,
-            @Schema(requiredMode = NOT_REQUIRED, types = {"boolean", "null"}, description = "Existing image permission, absent when no decision is recorded") Boolean imageConsent) { }
+            @Schema(requiredMode = NOT_REQUIRED, types = {"boolean", "null"}, description = "The image box's initial state. PRIV-05: true only when the permission in force was granted by this account itself (its onboarding, or a sign-up or readmission sent from its app); false when it is refused; null when nothing is recorded or the grant was recorded by the migration, by staff or by a public sign-up. The stored value is kept until the member sends imageConsent.") Boolean imageConsent) { }
     public enum ConsentPolicy { PLATFORM, CLUB }
     @Schema(types = {"object", "null"})
     public record RequiredConsent(@Schema(requiredMode = REQUIRED) ConsentPolicy policy,

@@ -248,7 +248,7 @@
       "matrix": {
         "MEMBER": {
           "APP": true,
-          "EMAIL": false,
+          "EMAIL": true,
           "SMS": true
         }
       }
@@ -804,6 +804,21 @@
       "name": "Reembolso a hacer a mano",
       "title": "Reembolso manual necesario",
       "body": "{reason, select, COMPENSATION_INTERVENTION {Hay que devolver {amount} a {member_name}. Este es el total pendiente, sin los reembolsos en curso.} REFUND_OVER_CREDIT {{member_name} ha recibido {amount} de más tras un abono ya facturado. Hay que revisarlo.} other {Hay que revisar el reembolso de {member_name}: {amount}.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-56",
+      "name": "Disputa de un pago con tarjeta",
+      "title": "Pago con tarjeta disputado",
+      "body": "{member_name} ha disputado en su banco un pago con tarjeta de {amount} ({reason, select, fraudulent {fraude} duplicate {cobro duplicado} unrecognized {no lo reconoce} product_not_received {servicio no recibido} credit_not_processed {abono no realizado} general {motivo general} other {motivo: {reason}}}). El pago queda marcado en la app. Responde a la disputa desde el panel de Stripe antes de que venza el plazo.",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

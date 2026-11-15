@@ -7,10 +7,10 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 ## Accés i sessió (`auth.*`) — bloc sistema
 | Clau | Tipus | Cànic | Notes |
 |---|---|---|---|
-| `auth.sessionDays` | int | 30 | refresh token lliscant (ADR-004) |
+| `auth.sessionDays` | int | 30 | refresh token lliscant (ADR-004); el backoffice (`clubs-admin`) caduca, a més, 12 h després de l'inici de sessió (S01 R-01-06, AUTH-01) |
 | `auth.magicLinkMinutes` | int | 15 | caducitat de l'enllaç màgic |
 | `auth.impersonationMinutes` | int | 60 | «Entra com l'abonat» |
-| `auth.passwordMinLength` | int | 8 | |
+| `auth.passwordMinLength` | int | 8 | els comptes de personal (`ADMIN`, `INSTRUCTOR`, `AGILITYHUB_ADMIN`) en necessiten com a mínim 12 (S01 R-01-05, AUTH-01); **mínim 8**: pis del catàleg, mai 0 (AUTH-08, propietari 13-11) |
 
 ## Alta (`signup.*`) — bloc Alta i consentiments
 | Clau | Tipus | Cànic | Notes |
@@ -114,6 +114,8 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `messaging.email.replyTo` | string | `""` | buit = correu de contacte del club en enviar |
 | `messaging.sms.senderId` | string | `"AgilityHub"` | Twilio (pendent §3) |
 | `messaging.sms.monthlyCap` | int | 1000 | límit de seguretat; en arribar-hi, avís a l'admin i el canal cau a correu |
+| `messaging.sms.quietHoursStart` | time | 22:00 | hores de silenci d'SMS, a l'hora del club (COMM-06, propietari 13-11-2026): un SMS no urgent que toca dins la franja espera fins a `quietHoursEnd`; l'oferta d'una plaça amb termini (N-15 FIFO) no espera; inici = final → sense franja |
+| `messaging.sms.quietHoursEnd` | time | 08:00 | final de les hores de silenci d'SMS (COMM-06); la franja pot passar la mitjanit |
 | `messaging.notifyWeekOpening` | bool | false | «Ja pots reservar la setmana vinent» (N-33) |
 | `messaging.notifyNewRingSetup` | bool | false | N-31 |
 | `messaging.documentReminderDays` | int | 0 | 0 = recordatori de cartilla pendent només manual |
@@ -159,7 +161,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `auth.welcomeLinkDays` | int | 7 | sistema | S01/S04 |
 | `auth.maxSessions` | int | 10 | sistema | S01 |
 | `auth.refreshReuseGraceSeconds` | int | 30 | sistema | S01 R-01-06 (INC-36, E11-T02; 0–120 s, 0 = sense marge) |
-| `auth.lockoutMinutes` · `auth.lockoutMaxAttempts` | int | 15 · 5 | sistema | S01 |
+| `auth.lockoutMinutes` · `auth.lockoutMaxAttempts` | int | 15 · 5 | sistema | S01 R-01-08 (**mínims 1 · 3**: pisos del catàleg, cap no es pot posar a 0; AUTH-08, propietari 13-11) |
 | `auth.checkCompromisedPasswords` | bool | true | sistema | S01 |
 | `census.dogDocumentTypes` | json `[{key, label: localizedText, required}]` | `[{"key": "VACCINATION_CARD", "label": {"ca": "Cartilla de vacunes", "es": "Cartilla de vacunas", "en": "Vaccination card"}, "required": true}, {"key": "INSURANCE", "label": {"ca": "Assegurança", "es": "Seguro", "en": "Insurance"}, "required": false}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "required": false}]` | Alta i consentiments | S03 |
 | `census.bookingBlockReasons` | list localizedText | `[{"ca": "rebut impagat", "es": "recibo impagado", "en": "unpaid receipt"}, {"ca": "cartilla pendent", "es": "cartilla pendiente", "en": "vaccination card pending"}, {"ca": "decisió del club", "es": "decisión del club", "en": "club decision"}]` | Club i pistes | S03 (es/en afegits 18-10, INC-38, E11-T10) |
@@ -179,16 +181,18 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `billing.cashInvoicing` | enum `MONTHLY · QUARTERLY · SEMESTER` | **QUARTERLY** (trimestres naturals) | Quotes i remesa | S12 |
 | `billing.taxIncluded` | bool | true | Quotes i remesa | S12 |
 | `billing.sepa.leadBusinessDays` | int | 2 | Quotes i remesa | Dies hàbils TARGET entre la presentació i el càrrec, segons el contracte del club. |
-| `billing.sepa.useFrst` · `billing.sepa.schema` · `billing.sepa.collectionDayOfMonth` | bool · enum · int (dia **del mes que es factura**: 1–28, o `0` = últim dia) | false (Josep 08-09: el banc accepta `RCUR` per a tot) · `pain.008.001.02` · **1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay` | Quotes i remesa | S12 |
+| `billing.sepa.useFrst` · `billing.sepa.schema` · `billing.sepa.collectionDayOfMonth` | bool · enum · int (dia **del mes que es factura**: 1–28, o `0` = últim dia) | false (Josep 08-09: el banc accepta `RCUR` per a tot) · `pain.008.001.02` · **1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay` | Quotes i remesa | S12 (R-12-12, SEPA-05, propietari 13-11-2026: si el dia que en surt no és hàbil TARGET — cap de setmana, 1-1, Divendres Sant, Dilluns de Pasqua, 1-5, 25-12, 26-12 — la data de cobrament passa al dia hàbil TARGET següent) |
 | `billing.upfrontCutoffDay` | int | 25 | dia límit per demanar una alta o un gos nou «per al mes següent» i pagar només l'entrada (Josep 08-09); coincideix amb `inactivity.requestDeadlineDay` | Quotes i remesa | S04, S12 |
 | `billing.packToMemberEntryDiscountPercent` · `billing.packToMemberMinSessions` | int · int | 40 · 10 | descompte d'entrada en passar de pack a abonat, si el pack tenia ≥ 10 sessions (Josep 08-09) | Quotes i remesa | S05, S04 |
+| `billing.sepa.settlementBusinessDays` | int | 5 | Quotes i remesa | S12 R-12-15 (SEPA-04, propietari 13-11-2026: P5i dona per cobrats els rebuts d'una remesa enviada aquest nombre de dies hàbils TARGET després de la seva data de cobrament, no el mateix dia; `0` = el dia de cobrament; 0–40) |
+| `billing.totalDifferenceConfirmPercent` | int | 20 | Quotes i remesa | S12 R-12-11 (SEPA-10, propietari 13-11-2026: en generar el mes, si el total simulat difereix del total del run del mes anterior més d'aquest percentatge, o no hi ha mes anterior per comparar, D6 demana una segona confirmació explícita; 0–100) |
 | `billing.stripeMaxAttempts` | int | 3 | Quotes i remesa | S12 |
 | `billing.remittanceReminderDay` | int (0 = mai) | 22 | Quotes i remesa | S12/S15 |
 | `inactivity.maxStartMonthsAhead` | int | 12 | Quotes i remesa | S13 |
 | `leave.packExpiryGraceDays` | int | 30 | Quotes i remesa | S13 |
 | `leave.reasons` (canvi de tipus) | json `[{key, label: localizedText, audience}]` | `[{"key": "LEARNED_ENOUGH", "label": {"ca": "Ja he après tot el que volia", "es": "Ya he aprendido todo lo que quería", "en": "I have already learned everything I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps per anar-hi", "es": "No encuentro tiempo para ir", "en": "I cannot find the time to go"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants meus aliens al club", "es": "Circunstancias mías ajenas al club", "en": "Personal circumstances unrelated to the club"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]` | Quotes i remesa | S13 |
-| `audit.retentionYears` | int | 6 | Privacitat i auditoria | S14 |
-| `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 6 · 365 | Privacitat i auditoria (retenció 6 anys: Jordi 06-09, A16, Codi de Comerç art. 30; abans 5) | S14 |
+| `audit.retentionYears` | int | 6 | Privacitat i auditoria (**mínim 6**: el club el pot allargar, mai escurçar per sota; PRIV-02, propietari 13-11) | S14 |
+| `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 6 · 365 | Privacitat i auditoria (retenció 6 anys: Jordi 06-09, A16, Codi de Comerç art. 30; abans 5; **mínims 30 · 1 · —**: marge de 30 dies i 1 any de retenció com a pisos, PRIV-02, propietari 13-11) | S14 |
 | `security.eventRetentionDays` | int | 90 | sistema | S14 |
 | `jobs.<nom>.enabled` (weekOpening · riskReview · noShowNotices · reminders · expirations · waitlistFifo · paymentTimeouts · classFinishing · cleanup · billingReminder) | bool | true | Processos automàtics | S15 |
 | `jobs.dailyTime` | time | 06:00 | Processos automàtics | S15 |
@@ -197,10 +201,16 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `classes.finishGraceMinutes` | int | 15 | Classes | S15 |
 | `courses.buildSessionMaxHours` | int | 12 | Recorreguts | S16 |
 | `files.allowedTypes` (+ `text/plain` per a Smarter) | list | — | sistema | S16 |
-| `platform.domainRecheckDays` · `platform.supportAccessMinutes` | int | 7 · 60 | sistema (consola) | S17 |
+| `platform.domainRecheckDays` · `platform.supportAccessMinutes` | int | 7 · 60 | sistema (consola) | S17 (R-17-10; **màxims — · 60**: un accés de suport no dura mai més d'una hora; AUTHZ-05, propietari 13-11) |
 | `migration.exportRetentionDays` · `migration.leftMaxYears` · `migration.reconciliationTolerancePct` · `migration.playoffReadOnlyMonths` | int | 30 · 5 · 1 · 3 | sistema | S18 |
 | `learn.linkText` | localizedText | `{"ca": "Aprèn amb AgilityHub", "es": "Aprende con AgilityHub", "en": "Learn with AgilityHub"}` | Club i pistes | S19 (es/en afegits 18-10, INC-38, E11-T10) |
 | `learn.recommendationsTtlMinutes` | int | 60 | sistema | S19 |
 | `learn.baseUrl` | string | `"https://learn.agilitydoghub.com"` | sistema | S19 |
 
 Bloc nou a D11: **«Privacitat i auditoria»** (S14) i **«Processos automàtics»** (S15).
+
+Pisos legals de la retenció (PRIV-02, decisió del propietari 13-11): un **mínim** de la columna de notes és el `min` del catàleg (`catalog.yaml`); el club edita la clau per sobre del pis. Un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (`ParameterInvalidOverride`): val el valor de producte.
+
+Sostre de l'accés de suport (AUTHZ-05, decisió del propietari 13-11): `platform.supportAccessMinutes` té un **màxim** de 60 (el `max` del catàleg, a la columna «Spec» de l'annex): la consola el pot escurçar, mai allargar; un valor per sobre es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sobre s'ignora (val el valor de producte, 60).
+
+Pisos de l'accés (AUTH-08, decisió del propietari 13-11): `auth.passwordMinLength` (**mínim 8**), `auth.lockoutMinutes` i `auth.lockoutMaxAttempts` (**mínims 1 · 3**, a la columna «Spec» de l'annex) tenen el pis com a `min` del catàleg, amb el mateix tractament: la consola els edita per sobre del pis, un valor per sota es refusa (`400 PARAMETER_INVALID`) i un override ja desat per sota s'ignora (val el valor de producte).

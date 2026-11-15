@@ -25,8 +25,12 @@ Compose builds the API with the pinned Maven wrapper and Java 21, then runs it
 as a non-root user on `eclipse-temurin:21-jre`. MongoDB 7 initializes the
 single-node `rs0` replica set and must become PRIMARY before the API starts.
 Expect health JSON with `status: "UP"`, replica-set state `1`, and both services
-healthy. Health also returns the Maven project `version` and UTC `builtAt`
-timestamp. It is public and global and reads no tenant, locale, bearer or data, but `UP`
+healthy. Health also returns the Maven project `version` (a release version, `1.0.0` since
+REL-02; never a `-SNAPSHOT`), the UTC `builtAt`
+timestamp and the git `commit` of the build (REL-02: CI passes it to the image
+build, which also labels the image `org.opencontainers.image.revision`; `null`
+for a build given none, such as this local one). It is public and global and
+reads no tenant, locale, bearer or data, but `UP`
 means the database answers: it pings MongoDB with a 1 s bound (E5-T27, INC-01
 semantics). When the ping fails or times out it answers `503` with the same body
 and `status: "DOWN"`, and logs a WARN with the request's `traceId`. The Docker
@@ -70,10 +74,10 @@ so the host does not need to resolve the replica member's Compose hostname.
 
 | Profile | MongoDB | Configuration |
 | --- | --- | --- |
-| `local` (default) | Enabled; development MongoDB 7 replica set | Defaults to `localhost:27017/agilityhub`, `rs0`; Compose supplies `mongo` as the host. `/v3/api-docs` is available. |
+| `local` (default of the jar) | Enabled; development MongoDB 7 replica set | Defaults to `localhost:27017/agilityhub`, `rs0`; Compose supplies `mongo` as the host. `/v3/api-docs` is available. |
 | `test` | Enabled; MongoDB 7 replica set | Integration tests inject a Testcontainers URI for `agilityhub_test`. `MONGODB_TEST_URI` is for manual execution. MVC slice tests need no database. |
 | `staging` | Enabled; MongoDB 7 replica set required | Set `MONGODB_HOST`, `MONGODB_DATABASE`, `MONGODB_USERNAME`, `MONGODB_PASSWORD`; see `.env.example` for port, replica-set and authentication-database defaults. |
-| `prod` | Enabled; MongoDB 7 replica set required | Same required variables as staging. |
+| `prod` (default of the image) | Enabled; MongoDB 7 replica set required | Same required variables as staging. The Docker image sets `SPRING_PROFILES_ACTIVE=prod` (CFG-12), so a run of it that names no profile starts on `prod`; every Compose stack of this repository names its own. |
 
 Activate one profile with `SPRING_PROFILES_ACTIVE`. Virtual threads are enabled
 in every profile. Configure `SERVER_PORT` if port 8080 is occupied.
@@ -103,7 +107,9 @@ of Spring Data dependencies.
 JDK 21 is required. `verify` also requires a running Docker engine: integration
 tests fail if Docker is unavailable. The Compose stack is not required for
 tests; Testcontainers creates an isolated MongoDB 7 replica set on a random
-port and cleans it up after the test JVM exits. The Maven wrapper downloads its
+port and cleans it up after the test JVM exits. It runs production's image
+(7.0.41, pinned by the digest of `deploy/compose.prod.yaml`; `MongoImagePinTest`
+keeps the two equal, REL-09). The Maven wrapper downloads its
 pinned distribution on the first run.
 
 ```sh

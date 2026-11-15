@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * One e-mail. `headers` carries the extra MIME headers of the engine's mails (R-11-08: `List-Unsubscribe` only on
- * `CLUB_NEWS`, pointing at the club app's unsubscribe page); the E1 SYSTEM mails have none.
+ * `CLUB_NEWS`, since COMM-08 the RFC 8058 one-click URL of the API with `List-Unsubscribe-Post`); the E1 SYSTEM mails have none.
  */
 public record EmailMessage(String to, String subject, String html, String text, Address from,
                            String replyTo, Locale locale, Map<String, String> tags, Map<String, String> headers) {

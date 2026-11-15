@@ -130,12 +130,14 @@ public class InvoicesController {
     @Operation(summary = "markInvoiceFailed", description = ROLES + "R-12-17 «impagat (manual)»: a COLLECTING SEPA invoice, or a PAID one with a SEPA "
             + "collection (a later bank return) → Collection FAILED{BANK_RETURN} (appended), invoice FAILED with the reason, InvoiceFailed → N-10 to "
             + "the admins, INVOICE_MARKED_FAILED audit. No automatic claim or booking block (BR-08). at is a club-local day, not after today. "
-            + "Another state → 409 INVALID_STATE {status}." + SERVED,
+            + "SEPA-04: includeInNextRun true → a returned PERIODIC receipt waits, FAILED, for the next run's remittance (R-12-19); a manual one → "
+            + "400 VALIDATION_ERROR {field: includeInNextRun}; absent or false → it waits for none. Several returns of one remittance: "
+            + "POST /remittances/{id}/returns. Another state → 409 INVALID_STATE {status}." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "Invoice", useReturnTypeSchema = true))
     public Invoice markInvoiceFailed(@PathVariable String id, @Valid @RequestBody InvoiceFailureRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.invoice(id);
-        return keyed(200, () -> actions.markFailed(id, request.reason(), request.at(), request.version()));
+        return keyed(200, () -> actions.markFailed(id, request.reason(), request.at(), request.version(), request.includeInNextRun()));
     }
 
     @PostMapping("/api/v1/invoices/{id}/retry")

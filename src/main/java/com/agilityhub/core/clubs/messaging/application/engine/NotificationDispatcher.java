@@ -13,10 +13,12 @@ import com.agilityhub.core.clubs.messaging.application.ports.NotificationFactsPo
 import com.agilityhub.core.clubs.messaging.domain.ChannelResolver;
 import com.agilityhub.core.clubs.messaging.domain.DeliveryStatus;
 import com.agilityhub.core.clubs.messaging.domain.MessagingEvent;
+import com.agilityhub.core.clubs.messaging.domain.MobileNumbers;
 import com.agilityhub.core.clubs.messaging.domain.NotificationAudience;
 import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.domain.NotificationEvent;
 import com.agilityhub.core.clubs.messaging.domain.RetryPolicy;
+import com.agilityhub.core.clubs.messaging.domain.SmsQuietHours;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.clubs.messaging.persistence.NotificationRepository;
 import com.agilityhub.core.clubs.messaging.persistence.PushSubscription;
@@ -72,7 +74,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  * to every address of the recipient that neither bounce mark suppresses ({@link EmailSuppression}) and that has no live
  * EMAIL delivery (a conditional insert: one per address, whoever settles which phone), and — the first time in the month
  * — the marker with `SmsCapReached{month, cap}` (N-49); an SMS the non-production guard refuses → `SKIPPED_NOT_ALLOWED`;
- * `SENT` is terminal at R1 (no delivery callback);</li>
+ * `SENT` is terminal at R1 (no delivery callback). COMM-06, before the reservation: a target that is not a mobile
+ * ({@link MobileNumbers}) → `SKIPPED_NO_CONTACT` («Not a mobile number»), nothing reserved nor sent; inside the club's
+ * SMS quiet hours ({@link SmsQuietHours}) a non-urgent SMS goes back to `QUEUED` until the window ends (no attempt counted,
+ * nothing sent, no event); a seat offer with a deadline never waits;</li>
  * <li>PUSH (R-11-07): a subscription that is no longer `ACTIVE`, or that is not the recipient account's, → `FAILED` without a
  * call (E76); `GONE` → `FAILED`, subscription `EXPIRED` + `PushUnsubscribed`, never retried; `RETRYABLE` → retried;
  * `FAILED` → `FAILED`, and the 3rd consecutive failure of a subscription expires it. The subscription's bookkeeping of
@@ -105,6 +110,8 @@ public class NotificationDispatcher {
     private final ClubSmsUsage usage; private final NotificationEmailRenderer emails; private final UnsubscribeTokens unsubscribes;
     private final MemberDirectoryPort members; private final NotificationAccounts accounts; private final EventPublisher events; private final TransactionTemplate transactions;
     private final List<NotificationFactsPort> owners; private final Clock clock; private final String platformFrom;
+    /** COMM-07: the pace of announcement e-mails (N-24), the provider plan's ({@link AnnouncementEmailPace}). */
+    private final AnnouncementEmailPace pace;
     /** Settlements with a provider's answer that kept failing: written again before the next claims, while their token still holds the lease. */
     private final Queue<Settling> unsettled = new ConcurrentLinkedQueue<>();
 
@@ -112,10 +119,18 @@ public class NotificationDispatcher {
             PushSender push, ClubConfigService configs, ClubEmailSettings emailSettings, ClubSmsUsage usage, NotificationEmailRenderer emails,
             UnsubscribeTokens unsubscribes, MemberDirectoryPort members, NotificationAccounts accounts, EventPublisher events, TransactionTemplate transactions,
             List<NotificationFactsPort> owners, Clock clock, String platformFrom) {
+        this(notifications, subscriptions, email, sms, push, configs, emailSettings, usage, emails, unsubscribes, members, accounts, events, transactions, owners,
+                clock, platformFrom, AnnouncementEmailPace.unlimited());
+    }
+    /** With the pace of announcement e-mails (COMM-07): the application's dispatcher. */
+    public NotificationDispatcher(NotificationRepository notifications, PushSubscriptionRepository subscriptions, EmailSender email, SmsSender sms,
+            PushSender push, ClubConfigService configs, ClubEmailSettings emailSettings, ClubSmsUsage usage, NotificationEmailRenderer emails,
+            UnsubscribeTokens unsubscribes, MemberDirectoryPort members, NotificationAccounts accounts, EventPublisher events, TransactionTemplate transactions,
+            List<NotificationFactsPort> owners, Clock clock, String platformFrom, AnnouncementEmailPace pace) {
         this.notifications = notifications; this.subscriptions = subscriptions; this.email = email; this.sms = sms; this.push = push;
         this.configs = configs; this.emailSettings = emailSettings; this.usage = usage; this.emails = emails; this.unsubscribes = unsubscribes;
         this.members = members; this.accounts = accounts; this.events = events; this.transactions = transactions; this.owners = List.copyOf(owners);
-        this.clock = clock; this.platformFrom = platformFrom;
+        this.clock = clock; this.platformFrom = platformFrom; this.pace = Objects.requireNonNull(pace);
     }
 
     /**
@@ -214,10 +229,16 @@ public class NotificationDispatcher {
     }
 
     private Outcome sendEmail(Notification notification, Notification.Delivery delivery) {
+        // COMM-07: an announcement e-mail beyond the minute's pace waits for the next minute (nothing rendered, sent or counted).
+        if (com.agilityhub.core.clubs.messaging.domain.NotificationCatalog.ANNOUNCEMENT.equals(notification.code())) {
+            var wait = pace.acquire(clock.instant());
+            if (wait.isPresent()) { return Outcome.deferred(wait.get(), AnnouncementEmailPace.PACED); }
+        }
         var settings = emailSettings.get(notification.clubId(), platformFrom);
         String origin = emailSettings.appOrigin(notification.clubId()).orElse(null);
         String memberId = notification.recipient() == null ? null : notification.recipient().memberId();
-        String unsubscribe = origin != null && memberId != null ? origin + "/comunicats/baixa?t=" + unsubscribes.issue(notification.clubId(), memberId) : null;
+        // R-11-08, COMM-08: the footer's page and the header's RFC 8058 one-click URL carry the same signed token.
+        var unsubscribe = origin != null && memberId != null ? NotificationEmailRenderer.Unsubscribe.of(origin, unsubscribes.issue(notification.clubId(), memberId)) : null;
         var tags = new LinkedHashMap<String, String>(); tags.put("clubId", notification.clubId()); tags.put("notificationId", notification.id());
         var message = emails.render(notification, delivery.target(), settings, app -> emailSettings.appOrigin(notification.clubId(), app).orElse(null), unsubscribe, tags);
         // N-01 retains only a marker. Issue the 24-hour capability in memory at delivery, never in the notification document.
@@ -259,22 +280,47 @@ public class NotificationDispatcher {
         return contact;
     }
     /**
-     * R-11-09 for the `EmailSender`'s answers, which carry no flag of their own: a provider status 4xx other than 429 (a
-     * rejected request, an invalid address) is final; 429, 5xx, a timeout or a transport failure is retried.
+     * R-11-09 for the `EmailSender`'s answers, which carry no flag of their own: a provider status 4xx (a rejected request, an
+     * invalid address) is final, but a quota answer ({@link #emailQuota}); a quota answer, 5xx, a timeout or a transport
+     * failure is retried.
      */
     static boolean emailRetryable(String error) {
         if (com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED.equals(error)) { return false; }
         if (com.agilityhub.core.clubs.messaging.application.AllowListEmailSender.NOT_ALLOWED.equals(error)) { return false; }
         if (com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.SUPPRESSED.equals(error)) { return false; }
-        var status = error == null ? null : java.util.regex.Pattern.compile("HTTP (\\d{3})").matcher(error);
+        if (emailQuota(error)) { return true; }
+        var status = error == null ? null : HTTP_STATUS.matcher(error);
         if (status == null || !status.find()) { return true; }
         int code = Integer.parseInt(status.group(1));
-        return code == 429 || code >= 500;
+        return code >= 500;
+    }
+    private static final java.util.regex.Pattern HTTP_STATUS = java.util.regex.Pattern.compile("HTTP (\\d{3})");
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026): the provider's quota answers — 429 (too many requests), 402 (payment required)
+     * and Brevo's `not_enough_credits` whatever its status — are retried for about a day ({@link RetryPolicy#nextQuotaAttempt})
+     * instead of becoming final.
+     */
+    static boolean emailQuota(String error) {
+        if (error == null) { return false; }
+        if (error.contains(com.agilityhub.core.clubs.messaging.application.BrevoEmailSender.NOT_ENOUGH_CREDITS)) { return true; }
+        var status = HTTP_STATUS.matcher(error);
+        if (!status.find()) { return false; }
+        int code = Integer.parseInt(status.group(1));
+        return code == 429 || code == 402;
     }
 
     private Outcome sendSms(Notification notification, Notification.Delivery delivery) {
+        // COMM-06: only to a mobile (a delivery queued before the rule, or by another path, is skipped here as the resolver does).
+        if (!MobileNumbers.mobile(delivery.target())) { return Outcome.status(DeliveryStatus.SKIPPED_NO_CONTACT, MobileNumbers.NOT_MOBILE); }
         var config = configs.get(notification.clubId());
-        var month = YearMonth.from(clock.instant().atZone(java.time.ZoneId.of(config.club().timeZone())));
+        var zone = java.time.ZoneId.of(config.club().timeZone());
+        // COMM-06: inside the club's quiet hours a non-urgent SMS waits for their end; nothing is reserved nor sent.
+        if (!SmsQuietHours.urgent(notification.code(), notification.variables())) {
+            var quiet = SmsQuietHours.of(config.get("messaging.sms.quietHoursStart", String.class), config.get("messaging.sms.quietHoursEnd", String.class));
+            var until = quiet.deferUntil(clock.instant(), zone);
+            if (until.isPresent()) { return Outcome.deferred(until.get(), SmsQuietHours.QUIET); }
+        }
+        var month = YearMonth.from(clock.instant().atZone(zone));
         long cap = Objects.requireNonNullElse(config.get("messaging.sms.monthlyCap", Integer.class), 0);
         var reservation = usage.reserve(notification.clubId(), month, cap);
         if (!reservation.granted()) { return Outcome.cap(reservation.month(), cap); }
@@ -295,9 +341,13 @@ public class NotificationDispatcher {
         // R-11-07 (E76): the device must still be the recipient's at every attempt, never the next account's on the same browser.
         String recipient = notification.recipient() == null ? null : notification.recipient().accountId();
         if (!subscription.accountId().equals(recipient)) { return Outcome.status(DeliveryStatus.FAILED, OTHER_OWNER); }
+        // COMM-10: the TTL per code — a reminder never past its class start, a seat offer until its deadline; past it, no push.
+        var ttl = com.agilityhub.core.clubs.messaging.domain.PushTtl.of(notification.code(), pushDeadline(notification),
+                Duration.ofMinutes(Objects.requireNonNullElse(configs.get(notification.clubId()).get("messaging.push.ttlMinutes", Integer.class), 1440)), clock.instant());
+        if (ttl.isEmpty()) { return Outcome.status(DeliveryStatus.SKIPPED_STALE, com.agilityhub.core.clubs.messaging.domain.PushTtl.PAST_DEADLINE); }
         String url = notification.action() == null ? "/notificacions" : "/notificacions?id=" + notification.id();
         var payload = new PushPayload(notification.id(), notification.title(), notification.body(), notification.icon() == null ? null : notification.icon().name(),
-                url, notification.code());
+                url, notification.code(), ttl.get().toSeconds());
         if (!leaseCoversCall(delivery)) { return Outcome.ABANDONED; }
         var result = push.send(subscription, payload);
         // The subscription's bookkeeping of the answer is the settlement's (E7-T05): it never turns the answer into another attempt.
@@ -338,22 +388,26 @@ public class NotificationDispatcher {
     /**
      * What one attempt produced: a provider's answer (`result`), a status reached without one (`status`, `error`), or the SMS
      * cap of `capMonth` (`cap`); `acceptedAt`, the moment an accepted answer arrived; `push`, the subscription's bookkeeping of
-     * a push service's answer. {@link #ABANDONED}: no provider call and nothing to write.
+     * a push service's answer; `deferredUntil`, a delivery put back in the queue without any call (COMM-06's SMS quiet hours).
+     * {@link #ABANDONED}: no provider call and nothing to write.
      */
-    record Outcome(SendResult result, DeliveryStatus status, String error, YearMonth capMonth, long cap, Instant acceptedAt, PushAnswer push) {
-        static final Outcome ABANDONED = new Outcome(null, null, null, null, 0, null, null);
-        static Outcome of(SendResult result) { return new Outcome(result, null, null, null, 0, null, null); }
-        static Outcome status(DeliveryStatus status, String error) { return new Outcome(null, status, error, null, 0, null, null); }
-        static Outcome cap(YearMonth month, long cap) { return new Outcome(null, DeliveryStatus.SKIPPED_CAP, CAP_REACHED, month, cap, null, null); }
+    record Outcome(SendResult result, DeliveryStatus status, String error, YearMonth capMonth, long cap, Instant acceptedAt, PushAnswer push,
+            Instant deferredUntil) {
+        static final Outcome ABANDONED = new Outcome(null, null, null, null, 0, null, null, null);
+        static Outcome of(SendResult result) { return new Outcome(result, null, null, null, 0, null, null, null); }
+        static Outcome status(DeliveryStatus status, String error) { return new Outcome(null, status, error, null, 0, null, null, null); }
+        static Outcome cap(YearMonth month, long cap) { return new Outcome(null, DeliveryStatus.SKIPPED_CAP, CAP_REACHED, month, cap, null, null, null); }
+        /** Back to `QUEUED` until `until`, with `reason` as its `lastError`: no call, no attempt counted. */
+        static Outcome deferred(Instant until, String reason) { return new Outcome(null, null, reason, null, 0, null, null, until); }
         /** The acceptance an earlier claim recorded on the delivery (`acceptedAt`, `providerRef`): settled, never sent again. */
         static Outcome recorded(Notification.Delivery delivery) {
             var push = delivery.channel() == NotificationChannel.PUSH ? new PushAnswer(delivery.target(), PushResult.Status.OK) : null;
-            return new Outcome(SendResult.accepted(delivery.providerRef()), null, null, null, 0, delivery.acceptedAt(), push);
+            return new Outcome(SendResult.accepted(delivery.providerRef()), null, null, null, 0, delivery.acceptedAt(), push, null);
         }
-        Outcome with(PushAnswer answer) { return new Outcome(result, status, error, capMonth, cap, acceptedAt, answer); }
-        Outcome at(Instant at) { return new Outcome(result, status, error, capMonth, cap, at, push); }
+        Outcome with(PushAnswer answer) { return new Outcome(result, status, error, capMonth, cap, acceptedAt, answer, deferredUntil); }
+        Outcome at(Instant at) { return new Outcome(result, status, error, capMonth, cap, at, push, deferredUntil); }
         boolean accepted() { return result != null && result.ok(); }
-        boolean abandoned() { return result == null && status == null; }
+        boolean abandoned() { return result == null && status == null && deferredUntil == null; }
         /** An answer the delivery's state depends on: written again, never asked again, while this instance holds the lease. */
         boolean keepsAnswer() { return accepted() || push != null; }
     }
@@ -437,6 +491,7 @@ public class NotificationDispatcher {
         var settlement = transactions.execute(tx -> {
             NotificationRepository.Settlement settled;
             if (outcome.capMonth() != null) { settled = capReached(s); }
+            else if (outcome.deferredUntil() != null) { settled = deferred(s, outcome.deferredUntil(), outcome.error()); }
             else if (outcome.result() == null) { settled = status(s, outcome.status(), outcome.error()); }
             else if (outcome.accepted()) { settled = accepted(s, outcome.result().providerRef()); }
             else { settled = failed(s, outcome.result()); }
@@ -471,13 +526,26 @@ public class NotificationDispatcher {
         return settlement;
     }
 
-    /** R-11-09: retried with backoff, or failed for good. A delivery the webhook moved meanwhile keeps its state. */
+    /**
+     * R-11-09: retried with backoff, or failed for good; an e-mail's quota answer for about a day (COMM-07). A delivery the
+     * webhook moved meanwhile keeps its state.
+     */
     private NotificationRepository.Settlement failed(Settling s, SendResult result) {
         Instant now = clock.instant(); int attempts = s.delivery().attempts() + 1;
-        var next = RetryPolicy.nextAttempt(attempts, result.retryable(), now);
+        var next = s.delivery().channel() == NotificationChannel.EMAIL && emailQuota(result.error()) ? RetryPolicy.nextQuotaAttempt(attempts, now)
+                : RetryPolicy.nextAttempt(attempts, result.retryable(), now);
         if (next.isEmpty()) { return status(s, DeliveryStatus.FAILED, result.error()); }
         return notifications.settleClaim(s.notification().id(), s.token(), update -> update.set("deliveries.$.attempts", attempts)
                 .set("deliveries.$.nextAttemptAt", next.get()).set("deliveries.$.lastError", result.error()), update -> { });
+    }
+
+    /**
+     * COMM-06: the delivery stays `QUEUED`, due at `until`, with the reason as its `lastError`; its attempts and lease bookkeeping
+     * are untouched but the lease is released. No event: nothing was attempted.
+     */
+    private NotificationRepository.Settlement deferred(Settling s, Instant until, String reason) {
+        return notifications.settleClaim(s.notification().id(), s.token(), update -> update.set("deliveries.$.nextAttemptAt", until)
+                .set("deliveries.$.lastError", reason), update -> { });
     }
 
     /** A final or skipped status (with its event when the delivery was attempted). */
@@ -540,6 +608,14 @@ public class NotificationDispatcher {
         if (notification.eventType() == null) { return true; }
         var view = view(notification);
         return owners.stream().filter(port -> port.eventTypes().contains(notification.eventType())).allMatch(port -> port.deliverable(view, delivery.channel().name()));
+    }
+
+    /** COMM-10: the earliest push deadline the notification's owners give ({@link NotificationFactsPort#pushDeadline}), or null. */
+    private Instant pushDeadline(Notification notification) {
+        if (notification.eventType() == null) { return null; }
+        var view = view(notification);
+        return owners.stream().filter(port -> port.eventTypes().contains(notification.eventType()))
+                .map(port -> port.pushDeadline(view)).flatMap(java.util.Optional::stream).min(Instant::compareTo).orElse(null);
     }
 
     private NotificationFactsPort owner(Notification notification) {

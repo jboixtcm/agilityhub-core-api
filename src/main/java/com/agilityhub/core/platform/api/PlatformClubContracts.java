@@ -123,7 +123,8 @@ public final class PlatformClubContracts {
             @com.fasterxml.jackson.annotation.JsonProperty(access=com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
             @Schema(requiredMode=NOT_REQUIRED, accessMode=WRITE_ONLY) String iban,
             @Schema(requiredMode=NOT_REQUIRED) String suffix,
-            @Schema(requiredMode=NOT_REQUIRED) Map<String,String> instructions) {
+            @Schema(requiredMode=NOT_REQUIRED) Map<String,String> instructions,
+            @Schema(requiredMode=NOT_REQUIRED, description="PAY-10, STRIPE on the prod profile: true confirms switching a club whose saved keys are live to mode test (otherwise 422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED}). Ignored elsewhere.") Boolean testModeOverride) {
         @Override public String toString() { return "PlatformProviderRequest[redacted]"; }
     }
     public record ProviderConnectionTest(boolean ok, String accountName, StripeMode mode) { }

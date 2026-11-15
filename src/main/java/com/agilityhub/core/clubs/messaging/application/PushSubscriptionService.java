@@ -23,9 +23,9 @@ import org.springframework.stereotype.Service;
  * (its SHA-256; one active subscription per endpoint and club) — a new device, the same browser again after an expiry or a
  * logout, or another account on it, which ends the previous owner's subscription and gets its own (a subscription never changes
  * owner, E76) — and publishes `PushSubscribed{accountId, endpoint}` when something changed; `DELETE` is the device's logout
- * (`EXPIRED`, `PushUnsubscribed`, idempotent). An endpoint that is no `https` URL, or keys that are not the base64url of a
- * point on P-256 (65 bytes, uncompressed) and a 16-byte secret, is `422 PUSH_SUBSCRIPTION_INVALID` (CATALEG_ERRORS rule 0):
- * WebPush could never encrypt to them. `deviceLabel` defaults to one read from the User-Agent («iPhone · Safari»). The URL and
+ * (`EXPIRED`, `PushUnsubscribed`, idempotent). An endpoint that is no `https` URL of a push service's address (a DNS name on
+ * the HTTPS port, COMM-05), or keys that are not the base64url of a point on P-256 (65 bytes, uncompressed) and a 16-byte
+ * secret (WebPush could never encrypt to them), is `422 PUSH_SUBSCRIPTION_INVALID` (CATALEG_ERRORS rule 0). `deviceLabel` defaults to one read from the User-Agent («iPhone · Safari»). The URL and
  * the keys never leave this class.
  */
 @Service
@@ -98,11 +98,25 @@ public class PushSubscriptionService {
     static void validate(String endpoint, String p256dh, String auth) {
         try {
             var uri = URI.create(endpoint.strip());
-            if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null) { throw invalid("endpoint"); }
+            if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null || !pushServiceAddress(uri)) { throw invalid("endpoint"); }
         } catch (IllegalArgumentException malformed) { throw invalid("endpoint"); }
         byte[] key = decode(p256dh, "keys.p256dh"), secret = decode(auth, "keys.auth");
         if (key.length != 65 || key[0] != 0x04 || !onP256(key)) { throw invalid("keys.p256dh"); }
         if (secret.length != 16) { throw invalid("keys.auth"); }
+    }
+    /**
+     * COMM-05: a browser's push service is always a DNS name of two labels or more on the HTTPS port. An IP literal, a
+     * single-label name (`localhost`, a Compose service), a `localhost` name or another port could only point the sender at
+     * the server's own network, so the subscription is refused.
+     */
+    static boolean pushServiceAddress(URI uri) {
+        if (uri.getPort() != -1 && uri.getPort() != 443) { return false; }
+        String host = uri.getHost().toLowerCase(Locale.ROOT);
+        if (host.endsWith(".")) { host = host.substring(0, host.length() - 1); }
+        int dot = host.lastIndexOf('.');
+        if (host.startsWith("[") || dot <= 0) { return false; }
+        String top = host.substring(dot + 1);
+        return !top.isEmpty() && !top.equals("localhost") && !top.chars().allMatch(Character::isDigit);
     }
     /**
      * An uncompressed point `04 ‖ x ‖ y` is a P-256 public key when both coordinates are field elements and y² = x³ + ax + b

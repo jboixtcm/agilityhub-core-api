@@ -82,7 +82,7 @@ public class CensusErasureRepository {
     public long eraseDogs(Collection<String> memberIds, String name, Instant at) {
         writes.written(TenantContext.require());
         var update = new Update().set("name", name).set("nameKey", Dog.nameKey(name)).set("licenses", List.of())
-                .unset("chip").unset("instructorNote").unset("remarks").unset("remarksMeta.updatedByName").unset("photoFileKey")
+                .unset("chip").unset("instructorNote").unset("remarks").unset("remarksMeta.updatedByName").unset("photoFileKey").unset("photoThumbnailFileKey")
                 .unset("handlerName").unset("signup.userAgent").unset("readmissionRequest")
                 .set("erasedAt", at).set("updatedAt", at).inc("version", 1);
         return mongo.updateMulti(Query.query(club()).addCriteria(Criteria.where("memberId").in(memberIds).and("erasedAt").is(null)), update, "dogs")
@@ -99,11 +99,13 @@ public class CensusErasureRepository {
         return mongo.updateMulti(Query.query(club()).addCriteria(Criteria.where("remarksMeta.updatedByAccountId").in(accountIds).and("remarksMeta.updatedByName").exists(true)),
                 new Update().unset("remarksMeta.updatedByName"), "dogs").getModifiedCount();
     }
-    /** The photo keys of the members' dogs not erased yet (read before {@link #eraseDogs}). */
+    /** The photo keys of the members' dogs not erased yet, and of their renditions (WEB-05), read before {@link #eraseDogs}. */
     public List<String> dogPhotos(Collection<String> memberIds) {
-        var query = Query.query(club()).addCriteria(Criteria.where("memberId").in(memberIds).and("erasedAt").is(null).and("photoFileKey").ne(null));
-        query.fields().include("photoFileKey");
-        return mongo.find(query, Dog.class).stream().map(dog -> dog.photoFileKey).toList();
+        var query = Query.query(club()).addCriteria(Criteria.where("memberId").in(memberIds).and("erasedAt").is(null)
+                .orOperator(Criteria.where("photoFileKey").ne(null), Criteria.where("photoThumbnailFileKey").ne(null)));
+        query.fields().include("photoFileKey").include("photoThumbnailFileKey");
+        return mongo.find(query, Dog.class).stream().flatMap(dog -> java.util.stream.Stream.of(dog.photoFileKey, dog.photoThumbnailFileKey))
+                .filter(java.util.Objects::nonNull).toList();
     }
 
     /**

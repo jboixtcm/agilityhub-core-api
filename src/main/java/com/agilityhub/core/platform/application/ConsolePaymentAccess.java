@@ -8,4 +8,6 @@ public interface ConsolePaymentAccess {
     String decrypt(String value,String club,String provider,String field);
     void validateSepa(String name,String creditor,String iban,String suffix);
     Connection ping();
+    /** PAY-10 (S17 R-17-05): the connection test of a Stripe secret key about to be saved, with that key and mode; throws when it fails. */
+    Connection ping(String mode,String secretKey);
 }
