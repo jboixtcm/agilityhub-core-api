@@ -4168,3 +4168,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-15 — Direct user request: keep activity APP notices and disable publication email
 
 @organizer: Jordi explicitly requested disabling activity-publication email in Cànic production and retaining the APP notice. Add a deployment-only club-ID hold for N-32a, consistent with the existing operational SEPA hold. No business parameter, notification code or API contract is added. Tests cover new and queued deliveries, no replay, another club, and other codes. Production activation is tracked in SOFTWARE_CANIC operations evidence.
+
+
+## 2026-11-15 — Direct user request: public logo loading
+
+@organizer: Prepared direct public logo delivery with a five-minute cache and ETag, preserving tenant/publication checks and private-file policy. OpenAPI regenerated; 97 targeted tests pass. See `roadmap/evidence/2026-11-15-logo-performance/REPORT.md`. Jordi explicitly requested publication; full CI and production readback are tracked in SOFTWARE_CANIC operations evidence. No existing roadmap task or organizer verification was modified.

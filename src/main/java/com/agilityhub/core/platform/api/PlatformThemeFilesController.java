@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import java.net.URI;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +30,21 @@ public class PlatformThemeFilesController {
     @GetMapping("/api/v1/public/{clubSlug}/theme/{fileKey}")
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
     @ContractErrors({ErrorCode.NOT_FOUND,ErrorCode.VALIDATION_ERROR})
-    @Operation(summary="publicClubLogo",description="Public branding image. Only a logo currently published by this club is accessible; unrelated uploads always return 404.",
-            responses=@ApiResponse(responseCode="302",description="Short-lived download URL"))
-    public ResponseEntity<Void> publicClubLogo(@PathVariable String clubSlug,@PathVariable String fileKey) {
-        return ResponseEntity.status(HttpStatus.FOUND).cacheControl(CacheControl.noStore()).location(URI.create(files.download(clubSlug,fileKey))).build();
+    @Operation(summary="publicClubLogo",description="Public branding image, served directly with an ETag and a five-minute public cache lifetime. Only a logo currently published by this club is accessible at the origin; unrelated uploads always return 404. Replacing a logo changes its URL.",
+            responses={@ApiResponse(responseCode="200",description="Published image",content=@io.swagger.v3.oas.annotations.media.Content(mediaType="image/*",schema=@io.swagger.v3.oas.annotations.media.Schema(type="string",format="binary"))),
+                    @ApiResponse(responseCode="304",description="Not modified",content=@io.swagger.v3.oas.annotations.media.Content)})
+    public ResponseEntity<byte[]> publicClubLogo(@PathVariable String clubSlug,@PathVariable String fileKey,
+            org.springframework.web.context.request.WebRequest request) {
+        var file = files.read(clubSlug,fileKey);
+        var type = FileDownloads.type(file.mimeType());
+        var disposition = FileDownloads.shownInline(type) ? ContentDisposition.inline() : ContentDisposition.attachment();
+        String tag = "\"" + fileKey + "\"";
+        boolean notModified = request.checkNotModified(tag);
+        var response = ResponseEntity.status(notModified ? 304 : 200)
+                .eTag(tag).cacheControl(CacheControl.maxAge(java.time.Duration.ofMinutes(5)).cachePublic().mustRevalidate())
+                .header("Content-Security-Policy", ContentSecurityPolicies.DOWNLOAD);
+        return notModified ? response.build() : response.contentType(type)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.filename(file.name(), java.nio.charset.StandardCharsets.UTF_8).build().toString())
+                .contentLength(file.content().length).body(file.content());
     }
 }

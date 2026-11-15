@@ -84601,7 +84601,7 @@
     },
     "/api/v1/public/{clubSlug}/theme/{fileKey}" : {
       "get" : {
-        "description" : "Public branding image. Only a logo currently published by this club is accessible; unrelated uploads always return 404.",
+        "description" : "Public branding image, served directly with an ETag and a five-minute public cache lifetime. Only a logo currently published by this club is accessible at the origin; unrelated uploads always return 404. Replacing a logo changes its URL.",
         "operationId" : "publicClubLogo",
         "parameters" : [ {
           "in" : "path",
@@ -84619,8 +84619,19 @@
           }
         } ],
         "responses" : {
-          "302" : {
-            "description" : "Short-lived download URL"
+          "200" : {
+            "content" : {
+              "image/*" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Published image"
+          },
+          "304" : {
+            "description" : "Not modified"
           },
           "400" : {
             "content" : {

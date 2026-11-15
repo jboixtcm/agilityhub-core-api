@@ -5,6 +5,10 @@
 - Add tenant-scoped FCAG standings and FlowAgility results, reviewed imports with exact licence suggestions, revision protection and privacy export/erasure.
 - Add optional per-club Flow session authentication from the deployment environment; real authenticated HTTP validation remains pending.
 
+## 2026-11-15 — Public logo loading
+
+- Serve published club logos directly, with an ETag and a five-minute browser cache, eliminating the signed-download redirect and repeated image transfers during navigation. Replacement logos keep distinct URLs. Private attachment downloads retain their existing policy.
+
 ## 2026-11-15 — Activity-publication email control
 
 - Allow a club-scoped operational hold on activity-publication emails while retaining in-app notices, including a check before sending queued messages.
