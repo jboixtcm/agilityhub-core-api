@@ -73,7 +73,7 @@ class DogPhotoThumbnailsIT extends AbstractIntegrationTest {
         club(CLUB); club(OTHER);
         member(CLUB, "one", 1, Set.of(Role.MEMBER)); member(CLUB, "admin", 2, Set.of(Role.MEMBER, Role.ADMIN));
         member(OTHER, "foreign", 1, Set.of(Role.MEMBER, Role.ADMIN));
-        dog(CLUB, "dog-one", "one"); dog(CLUB, "dog-two", "one"); dog(CLUB, "dog-three", "admin"); dog(OTHER, "dog-foreign", "foreign");
+        dog(CLUB, "thumbs-dog-one", "one"); dog(CLUB, "thumbs-dog-two", "one"); dog(CLUB, "thumbs-dog-three", "admin"); dog(OTHER, "thumbs-dog-foreign", "foreign");
     }
     void club(String id) {
         var node = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.valueToTree(clubs.findById(id).orElseGet(() -> PlatformFixtures.club(id, id + ".example.test")));
@@ -161,28 +161,28 @@ class DogPhotoThumbnailsIT extends AbstractIntegrationTest {
 
     @Test void WEB_05_T_03_23_aClaimedPhotoGetsAnUprightThumbnailThatEveryListSignsBesideTheOriginal() throws Exception {
         byte[] original = cameraJpeg();
-        String photo = claim(true, "dog-one", "image/jpeg", original);
-        String thumbnail = thumbnailOf("dog-one");
+        String photo = claim(true, "thumbs-dog-one", "image/jpeg", original);
+        String thumbnail = thumbnailOf("thumbs-dog-one");
         assertThat(thumbnail).isNotBlank().isNotEqualTo(photo);
-        assertThat(grant(thumbnail)).containsEntry("purpose", PhotoThumbnails.PURPOSE).containsEntry("boundEntity", "dog-one").containsEntry("clubId", CLUB)
+        assertThat(grant(thumbnail)).containsEntry("purpose", PhotoThumbnails.PURPOSE).containsEntry("boundEntity", "thumbs-dog-one").containsEntry("clubId", CLUB)
                 .containsEntry("mimeType", "image/jpeg");
         assertThat(exists(thumbnail)).isTrue();
 
         // GET /dogs (D15, the instructor's search): the rendition beside the photo, for ADMIN and INSTRUCTOR alike.
         for (var reader : List.of("ADMIN", "INSTRUCTOR")) {
-            var row = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl,photoThumbnailUrl").param("filter", "id:eq:dog-one"), CLUB, "admin", reader), 200)
+            var row = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one"), CLUB, "admin", reader), 200)
                     .path("items").get(0);
             assertThat(row.size()).isEqualTo(3);
             assertThat(fetch(row.path("photoUrl").asText())).isEqualTo(original);
             var small = picture(row.path("photoThumbnailUrl").asText());
             assertThat(small.getWidth()).isEqualTo(192); assertThat(small.getHeight()).isEqualTo(256);
             assertThat(TestPictures.side(small, "right")).isEqualTo("red"); assertThat(TestPictures.side(small, "left")).isEqualTo("white");
-            var sparse = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl").param("filter", "id:eq:dog-one"), CLUB, "admin", reader), 200).path("items").get(0);
+            var sparse = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl").param("filter", "id:eq:thumbs-dog-one"), CLUB, "admin", reader), 200).path("items").get(0);
             assertThat(sparse.has("photoThumbnailUrl")).isFalse();
-            var without = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl,photoThumbnailUrl").param("filter", "id:eq:dog-two"), CLUB, "admin", reader), 200).path("items").get(0);
+            var without = json(call(get("/api/v1/dogs").param("fields", "id,photoUrl,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-two"), CLUB, "admin", reader), 200).path("items").get(0);
             assertThat(without.size()).isEqualTo(1);
         }
-        byte[] thumbnailBytes = fetch(json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:dog-one")), 200)
+        byte[] thumbnailBytes = fetch(json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one")), 200)
                 .at("/items/0/photoThumbnailUrl").asText());
         assertThat(TestPictures.contains(thumbnailBytes, "FictionalCam")).isFalse(); assertThat(TestPictures.contains(thumbnailBytes, "Exif")).isFalse();
         assertThat(thumbnailBytes.length).isLessThan(original.length);
@@ -190,99 +190,99 @@ class DogPhotoThumbnailsIT extends AbstractIntegrationTest {
         // GET /members (D5) rows' dogs[], the instructor's member record and D10's overview.
         for (var reader : List.of("ADMIN", "INSTRUCTOR")) {
             var listed = dogIn(json(call(get("/api/v1/members").param("fields", "dogs").param("filter", "id:eq:" + CLUB + "-one"), CLUB, "admin", reader), 200)
-                    .at("/items/0/dogs"), "dog-one");
+                    .at("/items/0/dogs"), "thumbs-dog-one");
             assertThat(picture(listed.path("photoThumbnailUrl").asText()).getHeight()).isEqualTo(256);
             assertThat(fetch(listed.path("photoUrl").asText())).isEqualTo(original);
             assertThat(dogIn(json(call(get("/api/v1/members").param("fields", "dogs").param("filter", "id:eq:" + CLUB + "-one"), CLUB, "admin", reader), 200)
-                    .at("/items/0/dogs"), "dog-two").has("photoThumbnailUrl")).isFalse();
+                    .at("/items/0/dogs"), "thumbs-dog-two").has("photoThumbnailUrl")).isFalse();
         }
-        var record = dogIn(json(instructor(get("/api/v1/members/" + CLUB + "-one")), 200).path("dogs"), "dog-one");
+        var record = dogIn(json(instructor(get("/api/v1/members/" + CLUB + "-one")), 200).path("dogs"), "thumbs-dog-one");
         assertThat(picture(record.path("photoThumbnailUrl").asText()).getWidth()).isEqualTo(192);
-        var overview = dogIn(json(admin(get("/api/v1/members/" + CLUB + "-one/overview")), 200).path("dogs"), "dog-one");
+        var overview = dogIn(json(admin(get("/api/v1/members/" + CLUB + "-one/overview")), 200).path("dogs"), "thumbs-dog-one");
         assertThat(picture(overview.path("photoThumbnailUrl").asText()).getWidth()).isEqualTo(192);
         assertThat(fetch(overview.path("photoUrl").asText())).isEqualTo(original);
-        assertThat(dogIn(json(admin(get("/api/v1/members/" + CLUB + "-one/overview")), 200).path("dogs"), "dog-two").has("photoThumbnailUrl")).isFalse();
+        assertThat(dogIn(json(admin(get("/api/v1/members/" + CLUB + "-one/overview")), 200).path("dogs"), "thumbs-dog-two").has("photoThumbnailUrl")).isFalse();
 
         // Detail responses keep the original only; no response names the stored keys.
-        var detail = json(admin(get("/api/v1/dogs/dog-one")), 200);
+        var detail = json(admin(get("/api/v1/dogs/thumbs-dog-one")), 200);
         assertThat(fetch(detail.at("/dog/photoUrl").asText())).isEqualTo(original);
         assertThat(detail.toString()).doesNotContain("photoThumbnail");
         assertThat(json(own(get("/api/v1/me/dogs")), 200).toString()).doesNotContain("photoThumbnail");
-        assertThat(json(admin(get("/api/v1/dogs").param("filter", "id:eq:dog-one")), 200).toString()).doesNotContain("photoThumbnailFileKey", "photoFileKey");
+        assertThat(json(admin(get("/api/v1/dogs").param("filter", "id:eq:thumbs-dog-one")), 200).toString()).doesNotContain("photoThumbnailFileKey", "photoFileKey");
         // Club scope and roles as for the photo: another club lists nothing of it, a MEMBER cannot list dogs.
-        assertThat(json(call(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl"), OTHER, "foreign", "ADMIN"), 200).toString()).doesNotContain(thumbnail, "dog-one");
+        assertThat(json(call(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl"), OTHER, "foreign", "ADMIN"), 200).toString()).doesNotContain(thumbnail, "thumbs-dog-one");
         own(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl")).andExpect(status().isForbidden());
         // The audit records the photo, never its rendition.
-        var audits = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is(AuditAction.DOG_UPDATED).and("entityId").is("dog-one")), AuditEntry.class);
+        var audits = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is(AuditAction.DOG_UPDATED).and("entityId").is("thumbs-dog-one")), AuditEntry.class);
         assertThat(audits).isNotEmpty();
         assertThat(mapper.writeValueAsString(audits)).contains("photoFileKey").doesNotContain("photoThumbnailFileKey");
         // Short-lived like the photo's URL (five minutes; on S3 the presigned URL's own expiry, `X-Amz-Expires=300`).
-        String url = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:dog-one")), 200).at("/items/0/photoThumbnailUrl").asText();
+        String url = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one")), 200).at("/items/0/photoThumbnailUrl").asText();
         if (url.startsWith("http")) { assertThat(url).contains("X-Amz-Expires=300"); return; }
         clock.advance(Duration.ofMinutes(6));
         admin(get(url)).andExpect(status().isForbidden());
     }
 
     @Test void WEB_05_replacingThePhotoErasesItsThumbnailAndAPhotoTheServerCannotReduceHasNone() throws Exception {
-        claim(false, "dog-one", "image/png", TestPictures.png(TestPictures.quadrants(800, 600)));
-        String first = thumbnailOf("dog-one");
+        claim(false, "thumbs-dog-one", "image/png", TestPictures.png(TestPictures.quadrants(800, 600)));
+        String first = thumbnailOf("thumbs-dog-one");
         assertThat(first).isNotBlank();
-        String photo = claim(true, "dog-one", "image/jpeg", TestPictures.jpeg(TestPictures.quadrants(480, 640), false));
-        String second = thumbnailOf("dog-one");
+        String photo = claim(true, "thumbs-dog-one", "image/jpeg", TestPictures.jpeg(TestPictures.quadrants(480, 640), false));
+        String second = thumbnailOf("thumbs-dog-one");
         assertThat(second).isNotBlank().isNotEqualTo(first);
         assertThat(exists(first)).isFalse(); assertThat(grant(first)).isNull();
         assertThat(exists(second)).isTrue();
-        var row = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:dog-one")), 200).at("/items/0");
+        var row = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one")), 200).at("/items/0");
         assertThat(picture(row.path("photoThumbnailUrl").asText()).getHeight()).isEqualTo(256);
         // The same photo claimed again changes nothing.
         long events = mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("DogUpdated")), "domain_events");
-        own(body(put("/api/v1/me/dogs/dog-one/photo"), Map.of("fileKey", photo))).andExpect(status().isOk());
-        assertThat(thumbnailOf("dog-one")).isEqualTo(second);
+        own(body(put("/api/v1/me/dogs/thumbs-dog-one/photo"), Map.of("fileKey", photo))).andExpect(status().isOk());
+        assertThat(thumbnailOf("thumbs-dog-one")).isEqualTo(second);
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("DogUpdated")), "domain_events")).isEqualTo(events);
 
         // A WebP (or any picture the JDK cannot decode with certainty) is claimed as before, without a rendition; the old one goes.
         byte[] webp = "RIFF\0\0\0\0WEBPVP8 fictional".getBytes(StandardCharsets.ISO_8859_1);
-        claim(true, "dog-one", "image/webp", webp);
-        assertThat(stored("dog-one")).doesNotContainKey("photoThumbnailFileKey");
+        claim(true, "thumbs-dog-one", "image/webp", webp);
+        assertThat(stored("thumbs-dog-one")).doesNotContainKey("photoThumbnailFileKey");
         assertThat(exists(second)).isFalse(); assertThat(grant(second)).isNull();
-        var listed = json(admin(get("/api/v1/dogs").param("fields", "id,photoUrl,photoThumbnailUrl").param("filter", "id:eq:dog-one")), 200).at("/items/0");
+        var listed = json(admin(get("/api/v1/dogs").param("fields", "id,photoUrl,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one")), 200).at("/items/0");
         assertThat(listed.has("photoThumbnailUrl")).isFalse(); assertThat(fetch(listed.path("photoUrl").asText())).isEqualTo(webp);
-        assertThat(dogIn(json(admin(get("/api/v1/members/" + CLUB + "-one/overview")), 200).path("dogs"), "dog-one").has("photoThumbnailUrl")).isFalse();
+        assertThat(dogIn(json(admin(get("/api/v1/members/" + CLUB + "-one/overview")), 200).path("dogs"), "thumbs-dog-one").has("photoThumbnailUrl")).isFalse();
         // A truncated JPEG: the same.
         byte[] jpeg = TestPictures.jpeg(TestPictures.quadrants(640, 480), false);
-        claim(false, "dog-one", "image/jpeg", Arrays.copyOf(jpeg, jpeg.length / 2));
-        assertThat(stored("dog-one")).doesNotContainKey("photoThumbnailFileKey");
+        claim(false, "thumbs-dog-one", "image/jpeg", Arrays.copyOf(jpeg, jpeg.length / 2));
+        assertThat(stored("thumbs-dog-one")).doesNotContainKey("photoThumbnailFileKey");
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("purpose").is(PhotoThumbnails.PURPOSE)), "attachment_uploads")).isZero();
     }
 
     @Test void WEB_05_aMigratedPhotoGetsItsThumbnailWhenItIsBound() throws Exception {
         try (var tenant = TenantContext.open(CLUB)) {
             var file = attachments.storeMigrationPhoto("image/png", TestPictures.png(TestPictures.quadrants(300, 200)));
-            assertThat(documents.migrationPhoto("dog-two", file)).isTrue();
+            assertThat(documents.migrationPhoto("thumbs-dog-two", file)).isTrue();
         }
-        String thumbnail = thumbnailOf("dog-two");
+        String thumbnail = thumbnailOf("thumbs-dog-two");
         assertThat(thumbnail).isNotBlank();
-        assertThat(grant(thumbnail)).containsEntry("boundEntity", "dog-two").containsEntry("purpose", PhotoThumbnails.PURPOSE);
-        var row = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:dog-two")), 200).at("/items/0");
+        assertThat(grant(thumbnail)).containsEntry("boundEntity", "thumbs-dog-two").containsEntry("purpose", PhotoThumbnails.PURPOSE);
+        var row = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-two")), 200).at("/items/0");
         var small = picture(row.path("photoThumbnailUrl").asText());
         assertThat(small.getWidth()).isEqualTo(256); assertThat(small.getHeight()).isEqualTo(171);
     }
 
     @Test void WEB_05_R_14_15_theErasureDeletesTheThumbnailWithThePhoto() throws Exception {
-        String photo = claim(true, "dog-one", "image/jpeg", TestPictures.jpeg(TestPictures.quadrants(640, 480), false));
-        String thumbnail = thumbnailOf("dog-one");
+        String photo = claim(true, "thumbs-dog-one", "image/jpeg", TestPictures.jpeg(TestPictures.quadrants(640, 480), false));
+        String thumbnail = thumbnailOf("thumbs-dog-one");
         assertThat(thumbnail).isNotBlank();
         var files = new ArrayList<String>();
         try (var tenant = TenantContext.open(CLUB)) {
             var subject = new ErasureSubject("request-web-05", CLUB, List.of(new ErasureMember(CLUB + "-one", "thumbs-" + CLUB + "-one", 1, "LEFT",
-                    LocalDate.of(2026, 8, 31), null, "LEAVE_REQUEST", null, List.of("dog-one", "dog-two"))), Set.of("thumbs-" + CLUB + "-one"),
+                    LocalDate.of(2026, 8, 31), null, "LEAVE_REQUEST", null, List.of("thumbs-dog-one", "thumbs-dog-two"))), Set.of("thumbs-" + CLUB + "-one"),
                     Map.of("thumbs-" + CLUB + "-one", "erased+fictional@erased.invalid"), new ErasurePlaceholders("Abonat suprimit", "Compte suprimit", "Gos suprimit", "(suprimit)"),
                     clock.instant());
             files.addAll(followupErasure.erase(subject).files());
             files.addAll(censusErasure.erase(subject).files());
         }
         assertThat(files).contains("attachments:" + photo, "attachments:" + thumbnail);
-        assertThat(stored("dog-one")).doesNotContainKeys("photoFileKey", "photoThumbnailFileKey");
+        assertThat(stored("thumbs-dog-one")).doesNotContainKeys("photoFileKey", "photoThumbnailFileKey");
         assertThat(grant(thumbnail)).isNull();
         // S14 §7: the cleanup deletes each pending file from its store.
         files.stream().filter(file -> file.startsWith("attachments:")).forEach(file -> followupErasure.delete(file.substring("attachments:".length())));
@@ -305,33 +305,33 @@ class DogPhotoThumbnailsIT extends AbstractIntegrationTest {
     }
 
     @Test void WEB_05_theBackfillMakesTheMissingThumbnailsOfOneClubOnceAndItsDryRunWritesNothing() throws Exception {
-        legacy(CLUB, "dog-one", "image/jpeg", cameraJpeg());
-        legacy(CLUB, "dog-two", "image/webp", "RIFF\0\0\0\0WEBPVP8 fictional".getBytes(StandardCharsets.ISO_8859_1));
-        legacy(CLUB, "dog-three", "image/png", TestPictures.png(TestPictures.quadrants(400, 300)));
-        legacy(OTHER, "dog-foreign", "image/png", TestPictures.png(TestPictures.quadrants(400, 300)));
+        legacy(CLUB, "thumbs-dog-one", "image/jpeg", cameraJpeg());
+        legacy(CLUB, "thumbs-dog-two", "image/webp", "RIFF\0\0\0\0WEBPVP8 fictional".getBytes(StandardCharsets.ISO_8859_1));
+        legacy(CLUB, "thumbs-dog-three", "image/png", TestPictures.png(TestPictures.quadrants(400, 300)));
+        legacy(OTHER, "thumbs-dog-foreign", "image/png", TestPictures.png(TestPictures.quadrants(400, 300)));
         var before = mongo.findAll(Document.class, "attachment_uploads").size();
 
         String dry = run("--club=" + CLUB, "--dry-run");
-        assertThat(dry).contains("dog-one WOULD_MAKE", "dog-two WOULD_MAKE", "dog-three WOULD_MAKE", "3 dog photos without a thumbnail (dry run: nothing written)")
-                .doesNotContain("dog-foreign", "Example");
+        assertThat(dry).contains("thumbs-dog-one WOULD_MAKE", "thumbs-dog-two WOULD_MAKE", "thumbs-dog-three WOULD_MAKE", "3 dog photos without a thumbnail (dry run: nothing written)")
+                .doesNotContain("thumbs-dog-foreign", "Example");
         assertThat(mongo.count(Query.query(Criteria.where("photoThumbnailFileKey").exists(true)), "dogs")).isZero();
         assertThat(mongo.findAll(Document.class, "attachment_uploads")).hasSize(before);
 
         String applied = run("--club=" + CLUB);
-        assertThat(applied).contains("dog-one MADE", "dog-two NOT_MADE", "dog-three MADE", "2 thumbnails made, 1 photos without one").doesNotContain("dog-foreign");
-        assertThat(thumbnailOf("dog-one")).isNotBlank(); assertThat(thumbnailOf("dog-three")).isNotBlank();
-        assertThat(stored("dog-two")).doesNotContainKey("photoThumbnailFileKey"); assertThat(stored("dog-foreign")).doesNotContainKey("photoThumbnailFileKey");
-        var upright = picture(json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:dog-one")), 200).at("/items/0/photoThumbnailUrl").asText());
+        assertThat(applied).contains("thumbs-dog-one MADE", "thumbs-dog-two NOT_MADE", "thumbs-dog-three MADE", "2 thumbnails made, 1 photos without one").doesNotContain("thumbs-dog-foreign");
+        assertThat(thumbnailOf("thumbs-dog-one")).isNotBlank(); assertThat(thumbnailOf("thumbs-dog-three")).isNotBlank();
+        assertThat(stored("thumbs-dog-two")).doesNotContainKey("photoThumbnailFileKey"); assertThat(stored("thumbs-dog-foreign")).doesNotContainKey("photoThumbnailFileKey");
+        var upright = picture(json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one")), 200).at("/items/0/photoThumbnailUrl").asText());
         assertThat(upright.getWidth()).isEqualTo(192); assertThat(TestPictures.side(upright, "right")).isEqualTo("red");
 
         // Idempotent and safe to re-run: the dogs with a rendition are not touched again.
-        var made = List.of(thumbnailOf("dog-one"), thumbnailOf("dog-three"));
+        var made = List.of(thumbnailOf("thumbs-dog-one"), thumbnailOf("thumbs-dog-three"));
         String again = run("--club=" + CLUB);
-        assertThat(again).contains("dog-two NOT_MADE", "0 thumbnails made, 1 photos without one").doesNotContain("dog-one", "dog-three");
-        assertThat(List.of(thumbnailOf("dog-one"), thumbnailOf("dog-three"))).isEqualTo(made);
+        assertThat(again).contains("thumbs-dog-two NOT_MADE", "0 thumbnails made, 1 photos without one").doesNotContain("thumbs-dog-one", "thumbs-dog-three");
+        assertThat(List.of(thumbnailOf("thumbs-dog-one"), thumbnailOf("thumbs-dog-three"))).isEqualTo(made);
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("purpose").is(PhotoThumbnails.PURPOSE)), "attachment_uploads")).isEqualTo(2);
         // An erased dog is never listed.
-        mongo.updateFirst(Query.query(Criteria.where("_id").is("dog-two")), new Update().set("erasedAt", clock.instant()), "dogs");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("thumbs-dog-two")), new Update().set("erasedAt", clock.instant()), "dogs");
         assertThat(run("--club=" + CLUB, "--dry-run")).contains("0 dog photos without a thumbnail");
         assertThatThrownBy(() -> run("--dry-run")).hasMessage("Usage: census:photo-thumbnails --club=slug [--dry-run]");
         assertThatThrownBy(() -> run("--club=" + CLUB, "--apply")).hasMessage("Usage: census:photo-thumbnails --club=slug [--dry-run]");

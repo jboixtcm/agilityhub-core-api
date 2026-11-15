@@ -55,16 +55,16 @@ class DogPhotoThumbnailsS3IT extends DogPhotoThumbnailsIT {
     }
 
     @Test void WEB_05_onS3TheThumbnailIsAPrivateJpegObjectBesideThePhotoAndGoesWithIt() throws Exception {
-        String photo = claim(true, "dog-one", "image/jpeg", TestPictures.jpeg(TestPictures.quadrants(1200, 900), false));
-        String thumbnail = thumbnailOf("dog-one");
+        String photo = claim(true, "thumbs-dog-one", "image/jpeg", TestPictures.jpeg(TestPictures.quadrants(1200, 900), false));
+        String thumbnail = thumbnailOf("thumbs-dog-one");
         var s3 = client();
         var head = s3.headObject(request -> request.bucket(BUCKET).key("attachments/" + thumbnail));
         assertThat(head.contentType()).isEqualTo("image/jpeg"); assertThat(head.contentLength()).isPositive();
         assertThat(s3.headObject(request -> request.bucket(BUCKET).key("attachments/" + photo)).contentLength())
                 .isGreaterThan(head.contentLength());
-        String url = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:dog-one")), 200).at("/items/0/photoThumbnailUrl").asText();
+        String url = json(admin(get("/api/v1/dogs").param("fields", "id,photoThumbnailUrl").param("filter", "id:eq:thumbs-dog-one")), 200).at("/items/0/photoThumbnailUrl").asText();
         assertThat(url).startsWith(endpoint().toString()).contains("/" + BUCKET + "/attachments/" + thumbnail, "X-Amz-Expires=300", "X-Amz-Signature=");
-        claim(false, "dog-one", "image/png", TestPictures.png(TestPictures.quadrants(300, 300)));
+        claim(false, "thumbs-dog-one", "image/png", TestPictures.png(TestPictures.quadrants(300, 300)));
         assertThatThrownBy(() -> s3.headObject(request -> request.bucket(BUCKET).key("attachments/" + thumbnail))).isInstanceOf(NoSuchKeyException.class);
     }
 }
