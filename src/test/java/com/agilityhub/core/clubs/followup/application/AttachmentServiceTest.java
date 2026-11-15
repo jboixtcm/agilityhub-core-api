@@ -39,6 +39,25 @@ class AttachmentServiceTest {
     private void grant(String account, String purpose, String bound, Instant expiry) {
         when(grants.findById(key)).thenReturn(Optional.of(new UploadGrant(key, "example-club", account, purpose, "Example.txt", "text/plain", 4, now, expiry, bound)));
     }
+    @Test void T_17_02_publicLogoReadRequiresAClaimedLogoAndBoundsTheStorageRead() throws Exception {
+        grant("example-account", "DOG_DOCUMENT", "dog", now);
+        assertThatThrownBy(() -> service.readClubLogo(key)).hasMessage("NOT_FOUND");
+        grant("example-account", "CLUB_LOGO", null, now);
+        assertThatThrownBy(() -> service.readClubLogo(key)).hasMessage("NOT_FOUND");
+        verify(storage, never()).read(anyString(), anyLong());
+        grant("example-account", "CLUB_LOGO", "example-club:logo", now);
+        when(storage.read(key, 4)).thenReturn(new byte[]{1,2,3,4});
+        var image = service.readClubLogo(key);
+        assertThat(image.content()).containsExactly(1,2,3,4);
+        assertThat(image.name()).isEqualTo("Example.txt");
+        assertThat(image.mimeType()).isEqualTo("text/plain");
+        verify(storage).read(key, 4);
+    }
+    @Test void T_17_02_publicLogoReadPropagatesStorageFailureWithoutChangingPermissions() throws Exception {
+        grant("example-account", "CLUB_LOGO", "example-club:logo", now);
+        when(storage.read(key, 4)).thenThrow(new IOException("Read failed"));
+        assertThatThrownBy(() -> service.readClubLogo(key)).isInstanceOf(UncheckedIOException.class);
+    }
     @Test void T_03_23_uploadPolicyRejectsUnsafeNamesTypesSizesAndDisabledNotes() {
         for (String name : Arrays.asList(null, "", "x".repeat(256), "bad\rname", "bad\nname")) {
             assertThatThrownBy(() -> service.upload("DOG_DOCUMENT", name, "text/plain", 4)).hasMessage("VALIDATION_ERROR");

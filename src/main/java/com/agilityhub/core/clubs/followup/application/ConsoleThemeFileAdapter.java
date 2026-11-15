@@ -11,5 +11,5 @@ public class ConsoleThemeFileAdapter implements ConsoleThemeFileAccess {
         var value=files.upload("CLUB_LOGO",name,mime,size);return new Upload(value.uploadUrl(),value.fileKey(),value.expiresAt(),value.headers());
     }
     public void claim(String key,String entity) {files.claim(key,"CLUB_LOGO",entity);}
-    public String url(String key) {return files.url(key,"Club logo");}
+    public Image read(String key) {return files.readClubLogo(key);}
 }

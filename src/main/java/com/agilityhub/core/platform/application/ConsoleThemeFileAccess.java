@@ -10,5 +10,6 @@ public interface ConsoleThemeFileAccess {
     record Upload(@io.swagger.v3.oas.annotations.media.Schema(format = "uri-reference") String uploadUrl,String fileKey,Instant expiresAt,Map<String,String> headers) { }
     Upload upload(String name,String mime,long size);
     void claim(String key,String entity);
-    String url(String key);
+    record Image(String name, String mimeType, byte[] content) { }
+    Image read(String key);
 }

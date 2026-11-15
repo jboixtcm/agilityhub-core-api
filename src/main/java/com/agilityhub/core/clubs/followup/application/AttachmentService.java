@@ -166,6 +166,15 @@ public class AttachmentService {
     }
     private UploadGrant grant(String key) { return grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public String url(String key, String name) { return key == null ? null : storage.downloadUrl(key, name, clock.instant().plusSeconds(300)); }
+    /** Only the platform's already-published logo route calls this tenant-scoped read. */
+    public com.agilityhub.core.platform.application.ConsoleThemeFileAccess.Image readClubLogo(String key) {
+        var grant = grant(key);
+        if (!"CLUB_LOGO".equals(grant.purpose()) || grant.boundEntity() == null) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        try {
+            return new com.agilityhub.core.platform.application.ConsoleThemeFileAccess.Image(
+                    grant.fileName(), grant.mimeType(), storage.read(key, grant.sizeBytes()));
+        } catch (IOException failure) { throw new java.io.UncheckedIOException(failure); }
+    }
     private static final java.util.regex.Pattern UUID_PATTERN = java.util.regex.Pattern.compile("[0-9a-f-]{36}");
     /**
      * S16 R-16-16 (E9-T02): a file another context keeps under its own key prefix, `{clubId}/{scope}/{uuid}` (the courses' files
