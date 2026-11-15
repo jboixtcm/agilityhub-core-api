@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-15 — Activity-publication email control
+
+- Allow a club-scoped operational hold on activity-publication emails while retaining in-app notices, including a check before sending queued messages.
+
 ## 2026-11-13 — Class times and student/administration feedback
 
 - Accept whole-minute start/end times for manually created and edited classes, independently of generated time bands; retain opening-hour, conflict and version checks.

@@ -1,0 +1,32 @@
+{
+  "targetedIntegration": {
+    "com.agilityhub.core.clubs.messaging.application.engine.ActivityPublicationEmailHoldIT": {
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    "com.agilityhub.core.clubs.messaging.application.engine.DisabledEmailDeliveryIT": {
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    "com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT": {
+      "tests": 29,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    "com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT": {
+      "tests": 16,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    }
+  },
+  "command": "./mvnw -q clean test-compile failsafe:integration-test failsafe:verify -Dit.test=ActivityPublicationEmailHoldIT,DisabledEmailDeliveryIT,NotificationEngineIT,NotificationDispatcherIT",
+  "exitCode": 0,
+  "operationsTests": 65,
+  "fullReleaseCi": "Pending publication"
+}

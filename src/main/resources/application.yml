@@ -151,6 +151,8 @@ core:
     # the partial unique index training_active_seat, the ring-slot sequences) are the guarantee. Infrastructure
     # setting, not a club parameter (shared.application.LocalLanes).
     local-lanes: true
+  messaging:
+    activity-publication-email-disabled-club-ids: ${ACTIVITY_PUBLICATION_EMAIL_DISABLED_CLUB_IDS:}
   billing:
     # Rulings E43/E85 (E8-T01): BankAccountVault, the only bank key: the members' encrypted IBANs of both origins (migration:apply
     # encrypts with it too); only the SEPA writer decrypts.

@@ -4163,3 +4163,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-13 — Direct user request: Josep feedback and manual times
 
 @organizer: Applied the November 12-2/13 feedback under Jordi's explicit request. The follow-up asks for five-minute planning increments and freely editable manual start/end times. Scope and validation are recorded in `roadmap/evidence/feedback-20261113/REPORT.md`; no roadmap task/status or organizer verification was modified. A read-only production investigation found an empty pack with no expiry behind the booking render failure. The reported identity currently validates; the reactivation case is a never-validated rejected signup and is directed through normal signup/validation. Production schedule adjustments and the student manual belong to SOFTWARE_CANIC operations evidence.
+
+
+## 2026-11-15 — Direct user request: keep activity APP notices and disable publication email
+
+@organizer: Jordi explicitly requested disabling activity-publication email in Cànic production and retaining the APP notice. Add a deployment-only club-ID hold for N-32a, consistent with the existing operational SEPA hold. No business parameter, notification code or API contract is added. Tests cover new and queued deliveries, no replay, another club, and other codes. Production activation is tracked in SOFTWARE_CANIC operations evidence.

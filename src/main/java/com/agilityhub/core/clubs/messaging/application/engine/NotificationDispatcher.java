@@ -197,7 +197,18 @@ public class NotificationDispatcher {
         settle(new Settling(notification, delivery, token, outcome));
     }
 
-    boolean emailDeliveryDisabled(Notification notification) { return emailSender(notification).deliveryDisabled(); }
+    private java.util.Set<String> activityPublicationEmailDisabledClubIds = java.util.Set.of();
+
+    @org.springframework.beans.factory.annotation.Value("${core.messaging.activity-publication-email-disabled-club-ids:}")
+    void setActivityPublicationEmailDisabledClubIds(java.util.Set<String> clubIds) {
+        activityPublicationEmailDisabledClubIds = java.util.Set.copyOf(clubIds);
+    }
+
+    /** The publication notice keeps its APP delivery; its optional email can be held independently for a club. */
+    boolean emailDeliveryDisabled(Notification notification) {
+        return ("N-32a".equals(notification.code()) && activityPublicationEmailDisabledClubIds.contains(notification.clubId()))
+                || emailSender(notification).deliveryDisabled();
+    }
 
     private EmailSender emailSender(Notification notification) {
         if (notification.audience() == NotificationAudience.APPLICANT
@@ -209,7 +220,7 @@ public class NotificationDispatcher {
     }
 
     private Outcome attempt(Notification notification, Notification.Delivery delivery) {
-        if (delivery.channel() == NotificationChannel.EMAIL && emailSender(notification).deliveryDisabled()) {
+        if (delivery.channel() == NotificationChannel.EMAIL && emailDeliveryDisabled(notification)) {
             return Outcome.status(DeliveryStatus.SKIPPED_NOT_ALLOWED, com.agilityhub.core.clubs.messaging.application.DisabledEmailSender.DISABLED);
         }
         if (!deliverable(notification, delivery)) { return Outcome.status(DeliveryStatus.SKIPPED_STALE, STALE); }

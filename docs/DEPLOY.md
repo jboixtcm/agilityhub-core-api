@@ -1928,3 +1928,8 @@ Jordi authorized enabling emails and deploying the pending November 8 feedback. 
 ### Pausing SEPA generation for a club
 
 Set `SEPA_GENERATION_PAUSED_CLUB_IDS` to the comma-separated club UUIDs to hold. A billing run that would create a remittance returns HTTP 422 with `SEPA_NOT_CONFIGURED` and reason `GENERATION_PAUSED` before numbering invoices or creating a file. Simulation and member registration remain available. Remove the club from the setting and redeploy only after its mandate references and signature dates have been reconciled. The gateway rotates access logs daily at 00:00 UTC and after 50 MiB, and retains at most 28 rolled files for up to 28 days.
+
+
+### Hold activity-publication emails for a club
+
+`ACTIVITY_PUBLICATION_EMAIL_DISABLED_CLUB_IDS` is an optional comma-separated list of club IDs. For those clubs, N-32a (activity published) keeps its in-app notice and action, but EMAIL is recorded as `SKIPPED_NOT_ALLOWED`, even when publication requests `notifyEmail=true` or the template enables EMAIL. The same check protects queued emails at dispatch time. Other notifications and other clubs keep their existing behavior. Skipped deliveries are terminal and are not replayed when the hold is removed. The default empty list preserves existing behavior.
