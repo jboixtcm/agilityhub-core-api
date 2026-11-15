@@ -299,10 +299,20 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         theme.keySet().removeAll(Set.of("logoUrl","logoDarkUrl","markUrl"));theme.put("version",version());theme.put("logoFileKey",key);
         var result=call(put(BASE+"/console-target/theme"),theme,200);String path=result.path("logoUrl").asText();
         assertThat(path).isEqualTo("/api/v1/public/console-target/theme/"+key);
-        assertThat(mvc.perform(get(path).header("Host","unknown.example.test")).andReturn().getResponse().getStatus()).isEqualTo(302);
+        var image=mvc.perform(get(path).header("Host","unknown.example.test")).andReturn().getResponse();
+        assertThat(image.getStatus()).isEqualTo(200);
+        assertThat(image.getContentAsByteArray()).containsExactly(1,2,3);
+        assertThat(image.getContentType()).isEqualTo("image/png");
+        assertThat(image.getHeader("Location")).isNull();
+        assertThat(image.getHeader("Cache-Control")).isEqualTo("max-age=300, must-revalidate, public");
+        assertThat(image.getHeader("Content-Security-Policy")).contains("sandbox");
+        var cached=mvc.perform(get(path).header("Host","unknown.example.test").header("If-None-Match",image.getHeader("ETag"))).andReturn().getResponse();
+        assertThat(cached.getStatus()).isEqualTo(304);
+        assertThat(cached.getContentAsByteArray()).isEmpty();
         assertThat(mvc.perform(get(path.replace("console-target","console-source")).header("Host","unknown.example.test")).andReturn().getResponse().getStatus()).isEqualTo(404);
         theme.put("version",version());theme.put("logoFileKey","");call(put(BASE+"/console-target/theme"),theme,200);
         assertThat(mvc.perform(get(path).header("Host","unknown.example.test")).andReturn().getResponse().getStatus()).isEqualTo(404);
+        assertThat(mvc.perform(get(path).header("Host","unknown.example.test").header("If-None-Match",image.getHeader("ETag"))).andReturn().getResponse().getStatus()).isEqualTo(404);
     }
 
     @Autowired com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs;

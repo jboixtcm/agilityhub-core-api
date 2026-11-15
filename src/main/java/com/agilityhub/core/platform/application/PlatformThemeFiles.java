@@ -19,11 +19,11 @@ public class PlatformThemeFiles {
         if(url.equals(previous)) return previous;
         files.claim(key,club.id()+":"+slot);return url;
     }
-    public String download(String slug,String key) {
+    public ConsoleThemeFileAccess.Image read(String slug,String key) {
         var club=clubs.findBySlug(slug).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
         String url=path(slug,key);
         if(!Arrays.asList(club.theme().logoUrl(),club.theme().logoDarkUrl(),club.theme().markUrl()).contains(url)) throw new ApiException(ErrorCode.NOT_FOUND);
-        try(var scope=TenantContext.open(club.id())) {return files.url(key);}
+        try(var scope=TenantContext.open(club.id())) {return files.read(key);}
     }
     private String path(String slug,String key) {
         if(!key.matches("[A-Za-z0-9-]+")) throw new ApiException(ErrorCode.VALIDATION_ERROR);
