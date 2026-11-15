@@ -7,7 +7,7 @@
 > - **No l'ha redactat un advocat: cal la revisió legal del club** abans de fixar-ne la data d'entrada en vigor.
 > - La data d'entrada en vigor és una constant pendent: una build de producció d'`apps/id` falla mentre no es fixi.
 > - El servidor ha de portar la mateixa versió (`PLATFORM_PRIVACY_POLICY_VERSION=2`) i aquesta adreça (`PLATFORM_PRIVACY_POLICY_URL=https://id.agilitydoghub.com/privacy`). Un canvi del text vol dir pujar la versió als dos llocs, i tots els comptes l'hauran de tornar a acceptar.
-> - Els terminis de conservació són els valors actuals dels paràmetres del club (`rgpd.retentionYearsAfterLeave` 6, `audit.retentionYears` 6, `rgpd.erasureMinDaysAfterLeave` 30, `rgpd.rejectedSignupRetentionDays` 365, `security.eventRetentionDays` 90) i els 30 dies de les còpies de seguretat (`deploy/backup/lifecycle.json` de l'api): si se'n canvia algun, cal canviar el text.
+> - Els terminis de conservació són els valors actuals dels paràmetres del club (`rgpd.retentionYearsAfterLeave` 6, `audit.retentionYears` 6, `rgpd.erasureMinDaysAfterLeave` 30, `rgpd.rejectedSignupRetentionDays` 365, `security.eventRetentionDays` 90), els 30 dies de les còpies de seguretat (`deploy/backup/lifecycle.json` de l'api) i els 30 dies del registre d'accés HTTP (`deploy/Caddyfile` de l'api): si se'n canvia algun, cal canviar el text.
 
 ## Català
 
@@ -31,7 +31,7 @@ Ara mateix la plataforma només dona servei a aquest club, que és el responsabl
 - **Pagaments:** rebuts i cobraments. Per a la domiciliació, l'IBAN (guardat xifrat), el titular del compte i el seu NIF, i la referència i la data del mandat SEPA. Per als pagaments amb targeta, l'identificador de client a Stripe, la marca i els quatre últims dígits de la targeta.
 - **Consentiments:** l'acceptació de la política de privacitat i l'autorització d'ús de la imatge, amb la versió i la data; els que dones en el formulari d'alta, també amb l'idioma i una empremta irreversible de l'adreça IP des d'on es van donar.
 - **Comunicacions:** els avisos que reps (a l'app, per correu, per SMS o com a notificació al dispositiu), el seu estat d'entrega, les teves preferències d'avisos i, si actives les notificacions en un dispositiu, l'adreça de subscripció que en dona el navegador.
-- **Seguretat i registre de canvis:** els intents d'accés fallits i altres esdeveniments de seguretat, amb l'adreça IP i el navegador, i el registre dels canvis que es fan a les dades, tant els de l'equip del club com els que hi fas tu (qui, què i quan, amb l'adreça IP i el navegador).
+- **Seguretat i registre de canvis:** els intents d'accés fallits i altres esdeveniments de seguretat, amb l'adreça IP i el navegador, i el registre dels canvis que es fan a les dades, tant els de l'equip del club com els que hi fas tu (qui, què i quan, amb l'adreça IP i el navegador). El servidor també registra cada petició que es fa a la plataforma, amb l'adreça IP, el navegador, la data i l'adreça demanada (sense els seus paràmetres).
 
 Aquestes dades les facilites tu (en apuntar-te, a l'app o directament al club) o les introdueix l'equip del club; les que el club tenia al programa de gestió que feia servir abans es traspassen a aquesta plataforma. Les dades tècniques (sessions, avisos i registres de seguretat) es generen en fer-la servir. Les dades marcades com a obligatòries al formulari d'alta són necessàries per gestionar l'abonament: sense elles, el club no pot tramitar l'alta.
 
@@ -71,6 +71,7 @@ Les dades s'allotgen a la Unió Europea. DigitalOcean i Stripe formen part de gr
 - **El registre de canvis** es conserva 6 anys, i **els fitxers de les remeses** enviades al banc, 6 anys des de la seva data.
 - **Els esdeveniments de seguretat** es conserven 90 dies.
 - **Els paquets de dades que descarreguis** estan disponibles 7 dies i després s'esborren.
+- **El registre de les peticions al servidor** es conserva com a màxim 30 dies i no es modifica: les dades suprimides en desapareixen quan caduca, com a les còpies de seguretat.
 - **Les còpies de seguretat**, xifrades, es conserven fins a 30 dies i no es modifiquen: les dades suprimides en desapareixen quan les còpies caduquen.
 
 # 6. Els teus drets
@@ -122,7 +123,7 @@ Por ahora la plataforma solo da servicio a este club, que es el responsable de t
 - **Pagos:** recibos y cobros. Para la domiciliación, el IBAN (guardado cifrado), el titular de la cuenta y su NIF, y la referencia y la fecha del mandato SEPA. Para los pagos con tarjeta, el identificador de cliente en Stripe, la marca y los cuatro últimos dígitos de la tarjeta.
 - **Consentimientos:** la aceptación de la política de privacidad y la autorización de uso de la imagen, con la versión y la fecha; los que das en el formulario de alta, también con el idioma y una huella irreversible de la dirección IP desde la que se dieron.
 - **Comunicaciones:** los avisos que recibes (en la app, por correo, por SMS o como notificación en el dispositivo), su estado de entrega, tus preferencias de avisos y, si activas las notificaciones en un dispositivo, la dirección de suscripción que facilita el navegador.
-- **Seguridad y registro de cambios:** los intentos de acceso fallidos y otros eventos de seguridad, con la dirección IP y el navegador, y el registro de los cambios que se hacen en los datos, tanto los del equipo del club como los que haces tú (quién, qué y cuándo, con la dirección IP y el navegador).
+- **Seguridad y registro de cambios:** los intentos de acceso fallidos y otros eventos de seguridad, con la dirección IP y el navegador, y el registro de los cambios que se hacen en los datos, tanto los del equipo del club como los que haces tú (quién, qué y cuándo, con la dirección IP y el navegador). El servidor también registra cada petición que se hace a la plataforma, con la dirección IP, el navegador, la fecha y la dirección solicitada (sin sus parámetros).
 
 Estos datos los facilitas tú (al apuntarte, en la app o directamente en el club) o los introduce el equipo del club; los que el club tenía en el programa de gestión que usaba antes se traspasan a esta plataforma. Los datos técnicos (sesiones, avisos y registros de seguridad) se generan al utilizarla. Los datos marcados como obligatorios en el formulario de alta son necesarios para gestionar el abono: sin ellos, el club no puede tramitar el alta.
 
@@ -162,6 +163,7 @@ Los datos se alojan en la Unión Europea. DigitalOcean y Stripe forman parte de 
 - **El registro de cambios** se conserva 6 años, y **los ficheros de las remesas** enviadas al banco, 6 años desde su fecha.
 - **Los eventos de seguridad** se conservan 90 días.
 - **Los paquetes de datos que descargues** están disponibles 7 días y después se borran.
+- **El registro de las peticiones al servidor** se conserva como máximo 30 días y no se modifica: los datos suprimidos desaparecen de él cuando caduca, como en las copias de seguridad.
 - **Las copias de seguridad**, cifradas, se conservan hasta 30 días y no se modifican: los datos suprimidos desaparecen de ellas cuando las copias caducan.
 
 # 6. Tus derechos
@@ -213,7 +215,7 @@ For now the platform serves only this club, which is the controller of all the d
 - **Payments:** receipts and collections. For direct debit, the IBAN (stored encrypted), the account holder and their tax ID, and the SEPA mandate reference and date. For card payments, your customer identifier at Stripe, the card brand and the last four digits of the card.
 - **Consents:** your acceptance of the privacy policy and your authorisation for the use of images, with the version and date; those you give on the sign-up form also with the language and an irreversible fingerprint of the IP address they were given from.
 - **Communications:** the notices you receive (in the app, by email, by SMS or as a notification on your device), their delivery status, your notice preferences and, if you turn on notifications on a device, the subscription address your browser provides.
-- **Security and change log:** failed sign-in attempts and other security events, with the IP address and browser, and the log of the changes made to the data, both by the club's team and by you (who, what and when, with the IP address and browser).
+- **Security and change log:** failed sign-in attempts and other security events, with the IP address and browser, and the log of the changes made to the data, both by the club's team and by you (who, what and when, with the IP address and browser). The server also records each request made to the platform, with the IP address, the browser, the date and the address requested (without its parameters).
 
 You provide these data (when you sign up, in the app or at the club) or the club's team enters them; the data the club held in the management software it used before are transferred to this platform. Technical data (sessions, notices and security records) are generated as you use it. The fields marked as required on the sign-up form are needed to manage your membership: without them the club cannot process your sign-up.
 
@@ -253,6 +255,7 @@ The data are hosted in the European Union. DigitalOcean and Stripe belong to gro
 - **The change log** is kept for 6 years, and **the direct debit files** sent to the bank for 6 years from their date.
 - **Security events** are kept for 90 days.
 - **Data packages you download** are available for 7 days and then deleted.
+- **The log of requests to the server** is kept for at most 30 days and is not modified: erased data disappear from it when it expires, as with the backups.
 - **Backups**, encrypted, are kept for up to 30 days and are not modified: erased data disappear from them when the backups expire.
 
 # 6. Your rights
