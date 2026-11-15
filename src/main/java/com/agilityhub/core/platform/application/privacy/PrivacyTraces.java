@@ -23,6 +23,8 @@ public class PrivacyTraces implements ErasureStep, AccountErasureStep, Retention
         return ErasureEffect.builder().count("domain_events", traces.deleteProcessedEvents(subject.memberIds(), subject.dogIds()))
                 .count("job_runs", traces.forgetDogNames(subject.memberIds())).build();
     }
+    /** Forget a source preview replay in this tenant without weakening unrelated write retries. */
+    public long forgetReplay(String accountId, String key) { return traces.deleteReplay(accountId, key); }
     /**
      * For a context step whose aggregate is not the member's but names it (E11-T11: the renamed instructor's earlier
      * `InstructorChanged` carry its old `shortName` in their diff): its processed outbox records of that type go too.

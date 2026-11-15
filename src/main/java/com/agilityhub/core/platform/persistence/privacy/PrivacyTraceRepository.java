@@ -90,6 +90,10 @@ public class PrivacyTraceRepository {
         return traced;
     }
 
+    /** Remove only one tenant-scoped replay whose body contains erased source data. */
+    public long deleteReplay(String accountId, String key) {
+        return mongo.remove(Query.query(club().and("accountId").is(accountId).and("key").is(key)), "idempotency_records").getDeletedCount();
+    }
     public long deleteReplays(String accountId) {
         return mongo.remove(Query.query(Criteria.where("accountId").is(accountId)), "idempotency_records").getDeletedCount();
     }

@@ -12,6 +12,8 @@ Llegenda: **R** llegir · **W** crear/modificar · **X** accions especials · «
 | `/me`, `/me/profile`, canvi de perfil actiu, contrasenya, idioma | — | RW | RW | RW | RW |
 | Abonats `/members` | — | R propi (via `/me`) · W dades de contacte (28) | R abonats `ACTIVE` i `PENDING`, mai els exabonats (`LEFT`, `INACTIVE`: llistat i facetes no els compten, la fitxa → `404`) (fitxa d'alumne 22/D13: dades de contacte visibles; IBAN i adreça postal (carrer, codi postal, població, província, país) no; AUTHZ-02) | RW + X (validar, rebutjar, bloquejar reserves, baixa, inactivitat, canvi de mètode de pagament (amb «no avisis» opcional, COMM-03), rols, reenviar accés, canviar l'adreça d'accés (S03 R-03-06b; un token de suport, no: `403 SUPPORT_RESTRICTED`), impersonar) | R (consola: recomptes, sense dades personals per defecte) |
 | Gossos `/dogs` | — | R propi · W «notes als instructors», documents, foto | R tots · W observacions, nivell (proposta → l'ADMIN el fixa) | RW (nivell, amb «no avisis» opcional — COMM-03 —, «pot entrenar sol», transferir, baixa) | — |
+| Estadístiques de competició (STATS): `/me/dogs/{id}/competition-statistics`, `/dogs/{id}/competition-statistics` | — | R propi | R del club | R del club | — |
+| Importacions de competició (STATS): `/competition-imports`, previsualitzar i confirmar | — | — | — | RW | — |
 | Grup familiar | — | R propi | R | RW | — |
 | Catàlegs (`/levels`, `/rings`, `/instructors`, `/plans`, `/prices`) | R (`/public/*/plans`) | R | R | RW | RW (clonar catàlegs base) |
 | Paràmetres `/parameters`, FAQ, plantilles de comunicat | — | R FAQ | R FAQ | RW | RW |

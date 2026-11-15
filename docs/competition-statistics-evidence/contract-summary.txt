@@ -1,0 +1,4 @@
+Existing OpenAPI values changed or removed: 0
+New paths: 5
+New schemas: 10
+API snapshot equals frontend input: True

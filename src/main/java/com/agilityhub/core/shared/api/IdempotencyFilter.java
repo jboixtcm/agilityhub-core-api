@@ -152,8 +152,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         boolean checkout = path.equals("/api/v1/checkout-sessions");
         if(checkout && signupCheckout!=null) signupCheckout.requireBilling();
         if (anonymous && !publicSignup && !checkout) { throw new ApiException(ErrorCode.UNAUTHENTICATED); }
-        byte[] body = request.getInputStream().readNBytes(publicSignup ? 65537 : 1048577);
-        if (body.length > (publicSignup ? 65536 : 1048576)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        // A source file is bounded at 2 MB after JSON decoding; JSON escaping can expand each byte sixfold.
+        int bodyLimit = publicSignup ? 65536 : path.equals("/api/v1/competition-imports/preview") ? 12_001_000 : 1048576;
+        byte[] body = request.getInputStream().readNBytes(bodyLimit + 1);
+        if (body.length > bodyLimit) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         if (anonymous && publicSignup) {
             var json = json(body);
             if (json != null && !json.path("website").asText("").isBlank()) {

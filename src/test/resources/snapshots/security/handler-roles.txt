@@ -82,6 +82,7 @@ GET /api/v1/club-pages | hasAnyRole('MEMBER','INSTRUCTOR','ADMIN') | clubs.conte
 GET /api/v1/club-pages/{key} | hasAnyRole('MEMBER','INSTRUCTOR','ADMIN') | clubs.content.api.ClubPagesController.get
 GET /api/v1/club/holidays | hasRole('ADMIN') and principal.claims['imp'] != true | platform.api.SettingsController.holidays
 GET /api/v1/club/opening-hours | hasRole('ADMIN') and principal.claims['imp'] != true | platform.api.SettingsController.openingHours
+GET /api/v1/competition-imports | hasRole('ADMIN') | clubs.statistics.api.CompetitionController.history
 GET /api/v1/country-profile | none | platform.api.SettingsController.countryProfile
 GET /api/v1/country-profile/postal-codes/{code} | none | platform.api.SettingsController.postalCodeTowns
 GET /api/v1/courses | hasAnyRole('INSTRUCTOR', 'ADMIN') | courses.api.CoursesController.listCourses
@@ -93,6 +94,7 @@ GET /api/v1/day-grid | isAuthenticated() and (#view != 'instructor' or hasAnyRol
 GET /api/v1/dogs | hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true | clubs.census.api.DogsController.listDogs
 GET /api/v1/dogs/filter-values | hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true | clubs.census.api.DogsController.dogFilterValues
 GET /api/v1/dogs/{id} | hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true | clubs.census.api.DogsController.getDog
+GET /api/v1/dogs/{id}/competition-statistics | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.statistics.api.CompetitionController.dog
 GET /api/v1/dogs/{id}/documents | hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true | clubs.census.api.DogsController.dogDocuments
 GET /api/v1/dogs/{id}/instructor-card | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.bookings.api.InstructorController.instructorCard
 GET /api/v1/exports | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.common.api.ExportsController.exports
@@ -130,6 +132,7 @@ GET /api/v1/me/bookable-classes | hasRole('MEMBER') | clubs.bookings.api.Booking
 GET /api/v1/me/bookings | hasRole('MEMBER') | clubs.bookings.api.BookingsController.memberBookings
 GET /api/v1/me/challenge-attempts | hasRole('MEMBER') | courses.api.ChallengesController.myChallengeAttempts
 GET /api/v1/me/dogs | hasRole('MEMBER') | clubs.census.api.MyCensusController.myDogs
+GET /api/v1/me/dogs/{id}/competition-statistics | hasRole('MEMBER') | clubs.statistics.api.CompetitionController.mine
 GET /api/v1/me/family-group | hasRole('MEMBER') | clubs.census.api.FamilyGroupsController.myFamilyGroup
 GET /api/v1/me/history | hasRole('MEMBER') | clubs.bookings.api.InstructorController.memberHistory
 GET /api/v1/me/home | hasRole('MEMBER') | clubs.bookings.api.BookingsController.memberHome
@@ -302,6 +305,8 @@ POST /api/v1/class-sessions/{id}/cancellation | hasAnyRole('ADMIN') | clubs.sche
 POST /api/v1/class-sessions/{id}/restoration | hasAnyRole('ADMIN') | clubs.scheduling.api.SchedulingController.restoreClass
 POST /api/v1/class-sessions/{id}/risk-exemption | hasAnyRole('ADMIN') | clubs.scheduling.api.SchedulingController.exemptClass
 POST /api/v1/club-pages | hasRole('ADMIN') | clubs.content.api.ClubPagesController.create
+POST /api/v1/competition-imports/preview | hasRole('ADMIN') | clubs.statistics.api.CompetitionController.preview
+POST /api/v1/competition-imports/{id}/confirm | hasRole('ADMIN') | clubs.statistics.api.CompetitionController.confirm
 POST /api/v1/courses | hasAnyRole('INSTRUCTOR', 'ADMIN') | courses.api.CoursesController.createCourse
 POST /api/v1/courses/upload-urls | hasAnyRole('INSTRUCTOR', 'ADMIN') | courses.api.CoursesController.courseUploadUrl
 POST /api/v1/courses/{id}/copy-to-club | hasAnyRole('INSTRUCTOR', 'ADMIN') | courses.api.CoursesController.copyCourseToClub
