@@ -115,7 +115,9 @@ public class JobAdminService {
      * entry commit as they do without a key, and the entry's loader reads the committed run.
      */
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    public JobRunView trigger(String routeId, boolean dryRun) { return JobViews.forClub(triggered(routeId, dryRun)); }
+    public JobRunView trigger(String routeId, boolean dryRun, JobRunConfirmation confirmation) {
+        return JobViews.forClub(triggered(routeId, dryRun, confirmation));
+    }
     /**
      * E5-T29 round 2 (CONVENCIONS_API §7, S15 R-15-09, ruling E75): the run commits before the key's answer is stored. When that
      * answer is lost (the request's commit fails and the key is released), the retry with the same key and body answers the run
@@ -123,7 +125,7 @@ public class JobAdminService {
      * INC-50 (E11-T02): unless the first attempt lost its JOB_TRIGGERED entry (written after the run committed): the retry
      * writes it then, once.
      */
-    private JobRunView triggered(String routeId, boolean dryRun) {
+    private JobRunView triggered(String routeId, boolean dryRun, JobRunConfirmation confirmation) {
         var definition = access.job(routeId);
         var earlier = runs.forRequest(definition.name(), IdempotentOperation.reference(), clock.instant().minus(IdempotentOperation.KEY_LIFETIME));
         if (earlier.isPresent()) {
@@ -131,7 +133,7 @@ public class JobAdminService {
                     .filter(entry -> entry.action() == com.agilityhub.core.platform.application.audit.AuditAction.JOB_TRIGGERED).isPresent();
             return audited ? JobViews.view(earlier.get()) : triggers.audited(earlier.get());
         }
-        return triggers.trigger(definition.name(), dryRun);
+        return triggers.trigger(definition.name(), dryRun, confirmation);
     }
 
     /** `PUT /jobs/{name}/switch`: S02 parameter write (`ParameterChanged`, audited PARAMETER_CHANGED, config cache invalidated). */
@@ -146,9 +148,9 @@ public class JobAdminService {
 
     /** `POST /platform/clubs/{clubId}/jobs/{name}/trigger`: the club route inside the addressed club's scope, never in a caller's transaction. */
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    public JobRunView platformTrigger(String clubId, String routeId, boolean dryRun) {
+    public JobRunView platformTrigger(String clubId, String routeId, boolean dryRun, JobRunConfirmation confirmation) {
         access.platformJob(clubId, routeId);
-        try (var scope = TenantContext.open(clubId)) { return triggered(routeId, dryRun); }
+        try (var scope = TenantContext.open(clubId)) { return triggered(routeId, dryRun, confirmation); }
     }
 
     /**

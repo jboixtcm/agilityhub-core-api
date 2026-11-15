@@ -19,7 +19,7 @@ class AnonymousRateLimitsTest {
     @ParameterizedTest
     @CsvSource({
         "GET,/.well-known/jwks.json", "GET,/.well-known/openid-configuration", "GET,/oauth2/jwks",
-        "GET,/oauth2/authorize", "GET,/connect/logout", "POST,/api/v1/email-unsubscribes",
+        "GET,/oauth2/authorize", "GET,/connect/logout", "POST,/api/v1/email-unsubscribes", "POST,/api/v1/email-unsubscribes/one-click",
         "POST,/api/v1/auth/handoff", "GET,/api/v1/manifest.webmanifest", "GET,/api/v1/signup",
         "GET,/api/v1/country-profile", "GET,/api/v1/country-profile/postal-codes/00000",
         "GET,/api/v1/checkout-sessions/example", "POST,/webhooks/email/sendgrid", "POST,/webhooks/email/brevo", "POST,/webhooks/stripe/example",
@@ -144,6 +144,127 @@ class AnonymousRateLimitsTest {
         // The anonymous applicant behind the same address keeps the address's own quota.
         for (int i = 0; i < 2; i++) { assertThat(call(filter, "GET", "/api/v1/checkout-sessions/example").getStatus()).isEqualTo(204); }
         assertThat(call(filter, "GET", "/api/v1/checkout-sessions/example").getStatus()).isEqualTo(429);
+    }
+
+    /**
+     * AUTH-09 (owner decision 13-11-2026, S01 R-01-08): the refresh grant has its own bucket per address; the password and link
+     * grants keep theirs, so neither one exhausts the other.
+     */
+    @org.junit.jupiter.api.Test void AUTH_09_theRefreshGrantHasItsOwnBucketApartFromThePasswordAndLinkGrants() throws Exception {
+        var filter = filter(new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        for (int i = 0; i < 2; i++) { assertThat(token(filter, "refresh_token").getStatus()).isEqualTo(204); }
+        assertThat(token(filter, "refresh_token").getStatus()).isEqualTo(429);
+        // The refreshes of the members behind the address left the password and link grants' bucket whole.
+        assertThat(token(filter, "password").getStatus()).isEqualTo(204);
+        assertThat(call(filter, "POST", "/api/v1/auth/magic-link").getStatus()).isEqualTo(204);
+        assertThat(token(filter, "password").getStatus()).isEqualTo(429);
+        assertThat(token(filter, "urn:agilityhub:grant:magic-link").getStatus()).isEqualTo(429);
+        // Another address keeps its own refresh bucket.
+        var elsewhere = new MockHttpServletRequest("POST", "/oauth2/token");
+        elsewhere.setRemoteAddr("192.0.2.10");
+        elsewhere.addParameter("grant_type", "refresh_token");
+        var response = new MockHttpServletResponse();
+        filter.doFilter(elsewhere, response, (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        assertThat(response.getStatus()).isEqualTo(204);
+    }
+
+    /** AUTH-09: only a request whose single `grant_type` is `refresh_token` takes the refresh bucket; any other is a token request. */
+    @org.junit.jupiter.api.Test void AUTH_09_onlyASingleRefreshGrantTypeTakesTheRefreshBucket() throws Exception {
+        var limits = new RateLimits(true, policies(), new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        var filter = filter(limits);
+        var twice = new MockHttpServletRequest("POST", "/oauth2/token");
+        twice.setRemoteAddr("127.0.0.1");
+        twice.addParameter("grant_type", "refresh_token", "password");
+        filter.doFilter(twice, new MockHttpServletResponse(), (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        assertThat(token(filter, "authorization_code").getStatus()).isEqualTo(204);
+        assertThat(limits.available(RateLimits.Route.TOKEN, "127.0.0.1", new RateLimits.Limit(2, Duration.ofMinutes(1)))).isFalse();
+        assertThat(limits.available(RateLimits.Route.TOKEN_REFRESH, "127.0.0.1", new RateLimits.Limit(2, Duration.ofMinutes(1)))).isTrue();
+        assertThat(token(filter, "refresh_token").getStatus()).isEqualTo(204);
+        // A refresh on the magic-link route is no token grant: it stays in the token bucket.
+        var link = new MockHttpServletRequest("POST", "/api/v1/auth/magic-link");
+        link.setRemoteAddr("127.0.0.1");
+        link.addParameter("grant_type", "refresh_token");
+        var refused = new MockHttpServletResponse();
+        filter.doFilter(link, refused, (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        assertThat(refused.getStatus()).isEqualTo(429);
+    }
+
+    private static MockHttpServletResponse token(RateLimitFilter filter, String grant) throws Exception {
+        var request = new MockHttpServletRequest("POST", "/oauth2/token");
+        request.setRemoteAddr("127.0.0.1");
+        request.addParameter("grant_type", grant);
+        var response = new MockHttpServletResponse();
+        filter.doFilter(request, response, (req, res) -> ((jakarta.servlet.http.HttpServletResponse) res).setStatus(204));
+        return response;
+    }
+
+    /**
+     * CFG-14 (owner decision 13-11-2026, CONVENCIONS_API §9): every authenticated API route counts in the account's bucket, the
+     * one `/me` and `/platform` use; anonymous requests, health, webhooks, the token endpoint and the routes with a family of their
+     * own keep theirs. Before CFG-14 an authenticated `/members` or `/bookings` call had none (`null`).
+     */
+    @org.junit.jupiter.api.Test void CFG_14_everyAuthenticatedApiRouteCountsInTheAccountsBucket() {
+        for (String[] call : new String[][] {{"GET", "/api/v1/members"}, {"GET", "/api/v1/members/m-1"}, {"POST", "/api/v1/bookings"},
+                {"POST", "/api/v1/waitlist-entries/w-1/claim"}, {"GET", "/api/v1/audit-entries"}, {"PATCH", "/api/v1/dogs/d-1"},
+                {"DELETE", "/api/v1/saved-views/v-1"}, {"GET", "/api/v1/members/export"}, {"POST", "/api/v1/checkout-sessions"},
+                {"GET", "/api/v1/me"}, {"GET", "/api/v1/platform/clubs"}}) {
+            assertThat(RateLimitFilter.route(call[0], call[1], true)).as("%s %s", call[0], call[1]).isEqualTo(RateLimits.Route.ME);
+        }
+        // The same routes without a bearer: not limited here (the security chain answers 401).
+        assertThat(RateLimitFilter.route("GET", "/api/v1/members", false)).isNull();
+        assertThat(RateLimitFilter.route("POST", "/api/v1/bookings", false)).isNull();
+        // Health, webhooks, the token endpoint and the other families keep their own, with or without a bearer.
+        assertThat(RateLimitFilter.route("GET", "/api/v1/health", true)).isNull();
+        assertThat(RateLimitFilter.route("OPTIONS", "/api/v1/members", true)).isNull();
+        assertThat(RateLimitFilter.route("POST", "/webhooks/email/brevo", true)).isEqualTo(RateLimits.Route.WEBHOOK);
+        assertThat(RateLimitFilter.route("POST", "/webhooks/stripe/club-a", true)).isEqualTo(RateLimits.Route.STRIPE_WEBHOOK);
+        assertThat(RateLimitFilter.route("POST", "/oauth2/token", true)).isEqualTo(RateLimits.Route.TOKEN);
+        assertThat(RateLimitFilter.route("POST", "/api/v1/auth/magic-link", true)).isEqualTo(RateLimits.Route.TOKEN);
+        assertThat(RateLimitFilter.route("POST", "/api/v1/auth/handoff", true)).isEqualTo(RateLimits.Route.HANDOFF);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/checkout-sessions/c-1", true)).isEqualTo(RateLimits.Route.CHECKOUT_STATUS);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/branding", true)).isEqualTo(RateLimits.Route.BRANDING);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/public/club-a/plans", true)).isEqualTo(RateLimits.Route.PUBLIC);
+        assertThat(RateLimitFilter.route("POST", "/api/v1/signup", true)).isEqualTo(RateLimits.Route.SIGNUP_SUBMIT);
+        assertThat(RateLimitFilter.route("GET", "/api/v1/attachments/files/f-1", true)).isEqualTo(RateLimits.Route.SIGNED_FILE);
+        assertThat(RateLimitFilter.route("POST", "/oauth2/revoke", true)).isEqualTo(RateLimits.Route.ANONYMOUS);
+        // Outside the API (an actuator or a static path) nothing changes.
+        assertThat(RateLimitFilter.route("GET", "/actuator/info", true)).isNull();
+    }
+
+    /**
+     * CFG-14: one bucket per account across every authenticated API route and address, `429 RATE_LIMITED` with `Retry-After` and a
+     * `RATE_LIMITED {limit: ME}` security event once it is spent; another account, an anonymous request and health go on.
+     */
+    @org.junit.jupiter.api.Test void CFG_14_anAccountsRequestsShareOneBucketAcrossRoutesAndAddresses() throws Exception {
+        var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var events = mock(SecurityEvents.class);
+        var errors = mock(ApiExceptionHandler.class);
+        when(errors.body(any(), any())).thenReturn(new ApiError("RATE_LIMITED", "Rate limited", Map.of(), "fixture-trace"));
+        var filter = new RateLimitFilter(new RateLimits(true, policies(), clock), events, errors, new ObjectMapper(),
+                com.agilityhub.core.identity.domain.Email::normalize);
+        try {
+            authenticate("account-a");
+            assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204);
+            assertThat(call(filter, "POST", "/api/v1/bookings", "192.0.2.10").getStatus()).isEqualTo(204);
+            var refused = call(filter, "GET", "/api/v1/me", "198.51.100.4");
+            assertThat(refused.getStatus()).isEqualTo(429);
+            assertThat(refused.getHeader("Retry-After")).isEqualTo("60");
+            assertThat(new ObjectMapper().readTree(refused.getContentAsString()).path("code").asText()).isEqualTo("RATE_LIMITED");
+            assertThat(call(filter, "GET", "/api/v1/audit-entries").getStatus()).isEqualTo(429);
+            verify(events, times(2)).record(SecurityEvents.Type.RATE_LIMITED, "account-a", "club-a", null, Map.of("limit", "ME"));
+            // Health is never limited; another account has its own bucket.
+            for (int i = 0; i < 3; i++) { assertThat(call(filter, "GET", "/api/v1/health").getStatus()).isEqualTo(204); }
+            authenticate("account-b");
+            assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204);
+        } finally { org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
+        // Without a bearer the request is not this account's (the security chain refuses it later).
+        for (int i = 0; i < 3; i++) { assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204); }
+        // A minute later the account's bucket is full again.
+        clock.advance(Duration.ofMinutes(1));
+        try {
+            authenticate("account-a");
+            assertThat(call(filter, "GET", "/api/v1/members").getStatus()).isEqualTo(204);
+        } finally { org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
     }
 
     private static RateLimitFilter filter(MockClock clock) { return filter(new RateLimits(true, policies(), clock)); }

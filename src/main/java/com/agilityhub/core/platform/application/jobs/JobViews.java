@@ -55,7 +55,18 @@ public final class JobViews {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, example = "2026-10-06T07:30") String nextScheduledForLocal,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) JobLastRun lastRun) { }
     public record JobSummaries(@Schema(description = "Only processes with a registered implementation and an enabled module") List<JobSummary> items) { }
-    public record JobTriggerRequest(@jakarta.validation.constraints.NotNull Boolean dryRun) { }
+    /** PRIV-02 (S14 R-14-16, S15 R-15-09): the confirmed dry run of a manual retention sweep, as both trigger routes describe it. */
+    public static final String TRIGGER_CONFIRMATION = "PRIV-02: a real run of retention-sweep needs confirmation {dryRunId, counters}: a SUCCEEDED "
+            + "dry run of it in this club from the last 30 minutes and the effects.counters it showed; its WOULD_ counts must match, and so must "
+            + "those of a plan made when it runs, or nothing runs: 409 SIMULATION_STALE {reason: DRY_RUN_REQUIRED | COUNTS_MISMATCH | PLAN_CHANGED}.";
+    public record JobTriggerRequest(@jakarta.validation.constraints.NotNull Boolean dryRun,
+            @jakarta.validation.Valid @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "PRIV-02: a real run of a process that "
+                    + "deletes personal data (retention-sweep) confirms a dry run of the same process made in the last 30 minutes and the "
+                    + "counts it showed; ignored for a dry run and for the other processes") JobRunConfirmation confirmation) { }
+    @Schema(name = "JobRunConfirmation", description = "PRIV-02: the dry run the caller saw and its effects.counters as it showed them; only the "
+            + "WOULD_ counters other than zero are compared, with the dry run's and with those of a plan made at execution time")
+    public record JobRunConfirmation(@jakarta.validation.constraints.NotBlank @Schema(description = "runId of the dry run") String dryRunId,
+            @jakarta.validation.constraints.NotNull @Schema(description = "The dry run's effects.counters") Map<String, Long> counters) { }
     public record JobSwitchRequest(@jakarta.validation.constraints.NotNull Boolean enabled) { }
     public record JobSwitchResponse(String name, boolean enabled) { }
 
@@ -100,6 +111,17 @@ public final class JobViews {
         return result;
     }
     static boolean platformCounter(String key) { return key.startsWith("platform") || key.startsWith("WOULD_") && key.contains("_platform"); }
+    /**
+     * PRIV-02: what a manual run's confirmation compares, the plan counters of a dry run as the club sees it: its `WOULD_…`
+     * counters other than zero (an absent one is zero), without the platform pass ones, in key order.
+     */
+    public static Map<String, Long> plannedCounts(Map<String, Long> counters) {
+        var plan = new java.util.TreeMap<String, Long>();
+        counters.forEach((key, value) -> {
+            if (key != null && key.startsWith("WOULD_") && !platformCounter(key) && value != null && value != 0L) { plan.put(key, value); }
+        });
+        return plan;
+    }
     /** An item of the P9 platform pass (outside every tenant). */
     static boolean platformItem(String entityType) { return entityType.startsWith("Platform"); }
     /** The dry-run counter of the platform items planned with `action` (hidden from the club like every `WOULD_…_platform…`). */

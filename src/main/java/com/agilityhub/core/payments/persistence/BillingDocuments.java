@@ -146,19 +146,25 @@ public final class BillingDocuments {
             return condition == null ? query : query.addCriteria(condition);
         }
         /**
-         * R-12-19 (round 2, ruling E87): the manual receipts waiting for the next run's remittance — `PENDING`, `SEPA_DD`,
-         * `includeInNextRun`, in no remittance yet — in their numbers' order. Only a positive total can be debited (a pain.008
-         * amount is at least 0.01; E8-T03, E8-T07 step 1, ruling E89): a zero or negative one stored with the flag before
+         * R-12-19 (round 2, ruling E87): the receipts waiting for the next run's remittance — `SEPA_DD`, `includeInNextRun`: a
+         * manual one `PENDING` in no remittance yet, and (SEPA-04 (b), owner decision of 13-11-2026) a periodic one `FAILED` that
+         * the admin marked returned for the next remittance — in their numbers' order. Only a positive total can be debited (a
+         * pain.008 amount is at least 0.01; E8-T03, E8-T07 step 1, ruling E89): a zero or negative one stored with the flag before
          * `POST /invoices` refused it is never picked up, whatever its flag says, and waits for R-12-16. The simulation and the
          * run check each against its member (`InvoicingService`).
          */
         public List<Invoice> forNextRun() {
-            return mongo.find(tenantQuery().addCriteria(Criteria.where("kind").is("MANUAL").and("status").is("PENDING").and("includeInNextRun").is(true)
-                    .and("paymentMethod.type").is("SEPA_DD").and("remittanceId").is(null).and("total.amountMinor").gt(0)).with(Sort.by(ASC, "number")), Invoice.class);
+            var manual = Criteria.where("kind").is("MANUAL").and("status").is("PENDING").and("remittanceId").is(null);
+            var returned = Criteria.where("kind").is("PERIODIC").and("status").is("FAILED");
+            return mongo.find(tenantQuery().addCriteria(Criteria.where("includeInNextRun").is(true).and("paymentMethod.type").is("SEPA_DD")
+                    .and("total.amountMinor").gt(0).orOperator(manual, returned)).with(Sort.by(ASC, "number")), Invoice.class);
         }
-        /** The manual receipts a run put into the remittance {@code remittanceId} (R-12-19): no run of their own. */
-        public List<Invoice> includedIn(String remittanceId) {
-            return mongo.find(tenantQuery().addCriteria(Criteria.where("remittanceId").is(remittanceId).and("runId").is(null)).with(Sort.by(ASC, "number")), Invoice.class);
+        /**
+         * The receipts a run put into the remittance {@code remittanceId} that it did not issue (R-12-19): the waiting manual ones
+         * and, SEPA-04 (b), the returned periodic ones of an earlier run.
+         */
+        public List<Invoice> includedIn(String remittanceId, String runId) {
+            return mongo.find(tenantQuery().addCriteria(Criteria.where("remittanceId").is(remittanceId).and("runId").ne(runId)).with(Sort.by(ASC, "number")), Invoice.class);
         }
         /**
          * The state fields of §5's transitions, and only them (R-12-10): lines, amounts, member, series and number never change.
@@ -169,24 +175,37 @@ public final class BillingDocuments {
             var update = new Update().set("status", state.status().name()).set("remittanceId", state.remittanceId()).set("paidAt", state.paidAt())
                     .set("failedAt", state.failedAt()).set("failureReason", state.failureReason()).set("cancelledAt", state.cancelledAt())
                     .set("cancelReason", state.cancelReason()).set("updatedAt", state.at()).set("updatedByAccountId", state.byAccountId()).inc("version", 1L);
+            if (state.includeInNextRun() != null) { update.set("includeInNextRun", state.includeInNextRun()); }
             return mongo.updateFirst(query, update, "invoices").getMatchedCount() == 1;
         }
     }
-    /** The state of an invoice after one of §5's transitions (R-12-10: nothing else of an issued invoice changes). */
+    /**
+     * The state of an invoice after one of §5's transitions (R-12-10: nothing else of an issued invoice changes).
+     * {@code includeInNextRun}: SEPA-04 (b), whether a returned receipt waits for the next remittance; null leaves it as it is.
+     */
     public record InvoiceState(com.agilityhub.core.payments.domain.InvoiceStatus status, String remittanceId, java.time.Instant paidAt,
-            java.time.Instant failedAt, String failureReason, java.time.Instant cancelledAt, String cancelReason, java.time.Instant at, String byAccountId) {
+            java.time.Instant failedAt, String failureReason, java.time.Instant cancelledAt, String cancelReason, java.time.Instant at, String byAccountId,
+            Boolean includeInNextRun) {
+        public InvoiceState(com.agilityhub.core.payments.domain.InvoiceStatus status, String remittanceId, java.time.Instant paidAt,
+                java.time.Instant failedAt, String failureReason, java.time.Instant cancelledAt, String cancelReason, java.time.Instant at, String byAccountId) {
+            this(status, remittanceId, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId, null);
+        }
+        /** SEPA-04 (b): the receipt waits for the next run's remittance, or no longer does. */
+        public InvoiceState nextRun(boolean include) {
+            return new InvoiceState(status, remittanceId, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId, include);
+        }
         public static InvoiceState of(Invoice invoice, java.time.Instant at, String byAccountId) {
             return new InvoiceState(invoice.status(), invoice.remittanceId(), invoice.paidAt(), invoice.failedAt(), invoice.failureReason(),
                     invoice.cancelledAt(), invoice.cancelReason(), at, byAccountId);
         }
         public InvoiceState status(com.agilityhub.core.payments.domain.InvoiceStatus next) {
-            return new InvoiceState(next, remittanceId, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId);
+            return new InvoiceState(next, remittanceId, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId, includeInNextRun);
         }
         /** The remittance a manual receipt joins (R-12-19) or leaves (null, R-12-14). */
-        public InvoiceState remittance(String id) { return new InvoiceState(status, id, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId); }
-        public InvoiceState paid(java.time.Instant when) { return new InvoiceState(status, remittanceId, when, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId); }
-        public InvoiceState failed(java.time.Instant when, String reason) { return new InvoiceState(status, remittanceId, paidAt, when, reason, cancelledAt, cancelReason, at, byAccountId); }
-        public InvoiceState cancelled(java.time.Instant when, String reason) { return new InvoiceState(status, remittanceId, paidAt, failedAt, failureReason, when, reason, at, byAccountId); }
+        public InvoiceState remittance(String id) { return new InvoiceState(status, id, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId, includeInNextRun); }
+        public InvoiceState paid(java.time.Instant when) { return new InvoiceState(status, remittanceId, when, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId, includeInNextRun); }
+        public InvoiceState failed(java.time.Instant when, String reason) { return new InvoiceState(status, remittanceId, paidAt, when, reason, cancelledAt, cancelReason, at, byAccountId, includeInNextRun); }
+        public InvoiceState cancelled(java.time.Instant when, String reason) { return new InvoiceState(status, remittanceId, paidAt, failedAt, failureReason, when, reason, at, byAccountId, includeInNextRun); }
     }
 
     @Repository
@@ -218,6 +237,10 @@ public final class BillingDocuments {
         public void reverseRefund(String id, String refundId) {
             mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refunds.providerRef").is(refundId)),
                     new Update().pull("refunds", new Document("providerRef", refundId)).set("status", "SUCCEEDED"), Collection.class);
+        }
+        /** PAY-06: flags a card attempt that a Stripe dispute (chargeback) disputes; like a refund, a later fact about the same attempt. */
+        public void dispute(String id, PaymentDispute dispute) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("dispute", dispute), Collection.class);
         }
         /** The invoice's attempts, oldest first (the detail's `collections[]`). */
         public List<Collection> forInvoice(String invoiceId) {
@@ -261,6 +284,15 @@ public final class BillingDocuments {
         public boolean submit(String id, java.time.Instant submittedAt, String accountId) {
             return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("GENERATED")),
                     new Update().set("status", "SUBMITTED").set("submittedAt", submittedAt).set("submittedByAccountId", accountId).inc("version", 1L),
+                    "remittances").getMatchedCount() == 1;
+        }
+        /**
+         * SEPA-04 (a), R-12-15: `SUBMITTED → GENERATED`, the submission's day and admin removed; false when it is no longer
+         * `SUBMITTED`.
+         */
+        public boolean undoSubmission(String id) {
+            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("SUBMITTED")),
+                    new Update().set("status", "GENERATED").unset("submittedAt").unset("submittedByAccountId").inc("version", 1L),
                     "remittances").getMatchedCount() == 1;
         }
         /** R-12-12 (E8-T03): which of {@code ids} were marked as sent to the bank (their debits count as submitted). */

@@ -43,6 +43,25 @@ class ErasureEligibilityTest {
         verifyNoInteractions(payments);
     }
 
+    /** PRIV-04: the latest instant a waiting reason holds, over every context; an erased member is not asked again. */
+    @Test void PRIV_04_aRequestWaitsUntilTheLatestContextLetsItGo() {
+        Instant early = Instant.parse("2026-10-01T22:00:00Z"), late = Instant.parse("2026-10-27T23:00:00Z");
+        when(payments.waitsUntil(any(), any())).thenReturn(Optional.of(late));
+        when(bookings.waitsUntil(any(), any())).thenReturn(Optional.of(early));
+        assertThat(eligibility.waitsUntil(List.of(member("LEFT", null)), NOW)).contains(late);
+        verify(payments).waitsUntil(List.of("member-a"), NOW);
+        when(payments.waitsUntil(any(), any())).thenReturn(Optional.empty());
+        when(bookings.waitsUntil(any(), any())).thenReturn(Optional.empty());
+        assertThat(eligibility.waitsUntil(List.of(member("LEFT", null)), NOW)).isEmpty();
+        clearInvocations(payments);
+        assertThat(eligibility.waitsUntil(List.of(member("LEFT", NOW)), NOW)).isEmpty();
+        verifyNoInteractions(payments);
+        assertThat(ErasureBlockReason.SEPA_REFUND_WINDOW.waits()).isTrue();
+        assertThat(EnumSet.complementOf(EnumSet.of(ErasureBlockReason.SEPA_REFUND_WINDOW))).noneMatch(ErasureBlockReason::waits);
+        // A context without waiting reasons answers nothing by default.
+        assertThat(((ErasureCheck) (memberIds, now) -> EnumSet.noneOf(ErasureBlockReason.class)).waitsUntil(List.of("member-a"), NOW)).isEmpty();
+    }
+
     @Test void T_14_09_anAccountWithAnActiveMembershipIsBlocked() {
         when(accounts.memberships("account-a")).thenReturn(List.of(new ErasureAccounts.Membership("club-a", "member-a", "SUSPENDED"),
                 new ErasureAccounts.Membership("club-b", null, "ACTIVE")));

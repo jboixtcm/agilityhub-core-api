@@ -37,6 +37,8 @@ public class OAuthController {
                     + "a refresh token or an authorization code bound to a club is 400 VALIDATION_ERROR (oauth2Error invalid_grant) there, never renewed "
                     + "with its club; every grant of any other client there is 404 UNKNOWN_HOST and leaves its link or code unused. "
                     + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
+                    + "AUTH-01: a clubs-admin session (club back office and console) ends 12 hours after it began, however often it is refreshed: "
+                    + "its refresh token and access tokens never outlive that end, and a later refresh is 400 REFRESH_EXPIRED; other clients slide auth.sessionDays. "
                     + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. "
                     + "COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. "
                     + "Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. "
@@ -51,12 +53,16 @@ public class OAuthController {
                     @ExtensionProperty(name = "refresh_token", value = "{\"required\":[\"client_id\"],\"optional\":[\"refresh_token\",\"client_secret\",\"scope\"],\"cookie\":\"ah_refresh for COOKIE clients; refresh_token required for BODY clients\"}", parseValue = true)}),
             responses = {
                     @ApiResponse(responseCode = "200", description = "TokenResponse; refresh_token only for BODY clients; id_token depends on grant and scope",
-                            headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Set-Cookie", description = "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=auth.sessionDays in seconds. Secure relaxed only for local HTTP.", schema = @Schema(type = "string"))),
+                            headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Set-Cookie", description = "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=the refresh token's lifetime in seconds: auth.sessionDays, at most until 12 hours after the sign-in for clubs-admin (AUTH-01). Secure relaxed only for local HTTP.", schema = @Schema(type = "string"))),
                     @ApiResponse(responseCode = "400", description = "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR; "
                             + "VALIDATION_ERROR with details.oauth2Error invalid_grant for an invalid authorization code or, on the console's product host, a club-bound refresh token or code"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS"),
                     @ApiResponse(responseCode = "403", description = "NO_MEMBERSHIP, MEMBERSHIP_SUSPENDED, ACCOUNT_BLOCKED; PLATFORM_ONLY (clubs-admin on the console's product host without AGILITYHUB_ADMIN)"),
                     @ApiResponse(responseCode = "404", description = "UNKNOWN_HOST: a host that resolves no club, except the ID host's global grants and the console's product host for clubs-admin; there, any other client's grant"),
+                    @ApiResponse(responseCode = "409", description = "HANDOFF_SESSION_CONFLICT (FE-03, R-01-13): a handoff code of an account, not an impersonation launch code, "
+                            + "redeemed with this host's ah_refresh cookie of the same client holding a live session (not revoked, not expired, current family version) "
+                            + "of another account. The code stays unused, no tokens are issued and no Set-Cookie is sent; the body names neither account. "
+                            + "The same account's session, no cookie or a dead one: the exchange goes on as usual"),
                     @ApiResponse(responseCode = "429", description = "LOGIN_LOCKED or RATE_LIMITED; Retry-After in seconds")})
     public TokenResponse token(@Parameter(hidden = true) @ModelAttribute TokenRequest request) {
         throw new UnsupportedOperationException();

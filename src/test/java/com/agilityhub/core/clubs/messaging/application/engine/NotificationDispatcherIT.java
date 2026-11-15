@@ -115,6 +115,79 @@ class NotificationDispatcherIT extends EngineFixtures {
     }
 
     /**
+     * COMM-07 (owner decision of 13 Nov 2026, R-11-09): a provider's quota answer for an e-mail (429, 402, Brevo's
+     * `not_enough_credits`) is no longer final at the 5th attempt: it waits 1, 5, 15, 60 minutes and then every hour, and only
+     * its 28th failing attempt, about a day later, is `FAILED` with `NotificationFailed`. Another 4xx is still final at once.
+     */
+    @Test void T_11_09_COMM_07_aQuotaAnswerIsRetriedForAboutADayInsteadOfBeingFinal() {
+        String[] quota = {"Brevo HTTP 429", "Brevo HTTP 402", "Brevo HTTP 400 not_enough_credits"};
+        mail.script.add(EmailSender.SendResult.failed(quota[0]));
+        levelChange("member-marc", "dog-ares");
+        var n = memberNotice("N-09", "member-marc");
+        Instant start = clock.instant();
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(1);
+            assertThat(d.nextAttemptAt()).isEqualTo(start.plus(Duration.ofMinutes(1))); });
+        long[] waits = {1, 5, 15, 60};
+        for (int attempt = 2; attempt < com.agilityhub.core.clubs.messaging.domain.RetryPolicy.QUOTA_MAX_ATTEMPTS; attempt++) {
+            clock.advance(Duration.ofMinutes(attempt - 2 < waits.length ? waits[attempt - 2] : 60));
+            mail.script.add(EmailSender.SendResult.failed(quota[attempt % quota.length]));
+            assertThat(dispatch(dispatcher, n)).as("attempt " + attempt).isEqualTo(1);
+            var email = delivery(reload(n), NotificationChannel.EMAIL);
+            assertThat(email.status()).as("attempt " + attempt).isEqualTo(DeliveryStatus.QUEUED); assertThat(email.attempts()).isEqualTo(attempt);
+            assertThat(email.nextAttemptAt()).isEqualTo(clock.instant().plus(Duration.ofMinutes(attempt - 1 < waits.length ? waits[attempt - 1] : 60)));
+        }
+        assertThat(outbox(CLUB, "NotificationFailed")).isEmpty();
+        assertThat(Duration.between(start, clock.instant())).isGreaterThan(Duration.ofHours(23));
+        // The 28th quota answer is final.
+        clock.advance(Duration.ofMinutes(60));
+        mail.script.add(EmailSender.SendResult.failed(quota[1]));
+        assertThat(dispatch(dispatcher, n)).isEqualTo(1);
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.attempts()).isEqualTo(28); assertThat(d.lastError()).isEqualTo(quota[1]); });
+        assertThat(outbox(CLUB, "NotificationFailed")).hasSize(1);
+        assertThat(mail.to("marc@example.test")).isEmpty();
+        // A rejected request that is no quota answer is still final at its first attempt.
+        mail.script.add(EmailSender.SendResult.failed("Brevo HTTP 400"));
+        levelChange("member-anna", "dog-lluna");
+        assertThat(reload(memberNotice("N-09", "member-anna")).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.EMAIL)
+                .extracting(Notification.Delivery::status).containsExactlyInAnyOrder(DeliveryStatus.FAILED, DeliveryStatus.SENT);
+    }
+
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026, R-11-13): announcement e-mails go at the provider plan's pace (two a minute here):
+     * the ones beyond it stay `QUEUED` for the next minute, with no attempt counted and nothing sent, and then go; any other
+     * e-mail of the same minute is never held.
+     */
+    @Test void T_11_18_COMM_07_announcementEmailsGoAtTheProvidersPaceAndOtherEmailsNeverWait() {
+        var paced = new NotificationDispatcher(notifications, subscriptions, mail, sms, push, configs, emailSettings, usage, emails, unsubscribes, ports, accounts,
+                events, new org.springframework.transaction.support.TransactionTemplate(transactions), owners, clock, "no-reply@example.test", new AnnouncementEmailPace(2));
+        engine = engine(paced);
+        clock.setInstant(Instant.parse("2026-10-07T08:00:10Z"));
+        announce(CLUB, "comm07-batch", "member-laura", "member-marc", "member-anna"); // four addresses: Anna has two
+        java.util.function.Supplier<List<Notification.Delivery>> announced = () -> stored(CLUB, "N-24").stream().map(this::reload)
+                .flatMap(n -> n.deliveries().stream()).filter(d -> d.channel() == NotificationChannel.EMAIL).toList();
+        var next = Instant.parse("2026-10-07T08:01:00Z");
+        assertThat(announced.get()).extracting(Notification.Delivery::status).containsExactlyInAnyOrder(DeliveryStatus.SENT, DeliveryStatus.SENT,
+                DeliveryStatus.QUEUED, DeliveryStatus.QUEUED);
+        assertThat(announced.get()).filteredOn(d -> d.status() == DeliveryStatus.QUEUED).allSatisfy(d -> {
+            assertThat(d.nextAttemptAt()).isEqualTo(next); assertThat(d.attempts()).isZero(); assertThat(d.lastError()).isEqualTo(AnnouncementEmailPace.PACED); });
+        assertThat(mail.sent).hasSize(2);
+        // A transactional e-mail in the same minute goes at once.
+        levelChange("member-marc", "dog-ares");
+        assertThat(delivery(reload(memberNotice("N-09", "member-marc")), NotificationChannel.EMAIL).status()).isEqualTo(DeliveryStatus.SENT);
+        // Not before the next minute; then the two waiting ones go.
+        for (var n : stored(CLUB, "N-24")) { assertThat(dispatch(paced, n)).isZero(); }
+        clock.setInstant(next);
+        int sent = 0;
+        for (var n : stored(CLUB, "N-24")) { sent += dispatch(paced, n); }
+        assertThat(sent).isEqualTo(2);
+        assertThat(announced.get()).extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.SENT);
+        assertThat(announced.get()).allSatisfy(d -> { assertThat(d.attempts()).isEqualTo(1); assertThat(d.lastError()).isNull(); });
+        assertThat(mail.sent).hasSize(5);
+    }
+
+    /**
      * E6-T03 round 3 (S10 R-10-10, review of 27-09 21:19): before every attempt, retries included, the dispatcher asks the owners
      * of the notification's event whether it still applies ({@link NotificationFactsPort#deliverable}). A hook that throws is a
      * transient failure of that attempt; `false` ends the delivery as `SKIPPED_STALE`, with no provider call and no event, for
@@ -254,10 +327,17 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(reload(memberNotice("N-08a", "member-marc")).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.SMS)
                 .extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.SKIPPED_CAP);
         assertThat(outbox(CLUB, "SmsCapReached")).hasSize(1);
-        // The club-local month changes (1 November, 00:30 in Madrid): the counter restarts and the SMS go out again.
+        // The club-local month changes (1 November, 00:30 in Madrid): the counter restarts and the SMS go out again — at 08:00,
+        // the end of the SMS quiet hours (COMM-06, owner decision of 13 Nov 2026): until then they wait, nothing reserved.
         clock.setInstant(Instant.parse("2026-10-31T23:30:00Z"));
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-08a")), Notification.class);
         deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t02-class-a", "reason", "DELETED", "adminText", "z", "affected", affected("member-marc", "dog-ares", "b5")));
+        assertThat(reload(memberNotice("N-08a", "member-marc")).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.SMS).hasSize(2).allSatisfy(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.nextAttemptAt()).isEqualTo(Instant.parse("2026-11-01T07:00:00Z"));
+            assertThat(d.attempts()).isZero(); assertThat(d.lastError()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.SmsQuietHours.QUIET); });
+        assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202610L).containsEntry("smsSentMonth", 1000L);
+        clock.setInstant(Instant.parse("2026-11-01T07:00:00Z"));
+        assertThat(dispatch(dispatcher, memberNotice("N-08a", "member-marc"))).isEqualTo(2);
         assertThat(reload(memberNotice("N-08a", "member-marc")).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.SMS)
                 .extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.SENT);
         assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 2L);
@@ -278,6 +358,11 @@ class NotificationDispatcherIT extends EngineFixtures {
         classSession(OTHER, "e7t02-class-ba", "2026-11-02T18:50", List.of("instructor-marta"));
         deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t02-class-a", "reason", "DELETED", "adminText", "x", "affected", affected("member-marc", "dog-ares", "b1")));
         deliver(OTHER, "ClassCancelledByClub", Map.of("classId", "e7t02-class-ba", "reason", "DELETED", "adminText", "x", "affected", affected("member-marc", "dog-ares", "b1")));
+        // COMM-06 (owner decision of 13 Nov 2026): 00:30 is inside Madrid's SMS quiet hours (20:30 is not in Buenos Aires), so
+        // Madrid's SMS waits for 08:00 local, still November there; nothing is counted before it goes.
+        assertThat(usage(CLUB)).containsEntry("smsSentMonth", 0L).doesNotContainKey("smsMonthKey");
+        clock.setInstant(Instant.parse("2026-11-01T07:00:00Z"));
+        assertThat(dispatch(dispatcher, memberNotice("N-08a", "member-marc"))).isEqualTo(1);
         assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 1L);
         assertThat(usage(OTHER)).containsEntry("smsMonthKey", 202610L).containsEntry("smsSentMonth", 1L);
         // …and each club's own day: Monday's class is «mañana» from Madrid's Sunday and «lunes 2» from Buenos Aires's Saturday.
@@ -317,6 +402,140 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(delivery(reload(memberNotice("N-08a", "member-marc")), NotificationChannel.SMS)).satisfies(d -> {
             assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.attempts()).isEqualTo(1); assertThat(d.lastError()).isEqualTo("Twilio HTTP 400"); });
         assertThat(usage(CLUB).get("smsSentMonth")).isEqualTo(1L);
+    }
+
+    /**
+     * COMM-06 (owner decision of 13 Nov 2026, R-11-06): between 22:00 and 08:00 club time a non-urgent SMS waits for 08:00 —
+     * still QUEUED, no attempt, nothing reserved, nothing sent — while the app and the e-mail go at once; a seat offer with a
+     * deadline (N-15 with `confirm_by`) goes at once, one without (ALL_AT_ONCE) waits. A club may move the window.
+     */
+    @Test void T_11_06_COMM_06_quietHoursHoldANonUrgentSmsUntilTheirEndAndASeatOfferWithADeadlineGoesAtOnce() {
+        clock.setInstant(Instant.parse("2026-10-07T21:30:00Z")); // 23:30 in Madrid (CEST)
+        classSession(CLUB, "e7t02-class-a", "2026-10-08T18:50", List.of("instructor-marta"));
+        deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t02-class-a", "reason", "DELETED", "adminText", "x", "affected", affected("member-marc", "dog-ares", "b1")));
+        var marc = memberNotice("N-08a", "member-marc");
+        var morning = Instant.parse("2026-10-08T06:00:00Z"); // 08:00 in Madrid
+        assertThat(delivery(reload(marc), NotificationChannel.SMS)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.nextAttemptAt()).isEqualTo(morning); assertThat(d.attempts()).isZero();
+            assertThat(d.lastError()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.SmsQuietHours.QUIET); assertThat(d.claimToken()).isNull(); });
+        assertThat(channels(reload(marc))).contains("APP:DELIVERED", "EMAIL:SENT");
+        assertThat(sms.messages()).isEmpty(); assertThat(usage(CLUB)).containsEntry("smsSentMonth", 0L);
+        assertThat(outbox(CLUB, "NotificationSent")).noneMatch(e -> "SMS".equals(e.get("payload", Document.class).getString("channel")));
+        // Not due before 08:00; at 08:00 it goes, once.
+        clock.setInstant(morning.minusSeconds(60)); assertThat(dispatch(dispatcher, marc)).isZero();
+        clock.setInstant(morning); assertThat(dispatch(dispatcher, marc)).isEqualTo(1);
+        assertThat(delivery(reload(marc), NotificationChannel.SMS)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SENT); assertThat(d.attempts()).isEqualTo(1); assertThat(d.lastError()).isNull(); });
+        assertThat(sms.messages()).extracting(m -> m.to()).containsExactly("+34600000003"); assertThat(usage(CLUB)).containsEntry("smsSentMonth", 1L);
+
+        // Seat offers at 23:30: with a deadline (FIFO, confirm_by) at once on both of Laura's phones; without one (ALL_AT_ONCE) Pau's waits.
+        clock.setInstant(Instant.parse("2026-10-08T21:30:00Z"));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-laura", "dogId", "dog-duna", "mode", "FIFO", "confirmBy", "2026-10-08T22:00:00Z"));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-pau", "dogId", "dog-nit", "mode", "ALL_AT_ONCE"));
+        var laura = stored(CLUB, "N-15").stream().filter(n -> "member-laura".equals(n.recipient().memberId())).findFirst().orElseThrow();
+        var pau = stored(CLUB, "N-15").stream().filter(n -> "member-pau".equals(n.recipient().memberId())).findFirst().orElseThrow();
+        assertThat(reload(laura).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.SMS).extracting(Notification.Delivery::status)
+                .containsExactly(DeliveryStatus.SENT, DeliveryStatus.SENT);
+        assertThat(delivery(reload(pau), NotificationChannel.SMS)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.nextAttemptAt()).isEqualTo(Instant.parse("2026-10-09T06:00:00Z")); });
+
+        // The club moves the window (07:00–21:00 here, an odd choice): 23:30 is outside it and the SMS goes at once.
+        parameter(CLUB, "messaging.sms.quietHoursStart", "07:00", "time"); parameter(CLUB, "messaging.sms.quietHoursEnd", "21:00", "time");
+        ports.update("member-anna", c -> InMemoryMessagingPorts.with(c, null, null, null, List.of("+34600000007")));
+        deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t02-class-a", "reason", "DELETED", "adminText", "y", "affected", affected("member-anna", "dog-lluna", "b9")));
+        assertThat(delivery(reload(memberNotice("N-08a", "member-anna")), NotificationChannel.SMS).status()).isEqualTo(DeliveryStatus.SENT);
+    }
+
+    /**
+     * COMM-06 (owner decision of 13 Nov 2026, R-11-06): a landline gets no SMS. The engine records it `SKIPPED_NO_CONTACT` with
+     * the number and the reason while the member's mobile gets the SMS; a delivery to a landline queued before the rule is
+     * skipped the same way when the dispatcher reaches it, with no provider call and nothing counted.
+     */
+    @Test void T_11_06_COMM_06_aLandlineGetsNoSmsAndIsRecordedWhileTheMobileGetsIt() {
+        classSession(CLUB, "e7t02-class-a", "2026-10-08T18:50", List.of("instructor-marta"));
+        ports.update("member-marc", c -> InMemoryMessagingPorts.with(c, null, null, null, List.of("+34931234567", "+34600000003")));
+        deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t02-class-a", "reason", "DELETED", "adminText", "x", "affected", affected("member-marc", "dog-ares", "b1")));
+        var marc = reload(memberNotice("N-08a", "member-marc"));
+        assertThat(marc.deliveries()).filteredOn(d -> d.channel() == NotificationChannel.SMS)
+                .extracting(Notification.Delivery::target, Notification.Delivery::status, Notification.Delivery::lastError)
+                .containsExactly(tuple("+34931234567", DeliveryStatus.SKIPPED_NO_CONTACT, com.agilityhub.core.clubs.messaging.domain.MobileNumbers.NOT_MOBILE),
+                        tuple("+34600000003", DeliveryStatus.SENT, null));
+        assertThat(sms.messages()).extracting(m -> m.to()).containsExactly("+34600000003"); assertThat(usage(CLUB)).containsEntry("smsSentMonth", 1L);
+        // A QUEUED SMS to a landline left from before the rule (written here directly): skipped at its attempt, no call.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(marc.id()).and("deliveries.target").is("+34600000003")),
+                new Update().set("deliveries.$.target", "+34938765432").set("deliveries.$.status", "QUEUED").set("deliveries.$.nextAttemptAt", clock.instant()),
+                Notification.class);
+        assertThat(dispatch(dispatcher, marc)).isEqualTo(1);
+        assertThat(reload(marc).deliveries()).filteredOn(d -> "+34938765432".equals(d.target())).singleElement().satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_NO_CONTACT); assertThat(d.lastError()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.MobileNumbers.NOT_MOBILE);
+            assertThat(d.nextAttemptAt()).isNull(); });
+        assertThat(sms.messages()).hasSize(1); assertThat(usage(CLUB)).containsEntry("smsSentMonth", 1L);
+    }
+
+    /**
+     * COMM-10 (owner decision of 13 Nov 2026, R-11-07): the push TTL per code. A class reminder (N-13) is sent with the club's
+     * `messaging.push.ttlMinutes` cut at the class start and is never pushed once the class has started (`SKIPPED_STALE`, no call);
+     * a FIFO seat offer (N-15) lives until its confirm-by deadline, also beyond the club's TTL; an offer without a deadline and any
+     * other code keep the club's TTL. Before, every push had the club's TTL and a retry after the start was still pushed.
+     */
+    @Test void T_11_10_COMM_10_aReminderPushNeverOutlivesItsClassAndASeatOfferLivesUntilItsDeadline() {
+        subscribe(CLUB, "subscription-laura", "account-laura"); subscribe(CLUB, "subscription-pau", "account-pau");
+        engine = engine(idleDispatcher());
+        var seatDeadlines = new java.util.concurrent.ConcurrentHashMap<String, Instant>();
+        owners = List.of(new ReminderFacts(ports), new NotificationFactsPort() {
+            @Override public Set<String> eventTypes() { return Set.of("WaitlistNotified"); }
+            @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) { return Optional.empty(); }
+            @Override public Optional<Instant> pushDeadline(StoredNotification notification) { return Optional.ofNullable(seatDeadlines.get(notification.memberId())); }
+        });
+        var counting = new CountingPush(push);
+        var sending = dispatcher(sms, ports, usage, events, counting);
+        java.util.function.BiFunction<String, Instant, Notification> remind = (bookingId, startsAt) -> {
+            ports.activeBookings.put(bookingId, startsAt);
+            deliver(CLUB, "ReminderDue", Map.of("bookingId", bookingId, "memberId", "member-laura", "dogId", "dog-duna", "startsAt", startsAt.toString()));
+            return reload(stored(CLUB, "N-13").stream().filter(n -> n.dedupKey().equals("N-13:" + bookingId)).findFirst().orElseThrow());
+        };
+        java.util.function.Function<Notification, Long> pushedTtl = n -> {
+            assertThat(dispatch(sending, n)).isPositive();
+            assertThat(delivery(reload(n), NotificationChannel.PUSH).status()).isEqualTo(DeliveryStatus.SENT);
+            var last = push.sent().getLast(); assertThat(last.payload().notificationId()).isEqualTo(n.id());
+            return last.payload().ttlSeconds();
+        };
+        Instant now = clock.instant();
+        // N-13 two hours ahead: cut at the start (7,200 s < the club's 1,440 min); 26 hours ahead: the club's TTL.
+        assertThat(pushedTtl.apply(remind.apply("booking-soon", now.plus(Duration.ofHours(2))))).isEqualTo(7_200L);
+        assertThat(pushedTtl.apply(remind.apply("booking-tomorrow", now.plus(Duration.ofHours(26))))).isEqualTo(86_400L);
+        // A retry after the class start is not pushed: SKIPPED_STALE, no call to the push service, nothing left to retry.
+        push.answer(PushResult.of(PushResult.Status.RETRYABLE, "Push HTTP 503"));
+        var late = remind.apply("booking-late", now.plus(Duration.ofMinutes(30)));
+        assertThat(dispatch(sending, late)).isEqualTo(1);
+        assertThat(delivery(reload(late), NotificationChannel.PUSH)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(1); });
+        clock.advance(Duration.ofMinutes(30)); int calls = counting.calls.get();
+        assertThat(dispatch(sending, late)).isEqualTo(1);
+        assertThat(delivery(reload(late), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(d.lastError()).isEqualTo("Push deadline passed"); assertThat(d.attempts()).isEqualTo(1); });
+        assertThat(counting.calls).hasValue(calls);
+        clock.advance(Duration.ofHours(2)); assertThat(dispatch(sending, late)).isZero();
+        // A club that shortens its TTL: the reminder takes the shorter of the two.
+        parameter(CLUB, "messaging.push.ttlMinutes", 30, "int");
+        assertThat(pushedTtl.apply(remind.apply("booking-short", clock.instant().plus(Duration.ofHours(2))))).isEqualTo(1_800L);
+        // N-15 FIFO with its confirm-by 36 hours ahead: until the deadline, beyond the club's 30 minutes; ALL_AT_ONCE: the club's TTL.
+        seatDeadlines.put("member-laura", clock.instant().plus(Duration.ofHours(36)));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-laura", "dogId", "dog-duna", "mode", "FIFO", "confirmBy", clock.instant().plus(Duration.ofHours(36)).toString()));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-pau", "dogId", "dog-nit", "mode", "ALL_AT_ONCE"));
+        assertThat(pushedTtl.apply(memberNotice("N-15", "member-laura"))).isEqualTo(129_600L);
+        assertThat(pushedTtl.apply(memberNotice("N-15", "member-pau"))).isEqualTo(1_800L);
+        // A seat offer whose deadline has passed is not pushed.
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-15")), Notification.class);
+        seatDeadlines.put("member-pau", clock.instant().minusSeconds(1));
+        deliver(CLUB, "WaitlistNotified", Map.of("memberId", "member-pau", "dogId", "dog-nit", "mode", "FIFO", "confirmBy", clock.instant().minusSeconds(1).toString()));
+        var lapsed = memberNotice("N-15", "member-pau"); calls = counting.calls.get();
+        assertThat(dispatch(sending, lapsed)).isPositive();
+        assertThat(delivery(reload(lapsed), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(d.lastError()).isEqualTo("Push deadline passed"); });
+        assertThat(counting.calls).hasValue(calls);
+        // Any other code (a club announcement, N-24): the club's TTL.
+        announce(CLUB, "batch-ttl", "member-laura");
+        assertThat(pushedTtl.apply(memberNotice("N-24", "member-laura"))).isEqualTo(1_800L);
     }
 
     @Test void T_11_10_goneExpiresTheSubscriptionRetryableRetriesAndThreeFailuresExpireIt() {
@@ -991,6 +1210,8 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(usage.reserve(CLUB, november, 1000)).isEqualTo(new ClubSmsUsage.Reservation(november, false));
         assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 1000L);
         // Through the dispatcher: its clock still reads 23:59:59 on 31 October in Madrid, a second behind the sender that began November.
+        // A month only changes at midnight, inside the default SMS quiet hours (COMM-06), so this club has none (equal bounds).
+        parameter(CLUB, "messaging.sms.quietHoursStart", "00:00", "time"); parameter(CLUB, "messaging.sms.quietHoursEnd", "00:00", "time");
         clock.setInstant(Instant.parse("2026-10-31T22:59:59Z"));
         classSession(CLUB, "e7t05-class", "2026-11-02T18:50", List.of("instructor-marta"));
         deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t05-class", "reason", "DELETED", "adminText", "x", "affected", affected("member-marc", "dog-ares", "b1")));

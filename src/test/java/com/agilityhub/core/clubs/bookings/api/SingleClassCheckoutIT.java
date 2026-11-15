@@ -158,12 +158,15 @@ class SingleClassCheckoutIT extends BookingFixtures {
         dispatch();
         // P7, `bookings.paymentPendingMinutes` (30) later: the booking is cancelled, and its session and line are closed with it.
         clock.setInstant(NOW.plus(Duration.ofMinutes(31)));
+        assertThat(gateway.expired(sessionId)).isFalse();
         var run = runner.scheduled(CLUB, true, timeouts, clock.instant()).orElseThrow();
         assertThat(run.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple(bookingId, "CANCEL"));
         assertThat(booking(bookingId)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "PAYMENT_TIMEOUT");
         assertThat(booking(bookingId).get("charge", Document.class).get("checkoutUrl")).isNull();
         assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("status", "EXPIRED");
         assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
+        // PAY-08: after the item's commit the provider's session is expired too, so the member can no longer pay for the seat.
+        assertThat(gateway.expired(sessionId)).as("gateway.expire(%s) after P7", sessionId).isTrue();
         // A late provider success finds the session EXPIRED: nothing is settled, the booking stays CANCELLED.
         clock.setInstant(NOW.plus(Duration.ofMinutes(32)));
         gateway.complete(sessionId); dispatch();
@@ -270,6 +273,8 @@ class SingleClassCheckoutIT extends BookingFixtures {
             dispatch();
             assertThat(booking(bookingId)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "PAYMENT_TIMEOUT");
             assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
+            // PAY-08: the session was already closed by its late completion, so P7 does not ask the provider to expire it.
+            assertThat(gateway.expired(sessionId)).isFalse();
             assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
             assertThat(events("BookingCreated")).isZero();
             assertThat(events("BookingCancelled")).isEqualTo(1);

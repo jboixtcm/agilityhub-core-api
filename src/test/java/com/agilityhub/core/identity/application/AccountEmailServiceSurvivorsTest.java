@@ -26,7 +26,7 @@ class AccountEmailServiceSurvivorsTest {
     /**
      * A signup account (SignupIdentityService.java:26-27: Security(0, null, null, 0), the club consent of the signup) that later
      * accepted the platform policy at onboarding (OnboardingService.java:66,109-111: PLATFORM, clubId null, version
-     * `agilityhub.legal.privacyPolicyVersion`, default `v1`). The bounce of a platform (ID) mail carries no club, so the
+     * `agilityhub.legal.privacyPolicyVersion`, default `2` since PRIV-01). The bounce of a platform (ID) mail carries no club, so the
      * webhook audits without a tenant (SendGridWebhookService.java:63) and only the platform consent is visible
      * (AccountEmailService.java:28-30).
      */

@@ -99,13 +99,79 @@ class ClubAppTest(unittest.TestCase):
         backend = re.search(r'@backend path ([^\n]+)', self.caddy).group(1).split()
         self.assertFalse([path for path in backend if path.startswith('/internal')])
 
+    def test_CFG_03_the_core_host_caps_webhook_bodies_before_the_proxy(self):
+        # Only the Core's own host proxies /webhooks/*; Caddy stops a body above the 1 MiB the Core reads (the Core refuses it too).
+        core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
+        self.assertRegex(core, r'request_body /webhooks/\* \{\s*max_size 1MiB\s*\}\s*reverse_proxy core:8080')
+        backend = re.search(r'@backend path ([^\n]+)', self.caddy).group(1).split()
+        self.assertFalse([path for path in backend if path.startswith('/webhooks')])
+
+    def test_CFG_03_every_site_that_proxies_the_api_caps_its_bodies_at_two_megabytes_but_the_signed_uploads(self):
+        # Owner decision of 13 Nov 2026: 2 MB for /api/* and /oauth2/*, exempting only the two signed upload PUTs (files.maxSizeMb).
+        snippet = self.caddy[self.caddy.index('(api_body_limit) {'):self.caddy.index('# CFG-05: the static answers')]
+        self.assertRegex(snippet, r'@api_body \{\s*path /api/\* /oauth2/\*\s*not \{\s*method PUT\s*'
+                                  r'path /api/v1/attachments/uploads/\* /api/v1/signup/uploads\s*\}\s*\}')
+        self.assertRegex(snippet, r'request_body @api_body \{\s*max_size 2MB\s*\}')
+        self.assertRegex(snippet, r'handle_errors 413 \{[^`]*respond `\{"code":"VALIDATION_ERROR",[^`]*"traceId":"\{err\.id\}"\}` 400')
+        # The only request_body directives: this one and the Core host's webhook cap.
+        self.assertEqual(['@api_body', '/webhooks/*'], re.findall(r'^\s*request_body (\S+)', self.caddy, re.M))
+        # Every site that proxies /api/* or /oauth2/* imports it: the three product SPAs (through `spa`), the club catch-all and
+        # the Core's own host.
+        spa = self.caddy[self.caddy.index('(spa) {'):self.caddy.index('{$ID_HOST} {')]
+        catch_all = self.caddy[self.caddy.index('https:// {'):]
+        core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
+        for name, block in (('spa', spa), ('https://', catch_all), ('{$CORE_HOST}', core)):
+            self.assertIn('import api_body_limit', block, name)
+        for host in ('{$ID_HOST}', '{$CLUBS_HOST}', '{$ADMIN_HOST}'):
+            self.assertRegex(self.caddy, re.escape(host) + r' \{\s*import spa /srv/')
+        sites_with_api = [block.split(' ', 1)[0] for block in re.split(r'\n(?=\S)', self.caddy)
+                          if re.match(r'(https?://|\{\$)', block) and ('import api_proxy' in block or 'reverse_proxy core:8080' in block)]
+        self.assertEqual(['{$CORE_HOST}', 'https://'], sites_with_api)
+
+    def test_CFG_05_the_core_host_answers_robots_txt_itself_and_proxies_the_rest(self):
+        # Owner decision of 13 Nov 2026: `Disallow: /` on every host. The Core's host serves no bundle, so Caddy answers it.
+        core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
+        port = free_port()
+        core = core.replace('{$CORE_HOST} {', 'http://:8080 {').replace('reverse_proxy core:8080', 'reverse_proxy 127.0.0.1:9091')
+        snippets = self.caddy[self.caddy.index('(access_log) {'):self.caddy.index('(spa) {')]
+        stub = 'http://:9091 {\n respond "fictional core" 200\n}\n'
+        with tempfile.TemporaryDirectory(prefix='cfg05-caddy-') as directory:
+            path = Path(directory) / 'Caddyfile'
+            path.write_text('{\n admin off\n}\n' + snippets + core + stub)
+            container = subprocess.check_output(['docker', 'run', '--rm', '-d', '-p', f'127.0.0.1:{port}:8080',
+                                                 '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE], text=True).strip()
+            try:
+                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+                def get(route):
+                    request = urllib.request.Request(f'http://127.0.0.1:{port}{route}', headers={'Host': 'core.example.test'})
+                    with opener.open(request, timeout=3) as response:
+                        return response.read().decode(), response.headers
+
+                for attempt in range(50):
+                    try:
+                        get('/api/v1/health')
+                        break
+                    except OSError:
+                        time.sleep(0.1)
+                for route in ('/robots.txt', '/robots.txt?from=crawler'):
+                    body, headers = get(route)
+                    self.assertEqual('User-agent: *\nDisallow: /\n', body, route)
+                    self.assertEqual('text/plain; charset=utf-8', headers['Content-Type'])
+                self.assertEqual('fictional core', get('/api/v1/health')[0])
+                self.assertEqual('fictional core', get('/robots.txt.bak')[0])
+            finally:
+                subprocess.run(['docker', 'rm', '-f', container], check=True, capture_output=True)
+
     def test_INC_64_production_caddyfile_validates(self):
         flags = [part for key, value in PRODUCTION_ENV.items() for part in ('-e', f'{key}={value}')]
         subprocess.run(['docker', 'run', '--rm', '-v', f'{ROOT / "deploy/Caddyfile"}:/etc/caddy/Caddyfile:ro', *flags, IMAGE,
                         'caddy', 'validate', '--config', '/etc/caddy/Caddyfile'], check=True, capture_output=True)
 
     def test_INC_64_real_caddy_serves_each_host_the_app_the_core_names(self):
-        snippet = self.caddy[self.caddy.index('(club_spa) {'):self.caddy.index('https:// {')]
+        # CFG-05: club_spa serves its files through the shared static_files snippet.
+        snippet = (self.caddy[self.caddy.index('(static_files) {'):self.caddy.index('(spa) {')]
+                   + self.caddy[self.caddy.index('(club_spa) {'):self.caddy.index('https:// {')])
         port, stub_port = free_port(), free_port()
         with tempfile.TemporaryDirectory(prefix='inc64-caddy-') as directory:
             path = Path(directory)
@@ -163,6 +229,127 @@ class ClubAppTest(unittest.TestCase):
                 subprocess.run(['docker', 'rm', '-f', container], check=True, capture_output=True)
 
 
+class BodyLimitTest(unittest.TestCase):
+    """CFG-03 (owner decision of 13 Nov 2026): the production snippets in the real Caddy image, in front of a fictional upstream
+    that reads every body to its end and records how many bytes reached it."""
+
+    def test_CFG_03_real_caddy_stops_api_bodies_above_two_megabytes_and_lets_the_signed_uploads_through(self):
+        caddy = (ROOT / 'deploy/Caddyfile').read_text()
+        received = {}
+
+        class Upstream(http.server.BaseHTTPRequestHandler):
+            protocol_version = 'HTTP/1.1'
+
+            def handle_body(self):
+                count = 0
+                try:
+                    if self.headers.get('Transfer-Encoding', '').lower() == 'chunked':
+                        while (size := int(self.rfile.readline().split(b';')[0].strip() or b'0', 16)) > 0:
+                            count += len(self.rfile.read(size))
+                            self.rfile.readline()
+                        self.rfile.readline()
+                    else:
+                        length = int(self.headers.get('Content-Length') or 0)
+                        while count < length and (chunk := self.rfile.read(min(65536, length - count))):
+                            count += len(chunk)
+                    received[self.command + ' ' + self.path] = count
+                    body = json.dumps({'bytes': count}).encode()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                except (OSError, ValueError):
+                    # The proxy gave up on the body: the request never reached its end.
+                    received[self.command + ' ' + self.path] = count
+                    self.close_connection = True
+
+            do_POST = do_PUT = do_PATCH = handle_body
+
+            def log_message(self, *arguments):
+                pass
+
+        upstream = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Upstream)
+        threading.Thread(target=upstream.serve_forever, daemon=True).start()
+        spa_port, core_port = free_port(), free_port()
+        target = f'127.0.0.1:{upstream.server_port}'
+        snippets = caddy[caddy.index('(security_headers)'):caddy.index('{$ID_HOST}')].replace('core:8080', target)
+        core = caddy[caddy.index('{$CORE_HOST} {'):caddy.index('# Never published by Compose.')]
+        core = core.replace('{$CORE_HOST} {', f'http://:{core_port} {{').replace('core:8080', target)
+        try:
+            with tempfile.TemporaryDirectory(prefix='cfg03-caddy-') as directory:
+                path = Path(directory) / 'Caddyfile'
+                path.write_text('{\n admin off\n}\n' + snippets + f'\nhttp://:{spa_port} {{\n import spa /srv/clubs\n}}\n' + core)
+                # Host networking: Caddy reaches the upstream on the host's loopback, as the Core is reached on the compose network.
+                container = subprocess.check_output(['docker', 'run', '--rm', '-d', '--network', 'host',
+                                                     '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE], text=True).strip()
+                try:
+                    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+                    def send(port, method, route, size, chunked=False):
+                        data = iter([b'0' * size]) if chunked else b'0' * size
+                        headers = {'Content-Type': 'application/json'}
+                        request = urllib.request.Request(f'http://127.0.0.1:{port}{route}', data=data, method=method, headers=headers)
+                        try:
+                            response = opener.open(request, timeout=30)
+                        except urllib.error.HTTPError as error:
+                            response = error
+                        with response:
+                            return response.status, response.headers, response.read().decode()
+
+                    for attempt in range(50):
+                        try:
+                            send(spa_port, 'POST', '/api/v1/ready', 1)
+                            break
+                        except OSError:
+                            time.sleep(0.1)
+                    else:
+                        self.fail('Caddy did not answer: ' + subprocess.run(['docker', 'logs', container], capture_output=True,
+                                                                             text=True).stderr[-2000:])
+
+                    def refused(port, method, route, size, chunked=False):
+                        status, headers, body = send(port, method, route, size, chunked)
+                        self.assertEqual(400, status, (method, route, size, body))
+                        self.assertTrue(headers['Content-Type'].startswith('application/json'), route)
+                        self.assertEqual('no-store', headers['Cache-Control'])
+                        error = json.loads(body)
+                        self.assertEqual(['code', 'details', 'message', 'traceId'], sorted(error))
+                        self.assertEqual(('VALIDATION_ERROR', {}), (error['code'], error['details']))
+                        self.assertTrue(error['traceId'])
+                        # The upstream never got the whole body (if the proxy started streaming it at all).
+                        time.sleep(0.2)
+                        self.assertLess(received.get(method + ' ' + route, 0), size, route)
+
+                    def accepted(port, method, route, size, chunked=False):
+                        status, _, body = send(port, method, route, size, chunked)
+                        self.assertEqual((200, {'bytes': size}), (status, json.loads(body)), (method, route))
+
+                    for port in (spa_port, core_port):
+                        with self.subTest(site='spa' if port == spa_port else 'core'):
+                            # 2 MB is 2,000,000 bytes: a body of exactly that size passes, one byte more does not.
+                            accepted(port, 'POST', '/api/v1/class-sessions', 2_000_000)
+                            refused(port, 'POST', '/api/v1/members', 2_000_001)
+                            refused(port, 'PATCH', '/api/v1/members/m-1', 3_000_000, chunked=True)
+                            refused(port, 'POST', '/oauth2/token', 2_000_001)
+                            refused(port, 'POST', '/oauth2/session', 2_500_000, chunked=True)
+                            # The signed upload PUTs are exempt: the Core bounds them by files.maxSizeMb while it streams them.
+                            accepted(port, 'PUT', '/api/v1/attachments/uploads/u-1', 3_000_000)
+                            accepted(port, 'PUT', '/api/v1/signup/uploads?f=k&e=1&s=sig', 3_000_000, chunked=True)
+                            # Only those two, and only with PUT.
+                            refused(port, 'POST', '/api/v1/attachments/uploads/u-2', 2_000_001)
+                            refused(port, 'PUT', '/api/v1/attachments/upload-url', 2_000_001)
+                            refused(port, 'PUT', '/api/v1/signup/uploads/extra', 2_000_001)
+                            refused(port, 'PUT', '/api/v1/members/m-1/roles', 2_000_001)
+                    # The Core host's anonymous webhooks keep their 1 MiB, and answer the same envelope above it.
+                    accepted(core_port, 'POST', '/webhooks/stripe/club-1', 1_048_576)
+                    refused(core_port, 'POST', '/webhooks/email/sendgrid', 1_048_577)
+                finally:
+                    subprocess.run(['docker', 'rm', '-f', container], check=True, capture_output=True)
+        finally:
+            upstream.shutdown()
+            upstream.server_close()
+
+
 class InventoryTest(unittest.TestCase):
     def test_INC_37_every_production_variable_is_in_the_deploy_inventory(self):
         # INC-37 (26-09 review): OIDC_LEARN_CLIENT_SECRET, MAIL_FROM_PLATFORM and SENDGRID_WEBHOOK_PUBLIC_KEY were missing; E11-T04
@@ -176,6 +363,13 @@ class InventoryTest(unittest.TestCase):
         self.assertEqual([], missing)
         for name in ('OIDC_LEARN_CLIENT_SECRET', 'MAIL_FROM_PLATFORM', 'SENDGRID_WEBHOOK_PUBLIC_KEY'):
             self.assertIn(name, names)
+
+    def test_CFG_09_core_runs_without_capabilities_or_privilege_gain(self):
+        compose = (ROOT / 'deploy/compose.prod.yaml').read_text()
+        core = compose[compose.index('\n  core:\n'):compose.index('\n  caddy:\n')]
+        self.assertRegex(core, r'\n    cap_drop: \[ALL\]\n')
+        self.assertRegex(core, r'\n    security_opt: \[no-new-privileges:true\]\n')
+        self.assertNotRegex(core, r'cap_add|privileged|\n    user:')
 
 
 def scope_bindings(body):

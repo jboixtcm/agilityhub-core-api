@@ -75,6 +75,10 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
     public List<UpfrontPayment> forIntent(String intent) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("stripe.paymentIntentId").is(intent)).with(org.springframework.data.domain.Sort.by("_id")), UpfrontPayment.class);
     }
+    /** PAY-06: flags the rows a Stripe dispute (chargeback) disputes; nothing else of the row changes. */
+    public void dispute(java.util.Collection<String> ids, PaymentDispute dispute) {
+        mongo.updateMulti(tenantQuery().addCriteria(Criteria.where("_id").in(List.copyOf(ids))), new Update().set("dispute", dispute), UpfrontPayment.class);
+    }
     public void captured(String id, com.agilityhub.core.shared.domain.Money amount) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("stripeCapturedAmount", amount), UpfrontPayment.class);
     }

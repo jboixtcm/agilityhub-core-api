@@ -2,8 +2,11 @@ package com.agilityhub.core.payments.persistence;
 
 import com.agilityhub.core.shared.application.TenantContext;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -17,6 +20,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class PaymentsErasureRepository {
+    /** A remittance not yet submitted to the bank: the retention sweep never deletes its file (PRIV-02). */
+    static final String NOT_SUBMITTED = com.agilityhub.core.payments.domain.RemittanceStatus.GENERATED.name();
+    /** PRIV-04: a rolled-back remittance's file never debited anyone. */
+    static final String ROLLED_BACK = com.agilityhub.core.payments.domain.RemittanceStatus.ROLLED_BACK.name();
+    static final String SEPA = com.agilityhub.core.payments.domain.CollectionProvider.SEPA_XML.name();
     private final MongoTemplate mongo;
     public PaymentsErasureRepository(MongoTemplate mongo) { this.mongo = mongo; }
     private Criteria club() { return Criteria.where("clubId").is(TenantContext.require()); }
@@ -26,6 +34,24 @@ public class PaymentsErasureRepository {
     }
     public boolean openUpfrontPayments(Collection<String> memberIds) {
         return mongo.exists(Query.query(club().and("memberId").in(memberIds).and("status").in("DUE", "PARTIAL", "CHECKOUT_PENDING")), "upfront_payments");
+    }
+    /**
+     * PRIV-04 (owner's decision of 13-11-2026): the latest collection date, on or after {@code since}, of a remittance not rolled
+     * back that holds a SEPA collection of these members' invoices (the attempts of the invoices they pay); empty when none.
+     */
+    public Optional<LocalDate> latestSepaCollectionDate(Collection<String> memberIds, LocalDate since) {
+        var invoices = Query.query(club().and("memberId").in(memberIds));
+        invoices.fields().include("_id");
+        var invoiceIds = mongo.find(invoices, org.bson.Document.class, "invoices").stream().map(invoice -> invoice.get("_id")).toList();
+        if (invoiceIds.isEmpty()) { return Optional.empty(); }
+        var remittanceIds = mongo.findDistinct(Query.query(club().and("invoiceId").in(invoiceIds).and("provider").is(SEPA).and("remittanceId").ne(null)),
+                "remittanceId", "collections", String.class);
+        if (remittanceIds.isEmpty()) { return Optional.empty(); }
+        var latest = Query.query(club().and("_id").in(remittanceIds).and("status").ne(ROLLED_BACK).and("requestedCollectionDate").gte(since.toString()))
+                .with(Sort.by(Sort.Direction.DESC, "requestedCollectionDate")).limit(1);
+        latest.fields().include("requestedCollectionDate");
+        return Optional.ofNullable(mongo.findOne(latest, org.bson.Document.class, "remittances"))
+                .map(remittance -> LocalDate.parse(remittance.getString("requestedCollectionDate")));
     }
 
     /** One member's invoices: the snapshots of R-14-15 (`Invoice.paymentMethod.holderName`, `maskedAccount`; `memberSnapshot`). */
@@ -49,19 +75,23 @@ public class PaymentsErasureRepository {
         return mongo.updateMulti(Query.query(club().and("memberId").in(memberIds)), new Update().unset("providerRequest"), "checkout_sessions").getModifiedCount();
     }
 
-    /** R-14-16 (c): the remittances of the club whose XML file (debtor names and IBANs) is older than the cut-off and still stored. */
+    /**
+     * R-14-16 (c): the remittances of the club whose XML file (debtor names and IBANs) is older than the cut-off and still stored.
+     * PRIV-02 (owner's decision of 13-11): never one still `GENERATED`, a file not yet submitted to the bank.
+     */
     public List<String> remittanceFilesBefore(Instant cutoff) {
-        var query = Query.query(club().and("creationAt").lt(cutoff).and("fileKey").ne(null));
+        var query = Query.query(club().and("creationAt").lt(cutoff).and("fileKey").ne(null).and("status").ne(NOT_SUBMITTED));
         query.fields().include("_id");
         return mongo.find(query, org.bson.Document.class, "remittances").stream().map(document -> document.getString("_id")).toList();
     }
+    /** The stored file of a remittance the sweep may delete: null when it has none, or while it is still `GENERATED` (PRIV-02). */
     public String remittanceFile(String remittanceId) {
-        var document = mongo.findOne(Query.query(club().and("_id").is(remittanceId)), org.bson.Document.class, "remittances");
+        var document = mongo.findOne(Query.query(club().and("_id").is(remittanceId).and("status").ne(NOT_SUBMITTED)), org.bson.Document.class, "remittances");
         return document == null ? null : document.getString("fileKey");
     }
     /** The remittance keeps everything but its file reference; `filePurgedAt` records when the XML left the store. */
     public boolean remittanceFilePurged(String remittanceId, Instant at) {
-        return mongo.updateFirst(Query.query(club().and("_id").is(remittanceId).and("fileKey").ne(null)),
+        return mongo.updateFirst(Query.query(club().and("_id").is(remittanceId).and("fileKey").ne(null).and("status").ne(NOT_SUBMITTED)),
                 new Update().unset("fileKey").set("filePurgedAt", at), "remittances").getModifiedCount() == 1;
     }
 

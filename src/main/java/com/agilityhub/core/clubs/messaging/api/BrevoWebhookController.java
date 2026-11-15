@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,13 +31,14 @@ public class BrevoWebhookController {
             + "Accepts one event or a batch. Events correlate opaque custom metadata, the stored tenant, recipient and provider reference. Replays are idempotent.")
     @ApiResponse(responseCode = "200", description = "Processed or safely ignored", content = @Content)
     @ApiResponse(responseCode = "401", description = "WEBHOOK_SIGNATURE_INVALID")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+            content = @Content(mediaType = "application/json", schema = @Schema(anyOf = {BrevoEvent.class, BrevoEvent[].class})))
     public void receive(@RequestHeader(value = "Authorization", required = false) String authorization,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
-                    content = @Content(mediaType = "application/json", schema = @Schema(anyOf = {BrevoEvent.class, BrevoEvent[].class})))
-            @RequestBody byte[] body) {
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) HttpServletRequest request) {
+        byte[] body = body(request);
         try { authentication.verify(authorization); }
         catch (ApiException invalid) { security.record(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID, null, null); throw invalid; }
-        if (body.length > 1_048_576) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        if (body.length > MAX_BODY_BYTES) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         try {
             var root = mapper.readTree(body);
             if (root == null || !root.isObject() && !root.isArray() || root.isArray() && root.size() > 1000) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
@@ -48,4 +50,16 @@ public class BrevoWebhookController {
     public record BrevoEvent(String event, @JsonProperty("message-id") String messageId, String email,
             @JsonProperty("X-Mailin-custom") String custom, String reason) { }
     private static String text(com.fasterxml.jackson.databind.JsonNode node, String key) { return node.path(key).isTextual() ? node.path(key).asText() : null; }
+
+    /** CFG-03: the body's cap; a longer one is never read whole, so an anonymous caller cannot make the server buffer it. */
+    static final int MAX_BODY_BYTES = 1_048_576;
+
+    /** Reads at most one byte past {@link #MAX_BODY_BYTES}; an empty or unreadable body → 400, as Spring's required body was. */
+    static byte[] body(HttpServletRequest request) {
+        try {
+            byte[] body = request.getInputStream().readNBytes(MAX_BODY_BYTES + 1);
+            if (body.length == 0) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+            return body;
+        } catch (IOException unreadable) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+    }
 }

@@ -145,13 +145,6 @@
         "label": "Home"
       }
     ],
-    "address": {
-      "street": "Example street",
-      "postalCode": "08001",
-      "city": "Example",
-      "province": "Example",
-      "country": "ES"
-    },
     "status": "ACTIVE",
     "displayStatus": {
       "kind": "ACTIVE",

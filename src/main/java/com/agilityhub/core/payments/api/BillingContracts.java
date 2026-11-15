@@ -41,7 +41,20 @@ public final class BillingContracts {
             CollectionStatus status, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String providerRef,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String remittanceId, @Schema(minimum = "1") int attempt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String failureCode, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String failureMessage,
-            List<CollectionRefund> refunds, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant resolvedAt) { }
+            List<CollectionRefund> refunds, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant resolvedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "PAY-06: the Stripe dispute (chargeback) of this card attempt; null without one")
+            PaymentDispute dispute) { }
+    @Schema(description = "PAY-06 (S12 R-12-21): the Stripe dispute (chargeback) of a card payment, the flag D6 and D10 show, as the last "
+            + "charge.dispute.* event left it. providerRef is Stripe's dispute id (dp_…); status and reason are Stripe's (status: warning_needs_response · warning_under_review · "
+            + "warning_closed · needs_response · under_review · won · lost; reason: fraudulent, duplicate, product_not_received, …). openedAt is "
+            + "when Core learnt of it, closedAt when Stripe closed it (won, lost, warning_closed). The club answers it in Stripe's dashboard; "
+            + "no payment, pack, booking or invoice state changes with it.")
+    public record PaymentDispute(String providerRef, String status, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String reason, Money amount,
+            Instant openedAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant closedAt) {
+        static PaymentDispute of(com.agilityhub.core.payments.persistence.PaymentDispute dispute) {
+            return dispute == null ? null : new PaymentDispute(dispute.providerRef(), dispute.status(), dispute.reason(), dispute.amount(), dispute.openedAt(), dispute.closedAt());
+        }
+    }
     @Schema(description = "S12 §3 Invoice (receipt), immutable once issued (R-12-10): only its state fields change. GET /invoices/{id} adds its collections[] "
             + "(oldest first); refundedTotal = total reads «reemborsat» (PAID, no state of its own). runId is null for MANUAL and MIGRATED invoices.")
     public record Invoice(@Schema(format = "uuid") String id, String series, @Schema(minimum = "1") long number,
@@ -81,6 +94,8 @@ public final class BillingContracts {
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     @Schema(description = "POST /invoices/payments: how many invoices were marked paid")
     public record BulkPaymentResult(@Schema(minimum = "0") int paid, List<Invoice> invoices) { }
+    @Schema(description = "SEPA-04: POST /remittances/{id}/returns: how many receipts of the remittance were marked returned")
+    public record RemittanceReturnsResult(@Schema(minimum = "1") int returned, List<Invoice> invoices) { }
 
     // ---- The member's view (R-12-27): read only, no IBAN
     public record MeInvoiceLine(InvoiceLineOrigin origin, String description, Money total) { }
@@ -120,6 +135,18 @@ public final class BillingContracts {
     @Schema(description = "A short-lived signed URL of the pain.008 XML; its download answers Content-Disposition attachment with fileName")
     public record RemittanceFile(@Schema(format = "uri-reference") String downloadUrl, String fileName, Instant expiresAt) { }
 
+    // ---- Stripe events (S12 §3 `StripeEvent`, R-12-21, PAY-02)
+    @Schema(description = "A row of the failed Stripe events list (CONVENCIONS_API §4, PAY-02): only the row id is required. id is Stripe's event id "
+            + "(evt_…). attempts: the processing attempts it spent (an outage of the provider spends none). nextAttemptAt: when it runs again, while "
+            + "it is retrying; processedAt: when its retries ran out, after which it stays FAILED until Stripe delivers it again or the retention "
+            + "cleanup deletes it.")
+    @com.agilityhub.core.shared.application.contract.SparseListItem
+    public record StripeEventListItem(String id, @Schema(requiredMode = NOT_REQUIRED) String type, @Schema(requiredMode = NOT_REQUIRED) Instant receivedAt,
+            @Schema(requiredMode = NOT_REQUIRED, minimum = "0") Integer attempts, @Schema(requiredMode = NOT_REQUIRED) Instant nextAttemptAt,
+            @Schema(requiredMode = NOT_REQUIRED) Instant processedAt) { }
+    public record StripeEventPage(List<StripeEventListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
+            @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
+
     // ---- Runs and simulations (S12 §3 `BillingRun`, `BillingSimulation`, §6 JSON)
     @Schema(description = "A provider's share of a month: remittanceId only for SEPA_XML, charged/failed only for STRIPE")
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -152,10 +179,24 @@ public final class BillingContracts {
     public record InactivityFees(@Schema(minimum = "0") int count, Money firstMonth, Money following) { }
     public record SimulationKpis(@Schema(minimum = "0") int count, Money total, ByProvider byProvider, @Schema(minimum = "0") int cashPending,
             InactivityFees inactivityFees,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Default collection date in the billed month, club-local; null for a simulation stored before E90") LocalDate collectionDate) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Default collection date: the day of the billed month, or the next TARGET business day when that day is not one "
+                    + "(SEPA-05), club-local; null for a simulation stored before E90") LocalDate collectionDate) { }
+    @Schema(description = "SEPA-10 (R-12-11): the simulated total (kpis.total) against the total of the previous month's live run, as simulated. "
+            + "D6's generate confirmation shows it and, when secondConfirmationRequired, asks for a second explicit confirmation before POST "
+            + "/billing/runs: the difference, up or down, is more than thresholdPercent of previousTotal, or there is no previous total to compare with")
+    public record SimulationComparison(@Schema(pattern = MONTH, description = "The month before the simulated one") String previousPeriod,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The previous month's live run total over all its providers; null "
+                    + "without one (or in another currency)") Money previousTotal,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "kpis.total − previousTotal, signed; null without previousTotal") Money difference,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "difference as a percentage of previousTotal, one decimal, signed; null "
+                    + "without a positive previousTotal") BigDecimal differencePercent,
+            @Schema(minimum = "0", maximum = "100", description = "billing.totalDifferenceConfirmPercent when simulated") int thresholdPercent,
+            boolean secondConfirmationRequired) { }
     @Schema(description = "S12 §6 simulation JSON (R-12-07) plus its id, which POST /billing/runs names; only the last one per month is kept")
     public record BillingSimulation(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String period, Instant at, List<BillingIncident> incidents,
-            List<CashMember> cashMembers, SimulationKpis kpis, List<InvoicePreview> invoicesPreview) { }
+            List<CashMember> cashMembers, SimulationKpis kpis, List<InvoicePreview> invoicesPreview,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "SEPA-10; absent for a simulation stored "
+                    + "before it: D6 asks the second confirmation") SimulationComparison comparison) { }
     @Schema(description = "S12 §3 BillingRun. rollbackable and rollbackBlockers are computed at read (R-12-14); skipped = the members with an incident")
     public record BillingRun(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String period, BillingRunStatus status,
             @Schema(format = "uuid") String simulationId, List<String> invoiceIds, ByProvider byProvider,
@@ -171,7 +212,9 @@ public final class BillingContracts {
     public record RollbackResult(@Schema(minimum = "0") int cancelledInvoices, @Schema(minimum = "0") int restoredMembers) { }
     @Schema(description = "GET /billing/periods/{period}: the simulation of D6's step 1")
     public record PeriodSimulation(@Schema(format = "uuid") String id, Instant at, SimulationKpis kpis, List<BillingIncident> incidents, List<CashMember> cashMembers,
-            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Saved simulation details; reading the period never generates invoices") List<InvoicePreview> invoicesPreview) { }
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Saved simulation details; reading the period never generates invoices") List<InvoicePreview> invoicesPreview,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "SEPA-10; absent for a simulation stored "
+                    + "before it: D6 asks the second confirmation") SimulationComparison comparison) { }
     public record PeriodRun(@Schema(format = "uuid") String id, BillingRunStatus status, ByProvider byProvider, boolean rollbackable,
             List<RollbackBlocker> rollbackBlockers) { }
     @Schema(description = "requestedCollectionDate: the remittance's collection date (club-local). submissionDue (E147, E11-T15): still GENERATED and the "
@@ -204,7 +247,9 @@ public final class BillingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String bookingId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String activityRegistrationId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String packBalanceId, List<CollectionRefund> refunds,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note, Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "PAY-06: the Stripe dispute (chargeback) of this card payment; null without one")
+            PaymentDispute dispute) { }
     public record UpfrontPayments(List<UpfrontPayment> items) { }
     @Schema(description = "202 of a refund (R-12-20): the provider confirms it by webhook (charge.refunded)")
     public record RefundAccepted(@Schema(format = "uuid") String id, Money amount, @Schema(description = "The refund's provider reference, null until the provider answers",

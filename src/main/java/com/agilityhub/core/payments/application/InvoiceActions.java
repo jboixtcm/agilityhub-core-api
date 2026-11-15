@@ -29,7 +29,9 @@ import org.springframework.stereotype.Service;
  * <li>R-12-16 «Marcar cobrat»: a `PENDING`/`FAILED` invoice paid by `MANUAL` or `SEPA_DD` → `Collection MANUAL SUCCEEDED`, `PAID`,
  * `InvoicePaid{MANUAL}`, `INVOICE_MARKED_PAID`; in bulk all or none.</li>
  * <li>R-12-17 «impagat (manual)»: a `COLLECTING` SEPA invoice, or a `PAID` one with a SEPA collection (a later bank return) →
- * `Collection FAILED{BANK_RETURN}`, `FAILED`, `InvoiceFailed` (→ N-10), `INVOICE_MARKED_FAILED`; no claim, no block (BR-08).</li>
+ * `Collection FAILED{BANK_RETURN}`, `FAILED`, `InvoiceFailed` (→ N-10), `INVOICE_MARKED_FAILED`; no claim, no block (BR-08).
+ * SEPA-04 (b): several returns of one remittance at once, with one N-10, and a returned periodic receipt may wait for the next
+ * remittance (`includeInNextRun`).</li>
  * <li>R-12-19: the cancellation of a `PENDING`/`FAILED` invoice, never `PAID`/`COLLECTING`, with the admin's free-text reason;
  * and the manual adjustment invoice (`kind = MANUAL`, `ADJUSTMENT` lines, positive or negative) numbered from the series
  * counter, `INVOICE_CREATED_MANUAL`. Only a positive total may ride «the next remittance» (`includeInNextRun`, E8-T07 step 1,
@@ -81,19 +83,71 @@ public class InvoiceActions {
         return selected.stream().map(invoice -> paid(invoice, paidAt, channel, null)).toList();
     }
     /** R-12-17. */
-    public InvoiceDetail markFailed(String id, String reason, LocalDate at, long version) {
+    public InvoiceDetail markFailed(String id, String reason, LocalDate at, long version) { return markFailed(id, reason, at, version, null); }
+    /**
+     * R-12-17; SEPA-04 (b): {@code includeInNextRun} = true leaves a returned periodic receipt waiting for the next run's remittance
+     * (R-12-19); absent or false, it waits for nobody — also a receipt that had re-entered a remittance and is returned again.
+     */
+    public InvoiceDetail markFailed(String id, String reason, LocalDate at, long version, Boolean includeInNextRun) {
         var invoice = current(id, version);
-        var attempts = collections.forInvoice(id);
-        var sepa = attempts.stream().filter(attempt -> attempt.provider() == CollectionProvider.SEPA_XML).reduce((a, b) -> b).orElse(null);
+        var sepa = returnable(invoice);
+        boolean nextRun = nextRun(invoice, includeInNextRun);
+        return failed(invoice, sepa, reason, instant(at, "at"), nextRun, false);
+    }
+    /**
+     * SEPA-04 (b), R-12-17 (owner decision of 13-11-2026): several returns of the remittance {@code remittanceId} in one request,
+     * all or none — each receipt's SEPA attempt must be of that remittance (`400 VALIDATION_ERROR {field: invoiceIds}`) and each
+     * must be returnable (`409 INVALID_STATE {status}`). Each gets what {@link #markFailed} gives it (its `FAILED{BANK_RETURN}`
+     * attempt, `FAILED`, `InvoiceFailed`, its own `INVOICE_MARKED_FAILED` entry), but its `InvoiceFailed` is `summarized`: the
+     * admins get ONE N-10 for the whole request, from one `InvoicesFailed`.
+     */
+    public List<InvoiceDetail> markReturned(String remittanceId, List<String> ids, String reason, LocalDate at, Boolean includeInNextRun) {
+        var selected = new ArrayList<Invoice>();
+        for (String id : new LinkedHashSet<>(ids)) { selected.add(invoices.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND))); }
+        var attempts = new LinkedHashMap<String, Collection>();
+        for (var invoice : selected) {
+            var sepa = lastSepa(invoice.id());
+            if (!remittanceId.equals(sepa == null ? invoice.remittanceId() : sepa.remittanceId())) { throw BillingContractAccess.invalid("invoiceIds"); }
+            attempts.put(invoice.id(), sepa);
+        }
+        selected.forEach(this::returnable);
+        var flags = selected.stream().map(invoice -> nextRun(invoice, includeInNextRun)).toList();
+        Instant failedAt = instant(at, "at");
+        var returned = new ArrayList<InvoiceDetail>();
+        for (int i = 0; i < selected.size(); i++) {
+            var invoice = selected.get(i);
+            returned.add(failed(invoice, attempts.get(invoice.id()), reason, failedAt, flags.get(i), true));
+        }
+        events.publish(BillingEvent.Kind.InvoicesFailed, remittanceId, Map.of("remittanceId", remittanceId,
+                "invoiceIds", selected.stream().map(Invoice::id).toList(), "provider", CollectionProvider.SEPA_XML.name(), "reason", BANK_RETURN));
+        return returned;
+    }
+    private Collection lastSepa(String invoiceId) {
+        return collections.forInvoice(invoiceId).stream().filter(attempt -> attempt.provider() == CollectionProvider.SEPA_XML).reduce((a, b) -> b).orElse(null);
+    }
+    /** R-12-17: a `COLLECTING` SEPA receipt, or a `PAID` one with a SEPA attempt (a later return); its last SEPA attempt, maybe null. */
+    private Collection returnable(Invoice invoice) {
+        var sepa = lastSepa(invoice.id());
         boolean collecting = invoice.status() == InvoiceStatus.COLLECTING && (sepa != null || invoice.paymentMethod().type() == PaymentMethodType.SEPA_DD);
         boolean returned = invoice.status() == InvoiceStatus.PAID && sepa != null;
         if (!collecting && !returned) { throw invalidState(invoice); }
-        Instant failedAt = instant(at, "at"), now = clock.instant();
+        return sepa;
+    }
+    /** SEPA-04 (b): only a periodic receipt re-enters a later remittance (`400 VALIDATION_ERROR {field: includeInNextRun}`). */
+    private static boolean nextRun(Invoice invoice, Boolean includeInNextRun) {
+        boolean include = Boolean.TRUE.equals(includeInNextRun);
+        if (include && invoice.kind() != InvoiceKind.PERIODIC) { throw BillingContractAccess.invalid("includeInNextRun"); }
+        return include;
+    }
+    private InvoiceDetail failed(Invoice invoice, Collection sepa, String reason, Instant failedAt, boolean nextRun, boolean summarized) {
+        String id = invoice.id(); Instant now = clock.instant();
         collections.insert(new Collection(UUID.randomUUID().toString(), invoice.clubId(), id, CollectionProvider.SEPA_XML, invoice.total(), CollectionStatus.FAILED, null,
                 sepa == null ? invoice.remittanceId() : sepa.remittanceId(), sepa == null ? 1 : sepa.attempt(), BANK_RETURN, reason, List.of(), now, failedAt,
                 sepa == null ? invoice.paymentMethod().mandateRef() : sepa.mandateRef(), sepa == null ? invoice.displayNumber() : sepa.endToEndId(), null, null, sepa == null ? invoice.paymentMethod().mandateSignedAt() : sepa.mandateSignedAt()));
-        var after = move(invoice, InvoiceState.of(invoice, now, BillingEvents.actor()).status(InvoiceStatus.FAILED).failed(failedAt, reason));
-        events.publish(BillingEvent.Kind.InvoiceFailed, id, Map.of("invoiceId", id, "provider", CollectionProvider.SEPA_XML.name(), "reason", BANK_RETURN));
+        var after = move(invoice, InvoiceState.of(invoice, now, BillingEvents.actor()).status(InvoiceStatus.FAILED).failed(failedAt, reason).nextRun(nextRun));
+        var payload = new LinkedHashMap<String, Object>(Map.of("invoiceId", id, "provider", CollectionProvider.SEPA_XML.name(), "reason", BANK_RETURN));
+        if (summarized) { payload.put("summarized", true); }
+        events.publish(BillingEvent.Kind.InvoiceFailed, id, payload);
         audit.write(new AuditCommand(AuditAction.INVOICE_MARKED_FAILED, "Invoice", id, invoice.memberId(), invoice, after, reason));
         return new InvoiceDetail(after, collections.forInvoice(id));
     }

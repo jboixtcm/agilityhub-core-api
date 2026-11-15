@@ -88,4 +88,43 @@ class AttachmentStorageTest {
             assertThat(Files.readString(outside)).isEqualTo("private fixture");
         } finally { Files.deleteIfExists(outside); }
     }
+
+    /** WEB-05: the rendition reads its photo with a bound; nothing past it is read. */
+    @Test void WEB_05_aBoundedReadRefusesALargerObjectOnBothStores() throws Exception {
+        var local = new LocalAttachmentStorage(root, new java.security.SecureRandom().generateSeed(32), clock); String id = UUID.randomUUID().toString();
+        local.put(id, "image/jpeg", 4, new ByteArrayInputStream(new byte[] {1, 2, 3, 4}));
+        assertThat(local.read(id, 4)).containsExactly(1, 2, 3, 4);
+        assertThatThrownBy(() -> local.read(id, 3)).hasMessage("FILE_TOO_LARGE");
+        assertThatThrownBy(() -> local.read(UUID.randomUUID().toString(), 4)).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> local.read("../../outside", 4)).hasMessage("NOT_FOUND");
+
+        var client = mock(S3Client.class);
+        try (var signer = S3Presigner.builder().region(Region.EU_WEST_1)
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(UUID.randomUUID().toString(), UUID.randomUUID().toString()))).build()) {
+            var s3 = new S3AttachmentStorage(client, signer, "fictional-census-test", clock);
+            var small = new software.amazon.awssdk.core.ResponseInputStream<>(GetObjectResponse.builder().contentLength(4L).build(),
+                    software.amazon.awssdk.http.AbortableInputStream.create(new ByteArrayInputStream(new byte[] {1, 2, 3, 4})));
+            when(client.getObject(any(java.util.function.Consumer.class))).thenReturn(small);
+            assertThat(s3.read("example", 4)).containsExactly(1, 2, 3, 4);
+            var request = org.mockito.ArgumentCaptor.forClass(java.util.function.Consumer.class);
+            verify(client).getObject(request.capture());
+            var builder = GetObjectRequest.builder(); request.getValue().accept(builder);
+            assertThat(builder.build().key()).isEqualTo("attachments/example");
+            // A stored length over the bound: refused before the body is read, and the transfer aborted.
+            var body = spy(new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}));
+            var large = spy(new software.amazon.awssdk.core.ResponseInputStream<>(GetObjectResponse.builder().contentLength(5L).build(),
+                    software.amazon.awssdk.http.AbortableInputStream.create(body)));
+            when(client.getObject(any(java.util.function.Consumer.class))).thenReturn(large);
+            assertThatThrownBy(() -> s3.read("example", 4)).hasMessage("FILE_TOO_LARGE");
+            verify(large).abort(); verify(body, never()).read(any(byte[].class), anyInt(), anyInt());
+            // No stored length: the body itself is bounded.
+            var unknown = spy(new software.amazon.awssdk.core.ResponseInputStream<>(GetObjectResponse.builder().build(),
+                    software.amazon.awssdk.http.AbortableInputStream.create(new ByteArrayInputStream(new byte[] {1, 2, 3, 4, 5}))));
+            when(client.getObject(any(java.util.function.Consumer.class))).thenReturn(unknown);
+            assertThatThrownBy(() -> s3.read("example", 4)).hasMessage("FILE_TOO_LARGE");
+            verify(unknown).abort();
+            when(client.getObject(any(java.util.function.Consumer.class))).thenThrow(NoSuchKeyException.builder().build());
+            assertThatThrownBy(() -> s3.read("missing", 4)).hasMessage("NOT_FOUND");
+        }
+    }
 }

@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
  * `bookedAt + bookings.paymentPendingMinutes ≤ now` is cancelled by the system with reason PAYMENT_TIMEOUT
  * ({@link BookingCancellationService#cancelPaymentPending}: CANCELLED, `SeatReleased`, N-40 from S08's handler). In
  * the same item transaction its checkout session expires and its line is cancelled ({@link SingleClassChargePort#abandon},
- * E5-T10), so a late provider success can no longer settle a cancelled booking.
+ * E5-T10), so a late provider success can no longer settle a cancelled booking; after the item's commit the provider's
+ * session is expired too (PAY-08), so the member can no longer pay for the released seat.
  * Idempotent by state: two runs cancel once.
  * <p>
  * E5-T31 (ruling E80): only bookings. The signup checkouts past their `expiresAt` are released by P5's step h, with `BILLING`

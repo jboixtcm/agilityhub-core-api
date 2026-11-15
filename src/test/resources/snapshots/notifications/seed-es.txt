@@ -321,4 +321,8 @@ body: Club Agility Exemple: miércoles 12 · 18:50 · B+C (Central) ha quedado p
 title: Reembolso manual necesario
 body: Hay que revisar el reembolso de Laura Serra Puig: 45,00 €.
 
-# 52 codes, 21 staff texts
+## N-56 ADMINS
+title: Pago con tarjeta disputado
+body: Laura Serra Puig ha disputado en su banco un pago con tarjeta de 45,00 € (motivo: Documentació pendent). El pago queda marcado en la app. Responde a la disputa desde el panel de Stripe antes de que venza el plazo.
+
+# 53 codes, 22 staff texts

@@ -11,10 +11,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BookingAudit {
-    @Audited(action = AuditAction.BOOKING_CREATED_BY_CLUB, entityType = "'Booking'", member = "#after.memberId")
-    public Booking createdByClub(Booking after) { return after; }
-    @Audited(action = AuditAction.BOOKING_CANCELLED_BY_CLUB, entityType = "'Booking'", before = "#before", member = "#after.memberId", reason = "#after.cancelReason")
-    public Booking cancelledByClub(Booking before, Booking after) { return after; }
+    /** COMM-03: the entry of a club action that did not notify the member says so (`details.notifyMember = false`). */
+    static final String SILENCED = "#notify ? null : {notifyMember: false}";
+    @Audited(action = AuditAction.BOOKING_CREATED_BY_CLUB, entityType = "'Booking'", member = "#after.memberId", details = SILENCED)
+    public Booking createdByClub(Booking after, boolean notify) { return after; }
+    @Audited(action = AuditAction.BOOKING_CANCELLED_BY_CLUB, entityType = "'Booking'", before = "#before", member = "#after.memberId", reason = "#after.cancelReason",
+            details = SILENCED)
+    public Booking cancelledByClub(Booking before, Booking after, boolean notify) { return after; }
     @Audited(action = AuditAction.BOOKING_CANCELLED_LATE, entityType = "'Booking'", before = "#before", member = "#after.memberId", reason = "#after.cancelReason")
     public Booking cancelledLate(Booking before, Booking after) { return after; }
 }

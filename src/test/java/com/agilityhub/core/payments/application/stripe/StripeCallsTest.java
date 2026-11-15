@@ -58,6 +58,30 @@ class StripeCallsTest {
                     });
         }
     }
+    /**
+     * PAY-02 (owner decision of 13 Nov 2026): what {@link StripeCalls#call} throws for a connection error, a 5xx, a 401, a 403 or a
+     * 429 is an outage (a webhook spends no attempt on it); a card or invalid-request rejection, another 4xx, a 400 that kept its
+     * cause and a failure of ours are not.
+     */
+    @Test void PAY_02_anOutageIsAConnectionErrorA5xxOrA401403429() {
+        var calls = new StripeCalls(millis -> {});
+        var outages = new LinkedHashMap<String, com.stripe.exception.StripeException>();
+        outages.put("connection error", new com.stripe.exception.ApiConnectionException("private-provider-message"));
+        for (int status : List.of(401, 403, 429, 500, 502, 503)) { outages.put("HTTP " + status, failure(status)); }
+        outages.put("no status", new ApiException("private-provider-message", null, null, null, null));
+        outages.forEach((label, failure) -> assertThat(StripeCalls.outage((RuntimeException) catchThrowable(() -> calls.call(() -> { throw failure; }))))
+                .as(label).isTrue());
+        var others = new LinkedHashMap<String, com.stripe.exception.StripeException>();
+        others.put("card", new com.stripe.exception.CardException("private-provider-message", null, "card_declined", null, null, null, 402, null));
+        others.put("invalid request", new com.stripe.exception.InvalidRequestException("private-provider-message", null, null, "resource_missing", 404, null));
+        others.put("key in use", new com.stripe.exception.InvalidRequestException("private-provider-message", null, null, "idempotency_key_in_use", 400, null));
+        others.put("HTTP 400", failure(400));
+        others.forEach((label, failure) -> assertThat(StripeCalls.outage((RuntimeException) catchThrowable(() -> calls.call(() -> { throw failure; }))))
+                .as(label).isFalse());
+        assertThat(StripeCalls.outage(new com.agilityhub.core.shared.domain.ApiException(ErrorCode.NO_PAYMENT_METHOD))).isFalse();
+        assertThat(StripeCalls.outage(new com.agilityhub.core.shared.domain.ApiException(ErrorCode.INTERNAL_ERROR))).isFalse();
+        assertThat(StripeCalls.outage(new IllegalStateException("Mongo unavailable"))).isFalse();
+    }
     @Test void T_12_17_round3_point3_serverFailureAfterRateLimitingStaysUncertain() {
         var calls = new StripeCalls(millis -> {}); var attempts = new AtomicInteger();
         var error = catchThrowable(() -> calls.call(() -> { throw failure(attempts.incrementAndGet() < 3 ? 429 : 500); }));

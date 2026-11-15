@@ -30,7 +30,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         clubs.save(PlatformFixtures.club("console-source","source.example.test"));
     }
     MockHttpServletRequestBuilder actor(MockHttpServletRequestBuilder call) {
-        return call.header("Host","unknown.example.test").with(jwt().jwt(j->j.subject("console-actor"))
+        return call.header("Host","unknown.example.test").with(jwt().jwt(j->j.subject("console-actor").claim("auth_time",signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")));
     }
     JsonNode call(MockHttpServletRequestBuilder call, Object body, int status) throws Exception {
@@ -156,6 +156,70 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         var response=mvc.perform(actor(get(BASE+"/console-target/definition").accept("application/yaml"))).andReturn().getResponse();
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getContentAsString()).contains("env:").doesNotContain("sk_test_fictional_console","whsec_fictional_console","secretKeyEnc","ibanEnc","accounts:");
+    }
+    @Autowired com.agilityhub.core.payments.application.FakePaymentProvider fakeStripe;
+    @Autowired com.agilityhub.core.platform.application.PlatformProviders platformProviders;
+    long providerAudits() {
+        return mongo.count(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("action")
+                .is("CLUB_PAYMENT_PROVIDER_CHANGED").and("entityId").is("console-target")),"audit_entries");
+    }
+    Map<String,Object> stripeKeys(String mode,String secret) {
+        return Map.of("version",version(),"enabled",true,"secretKey",secret,"webhookSecret","whsec_fictional_console","publishableKey","pk_"+mode+"_console1234","mode",mode);
+    }
+    /**
+     * PAY-10 (owner decision of 13 Nov 2026, S17 R-17-05): saving a Stripe secret key runs the connection test with that key first; a key
+     * Stripe refuses → 422 STRIPE_CONNECTION_FAILED with nothing written or audited, and a passed test is recorded with the save.
+     */
+    @Test void PAY_10_savingStripeKeysRunsTheConnectionTestAndRefusesAKeyThatFailsIt() throws Exception {
+        fakeStripe.refuseKey("sk_test_fictional_refused");
+        try {
+            long before=version();var providersBefore=clubs.findById("console-target").orElseThrow().paymentProviders();
+            assertThat(call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_refused"),422).path("code").asText())
+                    .isEqualTo("STRIPE_CONNECTION_FAILED");
+            assertThat(version()).isEqualTo(before);
+            assertThat(clubs.findById("console-target").orElseThrow().paymentProviders()).isEqualTo(providersBefore);
+            assertThat(providerAudits()).isZero();
+            call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_console"),200);
+            var stripe=call(get(BASE+"/console-target"),null,200).path("paymentProviders").path("STRIPE");
+            assertThat(stripe.path("lastTestAt").asText()).isEqualTo(clock.instant().toString());
+            assertThat(stripe.path("accountIdMasked").asText()).isEqualTo("****5678");
+            assertThat(providerAudits()).isEqualTo(1);
+            // A rotation to a refused key keeps the stored key and its last test.
+            var stored=clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE");
+            call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_refused"),422);
+            assertThat(clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE")).isEqualTo(stored);
+            assertThat(providerAudits()).isEqualTo(1);
+        } finally { fakeStripe.reset(); }
+    }
+    /**
+     * PAY-10 (owner decision of 13 Nov 2026, S17 R-17-05): on the prod profile, once live keys are saved, switching to test mode needs
+     * `testModeOverride: true`; without it 422 PROVIDER_CONFIG_INVALID {field: mode, reason: LIVE_KEYS_SAVED} and the live keys stay.
+     */
+    @Test void PAY_10_onProdSavedLiveKeysSwitchToTestModeOnlyWithTheOverride() throws Exception {
+        Object target=org.springframework.test.util.AopTestUtils.getTargetObject(platformProviders);
+        Object environment=org.springframework.test.util.ReflectionTestUtils.getField(target,"environment");
+        var prod=new org.springframework.mock.env.MockEnvironment();prod.setActiveProfiles("prod");
+        org.springframework.test.util.ReflectionTestUtils.setField(target,"environment",prod);
+        try {
+            call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("live","sk_live_fictional_console"),200);
+            var live=clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE");
+            for(Object override:Arrays.asList(null,false)) {
+                var body=new HashMap<String,Object>(stripeKeys("test","sk_test_fictional_console"));
+                if(override!=null) body.put("testModeOverride",override);
+                var error=call(put(BASE+"/console-target/payment-providers/STRIPE"),body,422);
+                assertThat(error.path("code").asText()).isEqualTo("PROVIDER_CONFIG_INVALID");
+                assertThat(error.path("details").path("field").asText()).isEqualTo("mode");
+                assertThat(error.path("details").path("reason").asText()).isEqualTo("LIVE_KEYS_SAVED");
+            }
+            assertThat(clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE")).isEqualTo(live);
+            var body=new HashMap<String,Object>(stripeKeys("test","sk_test_fictional_console"));body.put("testModeOverride",true);
+            assertThat(call(put(BASE+"/console-target/payment-providers/STRIPE"),body,200).path("mode").asText()).isEqualTo("test");
+            assertThat(((Map<?,?>)clubs.findById("console-target").orElseThrow().paymentProviders().get("STRIPE")).get("mode")).isEqualTo("test");
+            assertThat(providerAudits()).isEqualTo(2);
+        } finally { org.springframework.test.util.ReflectionTestUtils.setField(target,"environment",environment); }
+        // Outside prod (this test profile) the same switch needs no override.
+        call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("live","sk_live_fictional_console"),200);
+        call(put(BASE+"/console-target/payment-providers/STRIPE"),stripeKeys("test","sk_test_fictional_console"),200);
     }
     @Test void T_17_06_R_17_06_eachChecklistCellUsesTheRelevantCurrentFact() throws Exception {
         var c=clubs.findById("console-target").orElseThrow();var tree=(ObjectNode)mapper.valueToTree(c);
@@ -323,6 +387,26 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(configs.get("console-source").get("auth.sessionDays",Integer.class)).isEqualTo(30);
         assertThat(call(put(BASE+"/console-target/parameters/auth.sessionDays"),Map.of("version",0,"value",50),409).path("code").asText()).isEqualTo("STALE_VERSION");
         assertThat(call(put(BASE+"/console-target/parameters/auth.sessionDays"),Map.of("version",1,"value",-1),400).path("code").asText()).isEqualTo("PARAMETER_INVALID");
+    }
+    /**
+     * AUTH-08 (owner decision 13-11-2026, S01 R-01-05 and R-01-08): the console edits the password length and the lockout only from
+     * their catalogue floor up (8 characters, 1 minute, 3 attempts); 0 and any value under the floor are refused.
+     */
+    @Test void AUTH_08_theConsoleKeepsThePasswordAndLockoutParametersAtOrAboveTheirFloors() throws Exception {
+        configs.get("console-target");
+        var floors=Map.of("auth.passwordMinLength",8,"auth.lockoutMinutes",1,"auth.lockoutMaxAttempts",3);
+        var listed=call(get(BASE+"/console-target/parameters?block=system"),null,200);
+        var published=new java.util.HashMap<String,Integer>();
+        for(var block:listed.path("blocks")) for(var row:block.path("rows"))
+            if(floors.containsKey(row.path("key").asText())) published.put(row.path("key").asText(),row.at("/constraints/min").asInt());
+        assertThat(published).isEqualTo(floors);
+        for(var floor:floors.entrySet()) {
+            String path=BASE+"/console-target/parameters/"+floor.getKey();
+            for(int under:new int[]{0,floor.getValue()-1})
+                assertThat(call(put(path),Map.of("version",0,"value",under),400).path("code").asText()).as(floor.getKey()).isEqualTo("PARAMETER_INVALID");
+            assertThat(call(put(path),Map.of("version",0,"value",floor.getValue()),200).path("value").asInt()).isEqualTo(floor.getValue());
+        }
+        assertThat(configs.get("console-target").get("auth.lockoutMaxAttempts",Integer.class)).isEqualTo(3);
     }
     @Test void T_17_02_R_17_02_createRejectsTakenAndReservedHosts() throws Exception {
         var routes=mapper.readTree(java.nio.file.Path.of("src/test/resources/fixtures/contracts/e10-routes.json").toFile());

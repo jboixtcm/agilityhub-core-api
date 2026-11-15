@@ -71,7 +71,7 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     }
     MockHttpServletRequestBuilder postJson(String path,Object body) throws Exception {return post("/api/v1"+path).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body));}
     MockHttpServletRequestBuilder from(MockHttpServletRequestBuilder request,String ip) { return request.with(r->{r.setRemoteAddr(ip);return r;}); }
-    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("security-admin").claim("clubId",club)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
+    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("security-admin").claim("clubId",club).claim("auth_time",signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
     MockHttpServletRequestBuilder asMember(MockHttpServletRequestBuilder request,String id) {
         String account=member(id).getString("accountId");return request.header("Host",host).with(jwt().jwt(j->j.subject(account).claim("clubId",club)).authorities(new SimpleGrantedAuthority("ROLE_MEMBER")));
     }

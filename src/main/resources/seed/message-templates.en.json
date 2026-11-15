@@ -248,7 +248,7 @@
       "matrix": {
         "MEMBER": {
           "APP": true,
-          "EMAIL": false,
+          "EMAIL": true,
           "SMS": true
         }
       }
@@ -804,6 +804,21 @@
       "name": "Refund to make by hand",
       "title": "Manual refund required",
       "body": "{reason, select, COMPENSATION_INTERVENTION {Return {amount} to {member_name}. This is the outstanding total, excluding refunds in progress.} REFUND_OVER_CREDIT {{member_name} received an extra {amount} after a credit was already billed. Review this overpayment.} other {Review the refund for {member_name}: {amount}.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-56",
+      "name": "Card payment disputed",
+      "title": "Card payment disputed",
+      "body": "{member_name} has disputed a card payment of {amount} with their bank ({reason, select, fraudulent {fraud} duplicate {duplicate charge} unrecognized {not recognised} product_not_received {service not received} credit_not_processed {credit not processed} general {general reason} other {reason: {reason}}}). The payment is flagged in the app. Respond to the dispute from the Stripe dashboard before the deadline.",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

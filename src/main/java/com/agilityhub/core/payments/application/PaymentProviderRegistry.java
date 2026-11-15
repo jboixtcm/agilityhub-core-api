@@ -32,6 +32,7 @@ public class PaymentProviderRegistry implements PaymentProvider {
         if (!supports(capability)) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
     }
     @Override public Connection ping() { return implementation().ping(); }
+    @Override public Connection ping(String mode, String secretKey) { return implementation().ping(mode, secretKey); }
     @Override public boolean supports(Capability capability) { return resolve().supports(capability); }
     @Override public String createCheckoutSession(Request request) { return resolve().createCheckoutSession(request); }
     @Override public OffSessionResult createOffSessionPayment(OffSessionRequest request) { return resolve().createOffSessionPayment(request); }

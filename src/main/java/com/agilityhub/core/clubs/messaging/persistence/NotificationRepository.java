@@ -213,6 +213,27 @@ public class NotificationRepository extends TenantRepository<Notification> {
         var query = scoped(id).addCriteria(new Criteria().norOperator(live));
         return mongo.updateFirst(query, new Update().push("deliveries", delivery), Notification.class).getModifiedCount() == 1;
     }
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026): «Reenvia els fallits» of an announcement batch — every `FAILED` EMAIL delivery of
+     * the tenant's notices of the batch (`AnnouncementSent`, `dedupKey` `{batchId}:{memberId}`) back to `QUEUED`, due now, with
+     * its attempts at zero (a fresh R-11-09 budget) and its `failedAt` removed; its last error stays until the next attempt.
+     * Returns how many deliveries were put back. Nothing else is touched: the other channels and the other states. A delivery
+     * without a target (an erased member's, S14 R-14-15) stays `FAILED`: the poll never claims one, so it would wait for ever.
+     */
+    public long requeueFailedAnnouncementEmails(String batchId, Instant now) {
+        var failed = Criteria.where("channel").is("EMAIL").and("status").is("FAILED").and("target").ne(null);
+        var query = tenantQuery().addCriteria(Criteria.where("eventType").is("AnnouncementSent")
+                .and("dedupKey").regex("^" + java.util.regex.Pattern.quote(batchId) + ":").and("deliveries").elemMatch(failed));
+        long deliveries = mongo.find(query, Notification.class).stream().flatMap(n -> n.deliveries().stream())
+                .filter(d -> d.channel() == com.agilityhub.core.clubs.messaging.domain.NotificationChannel.EMAIL
+                        && d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.FAILED && d.target() != null).count();
+        if (deliveries == 0) { return 0; }
+        var update = new Update().set("deliveries.$[failed].status", "QUEUED").set("deliveries.$[failed].attempts", 0)
+                .set("deliveries.$[failed].nextAttemptAt", now).unset("deliveries.$[failed].failedAt")
+                .filterArray(Criteria.where("failed.channel").is("EMAIL").and("failed.status").is("FAILED").and("failed.target").ne(null));
+        mongo.updateMulti(query, update, Notification.class);
+        return deliveries;
+    }
     /** Any notification by id, whatever the tenant (the poll, R-11-09), for the dispatcher only. */
     public Optional<Notification> findForDispatch(String id) { return Optional.ofNullable(mongo.findById(id, Notification.class)); }
     /**
@@ -236,13 +257,17 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     public record DeliveryStatusChange(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus status, String error, Instant at) { }
     public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at) {
+        return finish(id, status, providerId, error, at, 1);
+    }
+    /** {@code attempts}: the provider calls this settlement records (AUTH-03: 2 when an access e-mail was sent once more). */
+    public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at, int attempts) {
         var query = scoped(id).addCriteria(Criteria.where("status").is(Notification.Status.QUEUED));
         boolean transitioned = move(query, update -> {
             update.set("status", status).set("providerMessageId", providerId).set("error", error);
             if (status == Notification.Status.SENT) { update.set("sentAt", at); }
         }, update -> {
             update.set("deliveries.0.status", status.name()).set("deliveries.0.providerRef", providerId).set("deliveries.0.lastError", error);
-            if (status == Notification.Status.SENT || status == Notification.Status.FAILED) { update.inc("deliveries.0.attempts", 1); }
+            if (status == Notification.Status.SENT || status == Notification.Status.FAILED) { update.inc("deliveries.0.attempts", attempts); }
             if (status == Notification.Status.SKIPPED_NOT_ALLOWED) { update.unset("deliveries.0.nextAttemptAt"); }
             if (status == Notification.Status.SENT) { update.set("deliveries.0.sentAt", at); }
             if (status == Notification.Status.FAILED) { update.set("deliveries.0.failedAt", at); }

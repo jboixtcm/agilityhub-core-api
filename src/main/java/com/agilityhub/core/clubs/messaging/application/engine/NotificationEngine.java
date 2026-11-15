@@ -269,7 +269,7 @@ public class NotificationEngine {
             for (var delivery : planned) {
                 if (facts.excludedChannels().contains(delivery.channel().name())) { continue; }
                 deliveries.add(new Notification.Delivery(delivery.channel(), delivery.target(), delivery.status(), 0,
-                        delivery.status() == DeliveryStatus.QUEUED ? now : null, null, null, null, delivery.status() == DeliveryStatus.DELIVERED ? now : null, null));
+                        delivery.status() == DeliveryStatus.QUEUED ? now : null, null, delivery.reason(), null, delivery.status() == DeliveryStatus.DELIVERED ? now : null, null));
             }
             // R-11-09 `recipientKey`: the account, else the normalized address, else (a member without account nor address) the member.
             String recipientKey = recipient.accountId() != null || recipient.email() != null

@@ -139,7 +139,8 @@ public final class NotificationCatalog {
                 .vars("dog_name", "class_date", "changes").build());
         rows.add(code("N-09", PERSONAL, "DogLevelChanged").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "level_name")
                 .seed(TemplateIcon.up, TemplateColor.OK).build());
-        rows.add(code("N-10", OPERATIONAL, "InvoiceFailed").to(ADMINS, APP, EMAIL).action(OPEN_INVOICES)
+        // SEPA-04 (b): `InvoicesFailed` is the one N-10 of the returns of a remittance marked together.
+        rows.add(code("N-10", OPERATIONAL, "InvoiceFailed", "InvoicesFailed").to(ADMINS, APP, EMAIL).action(OPEN_INVOICES)
                 .vars("member_name", "invoice_number", "amount", "reason").modules(Module.BILLING).build());
         rows.add(code("N-11a", PERSONAL, "PackLowBalance").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "pack_remaining")
                 .modules(Module.BILLING, Module.PACKS).build());
@@ -151,7 +152,8 @@ public final class NotificationCatalog {
                 .seed(TemplateIcon.clock, TemplateColor.NEUTRAL).dedup(DedupKeyRule.PER_BOOKING).relevance(RelevanceRule.BOOKING_ACTIVE_AND_FUTURE).build());
         rows.add(code("N-14", OPERATIONAL, "LeaveRequested").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER).vars("member_name", "requested_date", "reason").build());
         // R-11-12: the one per-code exception to the caps, SMS for the member although the category is OPERATIONAL. S11 §7 emits it on WaitlistNotified.
-        rows.add(code("N-15", OPERATIONAL, "WaitlistNotified").to(MEMBER, APP, SMS, PUSH).memberSms().action(CLAIM_SEAT)
+        // COMM-02 (owner decision of 13 Nov 2026): also EMAIL, which the member's OPERATIONAL e-mail preference governs like N-13's (mandatory does not bypass it).
+        rows.add(code("N-15", OPERATIONAL, "WaitlistNotified").to(MEMBER, APP, EMAIL, SMS, PUSH).memberSms().action(CLAIM_SEAT)
                 .vars("dog_name", "class_date", "class_time", "confirm_by", "turn_minutes", "has_next", "mode", "entityId", "class_description").mandatory()
                 .seed(TemplateIcon.unlock, TemplateColor.ACCENT).modules(Module.WAITLIST).build());
         rows.add(code("N-16", CLUB_CHANGES, "ClassAtRisk").to(MEMBER, APP, EMAIL).to(ADMINS, APP).action(CHANGE_CLASS)
@@ -228,6 +230,12 @@ public final class NotificationCatalog {
         rows.add(code("N-53", SYSTEM).to(APPLICANT, EMAIL).vars("club_name", "link", "inviter_name").build());
         rows.add(code("N-55", OPERATIONAL, "UpfrontRefundIntervention").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER)
                 .vars("member_name", "amount", "reason").modules(Module.BILLING).build());
+        // PAY-06 (owner decision of 13 Nov 2026): a Stripe dispute (chargeback) flagged a card payment of the member.
+        rows.add(code("N-56", OPERATIONAL, "PaymentDisputed").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER)
+                .vars("member_name", "amount", "reason").modules(Module.BILLING).build());
+        // OUT-01 (owner decision of 13 Nov 2026): an outbox record that ran out of its retries is no event either: the dispatcher
+        // triggers N-57 directly (`OutboxFailureAlerts`), a SYSTEM e-mail to the platform admins as N-43.
+        rows.add(code("N-57", SYSTEM).to(ADMINS, EMAIL).vars("club_name", "reason", "event_type").build());
         return rows;
     }
 

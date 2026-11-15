@@ -27,6 +27,8 @@ public class MembersController {
     private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles;
     private final com.agilityhub.core.clubs.census.application.MemberService members;
+    /** AUTH-01 (S01 R-01-18): a pending member's payment method (its bank account) in `PATCH /members/{id}` needs a recent sign-in. */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.RecentLogins recentLogins;
     public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists, com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles,
             com.agilityhub.core.clubs.census.application.CensusQuery queries, com.agilityhub.core.clubs.census.application.CensusAccess access,
             com.agilityhub.core.identity.application.IdentityTransactions transactions, com.agilityhub.core.clubs.census.application.MemberService members) {
@@ -38,10 +40,10 @@ public class MembersController {
             columns = {"fullName*", "dogs*", "plan*", "displayStatus*", "memberNumber", "contact", "paymentMethod@BILLING", "nextInvoiceDate@BILLING", "familyGroup@FAMILY_GROUP", "familyGroupHolder@FAMILY_GROUP", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining@FREE_TRAINING", "birthDate", "gender", "idDocument", "leaveSource", "inactivityUntil@INACTIVITY", "hasPendingRequest"}, paged = true, exportable = true,
             fields = {"id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked",
                     "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup",
-                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest"})
+                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "status", "leaveSource", "inactivityUntil", "hasPendingRequest"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "List members",
-            description = "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields. S13 R-13-17 (E8-T01): the ADMIN-only filters leaveSource (MEMBER · ADMIN · PACK_EXPIRED · MIGRATED), inactivityUntil (date; with INACTIVITY) and hasPendingRequest are published; they are evaluated from the tenant-scoped lifecycle documents.",
+            description = "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. AUTHZ-02: an INSTRUCTOR lists ACTIVE and PENDING members only (pages, counts and filter values) and never the postal address: no address key, and the city and postalCode columns and filters and the city sort are refused (400 INVALID_FILTER). Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields. S13 R-13-17 (E8-T01): the ADMIN-only filters leaveSource (MEMBER · ADMIN · PACK_EXPIRED · MIGRATED), inactivityUntil (date; with INACTIVITY) and hasPendingRequest are published; they are evaluated from the tenant-scoped lifecycle documents.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<MemberListItem>; fields selects a sparse projection", content = @Content(schema = @Schema(implementation = MemberPage.class))))
     public org.springframework.http.ResponseEntity<?> listMembers(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         return org.springframework.http.ResponseEntity.ok(lists.list("members", params));
@@ -53,7 +55,7 @@ public class MembersController {
             columns = {}, paged = false, exportable = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Member filter values",
-            description = "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply.",
+            description = "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply (AUTHZ-02: an INSTRUCTOR counts ACTIVE and PENDING members only).",
             responses = @ApiResponse(responseCode = "200", description = "FilterValues"))
     public FilterValues memberFilterValues(@RequestParam String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
@@ -63,7 +65,7 @@ public class MembersController {
     @GetMapping("/api/v1/members/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
     @Operation(summary = "Get member",
-            description = "S03 §6, R-03-31. ADMIN: Member; INSTRUCTOR: MemberInstructorView. Other-club resources return NOT_FOUND.",
+            description = "S03 §6, R-03-31. ADMIN: Member; INSTRUCTOR: MemberInstructorView, without the postal address; an ex-member (status LEFT or INACTIVE) is NOT_FOUND for an INSTRUCTOR (AUTHZ-02). Other-club resources return NOT_FOUND.",
             responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(oneOf = {Member.class, MemberInstructorView.class}))))
     public java.util.Map<String,Object> getMember(@PathVariable String id) { return queries.member(id, access.role("ADMIN")); }
 
@@ -79,17 +81,22 @@ public class MembersController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     // S04 §6 (E3-T10 round 2): the D2 edit of a pending signup (identity document, phones, payment method, requested plan) as well.
     @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, INVALID_PHONE, INVALID_IBAN, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, INVALID_STATE, MEMBER_ERASED,
-            PAYMENT_METHOD_NOT_AVAILABLE, PLAN_NOT_AVAILABLE})
+            PAYMENT_METHOD_NOT_AVAILABLE, PLAN_NOT_AVAILABLE, RECENT_LOGIN_REQUIRED})
     @Operation(summary = "Update member",
             description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. "
                     + "A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; "
                     + "the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. "
                     + "A wrong document is resolved by rejecting the readmission. The remarks and internal notes stay the LEFT record's: "
-                    + "changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit.",
+                    + "changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit. "
+                    + "AUTH-01: a request carrying paymentMethod (a pending member's bank account) needs a sign-in of the last 15 minutes: "
+                    + "403 RECENT_LOGIN_REQUIRED {maxAgeMinutes} otherwise.",
             responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(implementation = Member.class))))
-    public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
+    public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) {
+        if (request.containsKey("paymentMethod")) { recentLogins.require(); }
+        return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
         else { members.patch(id, request, false); } return queries.member(id, true); }); }
 
+    @com.agilityhub.core.shared.application.RecentLogin
     @PatchMapping("/api/v1/members/{id}/payment-method")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
@@ -100,9 +107,10 @@ public class MembersController {
                     + "SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` "
                     + "and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account "
                     + "(«Compte no informat»). Another `type` replaces the method. A pending readmission's method is edited with PATCH /members/{id}."
-                    + "A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+                    + "A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING. "
+                    + "COMM-03: notifyMember false changes the method without N-38 to the member; recorded in MEMBER_PAYMENT_METHOD_CHANGED details.notifyMember.",
             responses = @ApiResponse(responseCode = "200", description = "PaymentMethodView", content = @Content(schema = @Schema(implementation = PaymentMethodView.class))))
-    public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
+    public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodUpdate.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
 
     @PostMapping("/api/v1/members/{id}/booking-block")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
@@ -130,9 +138,37 @@ public class MembersController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({MEMBER_NOT_ACTIVE, RATE_LIMITED, MEMBER_ERASED})
     @Operation(summary = "Resend access",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. "
+                    + "S03 R-03-06 (WEB-01): D10's «Envia la benvinguda», the welcome e-mail (N-27, variant ADMIN_WELCOME, a link valid "
+                    + "auth.welcomeLinkDays) to an ACTIVE member's account, sent only when an ADMIN asks, one member at a time. "
+                    + "429 RATE_LIMITED (details.retryAfter) per address and per club, not per the administrator's IP.",
             responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse"))
-    public AccessResendResponse resendAccess(@PathVariable String id, jakarta.servlet.http.HttpServletRequest http) { return new AccessResendResponse(transactions.run(() -> members.resend(id, http.getRemoteAddr()))); }
+    public AccessResendResponse resendAccess(@PathVariable String id) { return new AccessResendResponse(transactions.run(() -> members.resend(id))); }
+
+    @PostMapping("/api/v1/members/{id}/login-email")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
+    @com.agilityhub.core.shared.application.SupportRestricted
+    @ContractErrors({VALIDATION_ERROR, MEMBER_NOT_ACTIVE, FORBIDDEN, SUPPORT_RESTRICTED, RATE_LIMITED, MEMBER_ERASED, INVALID_STATE})
+    @Operation(summary = "Change login e-mail",
+            description = "S03 R-03-06b (AUTH-02). Tenant comes from the JWT. ADMIN endpoints reject impersonation; a support access is refused "
+                    + "(403 SUPPORT_RESTRICTED, S17 R-17-10); erased members reject mutations. Mails a link to the NEW address only (N-25, variant "
+                    + "EMAIL_CHANGE, valid auth.welcomeLinkDays); nothing is sent to the current one and nothing changes yet. When the link is "
+                    + "used (the magic-link grant, /activacio), the account's login e-mail becomes the new address, verified, its emailStatus is "
+                    + "cleared and ACCOUNT_EMAIL_CHANGED is audited as the requesting ADMIN's. A newer request supersedes an unused one. "
+                    + "Only an ACTIVE member with an account (422 MEMBER_NOT_ACTIVE); only an account that is this club's alone, without a "
+                    + "platform role (403 FORBIDDEN); the new address must differ from the current one (400 VALIDATION_ERROR, fieldErrors "
+                    + "email · UNCHANGED); the limits of /auth/magic-link apply to the new address, per address and per IP (429 RATE_LIMITED). An address that "
+                    + "already belongs to another account gets no link, with the same 202 (no existence is revealed); a link whose address "
+                    + "was taken in between answers MAGIC_LINK_INVALID and changes nothing.",
+            responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse: sentTo is the new address"))
+    public AccessResendResponse changeLoginEmail(@PathVariable String id, @Valid @RequestBody LoginEmailChangeRequest request,
+            jakarta.servlet.http.HttpServletRequest http) {
+        var change = transactions.run(() -> members.loginEmail(id, request.email(), http.getRemoteAddr()));
+        members.sendLoginEmail(change);
+        return new AccessResendResponse(change.email());
+    }
 
     @PutMapping("/api/v1/members/{id}/roles")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")

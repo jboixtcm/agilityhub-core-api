@@ -16,9 +16,13 @@ import org.springframework.stereotype.Component;
  * `PAYMENTS_CLUB_DEPENDENCIES`), so the composition root adapts it, as `FollowupPortConfiguration` does for S10.
  * <ul>
  * <li>N-10 «Rebut impagat» to the admins (R-12-17, manual or card): `member_name` and `invoice_number` from the invoice's
- * snapshot, `amount` its total, `reason` the failure the admin wrote (or the provider's code).</li>
+ * snapshot, `amount` its total, `reason` the failure the admin wrote (or the provider's code). SEPA-04 (b): the returns of a
+ * remittance marked in one request give ONE N-10, from their `InvoicesFailed` — the members' names and the receipts' numbers
+ * listed, `amount` their sum — and none from each receipt's `InvoiceFailed{summarized}`.</li>
  * <li>N-35 to the member, only for a card (`provider = STRIPE`, which the engine's condition checks too): `amount`, `reason`
  * and `retry_link`, the app's receipts screen where the card banner is (R-12-22; the card-setup session itself is E8-T04's).</li>
+ * <li>N-56 to the admins (PAY-06): a Stripe dispute flagged a card payment of the member (`PaymentDisputed`): `member_name`,
+ * `amount` (the disputed amount) and `reason` (Stripe's), opening the member's record.</li>
  * </ul>
  * E8-T04 also owns Stripe receipts, upfront receipts and card-invalid notifications. Manual invoice payments emit no N-30.
  */
@@ -29,10 +33,13 @@ public class BillingNotificationFacts implements NotificationFactsPort {
     private final InvoiceActions invoices; private final CensusClubSettings settings;
     public BillingNotificationFacts(InvoiceActions invoices, CensusClubSettings settings) { this.invoices = invoices; this.settings = settings; }
 
-    @Override public Set<String> eventTypes() { return Set.of("InvoiceFailed", "InvoicePaid", "UpfrontPaymentSucceeded", "MemberCardInvalidated", "UpfrontRefundIntervention"); }
+    @Override public Set<String> eventTypes() {
+        return Set.of("InvoiceFailed", "InvoicesFailed", "InvoicePaid", "UpfrontPaymentSucceeded", "MemberCardInvalidated", "UpfrontRefundIntervention", "PaymentDisputed");
+    }
 
     @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
-        if (trigger.type().equals("UpfrontRefundIntervention") && code.equals("N-55")) {
+        // N-55 (E101) and PAY-06's N-56 (a Stripe dispute flagged a card payment): the member, the amount and the reason, to the admins.
+        if (trigger.type().equals("UpfrontRefundIntervention") && code.equals("N-55") || trigger.type().equals("PaymentDisputed") && code.equals("N-56")) {
             String member = trigger.text("memberId");
             var contact = member == null ? null : members.find(member).orElse(null);
             if (contact == null) { return Optional.empty(); }
@@ -42,6 +49,9 @@ public class BillingNotificationFacts implements NotificationFactsPort {
                     .value("member_name", contact.displayName()).value("amount", amount).value("reason", trigger.text("reason"))
                     .value("entityId", member).build());
         }
+        if (trigger.type().equals("InvoicesFailed")) { return code.equals("N-10") ? returns(trigger) : Optional.empty(); }
+        // SEPA-04 (b): a return marked with others of its remittance is in their one summary.
+        if (trigger.type().equals("InvoiceFailed") && trigger.flag("summarized") && code.equals("N-10")) { return Optional.empty(); }
         String invoiceId = trigger.text("invoiceId");
         if (invoiceId == null) {
             if (!Set.of("UpfrontPaymentSucceeded", "MemberCardInvalidated").contains(trigger.type())
@@ -72,5 +82,21 @@ public class BillingNotificationFacts implements NotificationFactsPort {
                     : Optional.empty();
             default -> Optional.empty();
         };
+    }
+
+    /** SEPA-04 (b): one N-10 for the returns of a remittance marked together — names and numbers listed, the amounts summed. */
+    private Optional<NotificationFacts> returns(NotificationTrigger trigger) {
+        var invoices = new java.util.ArrayList<com.agilityhub.core.payments.persistence.Invoice>();
+        for (String id : trigger.ids("invoiceIds")) {
+            try { invoices.add(this.invoices.detail(id).invoice()); } catch (ApiException unknown) { return Optional.empty(); }
+        }
+        if (invoices.isEmpty()) { return Optional.empty(); }
+        var names = invoices.stream().map(invoice -> invoice.memberSnapshot().fullName()).distinct().toList();
+        var numbers = invoices.stream().map(com.agilityhub.core.payments.persistence.Invoice::displayNumber).toList();
+        String currency = invoices.getFirst().total().currency();
+        var amount = new com.agilityhub.core.shared.domain.Money(invoices.stream().mapToLong(invoice -> invoice.total().amountMinor()).sum(), currency);
+        String reason = invoices.getFirst().failureReason() != null ? invoices.getFirst().failureReason() : trigger.text("reason");
+        return Optional.of(NotificationFacts.builder().audiences("ADMINS").value("member_name", names).value("invoice_number", numbers)
+                .value("amount", amount).value("reason", reason).value("entityId", trigger.text("remittanceId")).build());
     }
 }

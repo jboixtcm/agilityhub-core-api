@@ -24,7 +24,8 @@ public interface SingleClassChargePort {
     /**
      * The provider call failed, or P7 timed the booking out (E5-T10): the session expires and its line is cancelled
      * (`UpfrontPaymentFailed{bookingId}`), so a late provider success no longer settles it. A session that is no
-     * longer PENDING is left as it is.
+     * longer PENDING is left as it is. The provider's session is then expired after the caller's commit (PAY-08), so the
+     * member can no longer pay for the released seat.
      */
     void abandon(String checkoutSessionId);
     /**

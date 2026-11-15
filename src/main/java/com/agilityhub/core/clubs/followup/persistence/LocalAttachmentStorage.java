@@ -80,6 +80,10 @@ public class LocalAttachmentStorage implements AttachmentStorage {
         if (!Files.isRegularFile(path(id), LinkOption.NOFOLLOW_LINKS)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return Files.readAllBytes(path(id));
     }
+    @Override public byte[] read(String id, long maxBytes) throws IOException {
+        if (!Files.isRegularFile(path(id), LinkOption.NOFOLLOW_LINKS)) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        try (var input = Files.newInputStream(path(id), LinkOption.NOFOLLOW_LINKS)) { return AttachmentStorage.bounded(input, maxBytes); }
+    }
     @Override public void delete(String id) {
         try { Files.deleteIfExists(path(id)); Files.deleteIfExists(path(id).resolveSibling(path(id).getFileName() + ".mime")); }
         catch (IOException failure) { throw new UncheckedIOException(failure); }

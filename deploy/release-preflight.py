@@ -19,6 +19,20 @@ REPOSITORY = 'ghcr.io/jboixtcm/agilityhub-core-api'
 DIGEST = re.compile(r'sha256:[0-9a-f]{64}')
 IMAGE = re.compile(re.escape(REPOSITORY) + r':sha-([0-9a-f]{7,40})(?:@(sha256:[0-9a-f]{64}))?')
 DIST_TARGETS = ('/srv/id', '/srv/clubs', '/srv/clubsadmin')
+MOCK_WORKER = 'mockServiceWorker.js'
+# CFG-04: the policy Caddy sends with a bundle's static answers, written by its build, and the inline scripts it must allow
+# (the expressions of the web's `scripts/bundle-files.mjs`, so both compute the same hashes).
+POLICY_FILE = 'content-security-policy.txt'
+INLINE_SCRIPT = re.compile(r'<script\b([^>]*)>([\s\S]*?)</script\s*>', re.I)
+SRC_ATTRIBUTE = re.compile(r'(?:^|\s)src\s*=', re.I)
+# CFG-05: every host serves its bundle's robots.txt; the web build writes exactly these two lines.
+ROBOTS_FILE = 'robots.txt'
+ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
+# REL-02: every bundle names its version and the commit it was built from, as the web build writes them (`scripts/bundle-files.mjs`):
+# `{"version": "x.y.z", "commit": "<40 lowercase hex>" | null}`, null for a build outside CI.
+VERSION_FILE = 'version.json'
+SEMANTIC_VERSION = re.compile(r'\d+\.\d+\.\d+')
+COMMIT = re.compile(r'[0-9a-f]{40}')
 
 
 class PreflightError(Exception):
@@ -189,6 +203,42 @@ class ModuleScripts(HTMLParser):
             self.sources.append(attrs.get('src', ''))
 
 
+def inline_script_hashes(html):
+    """CFG-04: the CSP hash source (`'sha256-<base64>'`) of every inline `<script>` (no `src`) of an index.html, as written."""
+    return ["'sha256-" + base64.b64encode(hashlib.sha256(text.encode('utf-8')).digest()).decode('ascii') + "'"
+            for attributes, text in INLINE_SCRIPT.findall(html) if not SRC_ATTRIBUTE.search(attributes)]
+
+
+def check_policy(directory, html):
+    """CFG-04: the bundle carries the one-line policy Caddy sends, and its script-src allows every inline script of index.html."""
+    policy_file = directory / POLICY_FILE
+    require(policy_file.is_file() and not policy_file.is_symlink(),
+            'SPA dist is missing content-security-policy.txt; rebuild it with the web build')
+    policy = policy_file.read_text(encoding='utf-8')
+    require(bool(policy.strip()) and re.search(r'[\r\n]', policy) is None,
+            'SPA content-security-policy.txt must be one nonempty line, without a line break')
+    directives = {tokens[0].lower(): tokens[1:] for tokens in (part.split() for part in policy.split(';')) if tokens}
+    allowed = directives.get('script-src', [])
+    require(all(digest in allowed for digest in inline_script_hashes(html)),
+            'SPA content-security-policy.txt does not allow an inline script of its index.html (script-src lacks its sha256)')
+
+
+def check_version(directory):
+    """REL-02: the bundle's `version.json` holds exactly its x.y.z version and its commit (a full commit id, or null)."""
+    version_file = directory / VERSION_FILE
+    require(version_file.is_file() and not version_file.is_symlink(), 'SPA dist is missing version.json; rebuild it with the web build')
+    try:
+        value = json.loads(version_file.read_text(encoding='utf-8'))
+    except ValueError:
+        raise PreflightError('SPA version.json is not JSON') from None
+    require(isinstance(value, dict) and sorted(value) == ['commit', 'version'], 'SPA version.json must hold exactly version and commit')
+    require(isinstance(value['version'], str) and SEMANTIC_VERSION.fullmatch(value['version']) is not None,
+            'SPA version.json version must be x.y.z')
+    require(value['commit'] is None or (isinstance(value['commit'], str) and COMMIT.fullmatch(value['commit']) is not None),
+            'SPA version.json commit must be a full lowercase commit id or null')
+    return {'version': value['version'], 'commit': value['commit']}
+
+
 def check_dist(directory):
     require(directory.is_absolute(), 'SPA dist directories must use absolute paths')
     directory = directory.resolve()
@@ -209,9 +259,16 @@ def check_dist(directory):
         asset = (directory / unquote(url.path).lstrip('/')).resolve()
         require(asset.is_relative_to(directory) and asset.is_file() and asset.suffix == '.js',
                 'SPA module is missing, outside its dist directory or not compiled JavaScript')
+    check_policy(directory, html)
+    robots = directory / ROBOTS_FILE
+    require(robots.is_file() and not robots.is_symlink() and robots.read_bytes() == ROBOTS_TXT.encode('ascii'),
+            'SPA dist must carry the robots.txt that disallows every robot (User-agent: * / Disallow: /)')
+    version = check_version(directory)
     digest, count = hashlib.sha256(), 0
     for file in sorted(directory.rglob('*')):
         require(not file.is_symlink(), 'SPA release artifacts must not contain symlinks')
+        # REL-03: only a VITE_MOCK=1 build copies the web's public/ folder, and with it the MSW worker and mock world.
+        require(file.name != MOCK_WORKER, 'SPA dist contains the mock service worker; rebuild it without VITE_MOCK=1')
         if file.is_file():
             digest.update(file.relative_to(directory).as_posix().encode() + b'\0')
             file_digest = hashlib.sha256()
@@ -220,7 +277,7 @@ def check_dist(directory):
                     file_digest.update(chunk)
             digest.update(file_digest.digest())
             count += 1
-    return {'sha256': digest.hexdigest(), 'files': count}
+    return {'sha256': digest.hexdigest(), 'files': count, **version}
 
 
 def check_spas(config):
@@ -232,7 +289,13 @@ def check_spas(config):
                 f'{target} must have exactly one read-only bind mount')
         selected[target] = Path(matches[0]['source'])
     require(len({path.resolve() for path in selected.values()}) == 3, 'Each SPA must have its own dist directory')
-    return {target: check_dist(path) for target, path in selected.items()}
+    record = {target: check_dist(path) for target, path in selected.items()}
+    # REL-03 (owner decision of 13 Nov 2026): the three bundles are the artifact of one green web CI run on main. Only a CI build
+    # names its commit (a build elsewhere writes null), and one run's three bundles name the same one.
+    commits = {artifact['commit'] for artifact in record.values()}
+    require(None not in commits, 'SPA version.json names no commit: deploy the bundles of a green web CI run, never a build made elsewhere')
+    require(len(commits) == 1, 'The three SPA dists name different commits: deploy the three bundles of one green web CI run')
+    return record
 
 
 def check_image(image, pinned_digest, expected_digest, inspect):

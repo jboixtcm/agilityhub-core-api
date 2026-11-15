@@ -114,7 +114,7 @@ Cache recomanada: capa estàtica (passos 1–3 sense reserves) per `{clubId, dat
 
 **R-09-15 Recorregut muntat.** Amb `COURSES` i (`courses.showSetupToMembers` o rol ≠ MEMBER), `GET /training-slots` inclou `rings[].setup = {id, kind, levelNames[], builtAt, expectedUntil}` del `RingSetup` `ACTIVE` (`Ring.activeSetupId`); sense mòdul, el camp no existeix. Paràmetre: `courses.showSetupToMembers = true`.
 
-**R-09-16 Origen, impersonació i auditoria.** La sessió de reserves de l’instructor aplica els mateixos límits i terminis que té l’abonat i desa `origin = INSTRUCTOR`. Token normal → `origin = APP`; token d’impersonació administrativa → `origin = BACKOFFICE`, `impersonatedByAccountId` = actor, `AuditEntry` amb els dos ids (crear i anul·lar). L'ADMIN impersonant pot: anul·lar tard amb motiu (R-09-10) i reservar per sobre del límit amb `override: {limit: true, reason}` (RF-RES-06; `cancelReason` no aplica, s'audita `reason`); un token sense impersonació que enviï `override` → `403 OVERRIDE_NOT_ALLOWED`. La finestra R-09-04 i la unicitat R-09-06 no es poden saltar.
+**R-09-16 Origen, impersonació i auditoria.** La sessió de reserves de l’instructor aplica els mateixos límits i terminis que té l’abonat i desa `origin = INSTRUCTOR`. Token normal → `origin = APP`; token d’impersonació administrativa → `origin = BACKOFFICE`, `impersonatedByAccountId` = actor, `AuditEntry` amb els dos ids (crear i anul·lar). L'ADMIN impersonant pot: anul·lar tard amb motiu (R-09-10) i reservar per sobre del límit amb `override: {limit: true, reason}` (RF-RES-06; `cancelReason` no aplica, s'audita `reason`); un token sense impersonació que enviï `override` → `403 OVERRIDE_NOT_ALLOWED`. La finestra R-09-04 i la unicitat R-09-06 no es poden saltar. **«No avisis» (COMM-03, decisió del propietari 13-11):** la reserva i l'anul·lació d'un ADMIN amb token d'impersonació (`BACKOFFICE`) accepten `notifyMember: false`: no s'envia N-47 (ni N-06/N-07), `TrainingBooked`/`TrainingCancelled` porten `notifyMember: false` i `TRAINING_BOOKED_BY_CLUB`/`TRAINING_CANCELLED_BY_CLUB` ho registren a `details.notifyMember`. L'abonat o la sessió de reserves de l'instructor que l'envien → `403 FORBIDDEN`. Absent o `true`: s'avisa.
 
 ## 5. Estats i transicions
 
@@ -155,9 +155,9 @@ Totes sota `/api/v1`, tenant pel JWT, `@RequiresModule("FREE_TRAINING")` llevat 
 | GET | `/training-slots` | MEMBER, INSTRUCTOR, ADMIN | FREE_TRAINING (MEMBER; INSTRUCTOR/ADMIN sense mòdul: projecció del personal, INC-44) | sí | Graella per dia/slot/pista | `from`, `to` (`YYYY-MM-DD`; MEMBER: retallat a la finestra; altres: ≤ 31 dies), `dogId?`, `ringId?` | 200 (forma sota la taula) · 400 `VALIDATION_ERROR` · 404 `MODULE_DISABLED` |
 | GET | `/me/training-summary` | MEMBER | FREE_TRAINING | sí | Gossos elegibles, gos per defecte, comptador de la setmana de `date` | `dogId?`, `date?` (per defecte avui) | 200 · 404 (gos no accessible o mòdul off) |
 | GET | `/me/training-bookings` | MEMBER | FREE_TRAINING | sí | Reserves pròpies (i del grup) | `from?`, `to?`, `state?` | 200 `{items}` amb `cancellableUntil` per reserva |
-| POST | `/training-bookings` | MEMBER (impersonació admesa) | FREE_TRAINING | `Idempotency-Key` | Reservar | `{dogId, startsAt, ringId?, override?: {limit, reason}}` | 201 reserva · 400 `SLOT_NOT_ON_GRID` · 404 gos/pista no accessible · 409 `SLOT_TAKEN`, `TRAINING_LIMIT_REACHED` · 422 `DOG_ALREADY_BOOKED`, `DOG_NOT_ALLOWED`, `RING_NOT_RESERVABLE`, `SLOT_OUT_OF_WINDOW`, `CLUB_CLOSED`, `BOOKING_BLOCKED`, `INACTIVITY_PERIOD`, `MEMBER_NOT_ACTIVE` · 403 `OVERRIDE_NOT_ALLOWED` |
+| POST | `/training-bookings` | MEMBER (impersonació admesa) | FREE_TRAINING | `Idempotency-Key` | Reservar | `{dogId, startsAt, ringId?, override?: {limit, reason}, notifyMember?}` (R-09-16; `notifyMember: false` sense ser ADMIN impersonant → `403 FORBIDDEN`) | 201 reserva · 400 `SLOT_NOT_ON_GRID` · 404 gos/pista no accessible · 409 `SLOT_TAKEN`, `TRAINING_LIMIT_REACHED` · 422 `DOG_ALREADY_BOOKED`, `DOG_NOT_ALLOWED`, `RING_NOT_RESERVABLE`, `SLOT_OUT_OF_WINDOW`, `CLUB_CLOSED`, `BOOKING_BLOCKED`, `INACTIVITY_PERIOD`, `MEMBER_NOT_ACTIVE` · 403 `OVERRIDE_NOT_ALLOWED` |
 | GET | `/training-bookings/{id}` | MEMBER (pròpia), INSTRUCTOR, ADMIN | FREE_TRAINING | sí | Detall | — | 200 · 404 |
-| POST | `/training-bookings/{id}/cancellation` | MEMBER (pròpia, impersonació) | FREE_TRAINING | sí (estat) | Anul·lar | `{reason?}` (obligatori si tard amb impersonació) | 200 reserva · 422 `TRAINING_CANCEL_TOO_LATE` · 409 `INVALID_STATE` |
+| POST | `/training-bookings/{id}/cancellation` | MEMBER (pròpia, impersonació) | FREE_TRAINING | sí (estat) | Anul·lar | `{reason?, notifyMember?}` (`reason` obligatori si tard amb impersonació; `notifyMember`, R-09-16) | 200 reserva · 422 `TRAINING_CANCEL_TOO_LATE` · 409 `INVALID_STATE` |
 | GET | `/training-bookings` | ADMIN (RW), INSTRUCTOR (R) | FREE_TRAINING | sí | Registre d'ús: llistat universal §4 | `filter=` sobre `date, ringId, memberId, dogId, state, origin`; `/export` | 200 pàgina |
 | POST | `/ring-blocks` | INSTRUCTOR, ADMIN | — (RESERVATION → FREE_TRAINING) | `Idempotency-Key` | Reservar/bloquejar pista | `{ringId, from, to, kind, reason, note?}` | 201 · 400 `INVALID_TIME_RANGE` · 409 `RING_BLOCK_CONFLICT` · 404 `MODULE_DISABLED` (RESERVATION amb mòdul off) |
 | PATCH | `/ring-blocks/{id}` | INSTRUCTOR, ADMIN | — | `version` | Modificar (futur) | camps de creació + `version` | 200 · 409 `STALE_VERSION`, `RING_BLOCK_CONFLICT`, `RING_BLOCK_MANAGED_BY_ACTIVITY`, `INVALID_STATE` |
@@ -241,7 +241,7 @@ Errors amb `details`: `TRAINING_LIMIT_REACHED {limit, used, weekStart, weekEnd, 
 | N-07 Entrenament anul·lat | `TrainingCancelled` llevat `MEMBER_LEFT` i les anul·lacions del club (`origin = BACKOFFICE` o `by = ADMIN`), que reben N-47 | MEMBER → APP | idem |
 | N-13 Recordatori | `ReminderDue` (S15 llegeix `training_bookings` `ACTIVE` i `Member.notificationPreferences.reminderMinutesBefore`) | MEMBER → APP+PUSH | idem |
 | N-31 Recorregut nou | S16 (`RingSetupChanged`, destinataris = abonats amb algun gos elegible: R-09-01 exposat com a `TrainingEligibilityService.membersWithRight()`) | — | — |
-| N-47 (proposta §13) | `TrainingBooked/Cancelled{origin: BACKOFFICE}` o `by ≠ MEMBER` | MEMBER → APP+EMAIL+SMS | `dog_name`, `date`, `time`, `ring_name`, `admin_text` |
+| N-47 (proposta §13) | `TrainingBooked/Cancelled{origin: BACKOFFICE}` o `by ≠ MEMBER`, llevat de `notifyMember: false` (R-09-16, COMM-03) | MEMBER → APP+EMAIL+SMS | `dog_name`, `date`, `time`, `ring_name`, `admin_text` |
 
 ## 9. Paràmetres i mòduls
 
@@ -362,6 +362,8 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. Tres fils: back-B, back-C, front-D+E.
 - 18-10-2026 · E11-T10 (INC-40, decisió E109): R-09-13, l'anul·lació pel club escriu `TRAINING_CANCELLED_BY_CLUB` (S14 R-14-09) a la mateixa transacció i guarda l'`adminText` del bloqueig d'activitat (S07) a `cancelNote`, l'`admin_text` de N-47.
 - 21-10-2026 · E11-T17 (INC-40.10, decisió E150): §8, una reserva feta pel club (`origin = BACKOFFICE`) envia només N-47, ja no N-06 també; la fila de N-07 diu el que fa el codi (llevat `MEMBER_LEFT` i les anul·lacions del club). R-09-13 i R-09-16: l'entrada d'auditoria del club enllaça el seu propi esdeveniment (`TrainingBooked`/`TrainingCancelled`, publicat abans), mai el d'una altra reserva del mateix lot (S14 R-14-10).
 - 03-11-2026 · La pantalla d’entrenaments de l’abonat consulta `GET /me/training-slots` també quan el compte té rols d’instructor o administrador.
+
+- 13-11-2026 · COMM-03 (auditoria de preproducció, decisió del propietari): R-09-16, l'ADMIN que reserva o anul·la un entrenament per a un abonat pot no avisar-lo (`notifyMember: false`): sense N-47; §6 i §8.
 
 ### Ajust del 06-11-2026 — partició completa dels trams
 

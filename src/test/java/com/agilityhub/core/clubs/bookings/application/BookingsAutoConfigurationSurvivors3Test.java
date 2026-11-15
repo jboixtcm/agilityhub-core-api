@@ -50,6 +50,7 @@ class BookingsAutoConfigurationSurvivors3Test {
 
         assertThat(charges).isInstanceOf(SingleClassCharges.class);
         charges.abandon("cs_1");
-        verify(checkouts).expire("cs_1");
+        // PAY-08: the adapter gives the checkout up on Core's side and at the provider.
+        verify(checkouts).abandonBooking("cs_1");
     }
 }

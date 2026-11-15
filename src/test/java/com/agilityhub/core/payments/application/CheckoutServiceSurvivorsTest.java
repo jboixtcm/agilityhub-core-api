@@ -203,6 +203,57 @@ class CheckoutServiceSurvivorsTest {
         verify(payments).pending("member-1", List.of("payment-1"), booking.sessionId());
     }
 
+    @Test void PAY_08_anAbandonedBookingCheckoutExpiresAtTheProviderAfterTheCommitOutsideAnyTransaction() {
+        when(sessions.findById("session-1")).thenReturn(Optional.of(session("PENDING", "payment", List.of("payment-1"), "booking-1")));
+        when(sessions.finish("session-1", "EXPIRED", null)).thenReturn(true);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            checkout.abandonBooking("session-1");
+            verify(payments).checkout("member-1", "session-1", false);
+            verify(gateway, never()).expire(any());
+            for (var synchronization : TransactionSynchronizationManager.getSynchronizations()) { synchronization.afterCommit(); }
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        var definition = ArgumentCaptor.forClass(TransactionDefinition.class);
+        verify(manager).getTransaction(definition.capture());
+        assertThat(definition.getValue().getPropagationBehavior()).isEqualTo(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
+        verify(members).lock();
+        verify(gateway).expire("session-1");
+    }
+
+    @Test void PAY_08_withoutACallersTransactionTheProviderIsAskedAtOnceAndItsFailureIsOnlyLogged() {
+        when(sessions.findById("session-1")).thenReturn(Optional.of(session("PENDING", "payment", List.of("payment-1"), "booking-1")));
+        when(sessions.finish("session-1", "EXPIRED", null)).thenReturn(true);
+        doThrow(new IllegalStateException("provider unavailable (injected)")).when(gateway).expire("session-1");
+
+        assertThatCode(() -> checkout.abandonBooking("session-1")).doesNotThrowAnyException();
+
+        verify(payments).checkout("member-1", "session-1", false);
+        verify(gateway).expire("session-1");
+    }
+
+    @Test void PAY_08_aBookingCheckoutAlreadyClosedIsNotExpiredAgainNorAtTheProvider() {
+        when(sessions.findById("session-1")).thenReturn(Optional.of(session("EXPIRED", "payment", List.of("payment-1"), "booking-1")));
+
+        checkout.abandonBooking("session-1");
+
+        verify(payments, never()).checkout(any(), any(), anyBoolean());
+        verify(gateway, never()).expire(any());
+    }
+
+    @Test void PAY_08_theProvidersExpiryOfACheckoutStaysOnCoresSide() {
+        when(sessions.findById("session-1")).thenReturn(Optional.of(session("PENDING", "payment", List.of("payment-1"), "booking-1")));
+        when(sessions.finish("session-1", "EXPIRED", null)).thenReturn(true);
+
+        checkout.expire("session-1");
+
+        verify(payments).checkout("member-1", "session-1", false);
+        verify(gateway, never()).expire(any());
+    }
+
     // --- completeWebhook ----------------------------------------------------------------------------------------------------
 
     @Test void T_12_16_anUnknownSessionIsNotFound() {

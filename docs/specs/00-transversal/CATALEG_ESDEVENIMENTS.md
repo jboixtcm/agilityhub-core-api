@@ -18,11 +18,11 @@
 | `MemberValidated` | memberId, memberNumber, dogs[{dogId, levelId}], nextInvoiceDate, upfrontPaymentId | S04 | N-02, MEMBERSHIP, KPIs |
 | `SignupRejected` | memberId, reason, dogIds, `applicant?` (només readmissió, com a `SignupSubmitted`; 25-09, E3-T09) | S04 | N-03, GOS → baixa |
 | `MemberUpdated` | memberId, diff (contacte, adreça) | S03 | auditoria |
-| `MemberPaymentMethodChanged` | memberId, type, masked | S03/S12 | N-38, auditoria |
+| `MemberPaymentMethodChanged` | memberId, type, masked, notifyMember? (`false`: l'ADMIN no avisa, COMM-03) | S03/S12 | N-38, auditoria |
 | `MemberStatusChanged` | memberId, before, after, effectiveDate | S03/S13 | cancel·lació de reserves futures, MEMBERSHIP suspensió, KPIs |
 | `BookingBlockChanged` | memberId, active, reason | S03 | N-29, auditoria |
 | `DogRegistered` / `DogUpdated` / `DogDeactivated` / `DogTransferred` | dogId, memberId, diff | S03 | N-37, auditoria |
-| `DogLevelChanged` | dogId, before, after | S03 | N-09, recalcul de visibilitat de classes, cobertura |
+| `DogLevelChanged` | dogId, before, after, notifyMember? (`false`: l'ADMIN no avisa, COMM-03) | S03 | N-09, recalcul de visibilitat de classes, cobertura |
 | `DogFreeTrainingChanged` | dogId, allowed, source (LEVEL · MANUAL) | S03 | pestanya 08 |
 | `DogDocumentUploaded` / `DogDocumentPending` | dogId, type, state | S03/S04 | D15 pendents, N-23 |
 | `MemberNoteChanged` | dogId, memberId, author{accountId, displayName, gender} (qui ha escrit la nota, tal com era en escriure-la; 28-09, E70) | S10 | N-22, D14 |
@@ -42,14 +42,14 @@
 | `ActivityPublished` / `ActivityUpdated` / `ActivityCancelled` / `ActivityFinished` | activityId | S06 | N-32, bloquejos de pista, web pública |
 | **Reserves** | | | |
 | `SeatHeld` / `SeatHoldReleased` | classId, memberId, dogId, expiresAt | S08 | UI compte enrere (no notifica per si sol; el `SeatHoldReleased` d'una confirmació porta la N-46 quan la reserva ocupa la plaça — S08 R-08-13/R-08-18) |
-| `BookingCreated` | bookingId, classId, memberId, dogId, origin, swapFromBookingId?, packMovementId? | S08 | N-04 (o N-36 si BACKOFFICE), comptadors, pack |
-| `BookingCancelled` | bookingId, by (MEMBER · INSTRUCTOR · ADMIN · SYSTEM), late (bool), minutesBefore, origin | S08/S10 | N-05 (o N-36), `SeatReleased`, pack retornat si no late |
+| `BookingCreated` | bookingId, classId, memberId, dogId, origin, swapFromBookingId?, packMovementId?, notifyMember? (`false`: l'ADMIN impersonant no avisa, COMM-03) | S08 | N-04 (o N-36 si BACKOFFICE), comptadors, pack |
+| `BookingCancelled` | bookingId, by (MEMBER · INSTRUCTOR · ADMIN · SYSTEM), late (bool), minutesBefore, origin, notifyMember? (`false`, COMM-03) | S08/S10 | N-05 (o N-36), `SeatReleased`, pack retornat si no late |
 | `SeatReleased` | classId, freeSeats, minutesBefore, notifyWaitlist (bool: > `waitlist.notifyThresholdMinutes`) | S08 | N-15 (mode ALL_AT_ONCE: tots; FIFO: primer) |
 | `WaitlistJoined` / `WaitlistLeft` | entryId, classId, memberId, dogId | S08 | comptadors «⏳n» |
 | `WaitlistNotified` | entryIds[], classId, confirmBy? | S08 | N-15, timer FIFO |
 | `WaitlistConsolidated` | entryId, bookingId | S08 | N-04, resta d'entrades → informades (plaça ocupada) |
 | `WaitlistExpired` (FIFO) | entryId | S15 | següent de la cua |
-| `TrainingBooked` / `TrainingCancelled` | trainingBookingId, slotId, ringId, memberId, dogId, origin | S09 | N-06/N-07, quadres, comptador n/3 |
+| `TrainingBooked` / `TrainingCancelled` | trainingBookingId, slotId, ringId, memberId, dogId, origin, notifyMember? (`false`, COMM-03) | S09 | N-06/N-07, quadres, comptador n/3 |
 | `TrainingCounterReset` | weekStart | S15 | comptadors |
 | `ActivityRegistrationChanged` | registrationId, activityId, memberId, state | S08 | N-32b |
 | **Assistència i seguiment** | | | |
@@ -61,7 +61,8 @@
 | `InvoiceIssued` | invoiceId, memberId, period, total, paymentMethodType, kind (PERIODIC · MANUAL · MIGRATED) | S12 | comptadors D6 |
 | `InvoiceCollecting` | invoiceId, provider, collectionId | S12 | D6 |
 | `InvoicePaid` | invoiceId, provider, paidAt | S12 | N-30 (`STRIPE`), D6 |
-| `InvoiceFailed` | invoiceId, provider, reason | S12 | N-10, N-35 (`STRIPE`), D6 |
+| `InvoiceFailed` | invoiceId, provider, reason, summarized? (SEPA-04: `true` per a cada devolució marcada en bloc, que no dona N-10 pròpia) | S12 | N-10 (llevat de `summarized`), N-35 (`STRIPE`), D6 |
+| `InvoicesFailed` | remittanceId, invoiceIds[], provider, reason (SEPA-04, 13-11-2026: les devolucions d'una remesa marcades en una sola petició, `POST /remittances/{id}/returns`; `provider = SEPA_XML`, `reason = BANK_RETURN`) | S12 | N-10 (un sol avís resum) |
 | `InvoiceCancelled` | invoiceId, reason | S12 | D6 |
 | `RemittanceSimulated` | simulationId, period, incidents[{memberId, code}], totals{count, total} | S12 | D6 |
 | `RemittanceGenerated` | remittanceId, runId, invoiceIds[], fileKey | S12 | avança proper rebut, auditoria |
@@ -70,6 +71,7 @@
 | `UpfrontPaymentSucceeded` | paymentId, memberId, concept, provider, amountPaid, bookingId?, packBalanceId? | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
 | `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, bookingId?, reason | S04/S12 | S08 allibera la reserva `PAYMENT_PENDING` |
 | `UpfrontRefundIntervention` | paymentId, memberId, reason, amount (Money) | S12 R-12-20 (E101, aprovat 09-10) | N-55 als admins; `COMPENSATION_INTERVENTION`: total pendent actualitzat; `REFUND_OVER_CREDIT`: increment pagat de més |
+| `PaymentDisputed` | disputeId, memberId, amount (Money), reason, upfrontPaymentIds[], invoiceId? (PAY-06, decisió del propietari 13-11-2026: una disputa o contracàrrec de Stripe ha marcat un pagament amb targeta de l'abonat, les files d'un Checkout o el cobrament d'un rebut; només el primer `charge.dispute.*` de cada disputa) | S12 R-12-21 | N-56 als admins |
 | `PackOpened` | packBalanceId, memberId, dogId, expiresOn | S12 | anul·la la baixa prevista `PACK_EXPIRED` (S13 R-13-14) |
 | `PackConsumed` / `PackRefunded` | packBalanceId, memberId, dogId, bookingId, remaining | S08/S12 | — |
 | `PackLowBalance` | packBalanceId, memberId, dogId, remaining | S08/S12 | N-11a |
@@ -111,7 +113,7 @@
 ## Regles
 
 1. Els services **no** envien notificacions ni criden proveïdors externs: emeten esdeveniments; el dispatcher fa la resta (testable amb dobles).
-2. Consumidors idempotents (`processedAt` per consumidor); reintents amb backoff; cua d'errors visible a la consola (S17).
+2. Consumidors idempotents (`processedAt` per consumidor); reintents amb backoff; cua d'errors visible a la consola (S17). **OUT-01 (decisió del propietari 13-11-2026):** cada consumidor té el seu intent (un que falla no impedeix els següents) i el registre torna a la cua amb un backoff creixent — 1, 2, 4… s fins a 1 h, i cada hora a partir d'aquí — durant unes 24 hores (36 intents); el que els esgota queda `FAILED` (mètrica `outbox.failed`) i el dispatcher avisa directament els admins de plataforma per correu (N-57, sense cap esdeveniment nou: un avís sobre l'outbox no espera a l'outbox), com a màxim un per admin, tipus d'esdeveniment i dia UTC.
 3. Cada esdeveniment té un test que verifica que s'emet amb el payload esperat (assert a l'outbox) — PLA_BACKEND §9.
 4. Afegir un esdeveniment = afegir-lo aquí + classe `record` al paquet `domain.events` del context corresponent.
 
@@ -133,7 +135,7 @@
 | `BillingRunCreated` · `BillingRunCompleted` · `PackAdjusted{delta, reason}` · `MemberCardInvalidated` | pagaments | S12 |
 | `InactivityChanged` · `InactivityCancelled` · `LeaveCancelled` · `LeaveResolved{source, decision, cancelledBookings[]}` · `InactivityResolved{fee, cancelledBookings[]}` | inactivitat/baixa | S13 |
 | `AccountErasureRequested{accountId?, memberIds[], clubIds[], executeAt, source}` · `AccountErased{…}` · `DataExported{jobId, kind}` | RGPD | S14 |
-| `RemittanceReminderDue{period, pendingMembers}` · `JobFailed{job, runId, status, errorCount}` · `SchedulerRun{trigger, counters}` · `SignupPendingAging{count, oldestDays, memberIds[]}` (N-34) · `WaitlistExpired` (FIFO) · `TrainingCounterReset` | processos | S15 |
+| `RemittanceReminderDue{period, pendingMembers}` · `JobFailed{job, runId, status, errorCount}` (status FAILED, SKIPPED d'una ocurrència perduda, o PARTIAL d'un procés que afecta els abonats: JOB-01, 13-11-2026) · `SchedulerRun{trigger, counters}` · `SignupPendingAging{count, oldestDays, memberIds[]}` (N-34) · `WaitlistExpired` (FIFO) · `TrainingCounterReset` | processos | S15 |
 | S16: vegeu el bloc «Recorreguts» (E77, aplicat a E9-T01) | recorreguts | S16 |
 | `ClubDomainVerified{clubId, host}` · `ClubDomainBroken{clubId, host}` (E10-T03: S15 P9, origen `SYSTEM`) · `PlatformRoleChanged` · `ClubPaymentProviderChanged` · `ClubApplied{slug, diffSummary, dryRun}` · `SupportAccessStarted` · `SupportAccessEnded{clubId, actorAccountId}` (E10-T04 ronda 2, decisió E123: l'ADMIN del club acaba un accés de suport viu; `actorAccountId` = el compte de plataforma) | consola | S17 |
 | `MigrationRunStarted` · `MigrationRunCompleted{counters}` · `MigrationRunFailed{step}` | migració | S18 |

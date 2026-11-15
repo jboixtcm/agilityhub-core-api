@@ -115,7 +115,7 @@ class CensusIT extends AbstractIntegrationTest {
     /** A caller whose account reads {@code locale} (the JWT `locale` claim, R-03-32). */
     ResultActions reading(String locale, MockHttpServletRequestBuilder request, String club, String account, String... roles) throws Exception {
         return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject(account + "-account").claim("clubId", club)
-                .claim("name", "Example Operator").claim("locale", locale)).authorities(Arrays.stream(roles)
+                .claim("name", "Example Operator").claim("locale", locale).claim("auth_time", signedInNow())).authorities(Arrays.stream(roles)
                         .<org.springframework.security.core.GrantedAuthority>map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role)).toList())));
     }
     ResultActions admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, CLUB, "admin", "ADMIN"); }
@@ -439,6 +439,35 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(events("DogFreeTrainingChanged")).hasSize(1); assertThat(mongo.getCollection("bookings").countDocuments()).isEqualTo(1);
         error(admin(body(patch("/api/v1/dogs/dog-one/level"), Map.of("levelId", "level-d"))), ErrorCode.LEVEL_UNCHANGED);
         parameter("levels.enabled", false); error(admin(body(patch("/api/v1/dogs/dog-one/level"), Map.of("levelId", "level-c"))), ErrorCode.LEVELS_DISABLED);
+    }
+    /**
+     * COMM-03 (owner's decision of 13-11): from D10 the ADMIN may change a dog's level or a member's payment method without notifying
+     * the member: the event carries notifyMember: false, the audit entry records it, and the census notice facts give N-09 / N-38
+     * nothing to send for it; the default still notifies. A non-boolean notify is refused.
+     */
+    @Test @AuditCovers({AuditAction.DOG_LEVEL_CHANGED, AuditAction.MEMBER_PAYMENT_METHOD_CHANGED})
+    void COMM_03_levelAndPaymentMethodChangesCanSkipTheMembersNotice() throws Exception {
+        change("dogs/dog-one/level", Map.of("levelId", "level-d", "notifyMember", false));
+        change("dogs/dog-one/level", Map.of("levelId", "level-c"));
+        change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer"), "notifyMember", false));
+        change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "cash"), "notifyMember", true));
+        error(admin(body(patch("/api/v1/members/one/payment-method"), Map.of("type", "MANUAL", "manual", Map.of("channel", "bizum"), "notifyMember", "no"))), ErrorCode.VALIDATION_ERROR);
+        var levels = events("DogLevelChanged"); var methods = events("MemberPaymentMethodChanged");
+        assertThat(levels).extracting(event -> event.payload().get("notifyMember")).containsExactly(false, null);
+        assertThat(methods).extracting(event -> event.payload().get("notifyMember")).containsExactly(false, null);
+        assertThat(audit(AuditAction.DOG_LEVEL_CHANGED)).extracting(AuditEntry::details).containsExactly(Map.of("notifyMember", false), null);
+        assertThat(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED)).extracting(AuditEntry::details).containsExactly(Map.of("notifyMember", false), null);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(censusFacts.facts(trigger(levels.get(0)), "N-09")).as("silenced level change").isEmpty();
+            assertThat(censusFacts.facts(trigger(levels.get(1)), "N-09")).as("notified level change").isPresent();
+            assertThat(censusFacts.facts(trigger(methods.get(0)), "N-38")).as("silenced payment-method change").isEmpty();
+            assertThat(censusFacts.facts(trigger(methods.get(1)), "N-38")).as("notified payment-method change").isPresent();
+        }
+    }
+    @Autowired com.agilityhub.core.clubs.census.application.CensusNotificationFacts censusFacts;
+    static com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger trigger(DomainEventRecord event) {
+        return new com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger(event.id(), event.type(), event.clubId(), event.aggregateType(),
+                event.aggregateId(), event.occurredAt(), event.payload(), event.actorAccountId(), event.impersonatedMemberId(), event.origin());
     }
     @Test @AuditCovers(AuditAction.DOG_FREE_TRAINING_CHANGED)
     void T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges() throws Exception {
@@ -811,6 +840,42 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(response.has("contactEmails")).isTrue(); assertThat(response.path("bookingBlocked").asBoolean()).isTrue();
         error(call(body(patch("/api/v1/members/one"), Map.of("version", 0, "firstName", "No")), CLUB, "one", "INSTRUCTOR"), ErrorCode.FORBIDDEN);
         assertThat(json(call(get("/api/v1/dogs/dog-one"), CLUB, "one", "INSTRUCTOR"), 200).path("dog").path("chip").asText()).isEqualTo("941000000100001");
+    }
+    /**
+     * AUTHZ-02 (S03 R-03-31, MATRIU_PERMISOS «Abonats»): an INSTRUCTOR reads ACTIVE and PENDING members only, never an ex-member
+     * (LEFT, or a migrated INACTIVE record), and never the postal address, in the list, its filter values and the record; the
+     * ADMIN's views are unchanged.
+     */
+    static List<String> ids(JsonNode page) { var ids = new ArrayList<String>(); page.path("items").forEach(item -> ids.add(item.path("id").asText())); return ids; }
+    @Test void AUTHZ_02_anInstructorReadsActiveAndPendingMembersWithoutTheirPostalAddress() throws Exception {
+        member(CLUB, "pending", "PENDING", 4, "Y1234567X", Set.of(Role.MEMBER));
+        member(CLUB, "left", "LEFT", 5, "11111111H", Set.of(Role.MEMBER));
+        member(CLUB, "inactive", "INACTIVE", 6, "22222222J", Set.of(Role.MEMBER));
+        var instructor = json(call(get("/api/v1/members").param("size", "200"), CLUB, "admin", "INSTRUCTOR"), 200);
+        assertThat(ids(instructor)).containsExactlyInAnyOrder("one", "two", "admin", "pending");
+        assertThat(instructor.path("totalItems").asLong()).isEqualTo(4);
+        assertThat(instructor.toString()).doesNotContain("\"address\"", "1 Example Street", "Example Town", "08349", "\"city\"", "\"postalCode\"");
+        assertThat(json(call(get("/api/v1/members").param("filter", "status:eq:LEFT"), CLUB, "admin", "INSTRUCTOR"), 200).path("totalItems").asLong()).isZero();
+        assertThat(json(call(get("/api/v1/members").param("q", "left"), CLUB, "admin", "INSTRUCTOR"), 200).path("totalItems").asLong()).isZero();
+        var statuses = json(call(get("/api/v1/members/filter-values").param("field", "status"), CLUB, "admin", "INSTRUCTOR"), 200).path("values");
+        assertThat(statuses.findValuesAsText("value")).containsExactlyInAnyOrder("ACTIVE", "PENDING");
+        for (var request : List.of(get("/api/v1/members").param("fields", "address"), get("/api/v1/members").param("fields", "city"),
+                get("/api/v1/members").param("filter", "city:eq:Example Town"), get("/api/v1/members").param("filter", "postalCode:eq:08349"),
+                get("/api/v1/members").param("sort", "city,asc"), get("/api/v1/members/filter-values").param("field", "city"))) {
+            error(call(request, CLUB, "admin", "INSTRUCTOR"), ErrorCode.INVALID_FILTER);
+        }
+        for (String id : List.of("one", "pending")) {
+            var record = json(call(get("/api/v1/members/" + id), CLUB, "admin", "INSTRUCTOR"), 200);
+            assertThat(record.has("address")).as(id).isFalse(); assertThat(record.has("contactEmails")).as(id).isTrue();
+            assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(record, "MemberInstructorView")).as(id).isEmpty();
+        }
+        for (String id : List.of("left", "inactive")) { error(call(get("/api/v1/members/" + id), CLUB, "admin", "INSTRUCTOR"), ErrorCode.NOT_FOUND); }
+        // An ADMIN who is also an INSTRUCTOR keeps the ADMIN's view.
+        assertThat(json(call(get("/api/v1/members/left"), CLUB, "admin", "ADMIN", "INSTRUCTOR"), 200).at("/address/city").asText()).isEqualTo("Example Town");
+        var everyone = json(admin(get("/api/v1/members").param("size", "200").param("fields", "city,postalCode")), 200);
+        assertThat(ids(everyone)).containsExactlyInAnyOrder("one", "two", "admin", "pending", "left", "inactive");
+        assertThat(everyone.at("/items/0/city").asText()).isEqualTo("Example Town");
+        assertThat(json(admin(get("/api/v1/members/left")), 200).at("/address/street").asText()).isEqualTo("1 Example Street");
     }
     /**
      * E5-T29 step 13 (web E6-W01 question 2, ruling E71): the instructor's projection of `GET /dogs` names the owner's first name

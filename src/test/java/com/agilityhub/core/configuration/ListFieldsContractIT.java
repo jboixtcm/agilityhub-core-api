@@ -68,6 +68,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
             Map.entry("/api/v1/notifications", com.agilityhub.core.clubs.messaging.application.MessagingContractAccess.NOTIFICATIONS.fields()),
             Map.entry("/api/v1/invoices", com.agilityhub.core.payments.application.BillingContractAccess.INVOICES.fields()),
             Map.entry("/api/v1/remittances", com.agilityhub.core.payments.application.BillingContractAccess.REMITTANCES.fields()),
+            Map.entry("/api/v1/billing/stripe-events", com.agilityhub.core.payments.application.BillingContractAccess.STRIPE_EVENTS.fields()),
             Map.entry("/api/v1/inactivity-periods", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.INACTIVITY_PERIODS.fields()),
             Map.entry("/api/v1/leave-requests", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.LEAVE_REQUESTS.fields()),
             Map.entry("/api/v1/courses", com.agilityhub.core.courses.application.CourseListContract.COURSES.fields()),
@@ -210,7 +211,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     Response read(String url, String fields, String club, String role) throws Exception { return read(url, fields, club, role, "20"); }
     Response read(String url, String fields, String club, String role, String size) throws Exception {
         var request = get(url).header("Host", CANIC_HOST).param("size", size)
-                .with(jwt().jwt(j -> j.subject("list-fields-" + role.toLowerCase()).claim("clubId", club)).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
+                .with(jwt().jwt(j -> j.subject("list-fields-" + role.toLowerCase()).claim("clubId", club).claim("auth_time", signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
         if (fields != null) { request.param("fields", fields); }
         var response = mvc.perform(request).andReturn().getResponse();
         return new Response(response.getStatus(), mapper.readTree(response.getContentAsString()));
@@ -246,6 +247,13 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
         mongo.save(new org.bson.Document("_id", "list-fields-note-row").append("clubId", canic).append("kind", "MEMBER_NOTE").append("dogId", booking.getString("dogId"))
                 .append("memberId", booking.getString("memberId")).append("authorAccountId", "list-fields-member").append("authorRole", "MEMBER").append("authorName", "Laura")
                 .append("textExcerpt", "A veure si treballem el doble").append("createdAt", now).append("activityAt", now).append("hidden", false), "followup_items");
+        // PAY-02: `GET /billing/stripe-events` lists the FAILED Stripe events; one still retried (nextAttemptAt) and one stopped (processedAt).
+        mongo.save(new org.bson.Document("_id", "evt_list_fields_retrying").append("clubId", canic).append("eventId", "evt_list_fields_retrying")
+                .append("type", "checkout.session.completed").append("receivedAt", now).append("outcome", "FAILED").append("attempts", 2)
+                .append("nextAttemptAt", java.util.Date.from(clock.instant().plusSeconds(300))).append("payloadHash", "fixture"), "stripe_events");
+        mongo.save(new org.bson.Document("_id", "evt_list_fields_stopped").append("clubId", canic).append("eventId", "evt_list_fields_stopped")
+                .append("type", "charge.refunded").append("receivedAt", java.util.Date.from(clock.instant().minusSeconds(86400))).append("outcome", "FAILED")
+                .append("attempts", 10).append("processedAt", now).append("payloadHash", "fixture"), "stripe_events");
         // E7-T03: `GET /notifications` is served; an S11 row of a demo member and a helper row written before E7-T02 (its audience
         // unknown, no member: the nullable keys).
         var delivered = new com.agilityhub.core.clubs.messaging.persistence.Notification.Delivery(com.agilityhub.core.clubs.messaging.domain.NotificationChannel.APP,

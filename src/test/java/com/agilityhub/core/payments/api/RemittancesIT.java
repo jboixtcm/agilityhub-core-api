@@ -34,7 +34,11 @@ class RemittancesIT extends BillingItSupport {
     JsonNode generate() throws Exception { return run("2026-09", simulate("2026-09").path("id").asText()); }
     MockHttpServletResponse download(String remittanceId) throws Exception {
         var link = ok(admin(get("/api/v1/remittances/" + remittanceId + "/file")), 200);
-        assertThat(link.path("fileName").asText()).isEqualTo("remesa-" + mongo.findById(remittanceId, Document.class, "remittances").getString("period") + ".xml");
+        // SEPA-06: remesa-{period}-{seq}.xml, seq the MsgId's; a rolled-back remittance's marked cancelled.
+        var stored = mongo.findById(remittanceId, Document.class, "remittances");
+        String messageId = stored.getString("messageId");
+        assertThat(link.path("fileName").asText()).isEqualTo("remesa-" + stored.getString("period") + "-" + messageId.substring(messageId.lastIndexOf('-') + 1)
+                + ("ROLLED_BACK".equals(stored.getString("status")) ? "-ANULLADA-NO-PUJAR" : "") + ".xml");
         // The local link authorises itself (CONVENCIONS_API §5, A31): no host, no bearer.
         return call(get(link.path("downloadUrl").asText()));
     }
@@ -50,7 +54,7 @@ class RemittancesIT extends BillingItSupport {
         var response = download(remittanceId);
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getContentType()).isEqualTo("application/xml");
-        assertThat(response.getHeader("Content-Disposition")).isEqualTo("attachment; filename=\"remesa-2026-09.xml\"");
+        assertThat(response.getHeader("Content-Disposition")).isEqualTo("attachment; filename=\"remesa-2026-09-1.xml\"");
         assertThat(response.getHeader("Content-Security-Policy")).contains("sandbox");
         byte[] xml = response.getContentAsByteArray();
         Files.createDirectories(ACTUAL.getParent()); Files.write(ACTUAL, xml);
@@ -146,6 +150,37 @@ class RemittancesIT extends BillingItSupport {
         assertThat(ok(admin(get("/api/v1/remittances").param("filter", "period:eq:2026-10")), 200).path("items")).isEmpty();
     }
 
+    /**
+     * SEPA-06 (owner decision of 13-11-2026): every generated remittance file has its own download name — the month generated again
+     * after a rollback gets the next sequence — and the rolled-back remittance's file, still downloadable, is named cancelled, «do
+     * not upload», in its XML and Excel downloads and in the audit entry of the link.
+     */
+    @Test void SEPA_06_aMonthGeneratedAgainNeverReusesAFileNameAndTheRolledBackFileIsNamedCancelled() throws Exception {
+        var first = generate();
+        String firstId = first.at("/remittance/id").asText(), runId = first.at("/run/id").asText();
+        assertThat(ok(admin(get("/api/v1/remittances/" + firstId + "/file")), 200).path("fileName").asText()).isEqualTo("remesa-2026-09-1.xml");
+        assertThat(call(admin(get("/api/v1/remittances/" + firstId + "/spreadsheet"))).getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"remesa-2026-09-1.xlsx\"");
+        ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        var cancelled = ok(admin(get("/api/v1/remittances/" + firstId + "/file")), 200);
+        assertThat(cancelled.path("fileName").asText()).isEqualTo("remesa-2026-09-1-ANULLADA-NO-PUJAR.xml");
+        assertThat(call(get(cancelled.path("downloadUrl").asText())).getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"remesa-2026-09-1-ANULLADA-NO-PUJAR.xml\"");
+        assertThat(call(admin(get("/api/v1/remittances/" + firstId + "/spreadsheet"))).getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"remesa-2026-09-1-ANULLADA-NO-PUJAR.xlsx\"");
+        // The month generated again: the same invoice numbers (R-12-14), another MsgId and another file name.
+        var second = generate();
+        String secondId = second.at("/remittance/id").asText();
+        var link = ok(admin(get("/api/v1/remittances/" + secondId + "/file")), 200);
+        assertThat(link.path("fileName").asText()).isEqualTo("remesa-2026-09-2.xml");
+        assertThat(call(get(link.path("downloadUrl").asText())).getHeader("Content-Disposition")).isEqualTo("attachment; filename=\"remesa-2026-09-2.xml\"");
+        assertThat(ok(admin(get("/api/v1/remittances/" + firstId + "/file")), 200).path("fileName").asText()).isEqualTo("remesa-2026-09-1-ANULLADA-NO-PUJAR.xml");
+        // Each link's audit entry names the file the treasurer got.
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("DATA_EXPORTED").and("details.file").exists(true)), Document.class, "audit_entries")
+                .stream().map(entry -> entry.get("details", Document.class).getString("file")).toList())
+                .contains("remesa-2026-09-1.xml", "remesa-2026-09-1-ANULLADA-NO-PUJAR.xml", "remesa-2026-09-2.xml");
+    }
+
     @Test @AuditCovers(AuditAction.REMITTANCE_SUBMITTED)
     void T_12_30_aSubmittedRemittanceEndsTheRollbackAndTheSubmissionIsAuditedOnce() throws Exception {
         var result = generate();
@@ -185,6 +220,78 @@ class RemittancesIT extends BillingItSupport {
         assertThat(download(remittanceId).getStatus()).isEqualTo(200);
         assertThat(ok(admin(get("/api/v1/remittances").param("filter", "status:eq:SUBMITTED")), 200).at("/items/0/submittedAt").asText())
                 .isEqualTo("2026-08-25T22:00:00Z");
+    }
+
+    /**
+     * SEPA-04 (a), R-12-15 (owner decision of 13-11-2026): the bank refused the file, so the admin undoes «enviada al banc» with a
+     * reason: `SUBMITTED → GENERATED`, `submittedAt` and the admin removed, one `REMITTANCE_SUBMISSION_UNDONE` entry, and the run is
+     * rollbackable again (here rolled back). Not for a remittance that is not submitted, with a blank reason, or from the collection
+     * date on.
+     */
+    @Test @AuditCovers(AuditAction.REMITTANCE_SUBMISSION_UNDONE)
+    void SEPA_04_a_anAdminUndoesSentToTheBankBeforeTheCollectionDateAndTheRunCanBeRolledBack() throws Exception {
+        var result = generate();
+        String remittanceId = result.at("/remittance/id").asText(), runId = result.at("/run/id").asText();
+        String undo = "/api/v1/remittances/" + remittanceId + "/submission-undo";
+        var notSent = call(admin(keyed(post(undo), Map.of("reason", "El banc ha refusat el fitxer"))));
+        assertThat(notSent.getStatus()).isEqualTo(409);
+        assertThat(json(notSent).path("code").asText()).isEqualTo("INVALID_STATE");
+        assertThat(json(notSent).at("/details/status").asText()).isEqualTo("GENERATED");
+        ok(admin(keyed(post("/api/v1/remittances/" + remittanceId + "/submission"), Map.of("submittedAt", "2026-08-25"))), 200);
+        error(admin(keyed(post(undo), Map.of("reason", " "))), 400, "VALIDATION_ERROR");
+        clock.setInstant(Instant.parse("2026-08-31T21:00:00Z")); // 23:00 of 31-08 in Madrid, the last day before the collection date
+        String key = UUID.randomUUID().toString();
+        var request = post(undo).header("Idempotency-Key", key).contentType("application/json").content("{\"reason\":\"El banc ha refusat el fitxer\"}");
+        var undone = ok(admin(request), 200);
+        assertThat(undone.path("status").asText()).isEqualTo("GENERATED");
+        assertThat(undone.path("submittedAt").isMissingNode() || undone.path("submittedAt").isNull()).isTrue();
+        assertThat(ok(admin(post(undo).header("Idempotency-Key", key).contentType("application/json").content("{\"reason\":\"El banc ha refusat el fitxer\"}")), 200))
+                .isEqualTo(undone);
+        var stored = mongo.findById(remittanceId, Document.class, "remittances");
+        assertThat(stored.getString("status")).isEqualTo("GENERATED");
+        assertThat(stored).doesNotContainKeys("submittedAt", "submittedByAccountId");
+        var audit = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("REMITTANCE_SUBMISSION_UNDONE")), Document.class, "audit_entries");
+        assertThat(audit).singleElement().satisfies(entry -> {
+            assertThat(entry.getString("entityType")).isEqualTo("Remittance");
+            assertThat(entry.getString("entityId")).isEqualTo(remittanceId);
+            assertThat(entry.getString("reason")).isEqualTo("El banc ha refusat el fitxer");
+            assertThat(entry.getList("changes", Document.class)).extracting(change -> change.getString("path")).contains("status", "submittedAt");
+            assertThat(entry.get("details", Document.class).getString("submittedOn")).isEqualTo("2026-08-25");
+        });
+        // The invoices did not move; D6 asks again to mark it sent, and the run is rollbackable again.
+        assertThat(invoices()).filteredOn(invoice -> remittanceId.equals(invoice.getString("remittanceId"))).hasSize(4)
+                .allSatisfy(invoice -> assertThat(invoice.getString("status")).isEqualTo("COLLECTING"));
+        var period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
+        assertThat(period.at("/remittance/submissionDue").asBoolean()).isTrue();
+        assertThat(period.at("/run/rollbackable").asBoolean()).isTrue();
+        // Submitted again, it cannot be undone on the collection date.
+        ok(admin(keyed(post("/api/v1/remittances/" + remittanceId + "/submission"), Map.of("submittedAt", "2026-08-31"))), 200);
+        clock.setInstant(Instant.parse("2026-08-31T22:00:00Z")); // 00:00 of 01-09 in Madrid
+        var late = call(admin(keyed(post(undo), Map.of("reason", "Massa tard"))));
+        assertThat(late.getStatus()).isEqualTo(409);
+        assertThat(json(late).at("/details/reason").asText()).isEqualTo("COLLECTION_DATE_PASSED");
+        assertThat(mongo.findById(remittanceId, Document.class, "remittances").getString("status")).isEqualTo("SUBMITTED");
+        // Undone the day before instead, the run is rolled back.
+        clock.setInstant(Instant.parse("2026-08-31T21:30:00Z"));
+        ok(admin(keyed(post(undo), Map.of("reason", "El banc ha refusat el fitxer"))), 200);
+        ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Fitxer refusat pel banc", "confirmation", "RETROCEDIR"))), 200);
+        assertThat(mongo.findById(remittanceId, Document.class, "remittances").getString("status")).isEqualTo("ROLLED_BACK");
+    }
+
+    /** SEPA-04 (a): once one receipt of the remittance moved (here marked returned), «sent» stays: `INVOICE_CHANGED` names it. */
+    @Test void SEPA_04_a_aReceiptMarkedReturnedKeepsTheRemittanceSent() throws Exception {
+        var result = generate();
+        String remittanceId = result.at("/remittance/id").asText();
+        ok(admin(keyed(post("/api/v1/remittances/" + remittanceId + "/submission"), Map.of("submittedAt", "2026-08-25"))), 200);
+        var returned = invoices().stream().filter(invoice -> "COLLECTING".equals(invoice.getString("status"))).findFirst().orElseThrow();
+        ok(admin(keyed(post("/api/v1/invoices/" + returned.getString("_id") + "/failure"),
+                Map.of("reason", "Devolució del banc", "at", "2026-08-25", "version", returned.get("version")))), 200);
+        var refused = call(admin(keyed(post("/api/v1/remittances/" + remittanceId + "/submission-undo"), Map.of("reason", "El banc ha refusat el fitxer"))));
+        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(409);
+        assertThat(json(refused).at("/details/reason").asText()).isEqualTo("INVOICE_CHANGED");
+        assertThat(json(refused).at("/details/invoiceIds").toString()).isEqualTo("[\"" + returned.getString("_id") + "\"]");
+        assertThat(mongo.findById(remittanceId, Document.class, "remittances").getString("status")).isEqualTo("SUBMITTED");
+        assertThat(mongo.count(Query.query(Criteria.where("action").is("REMITTANCE_SUBMISSION_UNDONE")), "audit_entries")).isZero();
     }
 
     /**

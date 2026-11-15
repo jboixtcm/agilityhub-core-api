@@ -204,6 +204,45 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
         assertThat(notifications.findSystem(id).orElseThrow().status()).isEqualTo(Notification.Status.FAILED);
     }
 
+    /**
+     * AUTH-03 (S01 R-01-04, S03 R-03-06b): an access e-mail the provider refuses with a 5xx or a timeout goes out once more; the
+     * row records both attempts. When it finally fails the account carries `accessEmailFailedAt`, which a later accepted access
+     * e-mail clears; a failure of an address the account no longer has leaves the mark alone.
+     */
+    @Test void AUTH_03_anAccessEmailIsRetriedOnceAndItsFinalFailureMarksTheAccount() {
+        account("en");
+        org.mockito.Mockito.doReturn(EmailSender.SendResult.failed("Brevo HTTP 503")).doCallRealMethod().when(sender).send(org.mockito.ArgumentMatchers.any());
+        String sent = service.send("N-25", "email-account", Map.of("link", "https://id.example.test/magic-link?t=fictional-one"));
+        var stored = notifications.findSystem(sent).orElseThrow();
+        assertThat(stored.status()).isEqualTo(Notification.Status.SENT);
+        assertThat(stored.deliveries()).singleElement().satisfies(d -> assertThat(d.attempts()).isEqualTo(2));
+        assertThat(mailbox().messages()).hasSize(1);
+        assertThat(accounts.accessEmailFailedAt("email-account")).isNull();
+
+        org.mockito.Mockito.doReturn(EmailSender.SendResult.failed("Brevo timeout")).when(sender).send(org.mockito.ArgumentMatchers.any());
+        String failed = service.send("N-27", "email-account", Map.of("link", "https://id.example.test/magic-link?t=fictional-two"));
+        stored = notifications.findSystem(failed).orElseThrow();
+        assertThat(stored.status()).isEqualTo(Notification.Status.FAILED); assertThat(stored.error()).isEqualTo("Brevo timeout");
+        assertThat(stored.deliveries()).singleElement().satisfies(d -> assertThat(d.attempts()).isEqualTo(2));
+        org.mockito.Mockito.verify(sender, org.mockito.Mockito.times(4)).send(org.mockito.ArgumentMatchers.any());
+        assertThat(accounts.accessEmailFailedAt("email-account")).isEqualTo(clock.instant());
+
+        // N-26 is not an access e-mail: sent once, the mark untouched.
+        org.mockito.Mockito.doReturn(EmailSender.SendResult.failed("Brevo HTTP 503")).doCallRealMethod().when(sender).send(org.mockito.ArgumentMatchers.any());
+        service.send("N-26", "email-account", Map.of());
+        org.mockito.Mockito.verify(sender, org.mockito.Mockito.times(5)).send(org.mockito.ArgumentMatchers.any());
+        assertThat(accounts.accessEmailFailedAt("email-account")).isEqualTo(clock.instant());
+
+        // The mark belongs to the address it was set for.
+        accounts.markAccessEmailFailure("email-account", "another@example.test", null);
+        assertThat(accounts.accessEmailFailedAt("email-account")).isEqualTo(clock.instant());
+
+        org.mockito.Mockito.doCallRealMethod().when(sender).send(org.mockito.ArgumentMatchers.any());
+        clock.advance(java.time.Duration.ofMinutes(5));
+        service.sendPasswordRecovery("email-account", "https://id.example.test/magic-link?t=fictional-three&purpose=reset");
+        assertThat(accounts.accessEmailFailedAt("email-account")).isNull();
+    }
+
     @Test void T_11_22_callbackBeforeSendResponsePreservesFinalStatusAndProviderReference() {
         account("en");
         org.mockito.Mockito.doAnswer(call -> {

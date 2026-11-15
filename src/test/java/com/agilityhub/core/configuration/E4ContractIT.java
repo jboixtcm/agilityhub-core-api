@@ -70,6 +70,10 @@ class E4ContractIT extends AbstractIntegrationTest {
         session.put("startsAt","2026-09-14T16:00:00Z");session.put("endsAt","2026-09-14T17:00:00Z");session.put("state","ACTIVE");session.put("levelIds",List.of("e4-level-a"));session.put("instructorIds",List.of("e4-instructor-a"));session.put("capacity",5);session.put("capacityMode","AUTO");session.put("counters",Map.of("booked",0,"waiting",0));session.put("risk",Map.of("exempt",false,"notifiedBookingIds",List.of()));
         insert("scheduling","ClassSession","class-a",session);
         session.put("state","DRAFT");session.put("startTime","20:00");session.put("endTime","21:00");session.put("startsAt","2026-09-14T18:00:00Z");session.put("endsAt","2026-09-14T19:00:00Z");insert("scheduling","ClassSession","draft-a",session);
+        // SCH-01: the target of POST …/restoration, a future class the club cancelled (no ring, so no ring check).
+        session.put("state","CANCELLED");session.put("startTime","19:00");session.put("endTime","20:00");session.put("startsAt","2026-09-14T17:00:00Z");session.put("endsAt","2026-09-14T18:00:00Z");
+        session.put("cancellation",Map.of("reason","CLUB_MANUAL","adminText","Example","byAccountId","account-a","at","2026-09-13T10:00:00Z","affectedBookings",0,"affectedWaitlist",0));
+        insert("scheduling","ClassSession","cancelled-a",session);session.remove("cancellation");
         insert("scheduling", "RingBlock", "block-a", Map.of("ringId", "e4-ring-a", "state", "ACTIVE", "kind", "BLOCK", "reason", "MAINTENANCE", "from", "2026-09-16T14:00:00Z", "to", "2026-09-16T15:00:00Z"));
         var activity = new LinkedHashMap<String,Object>();
         activity.put("title",Map.of("ca","Example activity"));activity.put("type","SEMINAR");activity.put("slug","example-event");activity.put("state","PUBLISHED");
@@ -103,6 +107,7 @@ class E4ContractIT extends AbstractIntegrationTest {
     }
     private String path(Route r, String clubId) {
         String id = r.path().contains("week-templates") ? "template-a" : r.path().contains("weeks/") ? "week-a"
+                : r.path().endsWith("/restoration") ? "cancelled-a"
                 : r.path().contains("class-sessions/") ? "class-a" : r.path().contains("ring-blocks/") ? "block-a"
                 : r.path().contains("activity-registrations/") ? "registration-a" : "activity-a";
         return r.path().replace("{id}", id).replace("{bandId}", "band-a").replace("{classId}", "template-class-a")
@@ -125,7 +130,7 @@ class E4ContractIT extends AbstractIntegrationTest {
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (r.key()) { request.header("X-Api-Key", PUBLIC_KEY); }
-        if (!role.equals("ANON")) { request.with(jwt().jwt(j -> j.subject("e4-" + role).claim("clubId", clubId).claim("memberId", "member-a"))
+        if (!role.equals("ANON")) { request.with(jwt().jwt(j -> j.subject("e4-" + role).claim("clubId", clubId).claim("memberId", "member-a").claim("auth_time", signedInNow()))
                 .authorities(new SimpleGrantedAuthority("ROLE_" + role))); }
         return request;
     }
@@ -283,7 +288,7 @@ class E4ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_06_20_T_07_17_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(56); // E5-T29: GET /ring-blocks/filter-values
+        assertThat(routes().count()).isEqualTo(57); // E5-T29: GET /ring-blocks/filter-values; SCH-01: POST /class-sessions/{id}/restoration
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();

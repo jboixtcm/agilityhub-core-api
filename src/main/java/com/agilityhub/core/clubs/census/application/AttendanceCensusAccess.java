@@ -18,11 +18,18 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AttendanceCensusAccess {
-    /** @param memberFullName «Laura Serra»: the backoffice «(abonat: …)» when the handler differs (R-10-00) */
+    /**
+     * @param memberFullName «Laura Serra»: the backoffice «(abonat: …)» when the handler differs (R-10-00)
+     * @param photoThumbnailFileKey WEB-05: the photo's small rendition for the sheet's rows; null without one
+     */
     public record Pair(String dogId, String dogName, String handlerName, String breed, String sex, LocalDate birthDate, String photoFileKey, String dogStatus,
-            String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender, Boolean handlerIsMember) {
+            String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender, Boolean handlerIsMember,
+            String photoThumbnailFileKey) {
         public Pair(String dogId, String dogName, String handlerName, String breed, String sex, LocalDate birthDate, String photoFileKey, String dogStatus, String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender) {
-            this(dogId, dogName, handlerName, breed, sex, birthDate, photoFileKey, dogStatus, levelId, levelAssignedAt, memberId, memberFirstName, memberFullName, gender, null);
+            this(dogId, dogName, handlerName, breed, sex, birthDate, photoFileKey, dogStatus, levelId, levelAssignedAt, memberId, memberFirstName, memberFullName, gender, null, null);
+        }
+        public Pair(String dogId, String dogName, String handlerName, String breed, String sex, LocalDate birthDate, String photoFileKey, String dogStatus, String levelId, Instant levelAssignedAt, String memberId, String memberFirstName, String memberFullName, String gender, Boolean handlerIsMember) {
+            this(dogId, dogName, handlerName, breed, sex, birthDate, photoFileKey, dogStatus, levelId, levelAssignedAt, memberId, memberFirstName, memberFullName, gender, handlerIsMember, null);
         }
         public boolean differentHandler() { return handlerIsMember != null ? !handlerIsMember : handlerName != null && !handlerName.isBlank() && !handlerName.equals(memberFirstName) && !handlerName.equals(memberFullName); }
         /** «{guia}»: the handler when there is one, the owner's first name otherwise (R-10-00). */
@@ -44,13 +51,15 @@ public class AttendanceCensusAccess {
         for (var d : dogs) {
             var m = members.get(d.memberId);
             result.put(d.id, new Pair(d.id, d.name, d.handlerName, d.breed, d.sex, d.birthDate, d.photoFileKey, d.status, d.levelId, d.levelAssignedAt, d.memberId,
-                    m == null ? null : m.firstName, m == null ? null : fullName(m), m == null ? null : m.gender, d.handlerIsMember));
+                    m == null ? null : m.firstName, m == null ? null : fullName(m), m == null ? null : m.gender, d.handlerIsMember, d.photoThumbnailFileKey));
         }
         return result;
     }
     public Optional<Pair> pair(String dogId) { return Optional.ofNullable(pairs(List.of(dogId)).get(dogId)); }
     /** The dog's photo, signed for 5 minutes (R-10-11 assumption, `AttachmentService.url`); null without a photo. */
     public String photoUrl(Pair pair) { return pair == null ? null : attachments.url(pair.photoFileKey(), pair.dogName()); }
+    /** WEB-05: the photo's small rendition, signed like the photo; null without one. */
+    public String photoThumbnailUrl(Pair pair) { return pair == null ? null : attachments.url(pair.photoThumbnailFileKey(), pair.dogName()); }
     public Integer ageYears(Pair pair) { return pair.birthDate() == null ? null : CensusRules.age(pair.birthDate(), today()); }
     /** S03 derived status of the owner (ACTIVE, INACTIVE_PERIOD, LEAVE_SCHEDULED, LEFT, …), as `GET /members/{id}` shows it. */
     public Status memberStatus(String memberId) {

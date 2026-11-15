@@ -48,6 +48,7 @@ class CalendarIT extends AbstractIntegrationTest {
     @Autowired ClassSessionService service; @Autowired RingBlockService blocks; @Autowired ClassCancellationUseCase cancellations;
     @Autowired SchedulingTransactions transactions; @Autowired Doubles doubles; @Autowired OutboxDispatcher dispatcher;
     @Autowired EmailSender sender; @Autowired TransactionTemplate tx;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
     @BeforeEach void prepare() {
         doubles=org.springframework.test.util.AopTestUtils.getTargetObject(doubles); doubles.clear();
         clock.setInstant(Instant.parse("2026-08-24T04:00:00Z"));
@@ -262,6 +263,12 @@ class CalendarIT extends AbstractIntegrationTest {
         assertThat(events("PackRefunded")).isEqualTo(2);assertThat(events("ClassCancelledByClub")).isEqualTo(1);assertThat(doubles.activeBookings(id)).isEmpty();assertThat(doubles.liveWaitlist(id)).isEmpty();assertThat(doubles.holds).doesNotContainKey(id);
         // 6 dogs × (APP + EMAIL + SMS to each of 2 phones) + the instructor (APP + EMAIL) + the admin (APP); a second dispatch adds nothing.
         dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(27);dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(27);
+        // COMM-06 (owner decision of 13 Nov 2026): 06:00 in Madrid is inside the SMS quiet hours (22:00–08:00): the 12 SMS wait for
+        // 08:00 (06:00 UTC), nothing sent before, and then go.
+        var queued=notifications("N-08a").stream().filter(n -> n.getString("channel").equals("SMS")).toList();assertThat(queued).hasSize(12).allSatisfy(n -> {
+            assertThat(n.getString("status")).isEqualTo("QUEUED");assertThat(n.getString("lastError")).isEqualTo(com.agilityhub.core.clubs.messaging.domain.SmsQuietHours.QUIET);});
+        clock.setInstant(Instant.parse("2026-08-24T06:00:00Z"));
+        try (var tenant = TenantContext.open(CLUB)) { notificationDispatcher.dispatch(queued.stream().map(n -> n.getString("_id")).distinct().toList()); }
         var sms=notifications("N-08a").stream().filter(n -> n.getString("channel").equals("SMS")).toList();assertThat(sms).hasSize(12).allSatisfy(n -> {assertThat(n.getString("status")).isEqualTo("SENT");assertThat(n.getString("body").length()).isLessThanOrEqualTo(160);assertThat(n.getString("target")).startsWith("+");});
         var english=((FakeEmailSender)sender).messages().stream().filter(m -> m.to().equals("student-0@example.test")).findFirst().orElseThrow();
         // R-11-05: the class is the next day of the club, so «Tomorrow» (capitalised), in the recipient's language.
@@ -275,6 +282,75 @@ class CalendarIT extends AbstractIntegrationTest {
         ok("POST","/class-sessions/"+draft+"/cancellation",Map.of("reason","DELETED"));dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize((int)delivered);
         error("POST","/class-sessions/"+draft+"/cancellation",Map.of("reason","DELETED"),ErrorCode.INVALID_STATE);patch(draft,Map.of("notes","Keep history"));
         error("PATCH","/class-sessions/"+draft,Map.of("version",session(draft).path("version").asLong(),"capacity",3),ErrorCode.INVALID_STATE);
+    }
+    /**
+     * PLAN-02 (owner decision, 13-11-2026), R-06-10: the ADMIN's cancellation is refused with 409 INVALID_STATE once the class has
+     * started, at its start, while it runs and after its end (still ACTIVE inside classes.finishGraceMinutes), for CLUB_MANUAL and
+     * DELETED alike, a draft included; nothing changes (state, bookings, waiting list, holds, events). One second before the
+     * start it is still cancelled.
+     */
+    @Test void PLAN_02_theAdminCannotCancelOrDeleteAClassOnceItHasStarted() throws Exception {
+        modules(Module.WAITLIST,Module.PACKS);String id=session("2026-08-25","18:00","plan-ring");validate(id);audience(id,2,1);
+        String draft=session("2026-09-01","18:00",null);assertThat(session(draft).path("state").asText()).isEqualTo("DRAFT");
+        var body=Map.of("reason","CLUB_MANUAL","adminText","Rain: please choose another class.");
+        for(String at:List.of("2026-08-25T16:00:00Z","2026-08-25T16:30:00Z","2026-08-25T17:10:00Z")) {
+            clock.setInstant(Instant.parse(at));
+            error("POST","/class-sessions/"+id+"/cancellation",body,ErrorCode.INVALID_STATE);
+            error("POST","/class-sessions/"+id+"/cancellation",Map.of("reason","DELETED","adminText","Maintenance"),ErrorCode.INVALID_STATE);
+        }
+        assertThat(session(id).path("state").asText()).isEqualTo("ACTIVE");assertThat(session(id).at("/counters/booked").asInt()).isEqualTo(2);
+        assertThat(doubles.activeBookings(id)).hasSize(2);assertThat(doubles.liveWaitlist(id)).hasSize(1);assertThat(doubles.holds.get(id)).hasSize(2);
+        assertThat(events("ClassCancelledByClub")).isZero();assertThat(events("PackRefunded")).isZero();
+        clock.setInstant(Instant.parse("2026-08-25T15:59:59Z"));
+        assertThat(ok("POST","/class-sessions/"+id+"/cancellation",body).path("state").asText()).isEqualTo("CANCELLED");
+        assertThat(events("ClassCancelledByClub")).isEqualTo(1);assertThat(doubles.activeBookings(id)).isEmpty();
+        clock.setInstant(Instant.parse("2026-09-01T16:00:00Z"));
+        error("POST","/class-sessions/"+draft+"/cancellation",Map.of("reason","DELETED"),ErrorCode.INVALID_STATE);
+        assertThat(session(draft).path("state").asText()).isEqualTo("DRAFT");
+    }
+    /**
+     * SCH-01 (owner request, 12-11-2026): an ADMIN restores a future class the club cancelled. It is ACTIVE again with no
+     * cancellation and counters {0, 0}; the bookings and the waiting list stay cancelled and nobody is notified; one
+     * ClassSessionUpdated and one CLASS_RESTORED entry. Refused: a class that is not CANCELLED (a repeat included), a DELETED one,
+     * a started one (INVALID_STATE), the ring taken by another class (CLASS_CONFLICT), by a block (RING_BLOCKED) or by a training
+     * booking, which stays (RING_HAS_BOOKINGS); and any role but ADMIN.
+     */
+    @Test @AuditCovers(AuditAction.CLASS_RESTORED)
+    void SCH_01_anAdminRestoresAFutureCancelledClassWithoutItsBookingsNoticesOrAnOccupiedRing() throws Exception {
+        modules(Module.SMS,Module.WAITLIST,Module.FREE_TRAINING);String id=session("2026-08-25","18:00","plan-ring");validate(id);audience(id,2,1);
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        ok("POST","/class-sessions/"+id+"/cancellation",Map.of("reason","CLUB_MANUAL","adminText","Rain: please choose another class."));
+        for(String role:List.of("INSTRUCTOR","MEMBER")) {
+            mvc.perform(call("POST","/class-sessions/"+id+"/restoration",Map.of()).with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_"+role))).andExpect(status().isForbidden());
+        }
+        String other=session("2026-08-25","18:30","plan-ring");
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.CLASS_CONFLICT);
+        ok("POST","/class-sessions/"+other+"/cancellation",Map.of("reason","DELETED"));
+        String block=ok("POST","/ring-blocks",blockBody("2026-08-25T16:30:00Z","2026-08-25T17:00:00Z")).path("id").asText();
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.RING_BLOCKED);
+        ok("POST","/ring-blocks/"+block+"/cancellation",Map.of());
+        var from=Instant.parse("2026-08-25T16:00:00Z");doubles.training.add(new TrainingConflictPort.Booking("training-a","plan-ring",from,from.plusSeconds(1800),"Example","Dog"));
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.RING_HAS_BOOKINGS);assertThat(doubles.training).hasSize(1);
+        assertThat(session(id).path("state").asText()).isEqualTo("CANCELLED");assertThat(events("ClassSessionUpdated")).isZero();
+        doubles.training.clear();
+        dispatcher.dispatch();long notices=mongo.count(Query.query(Criteria.where("clubId").is(CLUB)),"notifications");assertThat(notices).as("the cancellation's N-08a").isPositive();
+        var restored=ok("POST","/class-sessions/"+id+"/restoration",Map.of());
+        assertThat(restored.path("state").asText()).isEqualTo("ACTIVE");assertThat(restored.path("cancellation").isNull() || restored.path("cancellation").isMissingNode()).isTrue();
+        assertThat(restored.at("/counters/booked").asInt()).isZero();assertThat(restored.at("/counters/waiting").asInt()).isZero();
+        assertThat(doubles.cancelled).contains(id);assertThat(doubles.activeBookings(id)).isEmpty();assertThat(doubles.liveWaitlist(id)).isEmpty();
+        assertThat(events("ClassSessionUpdated")).isEqualTo(1);dispatcher.dispatch();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)),"notifications")).as("nobody is notified").isEqualTo(notices);
+        var entry=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("CLASS_RESTORED").and("entityId").is(id)),Document.class,"audit_entries");
+        assertThat(entry).as("the CLASS_RESTORED entry").isNotNull();
+        assertThat(entry.getList("changes",Document.class)).anySatisfy(change -> {
+            assertThat(change.getString("path")).isEqualTo("state");assertThat(change.get("before")).hasToString("CANCELLED");assertThat(change.get("after")).hasToString("ACTIVE");});
+        error("POST","/class-sessions/"+id+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        String deleted=session("2026-08-26","18:00",null);ok("POST","/class-sessions/"+deleted+"/cancellation",Map.of("reason","DELETED"));
+        error("POST","/class-sessions/"+deleted+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        String started=session("2026-08-27","18:00",null);ok("POST","/class-sessions/"+started+"/cancellation",Map.of("reason","CLUB_MANUAL"));
+        clock.setInstant(Instant.parse("2026-08-27T16:00:00Z"));
+        error("POST","/class-sessions/"+started+"/restoration",Map.of(),ErrorCode.INVALID_STATE);
+        assertThat(session(started).path("state").asText()).isEqualTo("CANCELLED");
     }
     Map<String,Object> blockBody(String from,String to) { return new LinkedHashMap<>(Map.of("ringId","plan-ring","from",from,"to",to,"kind","BLOCK","reason","MAINTENANCE","note","Private maintenance note")); }
     @Test @AuditCovers({AuditAction.RING_BLOCK_CREATED,AuditAction.RING_BLOCK_CANCELLED})

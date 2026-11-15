@@ -55,7 +55,7 @@ public class BillingController {
     @Operation(summary = "billingPeriod", description = ROLES + "D6's month (`?mes=YYYY-MM`): its last simulation (step 1), its live run — else its "
             + "last rolled-back one — with rollbackable and rollbackBlockers computed now (R-12-14), its remittance and the chip counts (all, "
             + "pending = PENDING, remitted = COLLECTING, paid, failed). A month is not a stored resource: every club reads its own, null parts until "
-            + "they exist. period not YYYY-MM → 400 VALIDATION_ERROR." + SERVED,
+            + "they exist; the simulation carries its comparison with the previous month's run (SEPA-10). period not YYYY-MM → 400 VALIDATION_ERROR." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "BillingPeriod", useReturnTypeSchema = true))
     public BillingPeriod billingPeriod(@PathVariable @Schema(pattern = BillingContracts.MONTH) String period) {
         access.tenant();
@@ -74,7 +74,10 @@ public class BillingController {
             + "and is not remitted. A month more than three months ahead "
             + "→ 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY. "
             + "Two prices of one plan and concept valid on the issue date (a legacy twin, INC-68) → 409 PRICE_OVERLAP "
-            + "{planId, concept, priceId, conflictingPriceId}: no price is chosen." + SERVED,
+            + "{planId, concept, priceId, conflictingPriceId}: no price is chosen. SEPA-10: comparison holds the total of the previous month's "
+            + "live run (previousTotal, null without one), the difference and its percentage, thresholdPercent (billing.totalDifferenceConfirmPercent) "
+            + "and secondConfirmationRequired — the difference, up or down, is above the threshold or there is nothing to compare with — which "
+            + "D6's generate confirmation uses to ask a second explicit confirmation." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingSimulation", useReturnTypeSchema = true))
     public BillingSimulation simulateBilling(@Valid @RequestBody SimulationRequest request) {
         access.tenant();
@@ -95,10 +98,15 @@ public class BillingController {
             + "billing.* parameters and the club's configuration, with the same unbilled PendingCharges and waiting includeInNextRun receipts "
             + "(409 SIMULATION_STALE; another club's or an unknown one → 404). Members with an incident are skipped (skipped[]), and so are the "
             + "waiting receipts the simulation listed as incidents (they stay PENDING); the others join the remittance. "
-            + "collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and rolls forward to the next TARGET business day. The collection must meet billing.sepa.leadBusinessDays after the presentation day (also rolled forward) → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA "
+            + "collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day), moved to the next "
+            + "TARGET business day when that day is not one (a weekend, 1 January, Good Friday, Easter Monday, 1 May, 25 or 26 December; SEPA-05). A "
+            + "date the admin chooses must be a TARGET business day → otherwise 400 VALIDATION_ERROR {field: collectionDate, fieldErrors: [{field: "
+            + "collectionDate, code: NOT_BUSINESS_DAY}], nextBusinessDay}. The date must leave billing.sepa.leadBusinessDays TARGET days after presentation (rolled to the next TARGET day) → otherwise 422 "
+            + "COLLECTION_DATE_TOO_SOON {requested, earliest} (earliest is a business day). Nothing to bill → 422 NO_INVOICES; SEPA "
             + "members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). Two prices of one plan and concept valid on the issue "
             + "date (INC-68) → 409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}, nothing written. The same Idempotency-Key "
-            + "answers the same run." + SERVED,
+            + "answers the same run. D6 calls it after its confirmation, and after a second explicit one when the simulation's "
+            + "comparison.secondConfirmationRequired (SEPA-10); the request does not carry either." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingRunResult", useReturnTypeSchema = true))
     public BillingRunResult createBillingRun(@Valid @RequestBody BillingRunRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
@@ -162,11 +170,13 @@ public class BillingController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/billing/exports")
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportAccounting", description = ROLES + "R-12-26 «Exporta per a comptabilitat» (S14 engine, listKey = accounting): one row "
             + "per invoice line (number, date, month, member number, name, holder's tax id, concept, base, tax %, tax, total, method, status, "
-            + "collection date, remittance, mandate or PaymentIntent reference), UTF-8 with BOM, `;`, decimals per the admin's locale. 200 file "
+            + "collection date, remittance, mandate or PaymentIntent reference, then — SEPA-09 — the status of the receipt's last collection "
+            + "attempt and its return date failedAt), UTF-8 with BOM, `;`, decimals per the admin's locale. 200 file "
             + "or 202 ExportAccepted for a large one; DATA_EXPORTED audit. format defaults to billing.accountingExportFormat." + SERVED,
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @Header(name = "Content-Disposition", schema = @Schema(type = "string")),

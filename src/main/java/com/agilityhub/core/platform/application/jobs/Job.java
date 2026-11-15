@@ -17,6 +17,11 @@ public interface Job {
     /** Extra guard beyond the module (for example `waitlist.mode = FIFO`); false records SKIPPED{MODULE_OFF}. */
     default boolean activeFor(ClubConfig config) { return true; }
     /**
+     * PRIV-02 (owner's decision of 13-11): a real manual run of this process (`POST …/trigger`, club or console) needs a dry run
+     * made just before and the explicit confirmation of the counts it showed ({@link JobTriggerService}). The calendar does not.
+     */
+    default boolean manualRunNeedsConfirmedDryRun() { return false; }
+    /**
      * A real run of this process ended FAILED and its row is closed: by its own holder (a job-level exception or a lost
      * lease) or by the reaper after its process died. Lets a process give back what its plan claimed (E5-T13: the P9
      * platform cycle). Called inside the run's club scope and outside any transaction; a failure here is only logged.

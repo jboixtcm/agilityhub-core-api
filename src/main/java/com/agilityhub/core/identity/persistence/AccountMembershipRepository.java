@@ -13,6 +13,14 @@ public class AccountMembershipRepository extends GlobalRepository<Membership> {
     public List<Membership> activeForAccount(String authenticatedAccountId) {
         return mongo.find(Query.query(Criteria.where("accountId").is(authenticatedAccountId).and("status").is(Membership.Status.ACTIVE)), Membership.class);
     }
+    /**
+     * AUTH-01 (S01 R-01-05): whether the account holds a staff role (`ADMIN` or `INSTRUCTOR`) in any club, in any membership status but
+     * `ERASED`; a yes or no, never the clubs.
+     */
+    public boolean holdsStaffRole(String accountId) {
+        return mongo.exists(Query.query(Criteria.where("accountId").is(accountId).and("status").ne(Membership.Status.ERASED)
+                .and("roles").in(com.agilityhub.core.identity.domain.Role.ADMIN, com.agilityhub.core.identity.domain.Role.INSTRUCTOR)), Membership.class);
+    }
     /** R-01-14 (INC-37): how many clubs the account still belongs to, in any status but `ERASED`; a count, never the clubs. */
     public long countNotErased(String accountId) {
         return mongo.count(Query.query(Criteria.where("accountId").is(accountId).and("status").ne(Membership.Status.ERASED)), Membership.class);

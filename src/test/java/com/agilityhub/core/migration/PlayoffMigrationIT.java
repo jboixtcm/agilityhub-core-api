@@ -136,14 +136,18 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(read).as("imported IBANs read back").isPositive();
         assertThat(environment.getProperty("core.migration.bank-key")).as("no MIGRATION_BANK_KEY binding").isNull();
     }
-    @Test void T_18_04_explicitPayerGroupsEncryptedBankAndNewCutoverMandates() throws Exception {
+    /** SEPA-02 changed this test: without a mandates file no mandate is invented (it asserted `{slug}-{number}-1` signed on the cut-over). */
+    @Test void T_18_04_explicitPayerGroupsEncryptedBankAndNoInventedMandate() throws Exception {
         var report=apply(); assertThat(report.hasErrors()).isFalse(); assertThat(report.count("familyGroups","CREATED")).isEqualTo(1);
         var group=rows("family_groups").getFirst(); assertThat(group.get("holderMemberId")).isEqualTo(member(61).get("_id"));
         assertThat(member(81).get("familyGroupId")).isEqualTo(group.get("_id"));
         var bank=(Document)member(50).get("paymentMethod"); assertThat(bank).containsKeys("ibanEncrypted","ibanLast4","mandateRef","mandateSignedAt").doesNotContainKey("iban");
-        assertThat(bank.getString("mandateRef")).isEqualTo(CLUB+"-"+member(50).get("memberNumber")+"-1");
-        assertThat(bank.getDate("mandateSignedAt").toInstant()).isEqualTo(Instant.parse("2026-09-08T22:00:00Z"));
-        byte[] encrypted=Base64.getDecoder().decode(bank.getString("ibanEncrypted"));
+        assertThat(bank).containsEntry("mandateRef",null).containsEntry("mandateSignedAt",null);
+        assertThat(entries(report,50)).contains("members WARNING MANDATE_PENDING");
+        // PRIV-11 changed this test: the stored value is `{keyId}:` (8 hex of the SHA-256 of BILLING_BANK_KEY) before the Base64 it decoded.
+        String keyId=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(Base64.getDecoder().decode(BANK_KEY)),0,4);
+        assertThat(bank.getString("ibanEncrypted")).startsWith(keyId+":");
+        byte[] encrypted=Base64.getDecoder().decode(bank.getString("ibanEncrypted").substring(keyId.length()+1));
         var cipher=javax.crypto.Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(javax.crypto.Cipher.DECRYPT_MODE,new javax.crypto.spec.SecretKeySpec(Base64.getDecoder().decode(BANK_KEY),"AES"),
                 new javax.crypto.spec.GCMParameterSpec(128,Arrays.copyOfRange(encrypted,0,12)));
         cipher.updateAAD((CLUB+":"+member(50).get("_id")).getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -655,11 +659,12 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
                 .containsExactlyInAnyOrder(tuple("code", "PACK10"), tuple("typology", "PACK10"));
     }
     /**
-     * E11-T15 step 7 (the audit of 21-10, F7; S18 R-18-08, E43): a SEPA record whose number lost to another (`NUMBER_CONFLICT`)
-     * gets no `{slug}-{memberId}-1` mandate (44 characters, refused by pain.008 for the whole remittance) but none at all and a
-     * `MANDATE_PENDING` warning; every mandate the migration writes fits `Max35Text`.
+     * E11-T15 step 7 (the audit of 21-10, F7; S18 R-18-08, E43) and SEPA-02: without the mandates file no SEPA member gets a mandate —
+     * none is invented, also for a record whose number lost to another (`NUMBER_CONFLICT`) — and each one has a `MANDATE_PENDING`
+     * line. SEPA-02 changed this test: it asserted four lines, those of the records without a number, the others getting
+     * `{slug}-{number}-1` signed on the cut-over.
      */
-    @Test void R_18_08_E43_aNumberConflictSepaRecordGetsNoMandateUntilItHasANumber() throws Exception {
+    @Test void R_18_08_E43_SEPA_02_withoutTheMandatesFileNoSepaMemberGetsAnInventedMandate() throws Exception {
         var report = apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
         for (int ordinal = 185; ordinal <= 188; ordinal++) {
             assertThat(member(ordinal).get("memberNumber")).isNull();
@@ -668,12 +673,10 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
             assertThat(payment.get("mandateRef")).as("member " + ordinal).isNull();
             assertThat(entries(report, ordinal)).contains("members WARNING MANDATE_PENDING");
         }
-        assertThat(warnings(report, "MANDATE_PENDING")).isEqualTo(4);
-        assertThat(rows("members")).allSatisfy(member -> {
-            var payment = member.get("paymentMethod", Document.class);
-            String mandate = payment == null ? null : payment.getString("mandateRef");
-            if (mandate != null) { assertThat(mandate).hasSizeLessThanOrEqualTo(35).matches("[a-zA-Z0-9/\\-?:().,'+ ]+"); }
-        });
+        var sepa = rows("members").stream().map(member -> member.get("paymentMethod", Document.class))
+                .filter(payment -> payment != null && "SEPA_DD".equals(payment.getString("type"))).toList();
+        assertThat(sepa).hasSizeGreaterThan(100).allSatisfy(payment -> assertThat(payment).containsEntry("mandateRef", null).containsEntry("mandateSignedAt", null));
+        assertThat(warnings(report, "MANDATE_PENDING")).isEqualTo(sepa.size());
     }
     /**
      * E11-T15 step 3 (the audit of 21-10, F3; ruling E146; S18 R-18-13, S12 R-12-05): Playoff already charged the cash members up to
@@ -727,37 +730,87 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(report.rows()).filteredOn(r -> r.file().equals("paidUntil")).isEmpty();
     }
     /**
-     * E11-T15 round 2 (the kit's review 3; S18 R-18-08, E43): an ACTIVE SEPA record whose number lost to another (`NUMBER_CONFLICT`)
-     * is loaded without a mandate (`MANDATE_PENDING`); once the club fixes the number in Playoff and loads again, the member gets
-     * `{slug}-{number}-1` signed on the cut-over — not the stored `null` signature, which the SEPA writer refuses — and S12's next
-     * simulation bills it (no `MANDATE_PENDING` incident).
+     * SEPA-02 (S18 R-18-08): the club continues its previous system's mandates. Each member with a row of the mandates file gets that
+     * reference and signature date — a record without a number (`NUMBER_CONFLICT`) too, and through any record of the person — and
+     * S12's simulation bills it; a member without a row (or with an empty reference) has none and a `MANDATE_PENDING` line, and the
+     * simulation skips it. A later load replaces the stored mandates with the file's. Replaces E156's test of a number fixed in Playoff
+     * (the mandate no longer depends on the member number).
      */
-    @Test void R_18_08_E156_aNumberConflictFixedInPlayoffGetsASignedMandateOnTheNextLoad() throws Exception {
+    @Test void R_18_08_SEPA_02_theMandatesFileGivesEachMemberItsPreviousMandateAndALaterLoadReplacesIt() throws Exception {
         billingCatalog(); var cutover = LocalDate.of(2026, 9, 1);
         // Record 29 takes record 27's number; 27 joined first, so 29 loses it.
         var table = PlayoffTable.read(fixture.resolve("socis.csv"));
         var cells = new ArrayList<>(table.get(29)); cells.set(3, table.get(27).get(3)); table.set(29, cells); PlayoffTable.write(fixture.resolve("socis.csv"), table);
+        // Records 1 and 184 are one person (one NIF): the row of either record reaches the member.
+        Files.writeString(fixture.resolve("mandats.csv"), "Member ID;Mandate reference;Signed on\n"
+                + source(29) + ";PO-000029;14/3/2019\n" + source(184) + ";PO-000184;2021-06-30\n" + source(50) + ";;\n");
         var first = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
         assertThat(first.hasErrors()).as(first.render()).isFalse();
-        assertThat(entries(first, 29)).contains("members WARNING NUMBER_CONFLICT", "members WARNING MANDATE_PENDING");
-        assertThat(member(29).get("paymentMethod", Document.class)).containsEntry("mandateRef", null).containsEntry("mandateSignedAt", null);
-        String memberId = member(29).getString("_id");
+        assertThat(entries(first, 29)).contains("members WARNING NUMBER_CONFLICT").doesNotContain("members WARNING MANDATE_PENDING");
+        assertThat(member(29).get("paymentMethod", Document.class)).containsEntry("mandateRef", "PO-000029")
+                .containsEntry("mandateSignedAt", Date.from(LocalDate.of(2019, 3, 14).atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant()));
+        assertThat(member(1).get("_id")).isEqualTo(member(184).get("_id"));
+        assertThat(member(1).get("paymentMethod", Document.class)).containsEntry("mandateRef", "PO-000184")
+                .containsEntry("mandateSignedAt", Date.from(LocalDate.of(2021, 6, 30).atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant()));
+        assertThat(entries(first, 1)).doesNotContain("members WARNING MANDATE_PENDING");
+        assertThat(entries(first, 184)).doesNotContain("members WARNING MANDATE_PENDING");
+        assertThat(member(50).get("paymentMethod", Document.class)).containsEntry("mandateRef", null).containsEntry("mandateSignedAt", null);
+        assertThat(entries(first, 50)).contains("members WARNING MANDATE_PENDING");
+        String withMandate = member(29).getString("_id"), without = member(50).getString("_id");
         try (var tenant = TenantContext.open(CLUB)) {
-            assertThat(billing.reconcile(YearMonth.of(2026, 10)).incidents()).containsEntry(memberId, "MANDATE_PENDING");
+            var simulated = billing.reconcile(YearMonth.of(2026, 10));
+            assertThat(simulated.incidents()).doesNotContainKey(withMandate).containsEntry(without, "MANDATE_PENDING");
+            assertThat(simulated.byMember()).containsEntry(withMandate, 6000L);
         }
-        cells = new ArrayList<>(table.get(29)); cells.set(3, "9029"); table.set(29, cells); PlayoffTable.write(fixture.resolve("socis.csv"), table);
+        Files.writeString(fixture.resolve("mandats.csv"), "Member ID;Mandate reference;Signed on\n"
+                + source(50) + ";PO-000050;2020-01-15\n" + source(1) + ";PO-000184;2021-06-30\n");
         clock.setInstant(clock.instant().plusSeconds(60));
         var again = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
         assertThat(again.hasErrors()).as(again.render()).isFalse();
-        var payment = member(29).get("paymentMethod", Document.class);
-        assertThat(payment.getString("mandateRef")).isEqualTo(CLUB + "-9029-1");
-        assertThat(payment.get("mandateSignedAt")).isEqualTo(Date.from(cutover.atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant()));
-        assertThat(entries(again, 29)).doesNotContain("members WARNING MANDATE_PENDING", "members WARNING NUMBER_CONFLICT");
-        try (var tenant = TenantContext.open(CLUB)) {
-            var simulated = billing.reconcile(YearMonth.of(2026, 10));
-            assertThat(simulated.incidents()).doesNotContainKey(memberId);
-            assertThat(simulated.byMember()).containsEntry(memberId, 6000L);
-        }
+        assertThat(member(50).get("paymentMethod", Document.class)).containsEntry("mandateRef", "PO-000050");
+        assertThat(entries(again, 50)).doesNotContain("members WARNING MANDATE_PENDING");
+        assertThat(member(1).get("paymentMethod", Document.class)).containsEntry("mandateRef", "PO-000184");
+        assertThat(member(29).get("paymentMethod", Document.class)).containsEntry("mandateRef", null).containsEntry("mandateSignedAt", null);
+        assertThat(entries(again, 29)).contains("members WARNING MANDATE_PENDING");
+    }
+    /**
+     * SEPA-02 (S18 R-18-08): every row of the mandates file is checked before anything is written. A reference outside the EPC rules,
+     * a missing, unreadable or future date, a reference another member already has (in the file, or stored on a member this load does
+     * not write; in any letter case) and a second, different mandate for one member are each an ERROR on its row and field. The same
+     * mandate twice is no error. The report names the row and the field, never the reference.
+     */
+    @Test void SEPA_02_aMandatesRowThatBreaksTheRulesBlocksTheLoadOnItsRowAndField() throws Exception {
+        mongo.insert(new Document("_id", "manual").append("clubId", CLUB).append("firstName", "Manual Example").append("status", "ACTIVE")
+                .append("paymentMethod", new Document("type", "SEPA_DD").append("mandateRef", "PO-HELD-1")), "members");
+        String valid = source(50) + ";PO-000050;2019-03-14\n";
+        Files.writeString(fixture.resolve("mandats.csv"), "Member ID;Mandate reference;Signed on\n"
+                + valid                                                            // row 2
+                + source(51) + ";/PO-000051;2019-03-14\n"                          // row 3: a leading slash
+                + source(52) + ";PO-000052;2026-09-10\n"                           // row 4: after the club's today (2026-09-09)
+                + source(53) + ";po-000050;2019-03-14\n"                           // row 5: member 50's reference
+                + source(50) + ";PO-000099;2019-03-14\n"                           // row 6: a second mandate for member 50
+                + source(54) + ";PO-000054;\n"                                     // row 7: no date
+                + source(55) + ";PO-000055;31/2/2019\n"                            // row 8: no such day
+                + source(56) + ";PO-000000000000000000000000000000056;2019-03-14\n" // row 9: 36 characters
+                + source(57) + ";po-held-1;2019-03-14\n"                           // row 10: a member this load does not write has it
+                + source(58) + ";PO_000058;2019-03-14\n"                           // row 11: outside the SEPA set
+                + source(59) + ";PO//000059;2019-03-14\n"                          // row 12: two slashes
+                + valid);                                                           // row 13: the same mandate again
+        var report = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false);
+        assertThat(report.hasErrors()).isTrue();
+        assertThat(report.rows()).filteredOn(r -> r.file().equals("mandates"))
+                .extracting(MigrationReport.Entry::row, MigrationReport.Entry::outcome, MigrationReport.Entry::code, MigrationReport.Entry::field)
+                .containsExactlyInAnyOrder(tuple(3, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateRef"), tuple(4, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateSignedAt"),
+                        tuple(5, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateRef"), tuple(6, "ERROR", "INPUT_SCHEMA_MISMATCH", "memberId"),
+                        tuple(7, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateSignedAt"), tuple(8, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateSignedAt"),
+                        tuple(9, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateRef"), tuple(10, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateRef"),
+                        tuple(11, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateRef"), tuple(12, "ERROR", "INPUT_SCHEMA_MISMATCH", "mandateRef"));
+        assertThat(report.render()).doesNotContain("PO-0").doesNotContain("PO-HELD").doesNotContain("po-held");
+        assertThat(rows("members")).extracting(member -> member.get("_id")).containsExactly("manual");
+        // Without its bad rows the file loads.
+        Files.writeString(fixture.resolve("mandats.csv"), "Member ID;Mandate reference;Signed on\n" + valid + valid);
+        var applied = apply(); assertThat(applied.hasErrors()).as(applied.render()).isFalse();
+        assertThat(member(50).get("paymentMethod", Document.class)).containsEntry("mandateRef", "PO-000050");
     }
     /**
      * E11-T15 round 2 (the kit's review 2, N6; ruling E156; S18 R-18-11b): a `rebuts.csv` row that lost its trailing field and an
@@ -1079,6 +1132,16 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.payments.application.InvoiceActions invoiceActions;
     @Autowired com.agilityhub.core.platform.application.definition.ClubDefinitions definitions;
     @Autowired com.agilityhub.core.clubs.census.application.MemberService memberService;
+    /** SEPA-02: a fictional mandates file with one `PO-n` mandate, signed 14-03-2019, for every direct-debit member of the fixture. */
+    void mandatesForEverySepaMember() throws Exception {
+        var text = new StringBuilder("Member ID;Mandate reference;Signed on\n"); int n = 0;
+        for (var change : preview(input()).changes()) {
+            if (change.entity().equals("members") && "SEPA_DD".equals(((Map<?, ?>) change.fields().get("paymentMethod")).get("type"))) {
+                text.append(change.source().get("id")).append(";PO-").append(++n).append(";2019-03-14\n");
+            }
+        }
+        Files.writeString(fixture.resolve("mandats.csv"), text);
+    }
     /** The Cànic's plan kinds with fictional prices and a SEPA creditor, so that S12's simulation bills the migrated census. */
     void billingCatalog() {
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "plans"); mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "prices");
@@ -1109,8 +1172,9 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
      * debits with no usable bank account → beyond 1 %: `COMPLETED`, and one `NO_BANK_ACCOUNT` justification line per member that
      * explains the difference. The report carries ids and codes only (negative grep of email, tax id and IBAN patterns).
      */
+    /** SEPA-02 changed this test: it gives every SEPA member a fictional mandate (there are no invented ones any more). */
     @Test void T_18_07_theNextMonthsSimulationReconcilesWithTheForecastWithinOnePercent() throws Exception {
-        billingCatalog(); var cutover = LocalDate.of(2026, 9, 1);
+        billingCatalog(); var cutover = LocalDate.of(2026, 9, 1); mandatesForEverySepaMember();
         assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover).hasErrors()).isFalse();
         com.agilityhub.core.payments.application.BillingMigrationAccess.Reconciliation simulated;
         try (var tenant = TenantContext.open(CLUB)) { simulated = billing.reconcile(YearMonth.of(2026, 10)); }

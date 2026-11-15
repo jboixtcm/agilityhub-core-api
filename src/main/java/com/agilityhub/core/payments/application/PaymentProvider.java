@@ -19,6 +19,12 @@ import java.util.*;
 public interface PaymentProvider {
     record Connection(boolean ok, String accountId, String accountName, String mode) { }
     default Connection ping() { throw disabled(); }
+    /**
+     * PAY-10 (owner decision of 13 Nov 2026, S17 R-17-05): the connection test of a secret key that is about to be saved, made with
+     * that key and {@code mode} alone (the stored configuration is neither read nor needed). A key the provider refuses, or a provider
+     * that cannot be reached, throws.
+     */
+    default Connection ping(String mode, String secretKey) { throw disabled(); }
     enum Capability { CHECKOUT, OFF_SESSION, REFUND, CARD_SETUP, FORGET_CUSTOMER }
     record OffSessionRequest(Money amount, String customerId, String paymentMethodId, String idempotencyKey, Map<String,String> metadata) { }
     record OffSessionResult(String paymentIntentId, String status, String failureCode) { }

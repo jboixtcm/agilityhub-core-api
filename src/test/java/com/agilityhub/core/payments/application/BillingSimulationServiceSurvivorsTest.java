@@ -49,8 +49,38 @@ class BillingSimulationServiceSurvivorsTest {
     final BillingLockRepository locks = mock(BillingLockRepository.class);
     final BillingEvents events = mock(BillingEvents.class);
     final BillingTransactions transactions = mock(BillingTransactions.class);
+    final com.agilityhub.core.payments.persistence.BillingDocuments.BillingRunRepository runs = mock(com.agilityhub.core.payments.persistence.BillingDocuments.BillingRunRepository.class);
     final BillingSimulationService service = new BillingSimulationService(invoicing, simulations, locks, events, transactions,
-            mock(BillingProviderSettings.class), Clock.fixed(NOW, ZoneOffset.UTC));
+            mock(BillingProviderSettings.class), Clock.fixed(NOW, ZoneOffset.UTC), runs);
+
+    /**
+     * SEPA-10 (owner decision of 13-11-2026, R-12-11): the simulation keeps its total against the previous month's live run, over all
+     * its providers, and asks a second confirmation only above `billing.totalDifferenceConfirmPercent` or without a previous total.
+     */
+    @Test void SEPA_10_theSimulationComparesItsTotalWithThePreviousMonthsRunAndAsksTwiceAboveTheThreshold() {
+        var draft = new InvoicingRules.Draft("member-cash", List.of(line(InvoiceLineOrigin.MONTHLY_FEE, 6000)), List.of());
+        // No run in August: nothing to compare with, so the second confirmation is asked.
+        var none = service.build(plan(List.of(draft), List.of(), List.of())).comparison();
+        assertThat(none).isEqualTo(new BillingSimulation.Comparison("2026-08", null, 20, true));
+        // August billed 50,00 by SEPA and 0,00 in cash: 60,00 is 20 % more, not above the threshold.
+        when(runs.live("2026-08")).thenReturn(java.util.Optional.of(run(new Money(5000, "EUR"), new Money(0, "EUR"))));
+        assertThat(service.build(plan(List.of(draft), List.of(), List.of())).comparison())
+                .isEqualTo(new BillingSimulation.Comparison("2026-08", new Money(5000, "EUR"), 20, false));
+        // 49,99 in August: 60,00 is 20,02 % more.
+        when(runs.live("2026-08")).thenReturn(java.util.Optional.of(run(new Money(4000, "EUR"), new Money(999, "EUR"))));
+        assertThat(service.build(plan(List.of(draft), List.of(), List.of())).comparison())
+                .isEqualTo(new BillingSimulation.Comparison("2026-08", new Money(4999, "EUR"), 20, true));
+        // A run in another currency is not comparable.
+        when(runs.live("2026-08")).thenReturn(java.util.Optional.of(run(new Money(6000, "GBP"), null)));
+        assertThat(service.build(plan(List.of(draft), List.of(), List.of())).comparison())
+                .isEqualTo(new BillingSimulation.Comparison("2026-08", null, 20, true));
+    }
+    static com.agilityhub.core.payments.persistence.BillingRun run(Money sepa, Money manual) {
+        var by = new com.agilityhub.core.payments.persistence.BillingRun.ByProvider(new com.agilityhub.core.payments.persistence.BillingRun.Totals(1, sepa, "remittance-8", null, null),
+                null, manual == null ? null : new com.agilityhub.core.payments.persistence.BillingRun.Totals(1, manual, null, null, null));
+        return new com.agilityhub.core.payments.persistence.BillingRun("run-8", CLUB, "2026-08", com.agilityhub.core.payments.domain.BillingRunStatus.GENERATED,
+                "simulation-8", List.of("invoice-8"), by, "2026-08-03", NOW, NOW, List.of(), List.of(), 1, "account-admin", null, null, 1L, NOW, "2026");
+    }
 
     @Test void T_12_09_theInactivityKpiCountsOnlyInactivityLinesAndAWaitingReceiptAloneOpensTheSepaTotals() {
         var draft = new InvoicingRules.Draft("member-cash", List.of(line(InvoiceLineOrigin.MONTHLY_FEE, 4500), line(InvoiceLineOrigin.INACTIVITY_FEE, 1000)), List.of());
@@ -83,7 +113,7 @@ class BillingSimulationServiceSurvivorsTest {
         var club = new ClubConfig.ClubView(CLUB, "club-a", "Example Club", List.of("ca"), "ca", "Europe/Madrid", "EUR", null, null, "ACTIVE", null);
         var fee = Map.<String, Object>of("amountMinor", 1000, "currency", "EUR");
         var config = new ClubConfig(club, Map.of("billing.sepa.collectionDayOfMonth", 1, "billing.inactivityFeeFirstMonth", fee,
-                "billing.inactivityFeeFollowingMonths", fee), Set.of(), null, Map.of());
+                "billing.inactivityFeeFollowingMonths", fee, "billing.totalDifferenceConfirmPercent", 20), Set.of(), null, Map.of());
         // SEPA_DD is not enabled, so the creditor check (E8-T03) does not apply: the waiting receipt is remitted.
         var settings = new InvoicingRules.Settings("EUR", 1, InvoicingRules.CashInvoicing.MONTHLY, 6, true, false, true, false, Set.of(PaymentMethodType.MANUAL));
         var context = new InvoicingService.Context(config, settings, ISSUE, Locale.forLanguageTag("ca"));

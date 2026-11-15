@@ -16,6 +16,7 @@ public final class PasswordGrantAuthenticationToken extends OAuth2AuthorizationG
     private String redirectUri;
     private String verifier;
     private boolean consoleHost;
+    private String hostRefresh;
     public String clientSecret() { return clientSecret; }
     public String scope() { return scope; }
     public String redirectUri() { return redirectUri; }
@@ -34,7 +35,10 @@ public final class PasswordGrantAuthenticationToken extends OAuth2AuthorizationG
     /** S01 R-01-02 (E157): the request reached the console's product host, which resolves no club. */
     public void consoleHost(boolean value) { consoleHost = value; }
     public boolean consoleHost() { return consoleHost; }
+    /** FE-03 (S01 R-01-13): a handoff exchange's `ah_refresh` cookie of the host (RefreshCookies#presented), or null. */
+    public void hostRefresh(String value) { hostRefresh = value; }
+    public String hostRefresh() { return hostRefresh; }
     public String username() { return username; }
     @Override public Object getCredentials() { return secret; }
-    @Override public void eraseCredentials() { super.eraseCredentials(); secret = null; clientSecret = null; verifier = null; }
+    @Override public void eraseCredentials() { super.eraseCredentials(); secret = null; clientSecret = null; verifier = null; hostRefresh = null; }
 }

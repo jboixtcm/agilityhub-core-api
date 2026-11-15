@@ -72,6 +72,18 @@ class BrevoEmailSenderTest {
                 .isEqualTo(EmailSender.SendResult.failed("Brevo HTTP " + code));
         assertThat(mapper.readTree(captured.get().body()).has("replyTo")).isFalse();
     }
+    /**
+     * COMM-07 (owner decision of 13 Nov 2026): Brevo's «not enough credits» answer is told apart, by its fixed code only, so the
+     * dispatcher retries it later; nothing else of the body is ever read.
+     */
+    @ParameterizedTest @ValueSource(ints = {400, 402, 403})
+    void T_11_09_COMM_07_aSpentAllowanceIsToldApartByItsCodeOnly(int code) throws Exception {
+        status = code; response = "{\"code\":\"not_enough_credits\",\"message\":\"private recipient@example.test\"}";
+        assertThat(sender(Duration.ofSeconds(2), address -> false).send(message(null)))
+                .isEqualTo(EmailSender.SendResult.failed("Brevo HTTP " + code + " " + BrevoEmailSender.NOT_ENOUGH_CREDITS));
+        status = code; response = "{\"code\":\"invalid_parameter\",\"message\":\"private recipient@example.test\"}";
+        assertThat(sender(Duration.ofSeconds(2), address -> false).send(message(null))).isEqualTo(EmailSender.SendResult.failed("Brevo HTTP " + code));
+    }
     @Test void T_11_08_suppressedRecipientNeverCallsProvider() {
         assertThat(sender(Duration.ofSeconds(2), address -> true).send(message(null)).error()).isEqualTo(BrevoEmailSender.SUPPRESSED);
         assertThat(captured.isDone()).isFalse();

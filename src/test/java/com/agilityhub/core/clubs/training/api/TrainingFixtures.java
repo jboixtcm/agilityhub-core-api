@@ -145,8 +145,8 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     RequestPostProcessor as(String account) {
         var membership = mongo.findOne(Query.query(Criteria.where("_id").is("s09-" + account)), Document.class, "memberships");
         String member = membership.getString("memberId"), role = membership.getList("roles", String.class).getFirst();
-        return jwt().jwt(j -> j.subject("s09-" + account).claim("clubId", CLUB).claim("memberId", member).claim("name", "Example " + account))
-                .authorities(() -> "ROLE_" + role);
+        return jwt().jwt(j -> j.subject("s09-" + account).claim("clubId", CLUB).claim("memberId", member).claim("name", "Example " + account)
+                        .claim("auth_time", signedInNow())).authorities(() -> "ROLE_" + role);
     }
     RequestPostProcessor impersonating(String admin, String memberId) {
         com.agilityhub.core.identity.application.ImpersonationService.Issued issued;

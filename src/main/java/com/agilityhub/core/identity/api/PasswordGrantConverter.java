@@ -36,6 +36,8 @@ public final class PasswordGrantConverter implements AuthenticationConverter {
         authentication.oidc(secret, request.getParameter("scope"), "authorization_code".equals(grant) ? required(request, "redirect_uri") : null, request.getParameter("code_verifier"));
         authentication.userAgent(request.getHeader("User-Agent"));
         authentication.consoleHost(Boolean.TRUE.equals(request.getAttribute(com.agilityhub.core.shared.api.TenantFilter.CONSOLE_HOST)));
+        // FE-03 (S01 R-01-13): a handoff exchange checks the host's refresh cookie for another account's live session.
+        if (com.agilityhub.core.identity.application.HandoffService.GRANT.equals(grant)) { authentication.hostRefresh(cookies.presented(request)); }
         return authentication;
     }
     private String required(HttpServletRequest request, String name) {

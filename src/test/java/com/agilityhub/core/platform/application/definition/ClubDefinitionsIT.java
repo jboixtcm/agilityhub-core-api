@@ -59,6 +59,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     @Autowired ObjectMapper mapper;
     @Autowired MongoTemplate mongo;
     @Autowired MockMvc mvc;
+    @Autowired com.agilityhub.core.platform.application.ClubPageProvisioner pages;
     @MockitoSpyBean AuditRepository audits;
 
     @BeforeEach void emptyDatabase() {
@@ -106,6 +107,42 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
      * no creditor data, so `SEPA_XML` is not `configured`. E5-T23: `MANUAL` is, by its instructions. `GET /club` and
      * `GET /signup` show the same methods.
      */
+    /**
+     * PRIV-10 (owner's decision of 13-11-2026; S05 R-05-21b): `club:apply`'s report warns about every legal page body that the apply
+     * leaves as a placeholder or a draft (the definition's text for a page it writes, the stored one otherwise), in the dry run and
+     * the real run; the warnings refuse nothing and are no change.
+     */
+    @Test void PRIV_10_theReportWarnsAboutLegalPagesStillHoldingDraftMarkersOrPlaceholderBodies() throws Exception {
+        String report = definitions.apply(Path.of("seeds/club-canic.yaml"), true).render(true);
+        assertThat(report).contains("! WARNING pages.RULES.body.ca: draft text, ", "[07:00 a 22:00]",
+                "! WARNING pages.RULES.body.es: placeholder body, only the provisional text marker\n",
+                "! WARNING pages.RULES.body.en: placeholder body, only the provisional text marker\n",
+                "! WARNING pages.IMAGE_CONSENT.body.ca: draft text, ", "[NOM DEL CLUB]",
+                "! WARNING pages.IMAGE_CONSENT.body.es: placeholder body",
+                "! WARNING pages.PRIVACY.body.ca: draft text, ", "(inactive page)",
+                "! WARNING pages.PRIVACY.body.en: placeholder body, only the provisional text marker (inactive page)",
+                "! WARNING legal pages: 9 texts still provisional; replace them from D11 before members read them (R-05-21b)");
+        assertThat(count("club_pages")).isZero();
+        var applied = definitions.apply(seed("canic"), false);
+        assertThat(applied.render(false)).contains("! WARNING legal pages: 9 texts still provisional").endsWith(" changes (applied)");
+        // The club writes the final rules (as D11 does); a definition that writes no page is checked against the stored texts.
+        try (var tenant = TenantContext.open(applied.id())) {
+            pages.provision(new com.agilityhub.core.platform.application.ClubPageProvisioner.Page("RULES",
+                    Map.of("ca", "Normes del club", "es", "Normas del club", "en", "Club rules"),
+                    Map.of("ca", "# Normes del club\n\nEl camp obre de 07:00 a 22:00. Consulta la [política de privacitat](https://example.test/privacy).",
+                            "es", "# Normas del club\n\nEl campo abre de 07:00 a 22:00.", "en", "# Club rules\n\nThe field opens from 07:00 to 22:00."), true),
+                    "ca", List.of("ca", "es", "en"));
+        }
+        var withoutPages = seed("canic"); withoutPages.remove("pages");
+        var again = definitions.apply(withoutPages, true);
+        assertThat(again.render(true)).doesNotContain("pages.RULES").contains("! WARNING pages.IMAGE_CONSENT.body.ca: draft text",
+                "! WARNING pages.PRIVACY.body.es: placeholder body", "! WARNING legal pages: 6 texts still provisional");
+        assertThat(again.changes()).isZero();
+        // With every legal text final there is no warning at all.
+        mongo.remove(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("key").in("IMAGE_CONSENT", "PRIVACY")), "club_pages");
+        assertThat(definitions.apply(withoutPages, true).render(true)).doesNotContain("WARNING");
+    }
+
     @Test void T_02_12_canicSeedEnablesDirectDebitAndCashWithoutConfiguringThem() throws Exception {
         var first = definitions.apply(seed("canic"), false);
         var stored = clubs.findById(first.id()).orElseThrow().paymentProviders();

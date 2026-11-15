@@ -7,6 +7,207 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - `GET /dogs` and `/dogs/export` add the optional `birthDate` column/field, represented as an ISO date in `DogListItem`. Existing `levelId`/`status` filters and `levelAssignedAt` sorting support the dashboard drilldown without a new endpoint.
 - `SheetWaitlistEntry` adds `dogId`, returned by attendance reads and saves. `SlotOccupant` also adds `dogId` within the existing staff-only training slot details; `DayGridCell.trainingDogIds` aligns with `who` for staff training cells. Member grids remain redacted. Existing ADMIN/INSTRUCTOR and tenant restrictions are unchanged.
 
+## 2026-11-14 · WEB-05 · A small thumbnail of the dog's photo beside its URL in the list rows
+
+**No operations or error codes added; 4 schemas gain an optional, nullable field (`DogListItem`, `DogSummary`, `OverviewDog`: `photoThumbnailUrl`; `AttendanceRow`: `dogPhotoThumbnailUrl`); `x-fields` of `GET /dogs` and `GET|POST /dogs/export` gain `photoThumbnailUrl`.**
+
+- When a dog photo is claimed (`PUT /me/dogs/{id}/photo`, `PUT /dogs/{id}/photo`, unchanged: `200 {photoUrl}`), when a migrated photo is bound and, once, through `bin/core census:photo-thumbnails`, the api stores a JPEG rendition (longest side 256 px, never enlarged, upright by the JPEG's EXIF orientation, no metadata) next to the original, for `image/jpeg` and `image/png` photos only. A replaced photo's rendition is deleted; the S14 erasure deletes it with the photo.
+- Its short-lived signed URL (five minutes, as the photo's) is returned as `photoThumbnailUrl` in the rows of `GET /dogs` (when `fields` asks for it, or without `fields`), in the `dogs[]` of `GET /members` rows (ADMIN and INSTRUCTOR), of the INSTRUCTOR's `GET /members/{id}` and of `GET /members/{id}/overview`, and as `dogPhotoThumbnailUrl` beside `dogPhotoUrl` in the rows of `GET|PUT /class-sessions/{id}/attendance` (21 and D12). It is absent (lists) or null (attendance) when the dog has no photo or no rendition (a WebP, HEIC or damaged photo, or one over the size bounds): clients show the photo's URL then. Detail responses (`GET /dogs/{id}`, `GET /me/dogs`, `GET /dogs/{id}/instructor-card`) keep the original only.
+
+## 2026-11-14 · FE-03 · A handoff code of another account is refused on a host that holds a session
+
+**No operations or schemas added; 1 error code added (`HANDOFF_SESSION_CONFLICT`, 409); 1 response described (`POST /oauth2/token` 409).**
+
+- `POST /oauth2/token` with `grant_type=urn:agilityhub:grant:handoff` (clients `clubs-app` and `clubs-admin`, on a club host and on the console's product host): before the code is consumed, an account's code (not an «Entra com l'abonat» launch code) redeemed with the host's `ah_refresh` cookie of that client holding a live session (not revoked, not expired, of the account's current family version) of another account answers `409 HANDOFF_SESSION_CONFLICT` with the shared error body and no `details` (neither account is named). The code stays unused, no tokens are issued and no `Set-Cookie` is sent, so the host's session is kept. The same account's session, no cookie or a dead one: as before (S01 R-01-13).
+
+## 2026-11-14 · BOOK-02 · A dog is never booked into two classes at the same time, nor over its own training
+
+**No operations, schemas or error codes added; 2 operation descriptions and their 422 error lists changed (`POST /bookings`, `POST /waitlist-entries/{id}/claim`).**
+
+- `POST /bookings` (confirmation and swap) and `POST /waitlist-entries/{id}/claim`: `422 DOG_ALREADY_BOOKED` (S09's existing code, now listed for both routes) when the dog holds another live class booking (`ACTIVE` or `PAYMENT_PENDING`) whose class overlaps this one in time, or an `ACTIVE` free-training booking over it; nothing is written and a claimed entry stays `NOTIFIED`. Back-to-back classes do not overlap; the booking a swap cancels (`swapBookingId`) does not count, so a swap to a class at the same time as that booking goes through. `POST /seat-holds` and `POST /waitlist-entries` are unchanged.
+
+## 2026-11-14 · PLAN-02 · A started class can no longer be cancelled by the admin
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /class-sessions/{id}/cancellation`).**
+
+- `POST /class-sessions/{id}/cancellation` (ADMIN): refused with `409 INVALID_STATE` (already listed for the route) once the class has started (`startsAt` at or before now), whatever the `reason` (`CLUB_MANUAL` or `DELETED`) or state, a draft included; nothing changes (no booking, waiting-list entry, hold, pack or notice is touched). A class not yet started is cancelled as before. `GET …/cancellation-preview` is unchanged.
+
+## 2026-11-14 · COMM-08 · RFC 8058 one-click unsubscribe
+
+**1 operation added (`POST /email-unsubscribes/one-click`); 1 schema added (`EmailOneClickUnsubscribeForm`, its form body); no error codes added.**
+
+- New `POST /email-unsubscribes/one-click?t={token}` (ANON, `security: []`; the club comes from the host; no `Idempotency-Key`): the URL a `CLUB_NEWS` e-mail's `List-Unsubscribe` header now names, with `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058). The mailbox provider posts the form body `List-Unsubscribe=One-Click` (`application/x-www-form-urlencoded` or `multipart/form-data`) with the signed token of the mail in `t`; it answers `200 EmailUnsubscribeResult {category: CLUB_NEWS}` and does what `POST /email-unsubscribes` does with that token (a repeat changes nothing). Another body or no token → `400 VALIDATION_ERROR`; an expired, tampered or another club's token → `422 UNSUBSCRIBE_TOKEN_INVALID`. It shares the anonymous rate limit of `POST /email-unsubscribes`. The mail's footer link still opens the club app's page `/comunicats/baixa?t=…`, which calls `POST /email-unsubscribes`.
+
+## 2026-11-14 · COMM-07 · «Reenvia els fallits» of an announcement
+
+**1 operation added (`POST /announcements/{batchId}/resend-failed`); 1 schema added (`AnnouncementResendResult`); 1 enum value added (`AuditAction`: `ANNOUNCEMENT_RESENT`); no error codes added.**
+
+- New `POST /announcements/{batchId}/resend-failed` (ADMIN, no impersonation; `Idempotency-Key` required; no body; `202 AnnouncementResendResult {batchId, resent}`): every e-mail of the announcement batch that ended `FAILED` goes back to `QUEUED`, due now with its attempts at zero, and is sent at the announcements' pace; no SMS or push is resent. Audited `ANNOUNCEMENT_RESENT` on the batch's template (no changes, `details {batchId, resent}`) when at least one was put back; `resent: 0` writes nothing. Another club's or an unknown batch → `404 NOT_FOUND`. The `batchId` is the one `POST /message-templates/{id}/send` answers and the log rows carry.
+
+## 2026-11-14 · PAY-10 · Saving Stripe keys tests them; test mode after live keys needs an override on prod
+
+**No operations, schemas or error codes added; `PlatformProviderRequest` gains an optional `testModeOverride`; 1 operation description and its 422 error list changed (`PUT /platform/clubs/{id}/payment-providers/{provider}`).**
+
+- `PUT /platform/clubs/{id}/payment-providers/{provider}` (STRIPE): a save with a new `secretKey` runs the connection test with that key before anything is written; a key Stripe refuses or cannot be reached with answers `422 STRIPE_CONNECTION_FAILED` (now listed for the route) and nothing is saved or audited; a passed test is recorded (`lastTestAt`, `accountIdMasked` in the response). On the `prod` profile, a club whose saved Stripe keys are live switches to `mode: test` only with `testModeOverride: true`; otherwise `422 PROVIDER_CONFIG_INVALID` with `details {field: mode, reason: LIVE_KEYS_SAVED}`. The field is ignored elsewhere.
+
+## 2026-11-14 · PAY-09 · Only a card payer opens their own card setup
+
+**No operations, schemas or error codes added; 1 operation description and its 409 error list changed (`POST /me/card-setup`).**
+
+- `POST /me/card-setup`: only a caller whose current payment method is `CARD` (a usable card or one marked invalid) opens a setup session; a `SEPA_DD`, `MANUAL` or method-less caller gets `409 INVALID_STATE` (now listed with the route's 409 codes), with nothing written and no provider call. `POST /members/{id}/card-setup-link` (ADMIN) is unchanged and still moves any member to card. The member app shows the entry only to card payers.
+
+## 2026-11-14 · PAY-06 · A Stripe dispute flags the card payment it disputes
+
+**No operations or error codes added; 1 schema added (`PaymentDispute`); `UpfrontPayment` and `Collection` gain an optional, nullable `dispute`.**
+
+- Every response that carries an `UpfrontPayment` (`GET /upfront-payments`, D10's «Pagaments a l'acte»; `POST /upfront-payments`) or a `Collection` (the invoice's `collections[]`: `GET /invoices/{id}`, D6's drawer, and the invoice actions that answer the invoice): `dispute {providerRef, status, reason?, amount, openedAt, closedAt?}` (`providerRef` is Stripe's dispute id), null without one. It is set by the Stripe webhook's `charge.dispute.created`, `.updated` and `.closed` (S12 R-12-21) on every up-front payment a Checkout settled with the disputed PaymentIntent, or on the invoice's card collection; `status` and `reason` are Stripe's, `closedAt` is set when Stripe closes it (`won`, `lost`, `warning_closed`). No status, pack, booking or invoice changes with it. The first event of a dispute notifies the admins (N-56, new `PaymentDisputed` event).
+
+## 2026-11-14 · PAY-04 · An applicant who backs out of Stripe Checkout can pay again at once
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /checkout-sessions`).**
+
+- `POST /checkout-sessions` (signup checkout): a request with another `Idempotency-Key` for rows that wait for the member's own open signup checkout (not past its `expiresAt`) no longer answers `409 INVALID_STATE` until that checkout lapses after 24 h. It first expires that checkout at the provider, then on our side (its rows go back to `DUE`), and answers `201` with a new checkout for the same rows. When the provider does not expire it (paid meanwhile, or the provider does not answer) the checkout stays open and the request answers `409 INVALID_STATE`, as before. The same key retried after a lost answer still returns its own checkout. The `bookingId` and `upfrontPaymentIds` checkouts are unchanged.
+
+## 2026-11-14 · PRIV-05 · The onboarding image box starts ticked only for the member's own grant
+
+**No operations, schemas or error codes added; 1 schema property description changed (`OnboardingState.imageConsent`).**
+
+- `GET /me/onboarding` and `PUT /me/onboarding` (`OnboardingState.imageConsent`): `true` only when the image permission in force was granted by the caller's own account (its onboarding, or a sign-up or readmission sent from its app); `false` when it is refused; `null` when nothing is recorded or when the grant was recorded by the migration, a data operation, staff (D10, impersonation) or a public sign-up. Such a grant used to read `true` and pre-tick the box. The stored value is unchanged and still changes only when the member sends `imageConsent`.
+
+## 2026-11-14 · PRIV-04 · An erasure waits while a SEPA collection is refundable
+
+**No operations, schemas or error codes added; 2 operation descriptions changed (`POST /members/{id}/erasure`, `POST /accounts/{id}/erasure`).**
+
+- `POST /members/{id}/erasure` and `POST /accounts/{id}/erasure`: a SEPA collection of the member (of an invoice they pay, in a remittance not rolled back) whose collection date is less than 8 weeks ago no longer lets the erasure run: the request is still created (`201`), with `status: BLOCKED`, `blockReasons: ["SEPA_REFUND_WINDOW"]` and `executeAt` no earlier than the start (club-local) of the first day after the window, when the daily run erases it. That reason never appears in `422 ERASURE_BLOCKED {reasons}`, which lists only the reasons that refuse the request. `GET /members/{id}/erasure` shows it in `blockReasons`; the request can be cancelled like any `BLOCKED` one. A request already `SCHEDULED` that meets such a collection when it runs goes `BLOCKED [SEPA_REFUND_WINDOW]` and is retried daily.
+
+## 2026-11-14 · SEPA-10 · The simulation compares its total with the previous month's run
+
+**No operations or error codes added; 1 schema added (`SimulationComparison`); `BillingSimulation` and `PeriodSimulation` gain an optional `comparison`; 3 operation descriptions changed (`POST /billing/simulations`, `GET /billing/periods/{period}`, `POST /billing/runs`); 1 parameter added (`billing.totalDifferenceConfirmPercent`, int, 20, 0–100, club-editable).**
+
+- `POST /billing/simulations` and `GET /billing/periods/{period}` (`simulation`): `comparison {previousPeriod, previousTotal?, difference?, differencePercent?, thresholdPercent, secondConfirmationRequired}` — the total of the previous month's live run over all its providers (null without one, or in another currency), the signed difference with `kpis.total` and its percentage of the previous total (one decimal), the club's `billing.totalDifferenceConfirmPercent` when simulated, and whether D6's generate confirmation must ask a second explicit confirmation (the difference, up or down, is above the threshold, or there is no previous total). Absent for a simulation stored before this change. `POST /billing/runs` is unchanged: the confirmations are the dialog's.
+
+## 2026-11-14 · SEPA-09 · The accounting export adds the last collection's status and the return date
+
+**No operations, schemas or error codes added; 1 operation description changed (`GET /billing/exports`).**
+
+- `GET /billing/exports` (`listKey = accounting`): after the sixteen existing columns, unchanged, two more: the status of the receipt's last collection attempt (`lastCollectionStatus`, in words: pending, submitted, collected, failed, refunded) and its return date (`failedAt`, the day the receipt was marked unpaid; empty without one). A receipt settled and later returned keeps its collection date and shows the failure beside it.
+
+## 2026-11-14 · SEPA-06 · Every remittance file has its own name; a rolled-back one is named cancelled
+
+**No operations, schemas or error codes added; 3 operation descriptions changed (`GET /remittances/{id}/file`, `GET /remittances/{id}/spreadsheet`, `GET /remittances`).**
+
+- `GET /remittances/{id}/file`: `fileName` and the download's `Content-Disposition` are `remesa-{period}-{seq}.xml`, `seq` being the sequence of the remittance's `MsgId` (`{clubSlug}-{period}-{seq}`), so the month generated again after a rollback gets another name (`remesa-2026-09-2.xml`); it was `remesa-{period}.xml` for every remittance of the month. A `ROLLED_BACK` remittance's file is still served, named `remesa-{period}-{seq}-ANULLADA-NO-PUJAR.xml` (cancelled, do not upload it to the bank). `GET /remittances/{id}/spreadsheet` names its workbook the same way with `.xlsx`.
+
+## 2026-11-14 · SEPA-05 · The collection date follows the TARGET calendar
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /billing/runs`), 2 schema descriptions changed (`BillingRunRequest.collectionDate`, `SimulationKpis.collectionDate`).**
+
+- `POST /billing/runs`: the default `collectionDate` (`billing.sepa.collectionDayOfMonth` of the billed month) moves to the next TARGET business day when it falls on a weekend, 1 January, Good Friday, Easter Monday, 1 May, 25 or 26 December; `kpis.collectionDate` of the simulation shows the same date. A `collectionDate` the admin gives must be a TARGET business day, otherwise `400 VALIDATION_ERROR {field: collectionDate, fieldErrors: [{field: collectionDate, code: NOT_BUSINESS_DAY}], nextBusinessDay}`; nothing is written. The two business days of lead time are TARGET business days, so `422 COLLECTION_DATE_TOO_SOON`'s `earliest` is always one (a run on 30-12-2026 gives 2027-01-04, it was 2027-01-01).
+
+## 2026-11-13 · AUTHZ-05 · Every write of a support access is audited
+
+**No operations, schemas or error codes added; 1 enum value added (`AuditAction`: `SUPPORT_WRITE`).**
+
+- S17 R-17-10, S14 R-14-09: a `POST`, `PUT`, `PATCH` or `DELETE` made with a support token and answered 2xx that left no audit entry of its own (its service is not audited) is recorded `SUPPORT_WRITE` in the club's audit: `entityType = ImpersonationGrant` (the support access), `origin = PLATFORM_SUPPORT`, `actorRole = PLATFORM`, `details {method, route, path, status}`, no `changes`. `GET /audit-entries` (and its `filter=action:eq:SUPPORT_WRITE`) lists it; `GET /platform/audit-entries` does not. A read, a refused write and the replay of an `Idempotency-Key` write none; an audited write keeps its own entry only.
+
+## 2026-11-13 · AUTH-01 (c) · A recent sign-in for exports, remittance files, bank accounts and payment providers
+
+**No operations or schemas added; 1 error code added (`RECENT_LOGIN_REQUIRED`, 403, `details.maxAgeMinutes`); 25 operations gain it in their 403 (24 routes with `@RecentLogin`, and `PATCH /members/{id}` when it carries `paymentMethod`); 1 operation description changed (`PATCH /members/{id}`).**
+
+- S01 R-01-18: a staff caller (ADMIN or INSTRUCTOR of the club, AGILITYHUB_ADMIN; a support token carries its platform administrator's sign-in) reaches these operations only within 15 minutes of the sign-in that opened its session (the access token's `auth_time`; a refresh, a profile switch or a handoff keeps it): `GET`/`POST /members/export`, `/dogs/export`, `/audit-entries/export`; `GET /activities/export`, `/activity-registrations/export`, `/invoices/export`, `/notifications/export`, `/training-bookings/export`, `/instructor/week/export`, `/billing/exports`; `GET /exports`, `/exports/{id}`, `/exports/{id}/download`; `POST /members/{id}/data-export`, `/me/data-export`; `GET /platform/clubs/{clubId}/migrations/{runId}/report`; `GET /remittances/{id}/file`, `/remittances/{id}/spreadsheet`; `PATCH /members/{id}/payment-method` and `PATCH /members/{id}` with `paymentMethod`; `PUT`/`DELETE /platform/clubs/{id}/payment-providers/{provider}`. Otherwise `403 RECENT_LOGIN_REQUIRED {maxAgeMinutes: 15}`, after the route's role, tenant, module, support and impersonation checks (a caller without the role keeps its `403 FORBIDDEN`). The client signs in again (the password, or a `LOGIN` sign-in link for an account without one) and repeats the call. A member without a staff role is never asked.
+
+## 2026-11-13 · AUTH-01 (b) · Staff passwords of 12 characters at least
+
+**No operations, schemas or error codes added; `PASSWORD_TOO_SHORT` gains `details.minLength`; 1 operation description changed (`PUT /me/password`).**
+
+- `PUT /me/password`: a staff account (ADMIN or INSTRUCTOR in any club, in any membership status but ERASED, or AGILITYHUB_ADMIN) sets or changes its password to 12 characters (code points) at least, or `auth.passwordMinLength` when that is higher; a member keeps `auth.passwordMinLength` (8). `400 PASSWORD_TOO_SHORT` now carries `details.minLength`, the account's minimum. Existing passwords stay valid.
+
+## 2026-11-13 · AUTH-01 (a) · Back-office sessions end 12 hours after sign-in
+
+**No operations, schemas or error codes added; 1 operation description changed (`POST /oauth2/token`, and its `Set-Cookie` header).**
+
+- `POST /oauth2/token`: a `clubs-admin` session (a club's back office and the console) ends 12 hours after the sign-in (password, sign-in link or handoff) that opened it, however often it is refreshed. A refresh no longer slides past that end: the `ah_refresh` cookie's `Max-Age` and the access token's `exp` stop there, and a refresh after it answers `400 REFRESH_EXPIRED`, also for a session issued before this change with a later `expiresAt`. `clubs-app`, `id-web` and the BODY clients keep the sliding `auth.sessionDays`.
+
+## 2026-11-13 · AUTH-03 · The member record shows a failed access e-mail
+
+**No operations added; 1 schema property added (`MemberLogin.accessEmailFailedAt`, required, `date-time | null`); no error codes added.**
+
+- `GET /members/{id}` (ADMIN), `login` block: `accessEmailFailedAt` is the instant the account's last access or recovery e-mail (N-25 `LOGIN`/`RESET`, N-27) finally failed, after its single retry on a provider timeout or 5xx; `null` when none failed, or once a later one was accepted by the provider or the login address changed. Nothing else changes; `POST /auth/magic-link` still answers `202`.
+
+## 2026-11-13 · AUTHZ-02 · The instructor's members: ACTIVE and PENDING only, without the postal address
+
+**No operations added; 2 schema properties removed (`address` of `MemberInstructorView` and `MemberInstructorListItem`); `address` removed from the `x-fields` of `GET /members` and `GET`/`POST /members/export`; no error codes added; 3 operation descriptions changed.**
+
+- `GET /members` and `GET /members/filter-values` as an INSTRUCTOR: only ACTIVE and PENDING members are listed and counted; `fields=address`, `fields=city|postalCode`, the `city`/`postalCode` filters and `sort=city` → `400 INVALID_FILTER`. The ADMIN's list is unchanged.
+- `GET /members/{id}` as an INSTRUCTOR: `MemberInstructorView` without `address`; a member whose status is LEFT or INACTIVE → `404 NOT_FOUND`. The ADMIN's `Member` is unchanged.
+
+## 2026-11-13 · PAY-02 · Failed Stripe events retried for about a day and listed to the admin
+
+**1 operation added (`GET /billing/stripe-events`); 2 schemas added (`StripeEventListItem`, `StripeEventPage`); no error codes added; 1 operation description changed (`POST /webhooks/stripe/{clubId}`).**
+
+- New `GET /billing/stripe-events` (ADMIN, module `BILLING`, no impersonation; universal list, `page`/`size`/`sort=receivedAt`/`fields`, newest `receivedAt` first; no filter and no `q` → `400 INVALID_FILTER`; `200 StripeEventPage`): the club's Stripe events whose processing failed (`outcome = FAILED`), each `{id (Stripe's evt_…), type, receivedAt, attempts, nextAttemptAt?, processedAt?}` — `nextAttemptAt` while it is still retried, `processedAt` once its retries ran out; `attempts` is 0 when only provider outages stopped it. Never the stored recovery data.
+- `POST /webhooks/stripe/{clubId}`: a new delivery of an event recorded as `FAILED` is no longer «200 with no effect»: it goes back in the queue (no attempts) and is processed; any other duplicate still has no effect. A failed processing is retried after 1 min, 5 min, 15 min, 30 min, 1 h, 2 h, 4 h, 8 h and 8 h (ten attempts, a constant; the club's `billing.stripeMaxAttempts` no longer applies to webhooks); a provider outage (connection error, 5xx, 401/403/429) spends no attempt and waits 5 min. Responses unchanged.
+
+## 2026-11-13 · SEPA-04 (b) · Bank returns of a remittance in one request; a returned receipt re-presented
+
+**1 operation added (`POST /remittances/{id}/returns`); 2 schemas added (`RemittanceReturnsRequest`, `RemittanceReturnsResult`); 1 schema property added (`InvoiceFailureRequest.includeInNextRun`, optional, `boolean | null`); no error codes added; 1 operation description changed.**
+
+- New `POST /remittances/{id}/returns` (ADMIN, module `BILLING`, no impersonation; `Idempotency-Key` required; body `{invoiceIds[], reason, at, includeInNextRun?}`; `200 RemittanceReturnsResult {returned, invoices[]}`): several bank returns of one remittance, all or none, each as `POST /invoices/{id}/failure` makes it (its own `INVOICE_MARKED_FAILED` entry), with ONE N-10 to the admins for the request (new event `InvoicesFailed{remittanceId, invoiceIds, provider, reason}`; each receipt's `InvoiceFailed` carries `summarized: true` and gives no N-10 of its own). `400 VALIDATION_ERROR` (`{field: invoiceIds}`: a receipt whose SEPA collection is not of this remittance; `{field: includeInNextRun}`; `at` after today) · `404 NOT_FOUND` · `409 INVALID_STATE {status}`.
+- `POST /invoices/{id}/failure` and the new route take `includeInNextRun`: `true` leaves a returned `PERIODIC` receipt `FAILED` waiting for the next run's remittance, which presents it again (a new `SEPA_XML` attempt with the member's current mandate; the simulation previews it); on a manual receipt → `400 VALIDATION_ERROR {field: includeInNextRun}`; absent or `false` → it waits for none. A rollback of that run puts it back `FAILED` in its earlier remittance, still waiting.
+
+## 2026-11-13 · SEPA-04 (a) · Undo «sent to the bank»
+
+**1 operation added (`POST /remittances/{id}/submission-undo`); 1 schema added (`SubmissionUndoRequest`); 1 enum value added (`AuditAction`: `REMITTANCE_SUBMISSION_UNDONE`); no error codes added.**
+
+- New `POST /remittances/{id}/submission-undo` (ADMIN, module `BILLING`, no impersonation; `Idempotency-Key` required; body `{reason}`, 1–500 characters; `200 Remittance`): a remittance marked sent whose file did not reach the bank goes back to `GENERATED`, its `submittedAt` and `submittedByAccountId` removed, audited `REMITTANCE_SUBMISSION_UNDONE` with the reason. Only before its collection date (club-local) and while every receipt of the remittance is still `COLLECTING` in it, its attempt there open and its last one. `400 VALIDATION_ERROR` (blank reason) · `404 NOT_FOUND` · `409 INVALID_STATE {status}` (not `SUBMITTED`) / `{reason: COLLECTION_DATE_PASSED}` / `{reason: INVOICE_CHANGED, invoiceIds}` · `409 STALE_VERSION`. Afterwards the run is rollbackable again (`POST /billing/runs/{id}/rollback`) and `GET /billing/periods/{period}` shows `submissionDue` again.
+
+## 2026-11-13 · COMM-03 · Staff actions may skip the member's notice
+
+**No operations added; 1 schema added (`PaymentMethodUpdate`); 6 schema properties added (`notifyMember`, optional, `boolean | null`, on `BookingRequest`, `ClaimRequest`, `BookingCancellationRequest`, `TrainingBookingRequest`, `TrainingCancellationRequest`, `DogLevelRequest`); 1 error code added to 5 operations (`403 FORBIDDEN`); 7 operation descriptions changed.**
+
+- `POST /bookings`, `POST /waitlist-entries/{id}/claim`, `POST /bookings/{id}/cancellation`, `POST /training-bookings` and `POST /training-bookings/{id}/cancellation`: `notifyMember: false` books or cancels for the member without its notice (N-36, N-47; also the cancellation of a swap). Only an ADMIN's impersonation token may send it; the member's own token, an instructor's booking delegation or the instructor's notice get `403 FORBIDDEN` and nothing changes. Absent or `true` notifies as before.
+- `PATCH /dogs/{id}/level` (`DogLevelRequest.notifyMember`) and `PATCH /members/{id}/payment-method` (body schema now `PaymentMethodUpdate` = `PaymentMethodPatch` + `notifyMember`; a non-boolean value is `400 VALIDATION_ERROR`): `false` makes the change without N-09 / N-38.
+- The events (`BookingCreated`, `BookingCancelled`, `TrainingBooked`, `TrainingCancelled`, `DogLevelChanged`, `MemberPaymentMethodChanged`) carry `notifyMember: false` and the action's audit entry `details.notifyMember: false`.
+
+## 2026-11-13 · PRIV-02 · A manual retention sweep needs a confirmed dry run
+
+**No operations added; 1 schema added (`JobRunConfirmation`); 1 schema property added (`JobTriggerRequest.confirmation`, optional, nullable); 1 error code added to 2 operations (`409 SIMULATION_STALE`); 2 operation descriptions changed.**
+
+- `POST /jobs/{name}/trigger` (ADMIN) and `POST /platform/clubs/{clubId}/jobs/{name}/trigger` (AGILITYHUB_ADMIN): a real run (`dryRun: false`) of `retention-sweep` must carry `confirmation {dryRunId, counters}`: the `runId` of a `SUCCEEDED` dry run of the same process in the same club started at most 30 minutes before, and the `effects.counters` it returned. Only the `WOULD_*` counters other than zero are compared: with the dry run's, and, under the process lock before anything is written, with those of a plan made at that moment. Otherwise nothing runs and nothing is audited: `409 SIMULATION_STALE {reason: DRY_RUN_REQUIRED | COUNTS_MISMATCH | PLAN_CHANGED}`. A dry run and the other processes ignore `confirmation`. The sweep's dry run also counts the audit entries its purge would remove (`WOULD_PURGE_AUDIT_ENTRIES`).
+- Not in the contract but visible through it: `audit.retentionYears`, `rgpd.retentionYearsAfterLeave` and `rgpd.erasureMinDaysAfterLeave` have catalogue minimums 6, 1 and 30 (`constraints.min` of `GET /parameters`); a lower value is `400 PARAMETER_INVALID`. The sweep never deletes the XML file of a remittance still `GENERATED`.
+
+## 2026-11-13 · WEB-01 · The D10 welcome is limited per club
+
+**No operations, schemas or error codes added; 1 operation description changed.**
+
+- `POST /members/{id}/access-resend` is D10's «Envia la benvinguda», the welcome e-mail (N-27, variant `ADMIN_WELCOME`) sent only when an ADMIN asks, one member at a time. Its `429 RATE_LIMITED` (`details.retryAfter`) is now per address (10/h, as before) and per club (`core.security.rate-limits.access-resend-club`, 60/h), no longer per the administrator's IP: that bucket is left to the members' own `POST /auth/magic-link` requests from the club's network.
+
+## 2026-11-13 · AUTH-02 · An administrator changes a member's login e-mail
+
+**1 operation added (`POST /members/{id}/login-email`); 2 schemas added (`LoginEmailChangeRequest`, `MemberLogin`); 1 schema property added (`Member.login`, optional, nullable); 1 enum value added (`AuditAction`: `ACCOUNT_EMAIL_CHANGED`); no error codes added.**
+
+- New `POST /members/{id}/login-email` (ADMIN; no impersonation, no support access: `403 SUPPORT_RESTRICTED`; body `{email}`, no `Idempotency-Key`; `202 AccessResendResponse {sentTo}` = the new address): mails a link to the NEW address only (N-25, variant `EMAIL_CHANGE`, `/activacio?t=…&purpose=email_change`, valid `auth.welcomeLinkDays`); nothing goes to the current address and nothing changes until the link is used through the magic-link grant. Then the account's login e-mail becomes the new address, verified, its `emailStatus` is cleared and `ACCOUNT_EMAIL_CHANGED` is audited as the requesting ADMIN's. A newer request ends an unused older link. `400 VALIDATION_ERROR` (invalid address; `fieldErrors[{field: email, code: UNCHANGED}]` for the current one) · `403 FORBIDDEN` (the account also belongs to another club or has a platform role) · `404 NOT_FOUND` · `409 MEMBER_ERASED | INVALID_STATE` · `422 MEMBER_NOT_ACTIVE` · `429 RATE_LIMITED`. An address of another account gets no link and the same `202`; a link whose address was taken in between answers `400 MAGIC_LINK_INVALID` at `/oauth2/token`.
+- `Member` (`GET`/`PATCH /members/{id}`) gains `login {email, emailStatus: BOUNCED | COMPLAINED | null}`, the account's login e-mail and its suppression mark; null without an account or after erasure.
+
+## 2026-11-12 · REL-02 · The health names the build's commit
+
+**No operations or error codes added; 1 schema property added (`HealthResponse.commit`, required, `string | null`); 1 operation description changed.**
+
+- `GET /health` (200 UP and 503 DOWN) also returns `commit`: the git commit the running build was made from, as CI passes it to the image build; `null` for a build given none (a local build). The snapshot was edited by hand: regenerate it with `bin/openapi-snapshot` and compare before merging.
+
+## 2026-11-12 · COMM-05 · Push endpoints only on a push service's address
+
+**No operations, schemas or error codes added; 1 operation description changed.**
+
+- `POST /push-subscriptions` also refuses, with `422 PUSH_SUBSCRIPTION_INVALID {field: endpoint}`, an `https` endpoint whose host is an IP literal, a single-label name or a `localhost` name, or whose port is not 443: no browser's push service uses one, and the sender would otherwise call the server's own network. The snapshot's description was edited by hand: regenerate it with `bin/openapi-snapshot` and compare before merging.
+
+## 2026-11-12 · SCH-01 · An administrator restores a cancelled class
+
+**1 operation added (`POST /class-sessions/{id}/restoration`); 1 enum value added (`AuditAction`: `CLASS_RESTORED`); no schemas or error codes added.**
+
+- New `POST /class-sessions/{id}/restoration` (ADMIN; body `{}`, no `Idempotency-Key`; `200` `ClassSession`): a `CANCELLED` class whose `cancellation.reason` is not `DELETED` and whose start is still ahead becomes `ACTIVE` again, with `cancellation: null` and `counters {booked: 0, waiting: 0}`. The bookings, waiting-list entries and holds its cancellation removed are not restored and nobody is notified. `404 NOT_FOUND` · `409 INVALID_STATE` (not `CANCELLED`, `DELETED` or no reason, already started, a repeat) · `409 CLASS_CONFLICT` (another `DRAFT`/`ACTIVE` class of the ring at that time) · `422 RING_BLOCKED` (an `ACTIVE` ring block) · `422 RING_HAS_BOOKINGS {bookings[]}` (a live training booking, never cancelled here) · `403 IMPERSONATION_DENIED`. Audited `CLASS_RESTORED`; publishes `ClassSessionUpdated{classId, diff: {state}, bookedCount: 0}`.
+- The snapshot was edited by hand for this change (no Docker where it was written): regenerate it with `bin/openapi-snapshot` and compare before merging.
+
 ## 2026-10-30 · Onboarding consent readback
 
 - `GET/PUT /me/onboarding` return optional nullable `imageConsent`, preserving an existing image permission when the request omits it. `consentAccepted` and `consentVersion` remain required request fields; acceptance must match the current pending policy. When all policies are already accepted, profile completion can send `false` and an empty version without recording a new consent. Impersonated sessions remain unable to complete or postpone personal consent.

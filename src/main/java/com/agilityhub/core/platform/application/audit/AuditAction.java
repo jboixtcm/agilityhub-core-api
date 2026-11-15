@@ -4,6 +4,8 @@ package com.agilityhub.core.platform.application.audit;
 public enum AuditAction {
     ACTIVITY_PUBLISHED, ACTIVITY_CANCELLED, ACTIVITY_UPDATED, ACTIVITY_REGISTERED_BY_CLUB, ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB,
     WEEK_VALIDATED, CLASS_CANCELLED, CLASS_UPDATED_WITH_BOOKINGS, CLASS_RISK_EXEMPTION_CHANGED, RING_BLOCK_CREATED, RING_BLOCK_CANCELLED,
+    /** S06 (SCH-01, owner request 12-11-2026): a CANCELLED class restored to ACTIVE by an ADMIN. */
+    CLASS_RESTORED,
     TEMPLATE_CLASS_DELETED, TEMPLATE_BAND_DELETED,
     MEMBER_VALIDATED, SIGNUP_REJECTED, SIGNUP_SUBMITTED,
     MEMBER_UPDATED, SIGNUP_EDITED, MEMBER_PAYMENT_METHOD_CHANGED, MEMBER_STATUS_CHANGED,
@@ -23,11 +25,21 @@ public enum AuditAction {
      * `details {batchId, recipientCount, filters, selection}` (E7-T07).
      */
     ANNOUNCEMENT_SENT,
+    /**
+     * S11 R-11-13 (COMM-07, owner decision 13-11-2026): «Reenvia els fallits» of an announcement, the failed e-mails of the batch
+     * queued again; an «event» action on the template, no `changes`, `details {batchId, resent}`.
+     */
+    ANNOUNCEMENT_RESENT,
     MIGRATION_APPLIED,
     PLATFORM_ROLES_CHANGED,
     ONBOARDING_COMPLETED,
     IMPERSONATION_STARTED,
     ACCOUNT_EMAIL_STATUS_CHANGED,
+    /**
+     * S03 R-03-06b (AUTH-02, owner decision 13-11-2026): a member's login e-mail changed by an ADMIN from D10, written when the
+     * link mailed to the new address is used (`entityType = Account`, `changes[]` of `email` and `emailStatus`; the ADMIN's entry).
+     */
+    ACCOUNT_EMAIL_CHANGED,
     PARAMETER_CHANGED,
     CLUB_UPDATED,
     CLUB_MODULES_CHANGED,
@@ -40,6 +52,12 @@ public enum AuditAction {
      * Round 2 (E123): a live support access ended by the club's ADMIN (R-17-10 «revocable»).
      */
     CLUB_DOMAIN_CHANGED, SUPPORT_ACCESS_STARTED, SUPPORT_ACCESS_ENDED, PUBLIC_API_KEY_ROTATED,
+    /**
+     * S17 R-17-10 (AUTHZ-05, owner decision 13-11-2026): a write made with a support access (POST, PUT, PATCH or DELETE answered
+     * 2xx) that left no audit entry of its own; `entityType = ImpersonationGrant` (the support access), `details {method, route,
+     * path, status}`, `origin = PLATFORM_SUPPORT`. An «event» action: no `changes` ({@link SupportWriteAudit}).
+     */
+    SUPPORT_WRITE,
     JOB_TRIGGERED,
     /**
      * S12 (E8-T02): the invoice state actions (R-12-16, R-12-17, R-12-19), the manual adjustment invoice (R-12-19, S12 §13)
@@ -47,7 +65,9 @@ public enum AuditAction {
      */
     INVOICE_MARKED_PAID, INVOICE_MARKED_FAILED, INVOICE_CANCELLED, INVOICE_CREATED_MANUAL, REMITTANCE_GENERATED, REMITTANCE_ROLLED_BACK,
     /** S12 R-12-15 (E8-T03): the remittance marked as sent to the bank (`GENERATED → SUBMITTED`, `submittedAt`). */
-    REMITTANCE_SUBMITTED, PAYMENT_REFUNDED, PAYMENT_REFUND_INTERVENTION, CARD_CHARGES_STARTED, UPFRONT_PAYMENT_RECORDED,
+    REMITTANCE_SUBMITTED,
+    /** S12 R-12-15 (SEPA-04, owner 13-11-2026): the admin undoes «sent to the bank» (`SUBMITTED → GENERATED`) with a reason. */
+    REMITTANCE_SUBMISSION_UNDONE, PAYMENT_REFUNDED, PAYMENT_REFUND_INTERVENTION, CARD_CHARGES_STARTED, UPFRONT_PAYMENT_RECORDED,
     /** S12 R-12-24 and S13 lifecycle actions (E8-T05), already in S14 R-14-09's closed list. */
     PACK_ADJUSTED, MEMBER_PLAN_CHANGED, INACTIVITY_RESOLVED, LEAVE_RESOLVED, LEAVE_CANCELLED,
     /** S16 R-16-04 (E9-T02): a ring geometry saved or removed (`entityType = RingGeometry`, `entityId` = the ring). */

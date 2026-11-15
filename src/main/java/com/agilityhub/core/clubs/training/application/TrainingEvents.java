@@ -29,6 +29,8 @@ public class TrainingEvents {
         var payload = new LinkedHashMap<String, Object>();
         payload.put("trainingBookingId", b.id()); payload.put("slotId", b.slotId()); payload.put("ringId", b.ringId());
         payload.put("memberId", b.memberId()); payload.put("dogId", b.dogId()); payload.put("origin", origin(actor).name());
+        // COMM-03: an ADMIN acting for the member asked not to notify (N-47 reads it).
+        if (!actor.notifies()) { payload.put("notifyMember", false); }
         return payload;
     }
     private String publish(TrainingEvent.Kind kind, LinkedHashMap<String, Object> payload, TrainingBooking b, TrainingActor actor) {

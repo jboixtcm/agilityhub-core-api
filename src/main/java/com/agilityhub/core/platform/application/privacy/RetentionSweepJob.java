@@ -21,10 +21,14 @@ import org.springframework.stereotype.Component;
  * once (a blocked one stays `BLOCKED` for the console); (c) and (e) are the owning contexts' {@link RetentionTask}s; (d) audit
  * entries older than `audit.retentionYears` are purged. (f) security events expire through their TTL index (R-14-17). E11-T16:
  * the erased members' outbox records and run traces left after their erasure are one more task ({@link PrivacyTraces}).
+ * PRIV-02 (owner's decision of 13-11): the retention keys have floors in the catalogue, a dry run counts the audit entries to
+ * purge, a manual run needs a confirmed dry run (S15 R-15-09) and (c) never deletes the file of a remittance still `GENERATED`.
  */
 @Component
 public class RetentionSweepJob implements Job {
     static final String PROCESS = "retention-sweep";
+    /** PRIV-02: the dry-run counter of the audit entries the `PURGE_AUDIT` item would remove. */
+    static final String AUDIT_ENTRIES_PLANNED = "WOULD_PURGE_AUDIT_ENTRIES";
     private final ErasureDirectory directory;
     private final ErasureRequestRepository requests;
     private final ErasureService erasures;
@@ -53,9 +57,17 @@ public class RetentionSweepJob implements Job {
         }
         for (var task : tasks) { task.due(context).forEach(id -> items.add(new JobItem(task.entityType(), id, task.action()))); }
         Instant auditCutoff = context.localDate().minusYears(auditYears).atStartOfDay(context.zone()).toInstant();
-        if (audit.countBefore(auditCutoff) > 0) { items.add(new JobItem("AuditEntry", auditCutoff.toString(), "PURGE_AUDIT")); }
+        long auditEntries = audit.countBefore(auditCutoff);
+        if (auditEntries > 0) {
+            items.add(new JobItem("AuditEntry", auditCutoff.toString(), "PURGE_AUDIT"));
+            // PRIV-02: one item purges them all, so a dry run also counts the entries it would remove.
+            if (context.dryRun()) { context.recorder().count(AUDIT_ENTRIES_PLANNED, auditEntries); }
+        }
         return items;
     }
+
+    /** PRIV-02: a manual run deletes data only after a dry run and the confirmation of its counts (S14 R-14-16, S15 R-15-09). */
+    @Override public boolean manualRunNeedsConfirmedDryRun() { return true; }
 
     @Override public JobEffect apply(JobContext context, JobItem item) {
         switch (item.action()) {

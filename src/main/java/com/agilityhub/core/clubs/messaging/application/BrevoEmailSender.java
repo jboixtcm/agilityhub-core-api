@@ -17,6 +17,11 @@ import java.util.function.Predicate;
 /** Brevo's transactional API; acceptance is SENT, never evidence of delivery. */
 public final class BrevoEmailSender implements EmailSender {
     public static final String SUPPRESSED = "Brevo recipient suppressed";
+    /**
+     * COMM-07: Brevo's error code for a spent sending allowance, appended to the answer's `Brevo HTTP nnn` when its body says so
+     * (only this fixed code is ever read from a body): the dispatcher retries it later instead of failing the delivery.
+     */
+    public static final String NOT_ENOUGH_CREDITS = "not_enough_credits";
     private final HttpClient client;
     private final ObjectMapper mapper;
     private final URI endpoint;
@@ -51,7 +56,7 @@ public final class BrevoEmailSender implements EmailSender {
                     .header("Content-Type", "application/json").header("Accept", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofByteArray(mapper.writeValueAsBytes(body))).build();
             var response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            if (response.statusCode() != 201) { return SendResult.failed("Brevo HTTP " + response.statusCode()); }
+            if (response.statusCode() != 201) { return SendResult.failed("Brevo HTTP " + response.statusCode() + (outOfCredits(response) ? " " + NOT_ENOUGH_CREDITS : "")); }
             if (response.body().length > 8192) { return SendResult.failed("Brevo invalid response"); }
             var json = mapper.readTree(response.body());
             if (json == null || !json.isObject()) { return SendResult.failed("Brevo invalid response"); }
@@ -61,6 +66,14 @@ public final class BrevoEmailSender implements EmailSender {
         } catch (HttpTimeoutException failure) { return SendResult.failed("Brevo timeout"); }
         catch (InterruptedException failure) { Thread.currentThread().interrupt(); return SendResult.failed("Brevo interrupted"); }
         catch (IOException failure) { return SendResult.failed("Brevo transport failure"); }
+    }
+    /** A 4xx whose small JSON body carries Brevo's `code` `not_enough_credits`; never anything else of the body. */
+    private boolean outOfCredits(HttpResponse<byte[]> response) {
+        if (response.statusCode() < 400 || response.statusCode() >= 500 || response.body() == null || response.body().length > 8192) { return false; }
+        try {
+            var json = mapper.readTree(response.body());
+            return json != null && json.isObject() && NOT_ENOUGH_CREDITS.equals(json.path("code").asText(null));
+        } catch (IOException unreadable) { return false; }
     }
     public static String reference(String id) {
         String value = id.strip();

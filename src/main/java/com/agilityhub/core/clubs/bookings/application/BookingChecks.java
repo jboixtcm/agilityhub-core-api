@@ -14,8 +14,9 @@ import org.springframework.stereotype.Service;
 /**
  * The shared S08 check pipeline of hold, confirmation, waiting-list join and claim: load the class, the dog, its
  * owner and the booker, run {@link BookingEligibility} (R-08-04/05/06/17), reject a second live booking of the dog
- * (ALREADY_BOOKED), then evaluate the weekly limit of the class's booking week (R-08-02/03/09). The transactional callers
- * serialise the owner with {@link #lockOwner} before they count.
+ * (ALREADY_BOOKED), then evaluate the weekly limit of the class's booking week (R-08-02/03/09). The confirmation (and so
+ * the swap and the claim) also refuses a class booking over the dog's other bookings at that time ({@link #noOverlap},
+ * BOOK-02). The transactional callers serialise the owner with {@link #lockOwner} before they count.
  */
 @Service
 public class BookingChecks {
@@ -23,9 +24,11 @@ public class BookingChecks {
             BookingMemberAccess.Member booker, BookingWeeks.Week week, RelativeWeek relative, Optional<PackBalancePort.Balance> pack) { }
     private final BookingContext context; private final ClassSessionBookingAccess classes; private final BookingMemberAccess census;
     private final BookingRepository bookings; private final InactivityPort inactivity; private final PackBalancePort packs;
+    private final DogTrainingOverlapPort training;
     public BookingChecks(BookingContext context, ClassSessionBookingAccess classes, BookingMemberAccess census, BookingRepository bookings,
-            InactivityPort inactivity, PackBalancePort packs) {
+            InactivityPort inactivity, PackBalancePort packs, DogTrainingOverlapPort training) {
         this.context = context; this.classes = classes; this.census = census; this.bookings = bookings; this.inactivity = inactivity; this.packs = packs;
+        this.training = training;
     }
 
     boolean reachable(String memberId, String dogId) {
@@ -55,6 +58,18 @@ public class BookingChecks {
     public void lockOwner(Subject s) { census.lockBooking(s.owner().id()); }
     public void notBookedYet(Subject s) {
         if (bookings.live(s.session().id(), s.dog().id()).isPresent()) { throw new ApiException(ErrorCode.ALREADY_BOOKED); }
+    }
+    /**
+     * BOOK-02 (owner decision, 13-11-2026), R-08-08: the dog holds no other live class booking (ACTIVE or PAYMENT_PENDING)
+     * whose class overlaps this one, nor an ACTIVE free-training booking (S09) over it; else 422 DOG_ALREADY_BOOKED (S09's
+     * code: «the dog already has a booking at this time»). Back-to-back times do not overlap. {@code swappedBookingId} is the
+     * booking the confirmation's swap cancels in the same transaction (R-08-09), so it does not count.
+     */
+    public void noOverlap(Subject s, String swappedBookingId) {
+        var session = s.session();
+        boolean otherClass = bookings.liveOverlapping(s.dog().id(), session.startsAt(), session.endsAt()).stream()
+                .anyMatch(b -> !b.classSessionId().equals(session.id()) && !b.id().equals(swappedBookingId));
+        if (otherClass || training.dogInTraining(s.dog().id(), session.startsAt(), session.endsAt())) { throw new ApiException(ErrorCode.DOG_ALREADY_BOOKED); }
     }
     public BookingLimits.Result limit(Subject s, Instant now) { return limit(s.week().key(), s.relative(), s.dog().id(), s.owner().id(), now); }
     /** The weekly limit of one booking week for a dog and its owner (R-08-02/03/09); also the per-week input of the 04 rows. */

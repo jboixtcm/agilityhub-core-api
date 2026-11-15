@@ -8,7 +8,8 @@
     }
 }
 
-# E11-T03: baseline for static SPAs as well as API responses. CSP for SPA scripts belongs to the web build.
+# E11-T03: baseline for static SPAs as well as API responses. The SPAs' Content-Security-Policy is set on their static answers
+# only (CFG-04, `static_files`); API answers keep the Core's own policy.
 (security_headers) {
     header {
         X-Content-Type-Options nosniff
@@ -18,17 +19,28 @@
     }
 }
 
-# E9-T06 (S16 R-16-11): the build session stream takes the access token as `?access_token=` (a browser EventSource sends no
-# header). Access logging stays off (docs/DEPLOY.md: query strings carry signed capabilities); a site that turns it on imports
-# this snippet, never a bare `log`, so the token is dropped from the logged URI. Caddy already redacts Authorization and Cookie.
+# CFG-07 (owner decision of 13 Nov 2026): every site logs its requests (address, method, host, path, status, size, duration,
+# browser) as JSON to one rolled file in the `caddy-logs` volume, never to the container log. The query string is dropped from
+# every URL logged, the request's own and those of its Referer and of a Location answer: OAuth and handoff codes, signatures,
+# signed file URLs and the build-session stream's `?access_token=` (E9-T06) travel there. Caddy already redacts Authorization,
+# Cookie and Set-Cookie; the two other credential headers, the anonymous signup's X-Signup-Token and a club website's X-Api-Key,
+# are deleted. Rotation: a new file every 50 MiB, rolled files compressed, at most 30 kept and none older than 30 days
+# (the addresses are personal data). The internal ask listener below is not a public site and is not logged.
 (access_log) {
     log {
+        output file /var/log/caddy/access.log {
+            roll_size 50MiB
+            roll_keep 30
+            roll_keep_for 30d
+        }
         format filter {
             wrap json
             fields {
-                request>uri query {
-                    delete access_token
-                }
+                request>uri regexp \?.*$ ""
+                request>headers>Referer regexp \?.*$ ""
+                resp_headers>Location regexp \?.*$ ""
+                request>headers>X-Signup-Token delete
+                request>headers>X-Api-Key delete
             }
         }
     }
@@ -104,20 +116,79 @@
     }
 }
 
+# CFG-03 (owner decision of 13 Nov 2026): a request body to /api/* or /oauth2/* stops at 2 MB (2,000,000 bytes) at the proxy, on
+# every site that proxies them. Only the two signed upload PUTs legitimately take more: their bodies are files, bounded by the
+# club's files.maxSizeMb as the Core streams them. Every other body is JSON or a form far below the cap (the Core reads at most
+# 1 MiB of a keyed request, 64 KB of a public signup and 256 KB of a course model). A refused body, here or on the Core host's
+# 1 MiB webhook cap, gets the API's own answer to an oversized body: 400 VALIDATION_ERROR in the standard error envelope.
+(api_body_limit) {
+    @api_body {
+        path /api/* /oauth2/*
+        not {
+            method PUT
+            path /api/v1/attachments/uploads/* /api/v1/signup/uploads
+        }
+    }
+    request_body @api_body {
+        max_size 2MB
+    }
+    handle_errors 413 {
+        header {
+            Cache-Control "no-store"
+            X-Content-Type-Options "nosniff"
+            Content-Type "application/json; charset=utf-8"
+        }
+        respond `{"code":"VALIDATION_ERROR","message":"The request body is too large.","details":{},"traceId":"{err.id}"}` 400
+    }
+}
+
+# CFG-05: the static answers of an SPA (never the proxied API, which keeps its own headers). They are compressed and
+# revalidated on every load, the entry document at `/` included, except an existing file under /assets/ (Vite names them by
+# content hash), cached for a year. A dot path (`/.env`, `/.git/…`) is a 404, and so is a missing file with one of the listed
+# extensions (`/sitemap.xml`, `/old.js`): only a path that looks like a route falls back to index.html with 200. An existing
+# file is served: the bundle's own `robots.txt` (CFG-05), `content-security-policy.txt` (CFG-04) and `version.json` (REL-02).
+# CFG-04 (owner decision of 13 Nov 2026): every static answer carries the Content-Security-Policy of the bundle it comes from:
+# the one line its build wrote to `content-security-policy.txt` in the served root, with the sha256 of each inline script of that
+# build's index.html, so the policy and the boot script cannot drift (the web checks the file at build time, release preflight
+# again before a deploy). The file is read per request, so a new bundle brings its policy without a reload.
+(static_files) {
+    encode zstd gzip
+    header Cache-Control "no-cache"
+    @policy_id vars {http.vars.root} /srv/id
+    header @policy_id Content-Security-Policy "{file./srv/id/content-security-policy.txt}"
+    @policy_clubs vars {http.vars.root} /srv/clubs
+    header @policy_clubs Content-Security-Policy "{file./srv/clubs/content-security-policy.txt}"
+    @policy_clubsadmin vars {http.vars.root} /srv/clubsadmin
+    header @policy_clubsadmin Content-Security-Policy "{file./srv/clubsadmin/content-security-policy.txt}"
+    @dot_path path */.*
+    respond @dot_path 404
+    @asset path /assets/* /pwa/*
+    handle @asset {
+        @hashed {
+            path /assets/*
+            file
+        }
+        header @hashed Cache-Control "public, max-age=31536000, immutable"
+        file_server
+    }
+    @not_a_route path *.js *.mjs *.css *.map *.json *.txt *.xml *.html *.ico *.png *.svg *.webmanifest *.fbx *.env *.php
+    handle @not_a_route {
+        file_server
+    }
+    try_files {path} /index.html
+    file_server
+}
+
 (spa) {
+    import access_log
     import gateway_unavailable
     import security_headers
+    import api_body_limit
     import api_proxy
     handle {
         root * {args[0]}
         route {
-            @asset path /assets/* /pwa/*
-            handle @asset {
-                file_server
-            }
-            try_files {path} /index.html
-            header /index.html Cache-Control "no-cache"
-            file_server
+            import static_files
         }
     }
 }
@@ -132,9 +203,25 @@
     import spa /srv/clubsadmin
 }
 {$CORE_HOST} {
+    import access_log
     import gateway_unavailable
     @private path /internal/* /actuator/*
     respond @private 404
+    # CFG-05 (owner decision of 13 Nov 2026): every host answers robots.txt with `Disallow: /`. The SPA hosts and club aliases
+    # serve the one their bundle carries (each build writes it; release preflight refuses a bundle without it); the Core's own
+    # host serves no bundle and answers the same two lines here.
+    @robots path /robots.txt
+    header @robots Content-Type "text/plain; charset=utf-8"
+    respond @robots <<TXT
+        User-agent: *
+        Disallow: /
+
+        TXT 200
+    import api_body_limit
+    # CFG-03: the anonymous webhooks (Stripe, Brevo, SendGrid) never send more than the 1 MiB the Core reads of them.
+    request_body /webhooks/* {
+        max_size 1MiB
+    }
     reverse_proxy core:8080
 }
 
@@ -179,22 +266,18 @@ http://127.0.0.1:9080 {
         @club_admin header X-Club-App clubs-admin
         root @club_admin /srv/clubsadmin
         root * /srv/clubs
-        @asset path /assets/* /pwa/*
-        handle @asset {
-            file_server
-        }
-        try_files {path} /index.html
-        header /index.html Cache-Control "no-cache"
-        file_server
+        import static_files
     }
 }
 
 https:// {
+    import access_log
     import gateway_unavailable
     import security_headers
     tls {
         on_demand
     }
+    import api_body_limit
     import api_proxy
     handle {
         import club_spa

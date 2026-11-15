@@ -6,6 +6,12 @@ an access account, sends the N-02 `MIGRATED` email with a `WELCOME` link, and re
 accepted delivery so another run does not send it again. It never runs as a
 scheduled migration step.
 
+Since MIG-08 (owner decision of 13 Nov 2026) the command **only previews unless it
+is given `--send`**: without it (or with `--dry-run`, which means the same) it lists
+who would receive the welcome and prints the counts, and sends nothing. On the
+`prod` profile, `--send` first shows that same preview and then asks for the club
+slug on standard input; only the exact slug starts the send.
+
 This document prepares the operation. No real welcome email was sent during the
 implementation or its tests. Production execution belongs to the approved cut-over,
 after the final import, reconciliation, working club domain/app and provider checks.
@@ -27,7 +33,8 @@ bin/core migration:welcome --club=canic --dry-run
 
 Use `--option=value`, as shown. `--club canic` is not equivalent: the command
 rejects positional arguments. Do not append options it does not accept, such as
-`--apply`, `--env`, `--force`, `--resume` or `--confirm-production`.
+`--apply`, `--env`, `--force`, `--resume` or `--confirm-production`. `--send` and
+`--dry-run` together are refused.
 
 For the deployed Compose stack, the corresponding preview uses the configured
 Core image and environment without publishing ports or starting dependency
@@ -54,26 +61,38 @@ provider keys, email addresses, tokens or credential URLs into release evidence.
 
 ## Preview, then send the selected group
 
-A preview of an explicitly selected group:
+A preview of an explicitly selected group (`--dry-run` may be added; it changes
+nothing):
 
 ```sh
-bin/core migration:welcome --club=canic --only-numbers=12,24,31 --dry-run
+bin/core migration:welcome --club=canic --only-numbers=12,24,31
 ```
 
 Once that group and delivery are authorized, the corresponding send command is:
 
 ```sh
-bin/core migration:welcome --club=canic --only-numbers=12,24,31 --batch=50 --interval=60s
+bin/core migration:welcome --club=canic --only-numbers=12,24,31 --batch=50 --interval=60s --send
 ```
 
 The complete authorized population uses the same command without `--only-numbers`:
 
 ```sh
-bin/core migration:welcome --club=canic --batch=50 --interval=60s
+bin/core migration:welcome --club=canic --batch=50 --interval=60s --send
 ```
 
+On the `prod` profile a send prints the preview, then
+`Production: type the club slug to send N welcome e-mails:` and reads one line from
+standard input. Type the club slug exactly (`canic`) and press Enter to send; any
+other answer, or no input at all (closed stdin), ends the command with
+`PRODUCTION_REQUIRES_CONFIRMATION` and exit 1, and nothing is claimed or sent. Check
+that `N` and the listed members are the authorized ones before typing. Outside
+`prod` (staging, local) `--send` sends at once, without the preview.
+
 For Compose execution, retain the previous `docker compose … run … core` prefix
-and use these same options after `--core.command=migration:welcome`.
+and use these same options after `--core.command=migration:welcome`. For a send on
+production, drop `-T` and keep the terminal attached (`docker compose … run --rm
+--no-deps -e SHARED_SCHEDULING_ENABLED=false core …`) so that the slug can be typed;
+never pipe the slug in from a script or shell history.
 
 Run one operator process at a time. Concurrent claims prevent duplicate delivery
 of one account, but the pacing budget is per process; parallel processes are not
@@ -82,7 +101,8 @@ a shared rate limiter.
 | Option | Behavior |
 |---|---|
 | `--club=<slug>` | Required; resolves the club and scopes member/membership/notification reads to it. |
-| `--dry-run` | Lists aggregate eligibility and prior-attempt outcomes; no token, claim, email or batch sleep. |
+| `--dry-run` | The default (MIG-08): lists who would receive the welcome and the counts of eligibility and prior-attempt outcomes; no token, claim, email or batch sleep. |
+| `--send` | Sends (MIG-08). On the `prod` profile only after the preview and the club slug typed back on stdin. Not with `--dry-run`. |
 | `--batch=<n>` | Default 50; integer from 1 to 50. Upper bound on attempted deliveries between waits in one run. |
 | `--interval=<duration>` | Default `60s`; positive whole seconds (`s`) or minutes (`m`), at most one hour. No zero, fractions or other units. |
 | `--only-numbers=<n,n,…>` | Optional comma-separated positive member numbers. Duplicates collapse. Empty entries and zero/negative/non-numeric values fail. |
@@ -104,9 +124,20 @@ suppression are checked again before delivery.
 
 ## Read the aggregate outcome
 
-The command prints a summary such as `DRY RUN {ELIGIBLE=…}` or
-`WELCOME {SENT=…, ALREADY_SENT=…}`. Only nonzero categories appear. It prints no
-recipient names, addresses, member numbers or credential links.
+A preview prints one line per member who would receive the welcome, in send
+order (staff first), with the member number (`-` when unnumbered), the first name
+and `(staff)` for an ADMIN/INSTRUCTOR, then the summary:
+
+```text
+WOULD SEND #12 Fictional (staff)
+WOULD SEND #24 Fictional
+DRY RUN {ELIGIBLE=2, ALREADY_SENT=1}
+```
+
+A send prints only the summary, such as `WELCOME {SENT=…, ALREADY_SENT=…}`. Only
+nonzero categories appear. No output ever contains an e-mail address or a
+credential link; the preview's numbers and first names are personal data, so keep
+its output out of release evidence and shared snippets.
 
 | Result | Meaning and action |
 |---|---|
@@ -174,7 +205,11 @@ first name come from the selected tenant's records.
 Automated coverage lives in:
 
 - `MigrationWelcomeCommandTest`: argument validation, staff ordering, batch waits,
-  filtering, dry-run and summary/error behavior.
+  filtering, the default preview (who and counts), `--send`, the production typed
+  confirmation and summary/error behavior.
+- `MigrationWelcomeCommandIT`: the default preview writes no claim, token,
+  notification or email over real Mongo; a production `--send` sends only after the
+  slug is typed.
 - `MigrationWelcomeDeliveryTest`: eligibility, suppression, claim loss, ambiguous
   prior attempts and staff-role checks.
 - `MigrationWelcomeIT`: tenant selection including unnumbered members, seven-day

@@ -41,7 +41,7 @@ public class TrainingNotificationFacts implements NotificationFactsPort, Booking
         boolean club = "BACKOFFICE".equals(trigger.text("origin")) || "ADMIN".equals(trigger.text("by"));
         return switch (code) {
             case "N-06" -> booked && !club; // a club booking gets N-47 instead (S09 §8, ruling E150), as N-07 for a club cancellation
-            case "N-47" -> club;
+            case "N-47" -> club && !"false".equals(trigger.text("notifyMember")); // COMM-03: unless the ADMIN acting for the member chose not to notify
             case "N-07" -> !booked && !club && !"MEMBER_LEFT".equals(trigger.text("cancelReason"));
             default -> false;
         };
@@ -66,6 +66,12 @@ public class TrainingNotificationFacts implements NotificationFactsPort, Booking
                     .value("has_admin_text", note != null && !note.isBlank() ? "true" : "false").value("admin_text", note == null ? "" : note);
         }
         return Optional.of(builder.build());
+    }
+
+    /** COMM-10 (S11 R-11-07): a training reminder's push never reaches the device after the training starts. */
+    @Override public Optional<Instant> pushDeadline(StoredNotification notification) {
+        if (!"N-13".equals(notification.code()) || notification.subject().trainingBookingId() == null) { return Optional.empty(); }
+        return bookings.findById(notification.subject().trainingBookingId()).map(com.agilityhub.core.clubs.training.persistence.TrainingBooking::startsAt);
     }
 
     /** R-11-16: the booking of a reminder is still `ACTIVE` and starts after now. */

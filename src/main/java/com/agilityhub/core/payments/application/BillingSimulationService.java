@@ -7,7 +7,10 @@ import com.agilityhub.core.payments.domain.InvoiceAmounts;
 import com.agilityhub.core.payments.domain.InvoiceLineOrigin;
 import com.agilityhub.core.payments.domain.InvoicingRules;
 import com.agilityhub.core.payments.domain.PaymentMethodType;
+import com.agilityhub.core.payments.domain.TotalComparison;
 import com.agilityhub.core.payments.persistence.BillingDocuments.BillingLockRepository;
+import com.agilityhub.core.payments.persistence.BillingDocuments.BillingRunRepository;
+import com.agilityhub.core.payments.persistence.BillingRun;
 import com.agilityhub.core.payments.persistence.BillingDocuments.BillingSimulationRepository;
 import com.agilityhub.core.payments.persistence.BillingSimulation;
 import com.agilityhub.core.shared.application.BillingCensusAccess.BillingMember;
@@ -27,7 +30,8 @@ import org.springframework.stereotype.Service;
  * `BillingSimulation` and announced with `RemittanceSimulated`. A month more than three months ahead is `400
  * VALIDATION_ERROR` (S12 §13); the club's billing lock held by a run or a rollback is `409 BILLING_BUSY`. E8-T07 (R-12-19):
  * the waiting manual `includeInNextRun` receipts the run will remit are previewed and counted too (so D6's confirmation is the
- * remittance), and the ones it cannot remit are incidents.
+ * remittance), and the ones it cannot remit are incidents. SEPA-10 (R-12-11): it also keeps its total against the previous month's
+ * live run and whether D6 must ask a second confirmation before generating ({@link #comparison}).
  */
 @Service
 public class BillingSimulationService {
@@ -35,10 +39,11 @@ public class BillingSimulationService {
     static final int MAX_MONTHS_AHEAD = 3;
     private final InvoicingService invoicing; private final BillingSimulationRepository simulations; private final BillingLockRepository locks;
     private final BillingEvents events; private final BillingTransactions transactions; private final BillingProviderSettings providers; private final Clock clock;
+    private final BillingRunRepository runs;
     public BillingSimulationService(InvoicingService invoicing, BillingSimulationRepository simulations, BillingLockRepository locks, BillingEvents events,
-            BillingTransactions transactions, BillingProviderSettings providers, Clock clock) {
+            BillingTransactions transactions, BillingProviderSettings providers, Clock clock, BillingRunRepository runs) {
         this.invoicing = invoicing; this.simulations = simulations; this.locks = locks; this.events = events; this.transactions = transactions;
-        this.providers = providers; this.clock = clock;
+        this.providers = providers; this.clock = clock; this.runs = runs;
     }
 
     public BillingSimulation simulate(YearMonth period) {
@@ -113,7 +118,27 @@ public class BillingSimulationService {
                 new BillingSimulation.InactivityFees(inactive, fee(context, "billing.inactivityFeeFirstMonth"), fee(context, "billing.inactivityFeeFollowingMonths")),
                 collectionDate(plan).toString());
         return new BillingSimulation(UUID.randomUUID().toString(), context.clubId(), plan.period().toString(), clock.instant(), incidents, cash, preview, kpis,
-                BillingEvents.actor(), chargeIds(plan), waitingInvoiceIds(plan), plan.conceptIds());
+                BillingEvents.actor(), chargeIds(plan), waitingInvoiceIds(plan), plan.conceptIds(), comparison(plan, kpis.total()));
+    }
+    /**
+     * SEPA-10 (owner decision of 13-11-2026, R-12-11): {@code total} against the total of the previous month's live run (all its
+     * providers, as {@code byProvider} recorded them at generation), with `billing.totalDifferenceConfirmPercent`: a second
+     * confirmation is required above it, and also without a previous total to compare with (no live run, another currency).
+     */
+    BillingSimulation.Comparison comparison(InvoicingService.MonthPlan plan, Money total) {
+        var previous = plan.period().minusMonths(1);
+        Integer threshold = plan.context().parameter("billing.totalDifferenceConfirmPercent", Integer.class);
+        int percent = threshold == null ? 0 : threshold;
+        Money previousTotal = runs.live(previous.toString()).map(run -> runTotal(run, total.currency())).orElse(null);
+        return new BillingSimulation.Comparison(previous.toString(), previousTotal, percent,
+                TotalComparison.secondConfirmation(previousTotal == null ? null : previousTotal.amountMinor(), total.amountMinor(), percent));
+    }
+    /** The run's total over its providers in {@code currency}; null when one of them is in another currency. */
+    static Money runTotal(BillingRun run, String currency) {
+        var by = run.byProvider();
+        var totals = by == null ? List.<BillingRun.Totals>of() : java.util.stream.Stream.of(by.sepaXml(), by.stripe(), by.manual()).filter(Objects::nonNull).toList();
+        if (totals.stream().anyMatch(part -> part.total() == null || !currency.equals(part.total().currency()))) { return null; }
+        return new Money(totals.stream().mapToLong(part -> part.total().amountMinor()).sum(), currency);
     }
     /** R-12-12: the billed month's collection date, shared with run generation (club-local calendar date). */
     static java.time.LocalDate collectionDate(InvoicingService.MonthPlan plan) {

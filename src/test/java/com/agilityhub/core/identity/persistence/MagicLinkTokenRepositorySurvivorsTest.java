@@ -79,6 +79,26 @@ class MagicLinkTokenRepositorySurvivorsTest {
         verify(mongo, never()).updateMulti(any(Query.class), any(UpdateDefinition.class), eq(MagicLinkToken.class));
     }
 
+    /**
+     * AUTH-06 (S01 R-01-05): a password change ends the account's live unused links in every club and of every purpose, in one write
+     * that marks them used; spent and expired links are left as they are.
+     */
+    @Test void AUTH_06_revokeUnusedMarksEveryLiveUnusedLinkOfTheAccountUsed() {
+        TenantContext.open(CLUB);
+        var query = org.mockito.ArgumentCaptor.forClass(Query.class);
+        var update = org.mockito.ArgumentCaptor.forClass(UpdateDefinition.class);
+
+        repository.revokeUnused("acc-1", NOW);
+
+        verify(mongo).updateMulti(query.capture(), update.capture(), eq(MagicLinkToken.class));
+        var filter = query.getValue().getQueryObject();
+        assertThat(filter.keySet()).containsExactlyInAnyOrder("accountId", "usedAt", "expiresAt");
+        assertThat(filter.get("accountId")).isEqualTo("acc-1");
+        assertThat(filter.get("usedAt")).isNull();
+        assertThat(filter.get("expiresAt", org.bson.Document.class)).isEqualTo(new org.bson.Document("$gt", NOW));
+        assertThat(update.getValue().getUpdateObject()).isEqualTo(new org.bson.Document("$set", new org.bson.Document("usedAt", NOW)));
+    }
+
     /** A club LOGIN link requested at `createdAt` under the default `auth.magicLinkMinutes = 15`. */
     static MagicLinkToken login(String id, Instant createdAt) {
         return new MagicLinkToken(id, "hash-" + id, "acc-1", CLUB, "clubs-app", MagicLinkToken.Purpose.LOGIN, null,

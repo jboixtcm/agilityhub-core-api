@@ -153,7 +153,7 @@ class BookingConfirmationServiceSurvivorsTest {
         verify(locks).lock("class-a");
         verify(holds).deleteById("hold-1");
         verify(counters).recount("class-a", false, admin);
-        verify(audit).createdByClub(booking);
+        verify(audit).createdByClub(booking, true);
     }
 
     // --- swap across classes (lines 60 and 155) ----------------------------------------------------------------------------

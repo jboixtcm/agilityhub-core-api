@@ -14,7 +14,8 @@ class NotificationSpecTest {
     private static NotificationSpec spec(String code) { return NotificationCatalog.byCode(code).orElseThrow(); }
 
     @Test void WP_11_A_lookupsReturnTheRegisteredCodesAndOnlyR1CodesPerEvent() {
-        assertThat(NotificationCatalog.codes()).hasSize(62).startsWith("N-01", "N-02").endsWith("N-54", "N-53", "N-55");
+        assertThat(NotificationCatalog.codes()).hasSize(64).startsWith("N-01", "N-02").endsWith("N-54", "N-53", "N-55", "N-56", "N-57"); // OUT-01: + N-57
+        assertThat(NotificationCatalog.specsFor("PaymentDisputed")).extracting(NotificationSpec::code).containsExactly("N-56"); // PAY-06
         assertThat(NotificationCatalog.byCode("N-12")).isEmpty(); assertThat(NotificationCatalog.byCode(null)).isEmpty();
         assertThat(NotificationCatalog.specsFor("BookingCreated")).extracting(NotificationSpec::code).containsExactly("N-04", "N-36", "N-46");
         assertThat(NotificationCatalog.specsFor("BookingCancelled")).extracting(NotificationSpec::code).containsExactly("N-05", "N-36", "N-40");
@@ -28,7 +29,9 @@ class NotificationSpecTest {
         assertThat(spec("N-01").action(ADMINS)).isEqualTo(NotificationActionType.OPEN_SIGNUP);
         assertThat(spec("N-01").action(APPLICANT)).isNull();
         assertThat(spec("N-15").caps(MEMBER)).contains(NotificationChannel.SMS);
-        assertThat(spec("N-15").defaultChannels(MEMBER)).containsExactlyInAnyOrder(NotificationChannel.APP, NotificationChannel.SMS, NotificationChannel.PUSH);
+        // COMM-02 (owner decision of 13 Nov 2026): N-15 also goes by e-mail (APP + SMS + PUSH before it).
+        assertThat(spec("N-15").defaultChannels(MEMBER)).containsExactlyInAnyOrder(NotificationChannel.APP, NotificationChannel.EMAIL, NotificationChannel.SMS,
+                NotificationChannel.PUSH);
         assertThat(spec("N-25").templated()).isFalse(); assertThat(spec("N-02").templated()).isTrue();
     }
 

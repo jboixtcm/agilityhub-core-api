@@ -26,6 +26,8 @@ services:
       - ./mongo-entrypoint.sh:/opt/deploy/mongo-entrypoint.sh:ro
       - ./mongo-health.js:/opt/deploy/mongo-health.js:ro
     tmpfs: [/run/mongo-key:mode=0700]
+    # CFG-06: Docker's default 10 s before SIGKILL would cut mongod's clean shutdown short.
+    stop_grace_period: 120s
     healthcheck:
       test: [CMD, mongosh, --quiet, /opt/deploy/mongo-health.js]
       interval: 5s
@@ -37,6 +39,11 @@ services:
   core:
     image: ghcr.io/jboixtcm/agilityhub-core-api:${IMAGE_TAG:?Set IMAGE_TAG to a reviewed sha tag}
     restart: unless-stopped
+    # CFG-06: longer than Spring's graceful shutdown (spring.lifecycle.timeout-per-shutdown-phase, 45 s) plus closing the context.
+    stop_grace_period: 60s
+    # CFG-09: the image runs Java as a non-root user on port 8080; it needs no Linux capability and never gains privileges.
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
     environment: &core-environment
       SPRING_PROFILES_ACTIVE: prod
       HOSTED_DEMO_ENABLED: ${HOSTED_DEMO_ENABLED:-false}
@@ -51,7 +58,7 @@ services:
       MONGODB_PASSWORD: ${MONGODB_PASSWORD:?Set MONGODB_PASSWORD}
       TRUSTED_PROXY_PATTERN: ${TRUSTED_PROXY_PATTERN:?Set TRUSTED_PROXY_PATTERN}
       AUTH_ISSUER: ${AUTH_ISSUER:-https://id.agilitydoghub.com}
-      PLATFORM_PRIVACY_POLICY_VERSION: ${PLATFORM_PRIVACY_POLICY_VERSION:-v1}
+      PLATFORM_PRIVACY_POLICY_VERSION: ${PLATFORM_PRIVACY_POLICY_VERSION:-2}
       PLATFORM_PRIVACY_POLICY_URL: ${PLATFORM_PRIVACY_POLICY_URL:-https://id.agilitydoghub.com/privacy}
       OIDC_MASTER_KEY: ${OIDC_MASTER_KEY:?Set OIDC_MASTER_KEY}
       OIDC_LEARN_CLIENT_SECRET: ${OIDC_LEARN_CLIENT_SECRET:?Set OIDC_LEARN_CLIENT_SECRET}
@@ -82,6 +89,8 @@ services:
       SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
       MAIL_FROM_PLATFORM: ${MAIL_FROM_PLATFORM:-}
       SENDGRID_WEBHOOK_PUBLIC_KEY: ${SENDGRID_WEBHOOK_PUBLIC_KEY:-}
+      # COMM-07: announcement e-mails per minute, set to the e-mail provider's plan.
+      ANNOUNCEMENT_EMAILS_PER_MINUTE: ${ANNOUNCEMENT_EMAILS_PER_MINUTE:-60}
       EMAIL_UNSUBSCRIBE_KEY: ${EMAIL_UNSUBSCRIBE_KEY:?Set EMAIL_UNSUBSCRIBE_KEY}
       # Required by preflight/runtime unless the explicit hosted demo policy disables SMS.
       SMS_CLUB_ID: ${SMS_CLUB_ID:-}
@@ -98,6 +107,8 @@ services:
       SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY:?Set SIGNUP_CAPABILITY_KEY}
       BOOKING_CALENDAR_KEY: ${BOOKING_CALENDAR_KEY:?Set BOOKING_CALENDAR_KEY}
       BILLING_BANK_KEY: ${BILLING_BANK_KEY:?Set BILLING_BANK_KEY}
+      # PRIV-11: set only during a bank-key rotation (docs/DEPLOY.md «Keys and provider rotation»).
+      BILLING_BANK_KEY_PREVIOUS: ${BILLING_BANK_KEY_PREVIOUS:-}
       BILLING_SECRETS_KEY: ${BILLING_SECRETS_KEY:?Set BILLING_SECRETS_KEY}
       FILE_STORAGE_MODE: ${FILE_STORAGE_MODE:-s3}
       FILE_STORAGE_ROOT: ${FILE_STORAGE_ROOT:-}
@@ -154,6 +165,8 @@ services:
       - ${ADMIN_DIST_DIR:?Set ADMIN_DIST_DIR}:/srv/clubsadmin:ro
       - caddy-data:/data
       - caddy-config:/config
+      # CFG-07: the rolled access log of every site (deploy/Caddyfile `(access_log)`), outside the container log.
+      - caddy-logs:/var/log/caddy
     networks:
       default:
         ipv4_address: ${CADDY_IPV4_ADDRESS:-172.30.240.10}
@@ -201,3 +214,4 @@ volumes:
   mongo-data:
   caddy-data:
   caddy-config:
+  caddy-logs:

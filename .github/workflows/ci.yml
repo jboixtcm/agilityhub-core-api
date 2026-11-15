@@ -130,6 +130,8 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           load: true
           push: false
+          # REL-02: the health's `commit` and the image's org.opencontainers.image.revision label.
+          build-args: GIT_COMMIT=${{ github.sha }}
           tags: ghcr.io/jboixtcm/agilityhub-core-api:ci-${{ github.sha }}-${{ matrix.arch }}
           cache-from: type=gha,scope=core-api-${{ matrix.arch }}
           cache-to: type=gha,scope=core-api-${{ matrix.arch }},mode=max

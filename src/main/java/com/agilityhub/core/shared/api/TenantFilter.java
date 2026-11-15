@@ -74,7 +74,7 @@ public class TenantFilter extends OncePerRequestFilter {
                     // S12 §6 (E8-T01): the signup's return screen reads its checkout session by host with the signup capability.
                     || "GET".equals(request.getMethod()) && path.matches("/api/v1/checkout-sessions/[^/]+")
                     // S11 R-11-08 (E7-T01): the anonymous CLUB_NEWS unsubscribe takes its club from the host, like signup.
-                    || path.equals("/api/v1/email-unsubscribes")
+                    || path.equals("/api/v1/email-unsubscribes") || path.equals("/api/v1/email-unsubscribes/one-click")
                     || path.matches("/api/v1/bookings/[^/]+/calendar\\.ics");
             if (!global) {
                 var authentication = SecurityContextHolder.getContext().getAuthentication();

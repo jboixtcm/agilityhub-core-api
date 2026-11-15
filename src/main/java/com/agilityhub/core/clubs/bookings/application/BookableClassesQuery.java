@@ -84,6 +84,8 @@ public class BookableClassesQuery {
         boolean levelsEnabled = context.flag("levels.enabled"), waitlistOn = context.enabled(Module.WAITLIST), inactivityOn = context.enabled(Module.INACTIVITY);
         int waitlistMax = context.integer("waitlist.maxPerClass");
         var limits = new HashMap<String, BookingLimits.Result>();
+        // Audit PERF-01: the owner's inactivity and the dog's pack are read once per class date, not once per class.
+        var inactiveOn = new HashMap<LocalDate, Boolean>(); var packOn = new HashMap<LocalDate, Optional<PackBalancePort.Balance>>();
         var user = com.agilityhub.core.shared.application.CurrentUser.current();
         boolean delegated = user != null && user.impersonation() != null && !user.impersonation().bookingsOnly();
         // R-08-14 (INC-40, E11-T10): read live, one query; a seat on an open FIFO offer of another dog is not free on 04.
@@ -93,11 +95,12 @@ public class BookableClassesQuery {
             if (!s.startsAt().isAfter(now) || taken.contains(s.id()) || !BookingEligibility.levelAllowed(levelsEnabled, dog.levelId(), s.levelIds())) { continue; }
             var week = weeks.week(s.startsAt()); var relative = weeks.relative(s.startsAt(), now); var date = s.startsAt().atZone(zone).toLocalDate();
             BookableRow.NotBookable reason = blocked ? BookableRow.NotBookable.BLOCKED
-                    : inactivityOn && inactivity.covering(owner.id(), date).isPresent() ? BookableRow.NotBookable.INACTIVITY
+                    : inactivityOn && inactiveOn.computeIfAbsent(date, day -> inactivity.covering(owner.id(), day).isPresent()) ? BookableRow.NotBookable.INACTIVITY
                     : BookingEligibility.leaving(owner.leaveDate(), s.startsAt(), zone) ? BookableRow.NotBookable.LEAVING : null;
             boolean limitDone = !delegated && relative != RelativeWeek.LATER
                     && limits.computeIfAbsent(week.key(), key -> checks.limit(key, relative, dog.id(), owner.id(), now)).done();
-            var sessionPack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), date) : Optional.<PackBalancePort.Balance>empty();
+            var sessionPack = context.enabled(Module.PACKS) ? packOn.computeIfAbsent(date, day -> packs.balance(owner.id(), dog.id(), day))
+                    : Optional.<PackBalancePort.Balance>empty();
             int occupied = s.booked() + WaitlistTransitions.others(offers.getOrDefault(s.id(), Set.of()), dog.id()).size();
             var ownEntry = ownQueue.get(s.id());
             if (ownEntry != null) {

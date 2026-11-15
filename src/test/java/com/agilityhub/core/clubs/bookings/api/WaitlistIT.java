@@ -160,6 +160,10 @@ class WaitlistIT extends BookingFixtures {
         // PUSH (R-11-03): one delivery per ACTIVE subscription; the fixture members subscribed none.
         assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-15").stream().filter(n -> "PUSH".equals(n.getString("channel"))))
                 .hasSize(3).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("SKIPPED_NO_CONTACT"));
+        // COMM-02 (owner decision of 13 Nov 2026): N-15 also has its EMAIL delivery, which the members' OPERATIONAL e-mail preference
+        // decides; the fixture members keep the default (off), so it is recorded as skipped by preference.
+        assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-15").stream().filter(n -> "EMAIL".equals(n.getString("channel"))))
+                .hasSize(3).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("SKIPPED_BY_PREFERENCE"));
         // Redelivery: the consumer and the notification find nothing new.
         try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-last", 1)).isZero(); }
         com.agilityhub.core.support.NotificationRows.deliver(engine, notificationTransactions, notified.getFirst().getString("_id"), new BookingEvent(BookingEvent.Kind.WaitlistNotified, CLUB, "s08-last", NOW,
@@ -593,8 +597,11 @@ class WaitlistIT extends BookingFixtures {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-c0")), new Update().set("accountId", null).set("phones", List.of()), "members");
         cancel(as("pere"), id(pere), 200); dispatch();
         assertThat(entry(c0)).containsEntry("state", "NOTIFIED"); assertThat(entry(c0).get("offerNotifiedAt")).as("no N-15 row, no mark").isNull();
+        // COMM-02 (owner decision of 13 Nov 2026): N-15 also has an EMAIL delivery, which c0's default OPERATIONAL e-mail preference
+        // (off) skips; every other channel finds no contact. Before the decision there was no EMAIL row at all.
         assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-15").stream().filter(n -> c0.equals(n.get("subject", Document.class).getString("waitlistEntryId"))
-                && !"SKIPPED_NO_CONTACT".equals(n.getString("status")))).as("c0 is reached on no channel").isEmpty();
+                && !"SKIPPED_NO_CONTACT".equals(n.getString("status")))).as("c0 is reached on no channel").singleElement().satisfies(n -> {
+                    assertThat(n.getString("channel")).isEqualTo("EMAIL"); assertThat(n.getString("status")).isEqualTo("SKIPPED_BY_PREFERENCE"); });
         assertThat(instant(entry(duna), "offerNotifiedAt")).isEqualTo(instant(entry(duna), "notifiedAt"));
         assertThat(notificationsOf("N-15", "APP")).extracting(n -> n.getString("accountId")).containsExactly("s08-laura");
         book(as("joan"), "last", "s08-d-toby"); dispatch();

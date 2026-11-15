@@ -41,4 +41,8 @@ public class AccountEmailService implements NotificationAccounts, AuditableLoade
     public void markEmailStatus(String accountId, String expectedEmail, EmailStatus status) {
         accounts.markEmailStatus(accountId, expectedEmail, status);
     }
+    /** AUTH-03: written in the settlement's transaction of the e-mail it reports (SystemNotificationService). */
+    @Override public void markAccessEmailFailure(String accountId, String expectedEmail, java.time.Instant failedAt) {
+        accounts.markAccessEmailFailure(accountId, expectedEmail, failedAt);
+    }
 }

@@ -47,11 +47,13 @@ public class MessageTemplatesController {
     private final MessagingContractAccess access; private final MessageTemplateService templates; private final TemplatePreviewService previews;
     private final IcuMessageSource messages; private final AnnouncementService announcements;
     private final com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed seed;
+    private final com.agilityhub.core.clubs.messaging.application.AnnouncementResends resends;
 
     public MessageTemplatesController(MessagingContractAccess access, MessageTemplateService templates, TemplatePreviewService previews, IcuMessageSource messages,
-            AnnouncementService announcements, com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed seed) {
+            AnnouncementService announcements, com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed seed,
+            com.agilityhub.core.clubs.messaging.application.AnnouncementResends resends) {
         this.access = access; this.templates = templates; this.previews = previews; this.messages = messages; this.announcements = announcements;
-        this.seed = seed;
+        this.seed = seed; this.resends = resends;
     }
 
     @GetMapping("/api/v1/message-templates")
@@ -161,6 +163,22 @@ public class MessageTemplatesController {
         if (Boolean.TRUE.equals(request.dryRun())) { return ResponseEntity.ok(new AnnouncementResult(null, announcements.count(id, recipients))); }
         var receipt = announcements.send(id, recipients);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new AnnouncementResult(receipt.batchId(), receipt.recipientCount()));
+    }
+
+    @PostMapping("/api/v1/announcements/{batchId}/resend-failed")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IDEMPOTENCY_KEY_REUSED})
+    @Operation(summary = "resendFailedAnnouncement", description = ROLES + "«Reenvia els fallits» of an announcement (COMM-07, R-11-13): every e-mail "
+            + "of the batch that ended FAILED goes back to QUEUED, due now with a fresh retry budget, and is sent at the announcements' pace "
+            + "(ANNOUNCEMENT_EMAILS_PER_MINUTE) with every check of a send (a suppressed address ends SKIPPED_NO_CONTACT). Only e-mail: no SMS or "
+            + "push is resent, nothing else changes. 202 with the number put back and the ANNOUNCEMENT_RESENT audit entry on the batch's template "
+            + "(no changes; details {batchId, resent}); resent = 0 writes nothing. batchId is the AnnouncementResult's (the log rows carry it); "
+            + "another club's or an unknown batch → 404. The same Idempotency-Key replays the same answer." + TENANT,
+            responses = @ApiResponse(responseCode = "202", description = "AnnouncementResendResult", useReturnTypeSchema = true))
+    public AnnouncementResendResult resendFailedAnnouncement(@PathVariable String batchId,
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        var resend = resends.resendFailed(batchId);
+        return new AnnouncementResendResult(resend.batchId(), resend.resent());
     }
 
     // ---- mapping

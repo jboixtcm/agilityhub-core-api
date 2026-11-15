@@ -46,7 +46,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.auth.passwordMinLength.label"
     helpKey: "admin-settings:param.auth.passwordMinLength.help"
-    constraints: {"min": 0}
+    constraints: {"min": 8}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"
@@ -911,6 +911,32 @@ parameters:
     restartRequired: false
     documentType: "int"
     documentDefault: "1000"
+  - key: "messaging.sms.quietHoursStart"
+    type: "time"
+    default: "22:00"
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.quietHoursStart.label"
+    helpKey: "admin-settings:param.messaging.sms.quietHoursStart.help"
+    constraints: {}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "22:00"
+  - key: "messaging.sms.quietHoursEnd"
+    type: "time"
+    default: "08:00"
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.quietHoursEnd.label"
+    helpKey: "admin-settings:param.messaging.sms.quietHoursEnd.help"
+    constraints: {}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "08:00"
   - key: "messaging.notifyWeekOpening"
     type: "bool"
     default: false
@@ -1112,7 +1138,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.auth.lockoutMinutes.label"
     helpKey: "admin-settings:param.auth.lockoutMinutes.help"
-    constraints: {"min": 0}
+    constraints: {"min": 1}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"
@@ -1125,7 +1151,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.auth.lockoutMaxAttempts.label"
     helpKey: "admin-settings:param.auth.lockoutMaxAttempts.help"
-    constraints: {"min": 0}
+    constraints: {"min": 3}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"
@@ -1474,6 +1500,32 @@ parameters:
     restartRequired: false
     documentType: "int"
     documentDefault: "2"
+  - key: "billing.sepa.settlementBusinessDays"
+    type: "int"
+    default: 5
+    block: "billing"
+    labelKey: "admin-settings:param.billing.sepa.settlementBusinessDays.label"
+    helpKey: "admin-settings:param.billing.sepa.settlementBusinessDays.help"
+    constraints: {"min": 0, "max": 40}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "5"
+  - key: "billing.totalDifferenceConfirmPercent"
+    type: "int"
+    default: 20
+    block: "billing"
+    labelKey: "admin-settings:param.billing.totalDifferenceConfirmPercent.label"
+    helpKey: "admin-settings:param.billing.totalDifferenceConfirmPercent.help"
+    constraints: {"min": 0, "max": 100}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "20"
   - key: "billing.stripeMaxAttempts"
     type: "int"
     default: 3
@@ -1532,7 +1584,7 @@ parameters:
     block: "privacy"
     labelKey: "admin-settings:param.audit.retentionYears.label"
     helpKey: "admin-settings:param.audit.retentionYears.help"
-    constraints: {"min": 0}
+    constraints: {"min": 6}
     modules: []
     scope: "club"
     editableBy: "CLUB"
@@ -1545,7 +1597,7 @@ parameters:
     block: "privacy"
     labelKey: "admin-settings:param.rgpd.erasureMinDaysAfterLeave.label"
     helpKey: "admin-settings:param.rgpd.erasureMinDaysAfterLeave.help"
-    constraints: {"min": 0}
+    constraints: {"min": 30}
     modules: []
     scope: "club"
     editableBy: "CLUB"
@@ -1558,7 +1610,7 @@ parameters:
     block: "privacy"
     labelKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.label"
     helpKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.help"
-    constraints: {"min": 0}
+    constraints: {"min": 1}
     modules: []
     scope: "club"
     editableBy: "CLUB"
@@ -1857,7 +1909,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.platform.supportAccessMinutes.label"
     helpKey: "admin-settings:param.platform.supportAccessMinutes.help"
-    constraints: {"min": 0}
+    constraints: {"min": 0, "max": 60}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"

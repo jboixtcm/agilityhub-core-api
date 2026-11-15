@@ -125,9 +125,10 @@ public class TemplatePreviewService {
                 rendered.title(), rendered.body(), rendered.sms() == null ? null : rendered.sms().text(), action, deliveries, null, clock.instant(),
                 null, null, null, null, null, null, null, null, values);
     }
-    private String unsubscribe(MessageTemplate template, ClubConfig config) {
+    private com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRenderer.Unsubscribe unsubscribe(MessageTemplate template, ClubConfig config) {
         if (template.category() != NotificationCategory.CLUB_NEWS) { return null; }
-        return emailSettings.appOrigin(config.club().id()).map(origin -> origin + "/comunicats/baixa?t=exemple").orElse(null);
+        return emailSettings.appOrigin(config.club().id())
+                .map(origin -> com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRenderer.Unsubscribe.of(origin, "exemple")).orElse(null);
     }
     private static String text(LocalizedText text, String locale, ClubConfig config) {
         String exact = text.values().get(locale);

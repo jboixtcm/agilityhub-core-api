@@ -79,7 +79,7 @@ public class PlatformClubCreation {
                 Object value=f.getValue().isObject()&&f.getValue().has("env")?environment(f.getValue().path("env").asText()):mapper.convertValue(f.getValue(),Object.class);
                 input.put(f.getKey(),value);
             });
-            if(input.size()>1) { input.put("version",changes.club().version());providers.update(entry.getKey(),input); }
+            if(input.size()>1) { input.put("version",changes.club().version());providers.update(entry.getKey(),input,null); }
         }
         for(var entry:definition.path("parameters").properties()) parameters.updatePlatform(entry.getKey(),mapper.convertValue(entry.getValue(),Object.class),null,0L,"source: CONSOLE");
         catalogs.provision(catalogs.plan(definition.path("catalogs")));

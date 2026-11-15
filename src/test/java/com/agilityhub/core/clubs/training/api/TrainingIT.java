@@ -531,6 +531,42 @@ class TrainingIT extends TrainingFixtures {
         book(as("joan"), "s09-d-kira", "2026-10-06T10:00", MUN, 201);
     }
 
+    /**
+     * COMM-03 (owner's decision of 13-11): an ADMIN booking or cancelling a training slot for a member may choose not to notify it:
+     * no N-47 (nor N-06/N-07), the events carry notifyMember: false and the club's audit entries record it. The default still notifies;
+     * the member or an instructor's delegation asking it get 403 and book nothing.
+     */
+    @Test @AuditCovers({AuditAction.TRAINING_BOOKED_BY_CLUB, AuditAction.TRAINING_CANCELLED_BY_CLUB})
+    void COMM_03_anAdminBooksAndCancelsTrainingForAMemberWithoutNotifyingIt() throws Exception {
+        var body = new LinkedHashMap<String, Object>(); body.put("dogId", "s09-d-rock"); body.put("startsAt", local("2026-10-05T10:00").toString());
+        body.put("ringId", MUN); body.put("notifyMember", false);
+        String id = call(POST, "/training-bookings", body, impersonating("admin", "s09-m-maria"), 201, UUID.randomUUID().toString()).path("id").asText();
+        assertThat(eventsOf("TrainingBooked").getFirst().get("payload", Document.class)).containsEntry("notifyMember", false).containsEntry("origin", "BACKOFFICE");
+        assertThat(mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("TRAINING_BOOKED_BY_CLUB").and("entityId").is(id)), Document.class, "audit_entries")
+                .get("details", Document.class)).containsEntry("notifyMember", false);
+        call(POST, "/training-bookings/" + id + "/cancellation", Map.of("notifyMember", false), impersonating("admin", "s09-m-maria"), 200);
+        assertThat(eventsOf("TrainingCancelled").getFirst().get("payload", Document.class)).containsEntry("notifyMember", false);
+        assertThat(mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("TRAINING_CANCELLED_BY_CLUB").and("entityId").is(id)), Document.class, "audit_entries")
+                .get("details", Document.class)).containsEntry("notifyMember", false);
+        dispatch();
+        assertThat(notifications("N-47")).isEmpty(); assertThat(notifications("N-06")).isEmpty(); assertThat(notifications("N-07")).isEmpty();
+
+        // The default still notifies.
+        String notified = book(impersonating("admin", "s09-m-maria"), "s09-d-kira", "2026-10-06T12:00", MUN, 201).path("id").asText();
+        dispatch();
+        assertThat(notifications("N-47")).isNotEmpty().allSatisfy(n -> assertThat(n.get("subject", Document.class).getString("trainingBookingId")).isEqualTo(notified));
+
+        // Only an ADMIN acting for the member may silence it.
+        var own = new LinkedHashMap<String, Object>(body); own.put("startsAt", local("2026-10-07T10:00").toString());
+        assertThat(code(call(POST, "/training-bookings", own, as("maria"), 403, UUID.randomUUID().toString()))).isEqualTo("FORBIDDEN");
+        com.agilityhub.core.identity.application.ImpersonationService.Issued delegation;
+        try (var tenant = TenantContext.open(CLUB)) { delegation = impersonations.createForBookings("s09-estel", "s09-m-maria", null); }
+        var instructor = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt().jwt(delegation.token()).authorities(() -> "ROLE_MEMBER");
+        assertThat(code(call(POST, "/training-bookings", own, instructor, 403, UUID.randomUUID().toString()))).isEqualTo("FORBIDDEN");
+        assertThat(code(call(POST, "/training-bookings/" + notified + "/cancellation", Map.of("notifyMember", false), as("maria"), 403))).isEqualTo("FORBIDDEN");
+        assertThat(count("training_bookings", Criteria.where("startsAt").is(Date.from(local("2026-10-07T10:00"))))).isZero();
+    }
+
     @Test @AuditCovers({AuditAction.TRAINING_BOOKED_BY_CLUB, AuditAction.TRAINING_CANCELLED_BY_CLUB})
     void T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason() throws Exception {
         var admin = impersonating("admin", "s09-m-maria");

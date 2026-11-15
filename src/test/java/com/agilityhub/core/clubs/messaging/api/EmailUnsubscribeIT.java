@@ -59,7 +59,18 @@ class EmailUnsubscribeIT extends AbstractIntegrationTest {
     private ResultActions unsubscribe(String host, String token) throws Exception {
         return mvc.perform(post("/api/v1/email-unsubscribes").header("Host", host).contentType("application/json").content(mapper.writeValueAsString(Map.of("token", token))));
     }
-    private Document preferences() { return mongo.findById("unsub-laura", Document.class, "members").get("notificationPreferences", Document.class); }
+    private Document preferences() { return preferences("unsub-laura"); }
+    private Document preferences(String memberId) { return mongo.findById(memberId, Document.class, "members").get("notificationPreferences", Document.class); }
+    /** COMM-08: the mailbox provider's RFC 8058 POST to the header's URL: the token in the query, the form body `List-Unsubscribe=One-Click`. */
+    private ResultActions oneClick(String host, String token, String body, boolean multipart) throws Exception {
+        var request = multipart
+                ? org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/api/v1/email-unsubscribes/one-click")
+                        .param("List-Unsubscribe", body)
+                : post("/api/v1/email-unsubscribes/one-click").contentType("application/x-www-form-urlencoded")
+                        .content(body == null ? "" : "List-Unsubscribe=" + java.net.URLEncoder.encode(body, java.nio.charset.StandardCharsets.UTF_8));
+        if (token != null) { request.queryParam("t", token); }
+        return mvc.perform(request.header("Host", host));
+    }
     private long events() { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("EmailUnsubscribed")), "domain_events"); }
 
     @Test void T_11_23_aValidTokenTurnsClubNewsOffOnceAndKeepsTheOtherPreferences() throws Exception {
@@ -92,6 +103,56 @@ class EmailUnsubscribeIT extends AbstractIntegrationTest {
         clock.advance(Duration.ofDays(30));
         unsubscribe(HOST, token).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UNSUBSCRIBE_TOKEN_INVALID"));
         unsubscribe(HOST, " ").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        assertThat(preferences()).isEqualTo(before);
+        assertThat(events()).isZero();
+    }
+
+    /**
+     * COMM-08 (owner decision of 13 Nov 2026, RFC 8058): the URL of the mail's `List-Unsubscribe` header takes the provider's
+     * one-click POST — form-encoded or multipart, no cookie, no bearer — and does what the page's call does with the same token:
+     * CLUB_NEWS e-mail off, one `EmailUnsubscribed`, nothing more on a repeat.
+     */
+    @Test void T_11_23_COMM_08_theOneClickPostOfTheListUnsubscribeUrlTurnsClubNewsOffOnce() throws Exception {
+        String token = tokens.issue(CLUB, "unsub-laura");
+        oneClick(HOST, token, "One-Click", false).andExpect(status().isOk()).andExpect(jsonPath("$.category").value("CLUB_NEWS"));
+        assertThat(preferences().get("emailByCategory", Document.class)).containsEntry("CLUB_NEWS", false).containsEntry("PERSONAL", false)
+                .containsEntry("CLUB_CHANGES", true);
+        assertThat(preferences()).containsEntry("reminderMinutesBefore", 120);
+        assertThat(events()).isEqualTo(1);
+        // The provider repeats it (or the member also presses the page's button): nothing changes, nothing is published.
+        oneClick(HOST, token, "One-Click", true).andExpect(status().isOk());
+        unsubscribe(HOST, token).andExpect(status().isOk());
+        assertThat(events()).isEqualTo(1);
+        // A multipart body (RFC 8058 allows both encodings) unsubscribes on its own too.
+        mongo.save(new Document("_id", "unsub-pere").append("clubId", CLUB).append("status", "ACTIVE").append("firstName", "Pere").append("lastName1", "Vidal")
+                .append("contactEmails", List.of(new Document("email", "pere@example.test"))).append("version", 0), "members");
+        oneClick(HOST, tokens.issue(CLUB, "unsub-pere"), "One-Click", true).andExpect(status().isOk());
+        assertThat(preferences("unsub-pere").get("emailByCategory", Document.class)).containsEntry("CLUB_NEWS", false);
+        assertThat(events()).isEqualTo(2);
+    }
+
+    /** COMM-08: only the one-click POST of a valid token of the host's club unsubscribes; a scanner's GET or any other body changes nothing. */
+    @Test void T_11_23_COMM_08_theOneClickUrlRefusesAnythingButTheProvidersPostOfAValidToken() throws Exception {
+        String token = tokens.issue(CLUB, "unsub-laura");
+        var before = preferences();
+        // A link scanner fetching the URL: no anonymous GET route exists there.
+        assertThat(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/email-unsubscribes/one-click")
+                .queryParam("t", token).header("Host", HOST)).andReturn().getResponse().getStatus()).isEqualTo(401);
+        // Not the RFC 8058 body, or no token: VALIDATION_ERROR.
+        for (String body : new String[] {null, "", "one-click", "Unsubscribe"}) {
+            oneClick(HOST, token, body, false).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath("$.traceId").isNotEmpty());
+        }
+        oneClick(HOST, null, "One-Click", false).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        oneClick(HOST, " ", "One-Click", false).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        // Tampered, another club's, an unknown member's, the token on another club's host, expired: UNSUBSCRIBE_TOKEN_INVALID.
+        for (String invalid : List.of(token + "x", tokens.issue(OTHER, "unsub-laura"), tokens.issue(CLUB, "unsub-nobody"))) {
+            oneClick(HOST, invalid, "One-Click", false).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UNSUBSCRIBE_TOKEN_INVALID"));
+        }
+        oneClick(OTHER_HOST, token, "One-Click", false).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UNSUBSCRIBE_TOKEN_INVALID"));
+        oneClick("unknown.example.test", token, "One-Click", false).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
+        clock.advance(Duration.ofDays(30));
+        oneClick(HOST, token, "One-Click", false).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("UNSUBSCRIBE_TOKEN_INVALID"));
         assertThat(preferences()).isEqualTo(before);
         assertThat(events()).isZero();
     }

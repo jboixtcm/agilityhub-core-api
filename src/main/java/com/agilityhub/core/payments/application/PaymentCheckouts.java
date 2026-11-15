@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentCheckouts {
     @org.springframework.beans.factory.annotation.Autowired private BookingOwnerAccess bookings;
+    @org.springframework.beans.factory.annotation.Autowired private BillingCensusAccess census;
     private final SignupCheckoutRepository sessions; private final UpfrontPaymentRepository rows; private final UpfrontPayments payments;
     private final CheckoutService signup; private final SignupPaymentAccess members; private final BillingTransactions tx;
     private final PaymentProviderRegistry provider; private final ClubConfigService configs; private final Clock clock;
@@ -24,6 +25,19 @@ public class PaymentCheckouts {
     }
     public CheckoutService.Result create(String memberId, String bookingId, List<String> paymentIds, boolean setup, String success, String cancel,
             Function<CheckoutService.Result, byte[]> answer) {
+        return create(memberId, bookingId, paymentIds, setup, success, cancel, answer, false);
+    }
+    /**
+     * PAY-09 (owner decision of 13 Nov 2026, S12 R-12-22): `POST /me/card-setup`, the member's own card setup. Only a member whose current
+     * payment method is `CARD` (a usable card or one marked invalid) opens it; any other member (`SEPA_DD`, `MANUAL`, no method) →
+     * `409 INVALID_STATE`, checked under the key and census locks before anything is written or the provider is asked. A SEPA or cash
+     * member moves to card through the admin's card-setup link ({@link #create}, unchanged).
+     */
+    public CheckoutService.Result createOwnCardSetup(String memberId, String success, String cancel, Function<CheckoutService.Result, byte[]> answer) {
+        return create(memberId, null, List.of(), true, success, cancel, answer, true);
+    }
+    private CheckoutService.Result create(String memberId, String bookingId, List<String> paymentIds, boolean setup, String success, String cancel,
+            Function<CheckoutService.Result, byte[]> answer, boolean cardPayersOnly) {
         provider.require(setup ? PaymentProvider.Capability.CARD_SETUP : PaymentProvider.Capability.CHECKOUT);
         signup.redirect(success); signup.redirect(cancel);
         if (bookingId != null) {
@@ -42,6 +56,9 @@ public class PaymentCheckouts {
         }
         var request = tx.run(() -> {
             IdempotentOperation.lock(); members.lock();
+            if (cardPayersOnly && !census.member(memberId).map(m -> m.paymentMethod()).map(m -> "CARD".equals(m.type())).orElse(false)) {
+                throw new ApiException(ErrorCode.INVALID_STATE);
+            }
             var prior = sessions.openFor(memberId, IdempotentOperation.reference(), clock.instant());
             if (prior.isPresent()) { return prior.get().providerRequest(); }
             List<UpfrontPayment> selected = setup ? List.of() : paymentIds == null || paymentIds.isEmpty()

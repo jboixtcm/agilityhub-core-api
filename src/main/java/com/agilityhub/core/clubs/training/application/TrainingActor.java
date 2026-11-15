@@ -10,7 +10,22 @@ import com.agilityhub.core.shared.application.CurrentUser;
  * `cancelledBy` value of a cancellation: MEMBER for the member route (also impersonated), ADMIN for the club
  * (`cancelBookings: true`, or the impersonating admin's late cancellation), SYSTEM for S13/S15/S03 paths.
  */
-public record TrainingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, TrainingOrigin origin, TrainingCancelledBy by) {
+public record TrainingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, TrainingOrigin origin, TrainingCancelledBy by,
+        boolean notifies) {
+    /** An actor whose training actions notify the member as the catalogue says (COMM-03: only {@link #notifying} turns it off). */
+    public TrainingActor(String accountId, String memberId, String displayName, String impersonatedMemberId, TrainingOrigin origin, TrainingCancelledBy by) {
+        this(accountId, memberId, displayName, impersonatedMemberId, origin, by, true);
+    }
+    /**
+     * COMM-03 (owner's decision of 13-11): an ADMIN booking or cancelling a training slot for a member (impersonation, BACKOFFICE)
+     * may ask not to notify the member (`notifyMember: false`: no N-47; the events carry `notifyMember: false` and the audit entry records it).
+     * Anyone else asking it (the member, an instructor) → 403 FORBIDDEN; null or true changes nothing.
+     */
+    public TrainingActor notifying(Boolean notify) {
+        if (notify == null || notify) { return this; }
+        if (!adminDelegation()) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.FORBIDDEN); }
+        return new TrainingActor(accountId, memberId, displayName, impersonatedMemberId, origin, by, false);
+    }
     public boolean adminDelegation() { return impersonated() && origin == TrainingOrigin.BACKOFFICE; }
     public boolean impersonated() { return impersonatedMemberId != null; }
     public static TrainingActor system() { return new TrainingActor(null, null, null, null, TrainingOrigin.BACKOFFICE, TrainingCancelledBy.SYSTEM); }
@@ -28,5 +43,5 @@ public record TrainingActor(String accountId, String memberId, String displayNam
         var user = CurrentUser.current();
         return new TrainingActor(user == null ? null : user.accountId(), null, user == null ? null : user.name(), null, TrainingOrigin.BACKOFFICE, TrainingCancelledBy.ADMIN);
     }
-    public TrainingActor as(TrainingCancelledBy other) { return new TrainingActor(accountId, memberId, displayName, impersonatedMemberId, origin, other); }
+    public TrainingActor as(TrainingCancelledBy other) { return new TrainingActor(accountId, memberId, displayName, impersonatedMemberId, origin, other, notifies); }
 }

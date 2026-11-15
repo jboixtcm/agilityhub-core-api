@@ -12,5 +12,6 @@
   "N-35": {"event": "InvoiceFailed", "variables": ["amount", "reason", "retry_link"], "action": "OPEN_INVOICES"},
   "N-38": {"event": "MemberPaymentMethodChanged", "variables": ["masked_account"], "action": null},
   "N-41": {"event": "RemittanceReminderDue", "variables": ["period", "pending_count"], "action": "OPEN_INVOICES"},
-  "N-55": {"event": "UpfrontRefundIntervention", "variables": ["member_name", "amount", "reason"], "action": "OPEN_MEMBER"}
+  "N-55": {"event": "UpfrontRefundIntervention", "variables": ["member_name", "amount", "reason"], "action": "OPEN_MEMBER"},
+  "N-56": {"event": "PaymentDisputed", "variables": ["member_name", "amount", "reason"], "action": "OPEN_MEMBER"}
 }

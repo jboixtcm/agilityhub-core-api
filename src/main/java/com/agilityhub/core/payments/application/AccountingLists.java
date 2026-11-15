@@ -10,11 +10,17 @@ import java.util.*;
 import org.bson.Document;
 import org.springframework.stereotype.Service;
 
-/** R-12-26: each invoice line is one accounting row, with the member and method frozen at issue. */
+/**
+ * R-12-26: each invoice line is one accounting row, with the member and method frozen at issue. SEPA-09 (owner decision of
+ * 13-11-2026): two columns after the original sixteen, which keep their order and content — the status of the receipt's last
+ * collection attempt (the one already read for the payment reference) and the receipt's `failedAt`, the day it was marked unpaid
+ * (a SEPA return).
+ */
 @Service
 public class AccountingLists implements ListProvider {
     public static final List<String> COLUMNS = List.of("displayNumber", "issueDate", "period", "memberNumber", "fullName", "holderTaxId",
-            "concept", "base", "taxPercent", "tax", "total", "method", "status", "collectionDate", "remittance", "paymentReference");
+            "concept", "base", "taxPercent", "tax", "total", "method", "status", "collectionDate", "remittance", "paymentReference",
+            "lastCollectionStatus", "failedAt");
     private static final ListDefinition DEFINITION = new ListDefinition("accounting",
             Map.of("period", new ListDefinition.Field("period", ListDefinition.Type.TEXT)),
             Map.of("number", "number", "lineNo", "lines.lineNo"), List.of(), COLUMNS, COLUMNS,
@@ -45,9 +51,12 @@ public class AccountingLists implements ListProvider {
         projection.put("remittance", new Document("$first", "$accountingRemittance.messageId"));
         projection.put("paymentReference", new Document("$ifNull", Arrays.asList(new Document("$first", "$accountingCollection.providerRef"),
                 new Document("$ifNull", Arrays.asList(new Document("$first", "$accountingCollection.mandateRef"), "$paymentMethod.mandateRef")))));
+        projection.put("lastCollectionStatus", new Document("$first", "$accountingCollection.status"));
+        projection.put("failedAt", "$failedAt");
         var rolledBack = invoices.rolledBackRunIds();
         return new ListDataset(DEFINITION, "invoices", stages, projection,
-                Set.of("memberNumber", "holderTaxId", "collectionDate", "remittance", "paymentReference"), (field, value) -> String.valueOf(value))
+                Set.of("memberNumber", "holderTaxId", "collectionDate", "remittance", "paymentReference", "lastCollectionStatus", "failedAt"),
+                (field, value) -> String.valueOf(value))
                 .withScope(query -> rolledBack.isEmpty() ? null : new Document("runId", new Document("$nin", rolledBack)));
     }
 }

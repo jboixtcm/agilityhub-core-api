@@ -98,7 +98,13 @@ public class BillingRunService {
         boolean sepa = !included.isEmpty() || drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
         LocalDate collectionDate = null;
         if (sepa) {
-            collectionDate = requestedCollectionDate != null ? CollectionDates.following(requestedCollectionDate) : BillingSimulationService.collectionDate(plan);
+            collectionDate = requestedCollectionDate != null ? requestedCollectionDate : BillingSimulationService.collectionDate(plan);
+            // SEPA-05: the default already rolls to a TARGET business day; a date the admin chose must be one.
+            if (!CollectionDates.businessDay(collectionDate)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "collectionDate",
+                        "fieldErrors", List.of(Map.of("field", "collectionDate", "code", "NOT_BUSINESS_DAY")),
+                        "nextBusinessDay", TargetCalendar.onOrAfter(collectionDate).toString()));
+            }
             LocalDate earliest = CollectionDates.earliest(issueDate, context.config().sepaLeadBusinessDays());
             if (collectionDate.isBefore(earliest)) {
                 throw new ApiException(ErrorCode.COLLECTION_DATE_TOO_SOON, Map.of("requested", collectionDate.toString(),
@@ -123,7 +129,8 @@ public class BillingRunService {
             if (attempt.provider() == CollectionProvider.SEPA_XML) { sepaAttempts.add(attempt); }
             byMethod.computeIfAbsent(method, ignored -> new ArrayList<>()).add(invoice.total());
         }
-        // R-12-19: each waiting manual receipt gets a new SEPA_XML attempt in this remittance and goes COLLECTING.
+        // R-12-19: each waiting manual receipt (SEPA-04 (b): or returned periodic one) gets a new SEPA_XML attempt in this remittance
+        // and goes COLLECTING.
         var remitted = new ArrayList<Invoice>(); var remittedAttempts = new ArrayList<Collection>();
         for (var receipt : included) {
             var attempt = remittedAttempt(receipt, plan.member(receipt.memberId()), collections.forInvoice(receipt.id()), remittanceId, now);
@@ -216,14 +223,20 @@ public class BillingRunService {
         }
         var remittance = remittances.forRun(runId).orElse(null);
         // R-12-19: the manual receipts the run remitted were not issued by it — back to PENDING, out of the remittance, the flag kept.
+        // SEPA-04 (b): a returned periodic receipt of an earlier run it re-presented goes back to FAILED in its earlier remittance,
+        // the flag kept too, so the next run presents it again.
         var returned = new ArrayList<String>();
-        for (var receipt : remittance == null ? List.<Invoice>of() : invoices.includedIn(remittance.id())) {
+        for (var receipt : remittance == null ? List.<Invoice>of() : invoices.includedIn(remittance.id(), runId)) {
             if (receipt.status() != InvoiceStatus.COLLECTING) { continue; }
-            var last = collections.forInvoice(receipt.id()).stream().filter(attempt -> remittance.id().equals(attempt.remittanceId())).reduce((a, b) -> b).orElse(null);
+            var history = collections.forInvoice(receipt.id());
+            var last = history.stream().filter(attempt -> remittance.id().equals(attempt.remittanceId())).reduce((a, b) -> b).orElse(null);
             collections.insert(new Collection(UUID.randomUUID().toString(), receipt.clubId(), receipt.id(), CollectionProvider.SEPA_XML, receipt.total(),
                     CollectionStatus.FAILED, null, remittance.id(), last == null ? 1 : last.attempt(), ROLLBACK, reason, List.of(), now, now,
                     last == null ? null : last.mandateRef(), last == null ? null : last.endToEndId(), null, null, last == null ? null : last.mandateSignedAt()));
-            var state = InvoiceState.of(receipt, now, actor).status(InvoiceStatus.PENDING).remittance(null);
+            var state = receipt.kind() == InvoiceKind.PERIODIC
+                    ? InvoiceState.of(receipt, now, actor).status(InvoiceStatus.FAILED).remittance(history.stream().map(Collection::remittanceId)
+                            .filter(id -> id != null && !id.equals(remittance.id())).reduce((a, b) -> b).orElse(null))
+                    : InvoiceState.of(receipt, now, actor).status(InvoiceStatus.PENDING).remittance(null);
             if (!invoices.transition(receipt.id(), receipt.version(), state)) { throw new ApiException(ErrorCode.STALE_VERSION); }
             returned.add(receipt.id());
         }
@@ -266,8 +279,12 @@ public class BillingRunService {
         var issued = invoices.forRun(run.id());
         // The manual receipts the run put into its remittance (R-12-19) count as the run's for a collection or a payment.
         var touched = new ArrayList<>(issued);
-        if (remittance != null) { touched.addAll(invoices.includedIn(remittance.id())); }
-        var attempts = collections.forInvoices(touched.stream().map(Invoice::id).toList());
+        if (remittance != null) { touched.addAll(invoices.includedIn(remittance.id(), run.id())); }
+        // SEPA-04 (b): of a receipt the run did not issue, only its attempts in this remittance count — a re-presented periodic
+        // receipt's earlier debit (settled, then returned) belongs to its earlier remittance, not to this run.
+        var issuedIds = issued.stream().map(Invoice::id).collect(java.util.stream.Collectors.toSet());
+        var attempts = collections.forInvoices(touched.stream().map(Invoice::id).toList()).stream()
+                .filter(attempt -> issuedIds.contains(attempt.invoiceId()) || remittance != null && remittance.id().equals(attempt.remittanceId())).toList();
         if (run.status() == BillingRunStatus.COMPLETED || attempts.stream().anyMatch(attempt -> attempt.provider() != CollectionProvider.MANUAL
                 && (attempt.status() == CollectionStatus.SUBMITTED || attempt.status() == CollectionStatus.SUCCEEDED))) {
             reasons.add(RollbackBlocker.COLLECTION_SUBMITTED);

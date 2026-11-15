@@ -27,7 +27,9 @@ public class E5ContractConfiguration implements WebMvcConfigurer {
             "com.agilityhub.core.platform.api.PlatformJobsController");
     /** E5-T16 (review E3-T16 #1): `TrainingBookingRequest.override` is a `TrainingOverride` or `null` (R-09-16). */
     static final List<String> NULLABLE_REFERENCES = List.of("MeHome", "BookableClasses", "BookableClass", "SeatHoldResponse", "Booking",
-            "TrainingRing", "SlotCell", "TrainingSummary", "TrainingBooking", "JobRun", "JobSummary", "PlatformJobCell", "TrainingBookingRequest");
+            "TrainingRing", "SlotCell", "TrainingSummary", "TrainingBooking", "JobRun", "JobSummary", "PlatformJobCell", "TrainingBookingRequest",
+            // PRIV-02: the optional confirmation of a manual retention sweep.
+            "JobTriggerRequest");
     static final List<Class<?>> DETAILS = List.of(BookingContracts.BookingLimitReachedDetails.class, BookingContracts.ClassFullDetails.class,
             BookingContracts.NotYetOpenDetails.class, BookingContracts.WaitlistLimitDetails.class, BookingContracts.InactivityPeriodDetails.class,
             TrainingContracts.TrainingLimitReachedDetails.class, TrainingContracts.SlotTakenDetails.class, TrainingContracts.SlotOutOfWindowDetails.class,

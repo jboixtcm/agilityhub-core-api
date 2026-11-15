@@ -39,7 +39,7 @@ class TtlIndexUpgradeIT {
 
     @BeforeAll static void start() {
         // The image's entrypoint creates the root user on a first mongod, then restarts it with authentication: two «Waiting for connections».
-        mongo = new GenericContainer<>("mongo:7").withEnv("MONGO_INITDB_ROOT_USERNAME", "root").withEnv("MONGO_INITDB_ROOT_PASSWORD", ROOT_PASSWORD)
+        mongo = new GenericContainer<>(com.agilityhub.core.support.AbstractIntegrationTest.MONGO_IMAGE).withEnv("MONGO_INITDB_ROOT_USERNAME", "root").withEnv("MONGO_INITDB_ROOT_PASSWORD", ROOT_PASSWORD)
                 .withExposedPorts(27017).waitingFor(Wait.forLogMessage("(?i).*waiting for connections.*", 2).withStartupTimeout(Duration.ofMinutes(2)));
         mongo.start();
         String address = mongo.getHost() + ":" + mongo.getMappedPort(27017);

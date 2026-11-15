@@ -42,6 +42,7 @@ public class ExportsController {
                 .body(result.file());
     }
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/exports")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"kind"}, sortable = {},
@@ -52,6 +53,7 @@ public class ExportsController {
     public List<ExportJob> exports(@RequestParam(required = false) ExportKind kind) { return jobs.list(kind == null ? null : kind.name()).stream().map(this::view).toList(); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/exports/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER') and principal.claims['imp'] != true")
     @ContractErrors({EXPORT_EXPIRED})
@@ -61,6 +63,7 @@ public class ExportsController {
     public ExportJob exportJob(@PathVariable String id) { return view(jobs.get(id)); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/exports/{id}/download")
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER') and principal.claims['imp'] != true")
     @ContractErrors({EXPORT_EXPIRED, INVALID_STATE})
@@ -75,6 +78,7 @@ public class ExportsController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @PostMapping("/api/v1/members/{id}/data-export")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
@@ -88,6 +92,7 @@ public class ExportsController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @PostMapping("/api/v1/me/data-export")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('MEMBER')")
@@ -104,13 +109,14 @@ public class ExportsController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @RequestMapping(path = "/api/v1/members/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate", "signupPending", "pendingDogs", "warnings", "leaveSource", "inactivityUntil", "hasPendingRequest"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city", "signup.submittedAt"},
             columns = {"fullName*", "dogs*", "plan*", "displayStatus*", "memberNumber", "contact", "paymentMethod@BILLING", "nextInvoiceDate@BILLING", "familyGroup@FAMILY_GROUP", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining@FREE_TRAINING", "birthDate", "gender", "idDocument", "leaveSource", "inactivityUntil@INACTIVITY", "hasPendingRequest"}, paged = true, exportable = false,
             fields = {"id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "familyGroupHolder", "joinedAt", "leaveDate", "bookingBlocked",
                     "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup",
-                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest"})
+                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "status", "leaveSource", "inactivityUntil", "hasPendingRequest"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export members",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
@@ -123,11 +129,12 @@ public class ExportsController {
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("members", format, columns, params); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @RequestMapping(path = "/api/v1/dogs/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "handlerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {"name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"},
             columns = {"name*", "breed*", "level*#levels.enabled", "owner*", "handler", "freeTraining*@FREE_TRAINING", "licenses*", "displayStatus*", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack@PACKS", "registeredAt"}, paged = true, exportable = false,
-            fields = {"id", "name", "photoUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version"})
+            fields = {"id", "name", "photoUrl", "photoThumbnailUrl", "breed", "level", "owner", "handler", "handlerName", "handlerIsMember", "freeTraining", "licenses", "displayStatus", "sex", "age", "birthDate", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export dogs",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
@@ -140,6 +147,7 @@ public class ExportsController {
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("dogs", format, columns, params); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @RequestMapping(path = "/api/v1/audit-entries/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
@@ -158,6 +166,7 @@ public class ExportsController {
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("audit-entries", format, columns, params); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/invoices/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
@@ -174,6 +183,7 @@ public class ExportsController {
     public org.springframework.http.ResponseEntity<byte[]> exportInvoices(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns) { throw new UnsupportedOperationException(); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/activity-registrations/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.ACTIVITIES)
@@ -191,6 +201,7 @@ public class ExportsController {
     public org.springframework.http.ResponseEntity<?> exportActivityRegistrations(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns, @io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) { return export("activity-registrations",format,columns,params); }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/notifications/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},

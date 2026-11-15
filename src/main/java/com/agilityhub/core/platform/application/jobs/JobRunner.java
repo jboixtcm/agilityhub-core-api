@@ -60,6 +60,9 @@ public class JobRunner {
     private final JobMetrics metrics;
     private final ObjectProvider<Job> jobs;
     private final String instance = UUID.randomUUID().toString();
+    /** R-15-07 (audit JOB-01): Sentry receives every FAILED or PARTIAL run; without `SENTRY_DSN` the client sends nothing. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private io.sentry.IScopes sentry;
 
     public JobRunner(JobRunRepository runs, JobLockRepository locks, ClubConfigService configs, TransactionTemplate transactions,
             EventPublisher events, Clock clock, JobMetrics metrics, ObjectProvider<Job> jobs) {
@@ -69,8 +72,9 @@ public class JobRunner {
         this.outside.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
+    /** {@code confirmedPlan}: PRIV-02, the plan counts a real manual run was confirmed for ({@link JobViews#plannedCounts}); null = none. */
     private record Request(String clubId, Job job, JobDefinition definition, ClubConfig config, ZoneId zone, Instant scheduledFor,
-            JobTrigger trigger, boolean dryRun, String actorAccountId, String requestRef) { }
+            JobTrigger trigger, boolean dryRun, String actorAccountId, String requestRef, Map<String, Long> confirmedPlan) { }
 
     /** Registered implementations in R-15-01 order; jobs outside the catalog (the test job) come last. */
     public List<Job> registered() {
@@ -103,7 +107,7 @@ public class JobRunner {
             if (!continuous && runs.occurrenceTaken(definition.name(), scheduledFor)) { return Optional.empty(); }
             var outcome = JobOccurrences.triggerFor(now, scheduledFor, definition.catchUpWindow(), zone);
             var request = new Request(clubId, job, definition, config, zone, scheduledFor,
-                    outcome == JobOccurrences.Outcome.SCHEDULE ? JobTrigger.SCHEDULE : JobTrigger.CATCH_UP, false, null, null);
+                    outcome == JobOccurrences.Outcome.SCHEDULE ? JobTrigger.SCHEDULE : JobTrigger.CATCH_UP, false, null, null, null);
             SkipReason skip = !clubActive ? SkipReason.CLUB_INACTIVE
                     : !moduleOn(job, config) ? SkipReason.MODULE_OFF
                     : !enabled(definition, config) ? SkipReason.DISABLED
@@ -120,9 +124,18 @@ public class JobRunner {
      * first write, so the retry after a lost answer finds it ({@code JobRunRepository.forRequest}); null without a key.
      */
     public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef) {
-        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId, requestRef));
+        return manual(clubId, name, dryRun, actorAccountId, requestRef, null);
     }
-    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef) {
+    /**
+     * PRIV-02 (owner's decision of 13-11): {@code confirmedPlan} is the plan a real run was confirmed for, the {@link
+     * JobViews#plannedCounts} of the dry run the caller saw. Under the lock, before anything is written, a plan made now must count
+     * the same, or nothing runs: {@code 409 SIMULATION_STALE {reason: PLAN_CHANGED}}. Null (a dry run, a process that needs no
+     * confirmation, the operator's CLI) checks nothing.
+     */
+    public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef, Map<String, Long> confirmedPlan) {
+        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId, requestRef, dryRun ? null : confirmedPlan));
+    }
+    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef, Map<String, Long> confirmedPlan) {
         try (var scope = TenantContext.open(clubId)) {
             var job = registered(name).orElseThrow(() -> new ApiException(ErrorCode.JOB_UNKNOWN));
             var config = configs.get(clubId);
@@ -130,7 +143,7 @@ public class JobRunner {
             reap(clubId, name);
             Instant now = clock.instant().truncatedTo(ChronoUnit.MINUTES);
             var request = new Request(clubId, job, job.definition(), config, ZoneId.of(config.club().timeZone()), now,
-                    JobTrigger.MANUAL, dryRun, actorAccountId, requestRef);
+                    JobTrigger.MANUAL, dryRun, actorAccountId, requestRef, confirmedPlan);
             return execute(request, now).orElseThrow(() -> new ApiException(ErrorCode.JOB_ALREADY_RUNNING));
         }
     }
@@ -176,6 +189,9 @@ public class JobRunner {
             return skip(request, SkipReason.LOCKED, now);
         }
         try {
+            if (request.confirmedPlan() != null && !request.confirmedPlan().equals(plannedNow(request))) {
+                throw new ApiException(ErrorCode.SIMULATION_STALE, Map.of("reason", "PLAN_CHANGED"));
+            }
             boolean exclusive = !request.dryRun() && request.trigger() != JobTrigger.MANUAL;
             var running = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request),
                     request.zone().getId(), request.trigger(), request.dryRun(), JobStatus.RUNNING, null, clock.instant(), null, null,
@@ -188,12 +204,27 @@ public class JobRunner {
         }
     }
 
+    /**
+     * PRIV-02: the plan counts a dry run started now would show the club, made with the same occurrence, parameters and code as
+     * the run (a plan only reads, R-15-08); the platform pass's items are left out, as {@link JobViews#forClub} does.
+     */
+    private Map<String, Long> plannedNow(Request request) {
+        var recorder = new Recorder(baseSnapshot(request));
+        var context = new JobContext(request.clubId(), request.zone(), request.scheduledFor(),
+                request.scheduledFor().atZone(request.zone()).toLocalDate(), true, request.config(), recorder, null);
+        for (JobItem item : request.job().plan(context)) {
+            if (!JobViews.platformItem(item.entityType())) { recorder.count("WOULD_" + item.action(), 1); }
+        }
+        return JobViews.plannedCounts(recorder.counters);
+    }
+
     private JobRun run(Request request, JobRun running, String lock, String holder) {
         var recorder = new Recorder(baseSnapshot(request));
         var context = new JobContext(request.clubId(), request.zone(), request.scheduledFor(),
                 request.scheduledFor().atZone(request.zone()).toLocalDate(), request.dryRun(), request.config(), recorder, running.id());
         var items = new ArrayList<JobRun.Item>();
         var errors = new ArrayList<JobRun.RunError>();
+        RuntimeException firstFailure = null;
         JobStatus status;
         Instant renewed = clock.instant();
         boolean leaseLost = false;
@@ -220,6 +251,7 @@ public class JobRunner {
                         trace(items, item.entityType(), item.entityId(), effect.action() == null ? item.action() : effect.action(),
                                 effect.detail().isEmpty() ? item.detail() : effect.detail());
                     } catch (RuntimeException failure) {
+                        if (firstFailure == null) { firstFailure = failure; }
                         errors.add(error(item.entityId(), failure));
                         LOG.error("Job item failed jobRunId={} job={} clubId={} entityId={} traceId={}", running.id(), running.job(),
                                 request.clubId(), item.entityId(), errors.getLast().traceId(), failure);
@@ -234,6 +266,7 @@ public class JobRunner {
                 status = errors.isEmpty() ? JobStatus.SUCCEEDED : JobStatus.PARTIAL;
             }
         } catch (RuntimeException failure) {
+            firstFailure = failure;
             errors.addFirst(error(null, failure));
             status = JobStatus.FAILED;
             LOG.error("Job failed jobRunId={} job={} clubId={} traceId={}", running.id(), running.job(), request.clubId(),
@@ -250,7 +283,31 @@ public class JobRunner {
         }
         metrics.finished(request.clubId(), running.job(), status, Duration.ofMillis(finished.durationMs()), recorder.counters);
         if (status == JobStatus.FAILED && !request.dryRun()) { failed(request.job(), request.clubId(), running.id()); }
+        if (!request.dryRun()) { report(sentry, finished, firstFailure); }
         return finished;
+    }
+
+    /**
+     * R-15-07, R-15-10 (audit JOB-01): one Sentry event per FAILED or PARTIAL run, sent by the call that closed it (a dry run
+     * reports nothing, as it publishes nothing). It carries the run's first exception, if any, and the trace id of the run's
+     * first error, which the log line of that error also prints. `SentryPrivacyConfiguration` scrubs it like any other event.
+     */
+    static void report(io.sentry.IScopes sentry, JobRun run, Throwable failure) {
+        if (sentry == null || (run.status() != JobStatus.FAILED && run.status() != JobStatus.PARTIAL)) { return; }
+        try { sentry.captureEvent(sentryEvent(run, failure)); }
+        catch (RuntimeException unreported) {
+            LOG.warn("Job run not reported to Sentry jobRunId={} job={} clubId={}", run.id(), run.job(), run.clubId(), unreported);
+        }
+    }
+    static io.sentry.SentryEvent sentryEvent(JobRun run, Throwable failure) {
+        var event = failure == null ? new io.sentry.SentryEvent() : new io.sentry.SentryEvent(failure);
+        event.setLevel(io.sentry.SentryLevel.ERROR);
+        var message = new io.sentry.protocol.Message();
+        message.setFormatted("Job run " + run.status() + " job=" + run.job() + " clubId=" + run.clubId() + " jobRunId=" + run.id()
+                + " errorCount=" + run.errors().size());
+        event.setMessage(message);
+        if (!run.errors().isEmpty() && run.errors().getFirst().traceId() != null) { event.setTag("traceId", run.errors().getFirst().traceId()); }
+        return event;
     }
 
     /** {@link Job#failed}: only after the call that closed the row, so a slow holder whose run was reaped never repeats it. */
@@ -279,22 +336,30 @@ public class JobRunner {
         // R-15-10: the reaper's FAILED is the outcome of record, so it is the one counted in jobs.run.duration (E5-T10).
         metrics.finished(clubId, run.job(), JobStatus.FAILED, Duration.ofMillis(closed.durationMs()), Map.of());
         LOG.error("Job lease expired jobRunId={} job={} clubId={}", run.id(), run.job(), clubId);
-        if (!run.dryRun()) { registered(run.job()).ifPresent(job -> failed(job, clubId, run.id())); }
+        if (!run.dryRun()) {
+            registered(run.job()).ifPresent(job -> failed(job, clubId, run.id()));
+            report(sentry, closed, null);
+        }
         return true;
     }
 
     /**
      * Trace, SchedulerRun and JobFailed commit together, and only if this call closed the RUNNING row of its holder
      * (R-15-04/R-15-06): a run already closed by the reaper or by its holder publishes nothing. A dry run writes only its JobRun (R-15-08).
+     * JOB-01: a PARTIAL run of a process that affects members ({@link JobCatalog#alertsOnPartial}) publishes `JobFailed` too, once.
      */
     private boolean complete(JobRun finished) {
         if (finished.dryRun()) { return runs.finish(finished); }
         return write(() -> {
             if (!runs.finish(finished)) { return false; }
             events.publish(event(SchedulerEvent.Kind.SchedulerRun, finished, schedulerRunPayload(finished)));
-            if (finished.status() == JobStatus.FAILED) { events.publish(failed(finished)); }
+            if (alerts(finished)) { events.publish(failed(finished)); }
             return true;
         });
+    }
+    /** R-15-10: a FAILED run of any process, and (JOB-01) a PARTIAL run of a process that affects members, publish `JobFailed` (N-42). */
+    static boolean alerts(JobRun run) {
+        return run.status() == JobStatus.FAILED || (run.status() == JobStatus.PARTIAL && JobCatalog.alertsOnPartial(run.job()));
     }
 
     private SchedulerEvent failed(JobRun run) {

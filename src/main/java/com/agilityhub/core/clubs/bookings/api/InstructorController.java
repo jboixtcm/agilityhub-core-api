@@ -91,6 +91,7 @@ public class InstructorController {
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted
+    @com.agilityhub.core.shared.application.RecentLogin
     @GetMapping("/api/v1/instructor/week/export")
     @PreAuthorize(STAFF)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
