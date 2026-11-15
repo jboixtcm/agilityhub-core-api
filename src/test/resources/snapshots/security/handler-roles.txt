@@ -70,6 +70,7 @@ GET /api/v1/calendar/time-bands | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.sched
 GET /api/v1/challenges | hasAnyRole('MEMBER', 'INSTRUCTOR', 'ADMIN') | courses.api.ChallengesController.listChallenges
 GET /api/v1/challenges/{id} | hasAnyRole('MEMBER', 'INSTRUCTOR', 'ADMIN') | courses.api.ChallengesController.getChallenge
 GET /api/v1/checkout-sessions/{id} | isAnonymous() or hasRole('MEMBER') or (hasRole('ADMIN') and principal.claims['imp'] != true) | payments.api.CheckoutController.checkoutSession
+GET /api/v1/class-notices | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.messaging.api.ClassNoticesController.classNotices
 GET /api/v1/class-sessions | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.scheduling.api.SchedulingController.classes
 GET /api/v1/class-sessions/{id} | hasAnyRole('ADMIN','INSTRUCTOR','MEMBER') | clubs.scheduling.api.SchedulingController.classSession
 GET /api/v1/class-sessions/{id}/attendance | hasAnyRole('ADMIN','INSTRUCTOR') | clubs.bookings.api.InstructorController.attendanceSheet
@@ -362,6 +363,7 @@ POST /api/v1/message-templates/{id}/reset | hasRole('ADMIN') and principal.claim
 POST /api/v1/message-templates/{id}/send | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.messaging.api.MessageTemplatesController.sendMessageTemplate
 POST /api/v1/pack-balances | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.PackBalancesController.openPackBalance
 POST /api/v1/pack-balances/{id}/adjustments | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.PackBalancesController.adjustPackBalance
+POST /api/v1/pack-balances/{id}/consumption-corrections | hasRole('ADMIN') and principal.claims['imp'] != true | payments.api.PackBalancesController.correctPackConsumption
 POST /api/v1/placements | hasAnyRole('INSTRUCTOR', 'ADMIN') | courses.api.PlacementsController.createPlacement
 POST /api/v1/placements/{id}/build-sheet | hasAnyRole('INSTRUCTOR', 'ADMIN') | courses.api.PlacementsController.attachBuildSheet
 POST /api/v1/plans | hasRole('ADMIN') and principal.claims['imp'] != true | clubs.catalogs.api.CatalogsController.createPlan
