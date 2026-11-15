@@ -2,6 +2,7 @@
 
 ## Unreleased — Competition statistics
 
+- Keep member data ZIP exports available with translated competition-result summary labels in every locale.
 - Add tenant-scoped FCAG standings and FlowAgility results, reviewed imports with exact licence suggestions, revision protection and privacy export/erasure.
 - Add optional per-club Flow session authentication from the deployment environment; real authenticated HTTP validation remains pending.
 
