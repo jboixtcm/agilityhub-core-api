@@ -23,7 +23,7 @@ STATS remains off by default. Social league, scheduled synchronization, bulk eve
 
 ## Flow session configuration
 
-Provision the deployment secret environment variable `APP_COMPETITION_FLOW_SESSIONS` as a JSON object whose keys are exact internal club IDs and whose values are the raw `_facom_key` session values. `.env.example` leaves it blank. Use the deployment secret manager; never paste sessions into source files, frontend forms, issue reports or committed logs. Restart/reload the API configuration after rotation.
+Provision the deployment secret environment variable `APP_COMPETITION_FLOW_SESSIONS` as a JSON object whose keys are exact internal club IDs and whose values are the raw `_facom_key` session values. Both environment examples leave it blank, and production Compose explicitly passes it to Core. Use the private deployment environment; never paste sessions into source files, frontend forms, release manifests, issue reports or committed logs. Recreate Core after rotation so it receives the new environment.
 
 The selected tenant can use only its own entry. The adapter always targets `https://www.flowagility.com/zone/prints/run/{runUuid}/results`, refuses redirects, bounds the entire request at 20 seconds and the response at 2 MB. Credentials are never returned or logged by the adapter. Missing/invalid sessions, login pages and authorization redirects produce `VALIDATION_ERROR` with reason `SOURCE_AUTH_REQUIRED`, translated into a renewal/configuration message. Renewal is an operator action, not an automatic password login.
 
