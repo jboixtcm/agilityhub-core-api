@@ -46,6 +46,7 @@
     <!-- The pinned Spring Boot parent manages exact versions for starters,
          Spring Security, Caffeine, Testcontainers and their dependencies. -->
     <dependencies>
+        <dependency><groupId>org.jsoup</groupId><artifactId>jsoup</artifactId><version>1.24.1</version></dependency>
         <dependency>
             <groupId>com.stripe</groupId><artifactId>stripe-java</artifactId><version>34.0.0</version>
         </dependency>

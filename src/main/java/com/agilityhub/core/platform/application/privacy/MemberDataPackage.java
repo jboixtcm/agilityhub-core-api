@@ -12,7 +12,7 @@ public final class MemberDataPackage {
     /** The sections of `memberData.v1`, in the order S14 R-13 lists them (a missing source leaves its section empty). */
     public static final List<String> SECTIONS = List.of("account", "memberships", "member", "consents", "notificationPreferences", "dogs", "bookings",
             "trainingBookings", "waitlistEntries", "attendances", "tasks", "inactivityPeriods", "leaveRequests", "invoices", "upfrontPayments",
-            "packBalances", "notifications", "auditEntries", "familyGroup");
+            "packBalances", "notifications", "auditEntries", "familyGroup", "competitionResults");
     private final Map<String, Object> sections = new LinkedHashMap<>();
     private final List<File> files = new ArrayList<>();
     public MemberDataPackage() { SECTIONS.forEach(name -> sections.put(name, name.equals("account") || name.equals("member") || name.equals("familyGroup")

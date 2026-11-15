@@ -7148,6 +7148,306 @@
         "required" : [ "background", "border", "danger", "info", "onPrimary", "primary", "success", "surface", "surfaceAlt", "text", "textMuted", "warning" ],
         "type" : "object"
       },
+      "CompetitionConfirmation" : {
+        "properties" : {
+          "assignments" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          }
+        },
+        "required" : [ "assignments" ],
+        "type" : "object"
+      },
+      "CompetitionDogOption" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "license" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "license", "name" ],
+        "type" : "object"
+      },
+      "CompetitionEntry" : {
+        "properties" : {
+          "category" : {
+            "type" : "string"
+          },
+          "clubName" : {
+            "type" : [ "string", "null" ]
+          },
+          "date" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "discipline" : {
+            "enum" : [ "AGILITY", "JUMPING", null ],
+            "type" : [ "string", "null" ]
+          },
+          "division" : {
+            "type" : [ "string", "null" ]
+          },
+          "dogName" : {
+            "type" : "string"
+          },
+          "faults" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "grade" : {
+            "type" : [ "string", "null" ]
+          },
+          "handlerName" : {
+            "type" : [ "string", "null" ]
+          },
+          "key" : {
+            "type" : "string"
+          },
+          "license" : {
+            "type" : "string"
+          },
+          "point" : {
+            "enum" : [ "NONE", "P", "PA", "PV", null ],
+            "type" : [ "string", "null" ]
+          },
+          "points" : {
+            "type" : [ "number", "null" ]
+          },
+          "position" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "qualification" : {
+            "type" : [ "string", "null" ]
+          },
+          "refusals" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "runId" : {
+            "type" : [ "string", "null" ]
+          },
+          "season" : {
+            "type" : "string"
+          },
+          "speedMps" : {
+            "type" : [ "number", "null" ]
+          },
+          "timeSeconds" : {
+            "type" : [ "number", "null" ]
+          },
+          "totalPenalty" : {
+            "type" : [ "number", "null" ]
+          },
+          "trial" : {
+            "type" : [ "string", "null" ]
+          },
+          "trialId" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "category", "dogName", "key", "license", "season" ],
+        "type" : "object"
+      },
+      "CompetitionImportRequest" : {
+        "properties" : {
+          "content" : {
+            "type" : "string"
+          },
+          "source" : {
+            "enum" : [ "FCAG", "FLOW_AGILITY" ],
+            "type" : "string"
+          },
+          "sourceUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "source", "sourceUrl" ],
+        "type" : "object"
+      },
+      "CompetitionPreview" : {
+        "properties" : {
+          "dogs" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionDogOption"
+            },
+            "type" : "array"
+          },
+          "expiresAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "rows" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionPreviewRow"
+            },
+            "type" : "array"
+          },
+          "season" : {
+            "type" : "string"
+          },
+          "source" : {
+            "enum" : [ "FCAG", "FLOW_AGILITY" ],
+            "type" : "string"
+          },
+          "sourceUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "dogs", "expiresAt", "id", "rows", "season", "source", "sourceUrl" ],
+        "type" : "object"
+      },
+      "CompetitionPreviewRow" : {
+        "properties" : {
+          "entry" : {
+            "$ref" : "#/components/schemas/CompetitionEntry"
+          },
+          "match" : {
+            "type" : "string"
+          },
+          "suggestedDogId" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "entry", "match" ],
+        "type" : "object"
+      },
+      "CompetitionReceipt" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "importedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "importedRows" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "revision" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "season" : {
+            "type" : "string"
+          },
+          "source" : {
+            "enum" : [ "FCAG", "FLOW_AGILITY" ],
+            "type" : "string"
+          },
+          "sourceUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "importedAt", "importedRows", "revision", "season", "source", "sourceUrl" ],
+        "type" : "object"
+      },
+      "CompetitionResult" : {
+        "properties" : {
+          "importedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "result" : {
+            "$ref" : "#/components/schemas/CompetitionEntry"
+          },
+          "source" : {
+            "enum" : [ "FCAG", "FLOW_AGILITY" ],
+            "type" : "string"
+          },
+          "sourceUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "importedAt", "result", "source", "sourceUrl" ],
+        "type" : "object"
+      },
+      "CompetitionRunSummary" : {
+        "properties" : {
+          "averageSpeedMps" : {
+            "type" : [ "number", "null" ]
+          },
+          "clearRuns" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "discipline" : {
+            "enum" : [ "AGILITY", "JUMPING" ],
+            "type" : "string"
+          },
+          "p" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "pa" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "pv" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "runs" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "clearRuns", "discipline", "p", "pa", "pv", "runs" ],
+        "type" : "object"
+      },
+      "CompetitionStatistics" : {
+        "properties" : {
+          "dogId" : {
+            "type" : "string"
+          },
+          "lastImportedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "results" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionResult"
+            },
+            "type" : "array"
+          },
+          "scoredTrials" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "season" : {
+            "type" : "string"
+          },
+          "standings" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionResult"
+            },
+            "type" : "array"
+          },
+          "summaries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionRunSummary"
+            },
+            "type" : "array"
+          },
+          "year" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "dogId", "results", "scoredTrials", "season", "standings", "summaries", "year" ],
+        "type" : "object"
+      },
       "ConsentHistoryEntry" : {
         "properties" : {
           "at" : {
@@ -41541,6 +41841,459 @@
         "tags" : [ "platform" ]
       }
     },
+    "/api/v1/competition-imports" : {
+      "get" : {
+        "description" : "Last successfully imported snapshot per source and season, newest first. Requires STATS.",
+        "operationId" : "competitionImports",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetitionReceipt"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "competitionImports",
+        "tags" : [ "clubs.statistics" ]
+      }
+    },
+    "/api/v1/competition-imports/preview" : {
+      "post" : {
+        "description" : "FCAG public classification URL or saved HTML; FLOW_AGILITY individual run print HTML (saved or fetched using the club session provisioned on the server), or reviewed interchange CSV. Preview expires after 24 hours. Only a unique exact licence suggests a dog. No result changes until confirmation. Maximum 2 MB and 2000 rows.",
+        "operationId" : "previewCompetitionImport",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CompetitionImportRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CompetitionPreview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "previewCompetitionImport",
+        "tags" : [ "clubs.statistics" ]
+      }
+    },
+    "/api/v1/competition-imports/{id}/confirm" : {
+      "post" : {
+        "description" : "Atomically replace this source/season with the selected preview rows. Map result key to a licensed dog of this club; omitted rows are skipped. Replaying a confirmed preview with identical assignments returns its receipt. Stale previews cannot overwrite newer imports.",
+        "operationId" : "confirmCompetitionImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CompetitionConfirmation"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CompetitionReceipt"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "confirmCompetitionImport",
+        "tags" : [ "clubs.statistics" ]
+      }
+    },
     "/api/v1/country-profile" : {
       "get" : {
         "description" : "S02. Public country validation and formatting capabilities for the host-selected club.",
@@ -45076,6 +45829,168 @@
         },
         "summary" : "Update dog",
         "tags" : [ "clubs.census" ]
+      }
+    },
+    "/api/v1/dogs/{id}/competition-statistics" : {
+      "get" : {
+        "description" : "Staff read of a dog of the authenticated club.",
+        "operationId" : "dogCompetitionStatistics",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "year",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "season",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CompetitionStatistics"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "dogCompetitionStatistics",
+        "tags" : [ "clubs.statistics" ]
       }
     },
     "/api/v1/dogs/{id}/deactivation" : {
@@ -58381,6 +59296,168 @@
         },
         "summary" : "Submit an additional dog",
         "tags" : [ "clubs.census" ]
+      }
+    },
+    "/api/v1/me/dogs/{id}/competition-statistics" : {
+      "get" : {
+        "description" : "The member's own dog only. Explicit official FCAG net points and RSCE point classifications. Missing imports remain empty; no inferred official points.",
+        "operationId" : "myCompetitionStatistics",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "year",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "season",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CompetitionStatistics"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "myCompetitionStatistics",
+        "tags" : [ "clubs.statistics" ]
       }
     },
     "/api/v1/me/dogs/{id}/documents" : {

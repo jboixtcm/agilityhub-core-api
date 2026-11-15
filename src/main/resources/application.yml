@@ -8,6 +8,9 @@ sentry:
     enabled: false
 
 app:
+  competition:
+    flow:
+      sessions: ${APP_COMPETITION_FLOW_SESSIONS:}
   dashboard:
     cacheSeconds: 60
 

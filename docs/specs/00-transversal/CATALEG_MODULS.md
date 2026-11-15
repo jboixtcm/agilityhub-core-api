@@ -18,8 +18,8 @@
 | `INACTIVITY` | — (`BILLING` per a la quota) | `/inactivity-periods`, scheduler d'inicis/finals, quota d'inactivitat | 14, oferta a 15 | D10 acció Inactivitat, D6 KPI, D11 quota | on |
 | `COURSES` | — | mòdul `courses` sencer: `/courses`, `/rings/{id}/geometry`, `/placements`, `/ring-setups`, `/build-sessions`, `/obstacle-inventories`, scheduler de caducitat de muntatges | «Recorregut muntat» a 08/10/23/detall de reserva, visor mòbil, sessió de muntatge (instructor) | D18 biblioteca, D16 geometria, D12 recorregut a la cel·la, D7 col·locacions | on |
 | `LEARN_LINK` | — | — (només front) | entrada «Aprèn amb AgilityHub» al menú/perfil (enllaç a Learn; R2: contingut pel nivell del gos) | — | on |
-| `STATS` | — | agregats de 27 (fase 2) | 27 | — | off |
-| `SOCIAL_LEAGUE` | `STATS` | `LLIGA_SOCIAL`, `RESULTAT_COMPETICIO` (fase 2) | 27/27b | D20 resultats (fase 2) | off |
+| `STATS` | — | `RESULTAT_COMPETICIO`, importacions FCAG/Flow i agregats | 27 `/estadistiques` | Resultats de competició: previsualització i confirmació | off |
+| `SOCIAL_LEAGUE` | `STATS` | `LLIGA_SOCIAL` (fase 2) | 27/27b | D20 resultats (fase 2) | off |
 
 ## Regles
 
