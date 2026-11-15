@@ -772,7 +772,9 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(events("StripeWebhookReceived").stream().map(e -> e.get("payload", Document.class).getString("outcome"))
                 .filter(outcome -> outcome != null).toList()).containsExactlyInAnyOrder("FAILED", "PROCESSED");
         // A refusal of the request itself is no outage: it spends an attempt.
-        var other = signupRows(2).get(1); String refusedSession = signupCheckout(List.of(other));
+        // signupRows lists every row of the club by its random id: take the new submission's FIRST_MONTH row, never the one paid above.
+        var other = signupRows(2).stream().filter(id -> !rows.contains(id)).filter(id -> "FIRST_MONTH".equals(paymentRow(id).getString("concept")))
+                .findFirst().orElseThrow(); String refusedSession = signupCheckout(List.of(other));
         fake.failCardRead(adapterFailure(new com.stripe.exception.InvalidRequestException("Fictional provider message", null, null, "resource_missing", 404, null)));
         webhook("evt_refused_paid", "checkout.session.completed", completion(refusedSession, "pi_refused", 1000, "paid"));
         var refused = mongo.findById("evt_refused_paid", Document.class, "stripe_events");
