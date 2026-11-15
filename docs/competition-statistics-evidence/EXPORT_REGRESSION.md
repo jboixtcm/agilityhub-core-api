@@ -1,0 +1,54 @@
+# Member data export regression
+
+The complete feature regression exposed a missing summary label for the new competition-results section. ZIP rendering failed with the job returned to QUEUED. Added the section label in Catalan, Spanish and English and a test that requires every package section to have a nonempty label in every supported locale. Existing end-to-end ZIP tests now pass.
+
+The same full run had a MongoDB primary-selection timeout in JobFrameworkTwoInstancesIT. Its unchanged test passes when rerun; no timing assertion was relaxed.
+
+Command: `./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 '-Dtest=MemberDataPackageTest,MessageParityTest' -Dit.test=MemberDataExportIT,JobFrameworkTwoInstancesIT test failsafe:integration-test failsafe:verify`
+
+Exit: 0. Six unit tests and three integration tests, zero failures/errors/skips. Changed class MemberDataPackageTest: five tests. Complete sanitized output: [export-regression.log](export-regression.log).
+
+Last 40 lines:
+
+```text
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-11-15T22:17:42.981+01:00 INFO  [main] o.a.maven.surefire.booter.ForkedBooter traceId= clubId= accountId= : Starting ForkedBooter v3.5.6 using Java [redacted] with PID 96538 (started by jordib in /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/implementation/joint-release-20261115/api)
+2026-11-15T22:17:42.982+01:00 INFO  [main] o.a.maven.surefire.booter.ForkedBooter traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-11-15T22:17:43.728+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-11-15T22:17:43.810+01:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 81 ms. Found 0 MongoDB repository interfaces.
+2026-11-15T22:17:44.060+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-11-15T22:17:44.082+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-11-15T22:17:44.083+01:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-11-15T22:17:44.176+01:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 1193 ms
+2026-11-15T22:17:44.282+01:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6ae96585], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@31832ad2, com.mongodb.Jep395RecordCodecProvider@7f2c0f6a, com.mongodb.KotlinCodecProvider@5140628b, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:55993], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3e315a35], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-11-15T22:17:44.285+01:00 INFO  [cluster-6afa2178aec2a1de7561c3f8-localhost:55993] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:55993, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2237917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=42eceebd7472:27017, hosts=[42eceebd7472:27017], passives=[], arbiters=[], primary='42eceebd7472:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6afa21527aa173cf6c7d26aa, counter=6}, lastWriteDate=Sun Nov 15 22:17:42 CET 2026, lastUpdateTimeNanos=[redacted]}
+2026-11-15T22:17:44.822+01:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-11-15T22:17:48.937+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 56028 (http) with context path '/'
+2026-11-15T22:17:48.997+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-11-15T22:17:48.998+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-11-15T22:17:48.998+01:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-11-15T22:17:49.021+01:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 80 ms
+2026-11-15T22:17:49.035+01:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-15T22:17:49.078+01:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 56029 (http) with context path '/'
+2026-11-15T22:17:49.082+01:00 INFO  [main] o.a.maven.surefire.booter.ForkedBooter traceId= clubId= accountId= : Started ForkedBooter in 6.125 seconds (process running for 48.375)
+2026-11-15T22:17:49.421+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=RISK_REVIEW clubId=e5-jobs-twin reason=MISSED_WINDOW baseline=true
+2026-11-15T22:17:49.602+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=WAITLIST_FIFO clubId=e5-jobs-twin reason=MODULE_OFF baseline=false
+2026-11-15T22:17:49.618+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=PAYMENT_TIMEOUTS clubId=e5-jobs-twin reason=MODULE_OFF baseline=false
+2026-11-15T22:17:49.793+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=BILLING_REMINDER clubId=e5-jobs-twin reason=MISSED_WINDOW baseline=true
+2026-11-15T22:17:50.000+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=RISK_REVIEW clubId=rgpd-a reason=MISSED_WINDOW baseline=true
+2026-11-15T22:17:50.142+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=WAITLIST_FIFO clubId=rgpd-a reason=MODULE_OFF baseline=false
+2026-11-15T22:17:50.457+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=BILLING_REMINDER clubId=rgpd-a reason=MISSED_WINDOW baseline=true
+2026-11-15T22:17:50.824+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=50677512-c557-4d2a-a942-[redacted]=RISK_REVIEW clubId=rgpd-b reason=MISSED_WINDOW baseline=true
+2026-11-15T22:17:50.987+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=WAITLIST_FIFO clubId=rgpd-b reason=MODULE_OFF baseline=false
+2026-11-15T22:17:51.183+01:00 INFO  [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=BILLING_REMINDER clubId=rgpd-b reason=MISSED_WINDOW baseline=true
+2026-11-15T22:17:51.330+01:00 INFO  [pool-4-thread-2] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[id truncated] job=TEST_NOOP clubId=e5-jobs-twin reason=LOCKED baseline=false
+2026-11-15T22:17:51.473+01:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-15T22:17:51.483+01:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+2026-11-15T22:17:51.484+01:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-15T22:17:51.485+01:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+2026-11-15T22:17:51.490+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Stopping service [Tomcat]
+2026-11-15T22:17:51.555+01:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Stopping service [Tomcat]
+```

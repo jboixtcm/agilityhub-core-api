@@ -8,6 +8,16 @@ import static org.assertj.core.api.Assertions.*;
 
 /** S14 R-14-13 «mai el nom d'un tercer» (T-14-17, E11-T01 round 2): the package's rows keep no name of anybody else, whatever its key. */
 class MemberDataPackageTest {
+    @Test void T_14_17_everyExportSectionHasALabelInEveryProductLocale() throws Exception {
+        var messages = new com.agilityhub.core.shared.application.IcuMessageSource();
+        for (var locale : messages.supportedLocales()) {
+            for (String section : MemberDataPackage.SECTIONS) {
+                assertThat(messages.patternIn("dataExport.section." + section, locale))
+                        .as("member data summary section %s in %s", section, locale).isNotBlank();
+            }
+        }
+    }
+
     static Map<String, Object> map(Object... keyValues) {
         var map = new LinkedHashMap<String, Object>();
         for (int i = 0; i < keyValues.length; i += 2) { map.put((String) keyValues[i], keyValues[i + 1]); }
