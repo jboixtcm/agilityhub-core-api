@@ -50,7 +50,7 @@ class SignupIT extends AbstractIntegrationTest {
                 "payment",Map.of("type","MANUAL","firstMonthOption","TODAY"),"consents",Map.of("privacyPolicy",Map.of("accepted",true,"version","v1"),"imageUse",Map.of("granted",false,"version","v1"))));
     }
     MockHttpServletRequestBuilder postJson(String path,Object body) throws Exception {return post("/api/v1"+path).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body));}
-    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("signup-admin").claim("clubId",club)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
+    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return request.with(jwt().jwt(j->j.subject("signup-admin").claim("clubId",club).claim("auth_time",signedInNow())).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))); }
     JsonNode result(MockHttpServletRequestBuilder request,int status) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();var body=mapper.readTree(response.getContentAsString());
         assertThat(response.getStatus()).as("HTTP code=%s details=%s",body.path("code").asText(),body.path("details")).isEqualTo(status);return body;
