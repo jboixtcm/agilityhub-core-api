@@ -73,4 +73,10 @@ public record HostedDemoPolicy(boolean enabled, Set<String> emailAllowlist) {
     public boolean permitsEmail(String recipient) {
         return recipient != null && emailAllowlist.contains(recipient.strip().toLowerCase(Locale.ROOT));
     }
+    /** A reviewed per-club live-payment opt-in leaves storage, email, SMS and push restrictions intact. */
+    public static boolean permitsStripeMode(boolean hostedDemo, String liveClubIds, String clubId, String mode) {
+        if (!hostedDemo || "test".equals(mode)) { return true; }
+        return "live".equals(mode) && clubId != null && liveClubIds != null
+                && Arrays.stream(liveClubIds.split(",", -1)).map(String::strip).anyMatch(clubId::equals);
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PlatformProviders {
     @org.springframework.beans.factory.annotation.Value("${core.hosted-demo.enabled:false}") private boolean hostedDemo;
+    @org.springframework.beans.factory.annotation.Value("${core.payments.stripe-live-enabled-club-ids:}") private String stripeLiveEnabledClubIds = "";
     public record Summary(boolean enabled,boolean configured,String masked,String last4,String mode,Instant lastTestAt) { }
     public record Change(String id,@AuditField Map<String,Summary> providers) { }
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.transaction.support.TransactionTemplate transactions;
@@ -53,7 +54,7 @@ public class PlatformProviders {
     public ConsolePaymentAccess.Connection testKey(String name,Map<String,Object> input) {
         if(!"STRIPE".equals(name)) return null;
         String mode=text(input,"mode"),key=text(input,"secretKey");
-        if(key==null||!Set.of("test","live").contains(Objects.toString(mode,""))||!key.startsWith("sk_"+mode+"_")||hostedDemo&&!"test".equals(mode)) return null;
+        if(key==null||!Set.of("test","live").contains(Objects.toString(mode,""))||!key.startsWith("sk_"+mode+"_")||!HostedDemoPolicy.permitsStripeMode(hostedDemo,stripeLiveEnabledClubIds,TenantContext.current(),mode)) return null;
         ConsolePaymentAccess.Connection result;
         try { result=provider.ping(mode,key); } catch(RuntimeException failure) { throw new ApiException(ErrorCode.STRIPE_CONNECTION_FAILED); }
         if(result==null||!result.ok()) throw new ApiException(ErrorCode.STRIPE_CONNECTION_FAILED);
@@ -68,7 +69,7 @@ public class PlatformProviders {
     @Transactional
     @Audited(action=AuditAction.CLUB_PAYMENT_PROVIDER_CHANGED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider configuration'")
     public Change update(String name,Map<String,Object> input,ConsolePaymentAccess.Connection tested) {
-        if (hostedDemo && "STRIPE".equals(name) && !"test".equals(input.get("mode"))) { throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID); }
+        if ("STRIPE".equals(name) && !HostedDemoPolicy.permitsStripeMode(hostedDemo,stripeLiveEnabledClubIds,TenantContext.current(),text(input,"mode"))) { throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID); }
         // R-17-05: the payment-method writers' lock first, so a disabling re-reads the provider's users under it.
         clubs.lockProviders(TenantContext.require());var old=changes.club();PlatformClubChanges.requireVersion(old,input.get("version"));
         var providers=new LinkedHashMap<>(old.paymentProviders());

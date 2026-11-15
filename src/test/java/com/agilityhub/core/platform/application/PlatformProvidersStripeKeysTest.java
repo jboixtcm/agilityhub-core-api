@@ -76,6 +76,22 @@ class PlatformProvidersStripeKeysTest {
         assertThatThrownBy(call).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(code));
     }
 
+    @Test void hostedLiveOptInPermitsOnlyTheSelectedClubAndStillTestsAndEncryptsNewKeys() {
+        ReflectionTestUtils.setField(providers, "hostedDemo", true);
+        ReflectionTestUtils.setField(providers, "stripeLiveEnabledClubIds", " club-other, club-a ");
+        var input = input("live", true);
+        when(payments.ping("live", "sk_live_fictional_new")).thenReturn(new ConsolePaymentAccess.Connection(true, "acct_example_live", "Example Club", "live"));
+        providers.update("STRIPE", input, providers.testKey("STRIPE", input));
+        verify(payments).ping("live", "sk_live_fictional_new");
+        assertThat(written()).containsEntry("mode", "live").containsEntry("secretKeyEnc", "enc:secretKeyEnc")
+                .containsEntry("webhookSecretEnc", "enc:webhookSecretEnc").containsEntry("accountId", "acct_example_live");
+        clearInvocations(payments, clubs, changes);
+        ReflectionTestUtils.setField(providers, "stripeLiveEnabledClubIds", "club-ab");
+        assertThat(providers.testKey("STRIPE", input)).isNull();
+        assertCode(() -> providers.update("STRIPE", input, null), ErrorCode.PROVIDER_CONFIG_INVALID);
+        verifyNoInteractions(payments, clubs, changes);
+    }
+
     @Test void PAY_10_aNewSecretKeyIsTestedWithThatKeyAndThePassedTestIsRecordedWithTheSave() {
         var input = input("test", true);
         when(payments.ping("test", "sk_test_fictional_new")).thenReturn(new ConsolePaymentAccess.Connection(true, "acct_example_new", "Example Club", "test"));
