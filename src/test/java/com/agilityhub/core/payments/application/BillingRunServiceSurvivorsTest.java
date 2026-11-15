@@ -151,6 +151,19 @@ class BillingRunServiceSurvivorsTest {
         assertThat(sepaTotals.remittanceId()).isEqualTo(outcome.remittance().id());
     }
 
+    @Test void pausedClubCanSimulateButCannotGenerateAFileOrAllocateInvoiceNumbers() {
+        var draft = new InvoicingRules.Draft("member-sepa", List.of(line(4500, null)), List.of());
+        var plan = plan(List.of(draft), List.of(), Map.of("member-sepa", member("member-sepa", "SEPA_DD", null)), List.of());
+        generating(plan, List.of());
+        service.setSepaGenerationPausedClubIds(Set.of(CLUB));
+        assertThatThrownBy(() -> service.generate(PERIOD, "simulation-1", COLLECTION))
+                .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class, error -> {
+                    assertThat(error.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.SEPA_NOT_CONFIGURED);
+                    assertThat(error.details()).containsEntry("reason", "GENERATION_PAUSED");
+                });
+        org.mockito.Mockito.verifyNoInteractions(numbers, writer, events);
+    }
+
     @Test void T_12_21_anUnknownSimulationIsNotFound() {
         assertThatThrownBy(() -> service.generate(PERIOD, "simulation-unknown", COLLECTION)).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class)
                 .hasMessage("NOT_FOUND");

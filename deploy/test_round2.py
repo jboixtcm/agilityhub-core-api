@@ -93,7 +93,7 @@ class DeploymentReviewTest(unittest.TestCase):
             container = subprocess.check_output([
                 'docker', 'run', '--rm', '-d', '-p', f'127.0.0.1:{port}:8080',
                 '-v', str(path / 'Caddyfile') + ':/etc/caddy/Caddyfile:ro',
-                '-v', directory + ':/srv:ro', 'caddy:2.10.2-alpine'], text=True).strip()
+                '-v', directory + ':/srv:ro', 'caddy:2.11.9-alpine'], text=True).strip()
             try:
                 opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
                 for attempt in range(50):

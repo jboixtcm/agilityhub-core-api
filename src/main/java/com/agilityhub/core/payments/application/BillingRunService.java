@@ -82,6 +82,13 @@ public class BillingRunService {
     /** R-12-11: {@code work} under the club's billing lock (`409 BILLING_BUSY` while a simulation, run or rollback holds it). */
     public <T> T locked(Supplier<T> work) { return simulator.locked("run", work); }
 
+    private java.util.Set<String> sepaGenerationPausedClubIds = java.util.Set.of();
+
+    @org.springframework.beans.factory.annotation.Value("${core.billing.sepa-generation-paused-club-ids:}")
+    void setSepaGenerationPausedClubIds(java.util.Set<String> clubIds) {
+        sepaGenerationPausedClubIds = java.util.Set.copyOf(clubIds);
+    }
+
     /** R-12-11/12: the month's generation; call it inside {@link #locked} and a billing transaction. */
     public RunOutcome generate(YearMonth period, String simulationId, LocalDate requestedCollectionDate) {
         catalog.lock();
@@ -98,6 +105,9 @@ public class BillingRunService {
         boolean sepa = !included.isEmpty() || drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
         LocalDate collectionDate = null;
         if (sepa) {
+            if (sepaGenerationPausedClubIds.contains(context.clubId())) {
+                throw new ApiException(ErrorCode.SEPA_NOT_CONFIGURED, Map.of("reason", "GENERATION_PAUSED"));
+            }
             collectionDate = requestedCollectionDate != null ? requestedCollectionDate : BillingSimulationService.collectionDate(plan);
             // SEPA-05: the default already rolls to a TARGET business day; a date the admin chose must be one.
             if (!CollectionDates.businessDay(collectionDate)) {

@@ -14,7 +14,7 @@ import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
-IMAGE = 'caddy:2.10.2-alpine'
+IMAGE = 'caddy:2.11.9-alpine'
 TOKEN = 'eyJfictional.access.token'
 LOG_FILE = '/var/log/caddy/access.log'
 PRODUCTION_ENV = {'ACME_EMAIL': 'ops@example.test', 'ID_HOST': 'id.example.test', 'CLUBS_HOST': 'clubs.example.test',
@@ -46,8 +46,8 @@ class AccessLogTest(unittest.TestCase):
         self.assertNotIn('delete access_token', self.snippet)
 
     def test_CFG_07_every_public_site_imports_the_rolled_log(self):
-        self.assertRegex(self.snippet, r'output file /var/log/caddy/access\.log \{\s*roll_size 50MiB\s*roll_keep 30\s*'
-                                       r'roll_keep_for 30d\s*\}')
+        self.assertRegex(self.snippet, r'output file /var/log/caddy/access\.log \{\s*roll_size 50MiB\s*roll_at 00:00\s*roll_keep 28\s*'
+                                       r'roll_keep_for 28d\s*\}')
         spa = self.caddy[self.caddy.index('(spa) {'):self.caddy.index('{$ID_HOST} {')]
         core = self.caddy[self.caddy.index('{$CORE_HOST} {'):self.caddy.index('# Never published by Compose.')]
         catch_all = self.caddy[self.caddy.index('https:// {'):]
@@ -81,7 +81,7 @@ class AccessLogTest(unittest.TestCase):
         self.assertEqual(5, len(set(loggers)))
         logs = adapted['logging']['logs']
         for name in loggers:
-            self.assertEqual({'output': 'file', 'filename': LOG_FILE, 'roll_size_mb': 50, 'roll_keep': 30, 'roll_keep_days': 30},
+            self.assertEqual({'output': 'file', 'filename': LOG_FILE, 'roll_size_mb': 50, 'roll_at': ['00:00'], 'roll_keep': 28, 'roll_keep_days': 28},
                              logs[name]['writer'], name)
             self.assertEqual({'request>uri', 'request>headers>Referer', 'resp_headers>Location', 'request>headers>X-Signup-Token',
                               'request>headers>X-Api-Key'}, set(logs[name]['encoder']['fields']))
@@ -92,13 +92,15 @@ class AccessLogTest(unittest.TestCase):
         # The real snippet in the production image, in front of fixed answers, as the sites import it. The file stays inside the
         # container (read with `docker exec`), so the test leaves no root-owned file on the runner.
         port = free_port()
-        with tempfile.TemporaryDirectory(prefix='cfg07-caddy-') as directory:
-            path = Path(directory) / 'Caddyfile'
-            path.write_text('{\n admin off\n}\n' + self.snippet + sites)
-            subprocess.run(['docker', 'run', '--rm', '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE,
-                            'caddy', 'validate', '--config', '/etc/caddy/Caddyfile'], check=True, capture_output=True)
-            container = subprocess.check_output(['docker', 'run', '--rm', '-d', '-p', f'127.0.0.1:{port}:8080',
-                                                 '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE], text=True).strip()
+        fixture = tempfile.TemporaryDirectory(prefix='cfg07-caddy-')
+        self.addCleanup(fixture.cleanup)
+        directory = fixture.name
+        path = Path(directory) / 'Caddyfile'
+        path.write_text('{\n admin off\n}\n' + self.snippet + sites)
+        subprocess.run(['docker', 'run', '--rm', '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE,
+                        'caddy', 'validate', '--config', '/etc/caddy/Caddyfile'], check=True, capture_output=True)
+        container = subprocess.check_output(['docker', 'run', '--rm', '-d', '-p', f'127.0.0.1:{port}:8080',
+                                             '-v', f'{path}:/etc/caddy/Caddyfile:ro', IMAGE], text=True).strip()
         self.addCleanup(subprocess.run, ['docker', 'rm', '-f', container], check=True, capture_output=True)
         return port, container
 

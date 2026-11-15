@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # Module constants, so a scratch runner can point one test at another revision of the file (round 2's red runs).
 DOCKERFILE = ROOT / 'Dockerfile'
 LOCAL_PROOF = ROOT / 'deploy/local-proof.py'
-IMAGE = 'caddy:2.10.2-alpine'
+IMAGE = 'caddy:2.11.9-alpine'
 PRODUCTION_ENV = {'ACME_EMAIL': 'ops@example.test', 'ID_HOST': 'id.example.test', 'CLUBS_HOST': 'clubs.example.test',
                   'ADMIN_HOST': 'admin.example.test', 'CORE_HOST': 'core.example.test', 'CADDY_ASK_UPSTREAM': 'core:8080',
                   'CADDY_APP_UPSTREAM': 'core:8080'}

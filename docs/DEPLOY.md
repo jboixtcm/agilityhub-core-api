@@ -1924,3 +1924,7 @@ The deployment Caddyfile explicitly selects the Let's Encrypt production ACME di
 ## 8 November 2026: authorized public email delivery
 
 Jordi authorized enabling emails and deploying the pending November 8 feedback. The Clubs release tool now pins `email_delivery_enabled`; when true it supplies both `EMAIL_DELIVERY_ENABLED=true` and `EMAIL_PUBLIC_DELIVERY_ENABLED=true`. Historical releases default both settings to false when selected for rollback. Recovery retains its separately pinned setting. This activation does not replay terminal skipped notifications. Inspect pending outbox/notification work and the provider sender before activation, then record the live runtime and delivery evidence separately. The earlier October restrictions above describe the historical internal-review phase.
+
+### Pausing SEPA generation for a club
+
+Set `SEPA_GENERATION_PAUSED_CLUB_IDS` to the comma-separated club UUIDs to hold. A billing run that would create a remittance returns HTTP 422 with `SEPA_NOT_CONFIGURED` and reason `GENERATION_PAUSED` before numbering invoices or creating a file. Simulation and member registration remain available. Remove the club from the setting and redeploy only after its mandate references and signature dates have been reconciled. The gateway rotates access logs daily at 00:00 UTC and after 50 MiB, and retains at most 28 rolled files for up to 28 days.

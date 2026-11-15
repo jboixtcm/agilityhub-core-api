@@ -154,6 +154,7 @@ core:
   billing:
     # Rulings E43/E85 (E8-T01): BankAccountVault, the only bank key: the members' encrypted IBANs of both origins (migration:apply
     # encrypts with it too); only the SEPA writer decrypts.
+    sepa-generation-paused-club-ids: ${SEPA_GENERATION_PAUSED_CLUB_IDS:}
     bank-key: ${BILLING_BANK_KEY:}
     # PRIV-11: the bank key a rotation replaces, read-only (values it sealed are read until census:rekey-ibans re-encrypts them).
     # Empty outside a rotation; when set it must be Base64 of 32 bytes and differ from BILLING_BANK_KEY (docs/DEPLOY.md).

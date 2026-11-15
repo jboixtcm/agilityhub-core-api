@@ -14,7 +14,7 @@ import urllib.error
 import urllib.request
 
 SOURCE = Path(os.environ.get('CADDYFILE', Path(__file__).with_name('Caddyfile')))
-IMAGE = 'caddy:2.10.2-alpine'
+IMAGE = 'caddy:2.11.9-alpine'
 # Above Caddy's 512-byte minimum for compression.
 APP_JS = 'console.log("fictional");\n' * 200
 # CFG-04: each fictional bundle's policy, as its build writes it (one line, no newline), and the Core's own for API answers.
