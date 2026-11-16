@@ -39,7 +39,8 @@ def atomic(path, data):
     try:
         os.fchmod(fd,0o600)
         with os.fdopen(fd,'w') as f:
-            json.dump(data,f,sort_keys=True);f.flush();os.fsync(f.fileno())
+            # The C encoder avoids hundreds of thousands of tiny checkpoint writes.
+            f.write(json.dumps(data,sort_keys=True));f.flush();os.fsync(f.fileno())
         os.replace(name,p)
     finally:
         if os.path.exists(name):os.unlink(name)
