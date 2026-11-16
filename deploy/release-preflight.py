@@ -76,6 +76,11 @@ def check_configuration(config):
     environment = core.get('environment', {})
     demo = str(environment.get('HOSTED_DEMO_ENABLED', 'false')).lower()
     require(demo in ('true', 'false'), 'HOSTED_DEMO_ENABLED must be true or false')
+    live_clubs = str(environment.get('STRIPE_LIVE_ENABLED_CLUB_IDS') or '').strip()
+    if live_clubs:
+        ids = [value.strip() for value in live_clubs.split(',')]
+        require(all(re.fullmatch(r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}', value) for value in ids)
+                and len(ids) == len(set(ids)), 'STRIPE_LIVE_ENABLED_CLUB_IDS requires distinct exact club UUIDs')
     email_enabled = str(environment.get('EMAIL_DELIVERY_ENABLED', 'true')).lower()
     require(email_enabled in ('true', 'false'), 'EMAIL_DELIVERY_ENABLED must be true or false')
     public_delivery = str(environment.get('EMAIL_PUBLIC_DELIVERY_ENABLED', 'false')).lower()

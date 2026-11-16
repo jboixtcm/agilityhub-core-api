@@ -3,6 +3,7 @@ package com.agilityhub.core.payments.application;
 import com.agilityhub.core.platform.application.ClubPaymentProviders;
 import com.agilityhub.core.platform.application.StripeProviderSettings;
 import com.agilityhub.core.shared.application.SecurityEvents;
+import com.agilityhub.core.shared.application.HostedDemoPolicy;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class StripeWebhookSignatures {
     @org.springframework.beans.factory.annotation.Value("${core.hosted-demo.enabled:false}") private boolean hostedDemo;
+    @org.springframework.beans.factory.annotation.Value("${core.payments.stripe-live-enabled-club-ids:}") private String stripeLiveEnabledClubIds = "";
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
     static final Duration TOLERANCE = Duration.ofMinutes(5);
     static final String FIELD = "webhookSecretEnc";
@@ -53,14 +55,14 @@ public class StripeWebhookSignatures {
     public void authenticate(String clubId, String header, byte[] body) {
         var stripe = providers.stripe(clubId);
         String secret = stripe.map(settings -> secret(clubId, settings)).orElse(null);
-        if (secret != null && valid(header, body, secret, clock.instant()) && (!hostedDemo || testEvent(body)) && sameMode(clubId, stripe.get().mode(), body)) { return; }
+        if (secret != null && valid(header, body, secret, clock.instant()) && (!hostedDemo || markedEventMode(body, stripe.get().mode())) && sameMode(clubId, stripe.get().mode(), body)) { return; }
         // An unknown club is recorded without the path's text.
         securityEvents.record(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID, null, stripe.isPresent() ? clubId : null);
         throw new ApiException(ErrorCode.WEBHOOK_SIGNATURE_INVALID);
     }
 
     private String secret(String clubId, StripeProviderSettings settings) {
-        if (hostedDemo && !"test".equals(settings.mode())) { return null; }
+        if (!HostedDemoPolicy.permitsStripeMode(hostedDemo,stripeLiveEnabledClubIds,clubId,settings.mode())) { return null; }
         String stored = settings.webhookSecretEnc();
         if (stored == null || stored.isBlank()) { return null; }
         try {
@@ -73,10 +75,10 @@ public class StripeWebhookSignatures {
         }
     }
 
-    private static boolean testEvent(byte[] body) {
+    private static boolean markedEventMode(byte[] body, String mode) {
         try {
             var event = JSON.readTree(body);
-            return event != null && event.path("livemode").isBoolean() && !event.path("livemode").booleanValue();
+            return event != null && event.path("livemode").isBoolean() && event.path("livemode").booleanValue() == "live".equals(mode);
         } catch (java.io.IOException invalid) { return false; }
     }
 

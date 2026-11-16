@@ -56,6 +56,21 @@ class ReleasePreflightTest(unittest.TestCase):
                     'ATTACHMENT_S3_BUCKET', 'ATTACHMENT_S3_REGION', 'ATTACHMENT_S3_ACCESS_KEY', 'ATTACHMENT_S3_SECRET_KEY'):
             self.config['services']['core']['environment'][key] = 'fictional-provider-value'
 
+    def test_live_stripe_scope_is_exact_and_does_not_disable_filesystem_guards(self):
+        self.filesystem_configuration()
+        environment = self.config['services']['core']['environment']
+        club = '12345678-3456-1234-8901-123456789012'
+        environment['STRIPE_LIVE_ENABLED_CLUB_IDS'] = club
+        PREFLIGHT.check_configuration(self.config)
+        for invalid in ('*', 'all', club + ',', club + ',' + club, 'not-a-club'):
+            environment['STRIPE_LIVE_ENABLED_CLUB_IDS'] = invalid
+            with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'STRIPE_LIVE_ENABLED_CLUB_IDS'):
+                PREFLIGHT.check_configuration(self.config)
+        environment['STRIPE_LIVE_ENABLED_CLUB_IDS'] = club
+        environment['HOSTED_DEMO_ENABLED'] = 'false'
+        with self.assertRaises(PREFLIGHT.PreflightError):
+            PREFLIGHT.check_configuration(self.config)
+
     def filesystem_configuration(self):
         core, backup = self.config['services']['core'], self.config['services']['backup']
         core['environment'].update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false',

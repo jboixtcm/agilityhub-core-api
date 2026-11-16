@@ -154,6 +154,8 @@ core:
     # the partial unique index training_active_seat, the ring-slot sequences) are the guarantee. Infrastructure
     # setting, not a club parameter (shared.application.LocalLanes).
     local-lanes: true
+  payments:
+    stripe-live-enabled-club-ids: ${STRIPE_LIVE_ENABLED_CLUB_IDS:}
   messaging:
     activity-publication-email-disabled-club-ids: ${ACTIVITY_PUBLICATION_EMAIL_DISABLED_CLUB_IDS:}
   billing:
