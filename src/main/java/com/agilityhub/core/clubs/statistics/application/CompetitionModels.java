@@ -23,7 +23,11 @@ public final class CompetitionModels {
             @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) Integer faults, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) Integer refusals, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal totalPenalty, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal timeSeconds, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal speedMps,
             @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) String qualification, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) Point point) { }
     @Schema(name = "CompetitionParsed")
-    public record Parsed(Source source, String sourceUrl, String season, List<Entry> entries) { }
+    public record Parsed(Source source, String sourceUrl, String season, List<Entry> entries, String organizingClubName) {
+        public Parsed(Source source, String sourceUrl, String season, List<Entry> entries) {
+            this(source, sourceUrl, season, entries, null);
+        }
+    }
     @Schema(name = "CompetitionDogOption")
     public record DogOption(String id, String name, String license) { }
     @Schema(name = "CompetitionPreviewRow")
@@ -41,7 +45,12 @@ public final class CompetitionModels {
     @Schema(name = "CompetitionSavedEntry")
     public record SavedEntry(String dogId, Entry result) { }
     @Schema(name = "CompetitionResult")
-    public record Result(Source source, String sourceUrl, Instant importedAt, Entry result) { }
+    public record Result(Source source, String sourceUrl, Instant importedAt, Entry result,
+            @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) String organizingClubName) {
+        public Result(Source source, String sourceUrl, Instant importedAt, Entry result) {
+            this(source, sourceUrl, importedAt, result, null);
+        }
+    }
     @Schema(name = "CompetitionRunSummary")
     public record RunSummary(Discipline discipline, int runs, int clearRuns, int p, int pa, int pv, int eliminatedRuns, int outcomeSamples, int speedSamples,
             @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal clearRatePercent,

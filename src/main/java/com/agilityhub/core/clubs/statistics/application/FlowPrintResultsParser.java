@@ -73,7 +73,13 @@ public class FlowPrintResultsParser {
             if (entries.size() > MAX_ROWS) { throw invalid("TOO_MANY_ROWS"); }
         }
         if (!headerSeen || entries.isEmpty()) { throw invalid("UNRECOGNIZED_FLOW_HTML"); }
-        return new Parsed(Source.FLOW_AGILITY, safe, year, List.copyOf(entries));
+        return new Parsed(Source.FLOW_AGILITY, safe, year, List.copyOf(entries), organizingClub(organiser));
+    }
+    private static String organizingClub(String caption) {
+        var match = Pattern.compile("^(?:Organizado por|Organized by|Organitzat per)\\s+(.+?)\\s+-\\s+20\\d{2}\\.\\d{2}\\.\\d{2}$").matcher(caption);
+        if (!match.matches()) { return null; }
+        String name = match.group(1).strip();
+        return name.isEmpty() || name.length() > 300 ? null : name;
     }
     private static String uniqueText(List<Element> elements) {
         var texts = elements.stream().map(Element::text).distinct().toList();

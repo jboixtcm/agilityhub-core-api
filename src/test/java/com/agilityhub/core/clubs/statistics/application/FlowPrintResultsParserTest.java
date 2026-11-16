@@ -47,6 +47,18 @@ class FlowPrintResultsParserTest {
             assertThatThrownBy(() -> parser.parse(html("1P").replace(" / JP", " / " + run), URL)).isInstanceOf(ApiException.class);
         }
     }
+    @Test void T_STATS_53_organizingClubComesFromTheCaptionNotTheCompetitorClub() {
+        var parser = new FlowPrintResultsParser();
+        for (String prefix : java.util.List.of("Organizado por", "Organized by", "Organitzat per")) {
+            var parsed = parser.parse(html("1PV").replace("Organizado por Club de prova", prefix + " Club Organitzador  "), URL);
+            assertThat(parsed.organizingClubName()).isEqualTo("Club Organitzador");
+            assertThat(parsed.entries().getFirst().clubName()).isEqualTo("Club de prova");
+            assertThat(parsed.entries().getFirst().trial()).isEqualTo("Prova de tardor");
+        }
+        for (String caption : java.util.List.of("Venue Club de prova", "Organizado por   ", "Organizado por " + "x".repeat(301))) {
+            assertThat(parser.parse(html("PA").replace("Organizado por Club de prova", caption), URL).organizingClubName()).isNull();
+        }
+    }
     @Test void T_STATS_15_countedOfficialLabelsAndCombinedAwards() throws Exception {
         var parser = new FlowPrintResultsParser();
         assertThat(parser.parse(html("1P"), URL).entries().getFirst().point()).isEqualTo(Point.P);

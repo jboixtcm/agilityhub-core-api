@@ -1,5 +1,7 @@
 # Changelog
 
+- Preserve the organizing club from Flow print headers separately from each competitor’s club, including result readback and member exports. Historical records without this optional metadata remain readable.
+
 - Count official P/PV/PA and explicit EXC_0 as clear rounds even without numerical penalties. Add per-licence comparisons for the latest three club-calendar years, with outcome/speed sample sizes, elimination rates, dates and grades.
 
 - Import Flow numbered runs (AG1/AG2/JP1/JP2) as their declared discipline without merging distinct run UUIDs. Revisit previously unsupported checkpoints when the result parser changes.

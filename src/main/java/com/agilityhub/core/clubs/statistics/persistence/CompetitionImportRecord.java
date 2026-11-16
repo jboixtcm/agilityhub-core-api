@@ -8,4 +8,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document("competition_imports")
 public record CompetitionImportRecord(String id, String clubId, Source source, String sourceUrl, String season,
-        Instant importedAt, long revision, List<SavedEntry> entries) implements TenantEntity { }
+        Instant importedAt, long revision, List<SavedEntry> entries, String organizingClubName) implements TenantEntity {
+    public CompetitionImportRecord(String id, String clubId, Source source, String sourceUrl, String season,
+            Instant importedAt, long revision, List<SavedEntry> entries) {
+        this(id, clubId, source, sourceUrl, season, importedAt, revision, entries, null);
+    }
+}

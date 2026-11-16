@@ -29,3 +29,14 @@ Updated user request: import the latest three calendar years only (2024–2026),
 Annual comparisons are tenant-scoped and per licence, deduplicate corrections, exclude future results, retain empty years with null rates, and stay anchored to club-local current year independently of the selected annual filter. Promotion still uses all imported history. Percentages use only known outcomes; the response exposes their denominator and speed sample count. No unknown result is presented as a clear or elimination.
 
 Validation (exit 0): `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 -Dtest=CompetitionStatisticsTest,RsceProgressTest,FlowPrintResultsParserTest,OpenApiSnapshotTest -Dopenapi.snapshot.update=true test` (29 tests), then `bin/openapi-snapshot --from-build`; `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 -Dtest=CompetitionImportsIT -Dsurefire.failIfNoSpecifiedTests=false test` (9 tests). Logs and exact counts are in `docs/flow-imports/evidence/annual-metrics/`. Full clean CI remains a release gate.
+
+
+## Organizing club in result rows — 2026-11-16
+
+Store the organizing club as source metadata from the explicit Spanish, English or Catalan print caption. The participant’s `clubName`, original trial title, keys and scores are unchanged. Results expose optional `organizingClubName`; missing or unfamiliar organizer captions retain the existing title fallback. Member exports retain this public organization name, while the existing third-party-name filter still applies to people.
+
+T_STATS_53 validates explicit caption attribution, language variants, whitespace and unknown/oversized names. T_STATS_54 verifies persistence, tenant separation, export, and legacy documents with the field absent. OpenAPI was regenerated using `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home MAVEN_OPTS=-Dmaven.repo.local=/tmp/competition-m2 python3 bin/openapi-snapshot` (exit 0).
+
+Validation: `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 -Dtest=FlowPrintResultsParserTest,CompetitionStatisticsTest,RsceProgressTest,OpenApiSnapshotTest,MemberDataPackageTest -Dit.test=CompetitionImportsIT -Djacoco.skip=true verify` passed 35 unit and 10 integration tests (exit 0). The full clean CI coverage and image gates remain required for release. Evidence: `docs/flow-imports/evidence/organizer/focused-checks.log` and `summary.json`.
+
+The first contract comparison correctly required regeneration. The first integration run identified that the public organizer name also needed the existing data-export allowlist; the final run above includes that correction. Historical organizer metadata enrichment and production verification are operational follow-up work, not claimed complete here.
