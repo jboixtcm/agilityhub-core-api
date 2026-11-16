@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.statistics.application;
 
+import com.agilityhub.core.clubs.census.application.CompetitionDogDirectory;
 import com.agilityhub.core.clubs.statistics.persistence.CompetitionImportRepository;
 import com.agilityhub.core.shared.application.ClubClock;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -13,8 +14,8 @@ import static com.agilityhub.core.clubs.statistics.application.CompetitionValida
 
 @Service
 public class CompetitionStatistics {
-    private final CompetitionImportRepository imports; private final ClubClock clock;
-    public CompetitionStatistics(CompetitionImportRepository imports, ClubClock clock) { this.imports = imports; this.clock = clock; }
+    private final CompetitionImportRepository imports; private final ClubClock clock; private final CompetitionDogDirectory dogs;
+    public CompetitionStatistics(CompetitionImportRepository imports, ClubClock clock, CompetitionDogDirectory dogs) { this.imports = imports; this.clock = clock; this.dogs = dogs; }
     public Statistics read(String dogId, Integer requestedYear, String requestedSeason) {
         var today = clock.today(TenantContext.require());
         int year = requestedYear == null ? today.getYear() : requestedYear;
@@ -24,10 +25,12 @@ public class CompetitionStatistics {
         if (!season.matches("20\\d{2}-20\\d{2}") || Integer.parseInt(season.substring(5)) != Integer.parseInt(season.substring(0, 4)) + 1) {
             throw invalid("INVALID_SEASON");
         }
-        var results = imports.forDog(dogId, Integer.toString(year), season).stream()
+        var results = imports.forDog(dogId).stream()
                 .flatMap(source -> source.entries().stream().filter(entry -> dogId.equals(entry.dogId()))
                         .map(entry -> new Result(source.source(), source.sourceUrl(), source.importedAt(), entry.result()))).toList();
-        return aggregate(dogId, year, season, results);
+        var stats = aggregate(dogId, year, season, results);
+        return new Statistics(stats.dogId(), year, season, stats.standings(), stats.scoredTrials(), stats.summaries(),
+                stats.results(), RsceProgress.calculate(results, dogs.licenses(dogId), year, today), stats.lastImportedAt());
     }
     static Statistics aggregate(String dogId, int year, String season, List<Result> all) {
         // A result imported from two provider pages counts once. Newer corrections win deterministically.
@@ -37,7 +40,7 @@ public class CompetitionStatistics {
             boolean selected = row.source() == Source.FCAG ? season.equals(entry.season()) : entry.date() != null && entry.date().getYear() == year;
             if (selected) {
                 String key = row.source() == Source.FCAG ? "FCAG|" + entry.division() + "|" + entry.category()
-                        : "FLOW|" + entry.trialId() + "|" + entry.runId();
+                        : "FLOW|" + entry.license() + "|" + entry.trialId() + "|" + entry.runId();
                 unique.put(key, row);
             }
         });
@@ -46,8 +49,13 @@ public class CompetitionStatistics {
                 .sorted(Comparator.<Result, java.time.LocalDate>comparing(row -> row.result().date()).reversed()
                         .thenComparing(row -> row.result().trialId()).thenComparing(row -> row.result().runId())).toList();
         int trials = (int) results.stream().filter(row -> row.result().point() != Point.NONE).map(row -> row.result().trialId()).distinct().count();
-        var summaries = Arrays.stream(Discipline.values()).map(discipline -> {
-            var runs = results.stream().map(Result::result).filter(row -> row.discipline() == discipline).toList();
+        var summaries = summarize(results.stream().map(Result::result).toList());
+        Instant latest = unique.values().stream().map(Result::importedAt).max(Comparator.naturalOrder()).orElse(null);
+        return new Statistics(dogId, year, season, standings, trials, summaries, results, List.of(), latest);
+    }
+    static List<RunSummary> summarize(List<Entry> entries) {
+        return Arrays.stream(Discipline.values()).map(discipline -> {
+            var runs = entries.stream().filter(row -> row.discipline() == discipline).toList();
             var speeds = runs.stream().filter(CompetitionStatistics::completed).map(Entry::speedMps).filter(Objects::nonNull).toList();
             BigDecimal mean = speeds.isEmpty() ? null : speeds.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(speeds.size()), 2, RoundingMode.HALF_UP);
@@ -55,10 +63,8 @@ public class CompetitionStatistics {
                     && row.totalPenalty() != null && row.totalPenalty().signum() == 0).count(),
                     count(runs, Point.P), count(runs, Point.PA), count(runs, Point.PV), mean);
         }).toList();
-        Instant latest = unique.values().stream().map(Result::importedAt).max(Comparator.naturalOrder()).orElse(null);
-        return new Statistics(dogId, year, season, standings, trials, summaries, results, latest);
     }
-    private static boolean completed(Entry row) {
+    static boolean completed(Entry row) {
         return row.timeSeconds() != null && row.timeSeconds().signum() > 0 && row.position() != null;
     }
     private static int count(List<Entry> rows, Point point) { return (int) rows.stream().filter(row -> row.point() == point || row.point() == Point.PA_PV && (point == Point.PA || point == Point.PV)).count(); }

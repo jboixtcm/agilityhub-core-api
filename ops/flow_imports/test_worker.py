@@ -5,6 +5,8 @@ from pathlib import Path
 import tempfile
 import json
 import os
+import io,time
+from urllib.error import HTTPError
 from discovery import date_range,events,merge,render,run_links,DiscoveryError
 from worker import execute,window,selected_date,result_subset,assignments,WorkerError,atomic,private_json,Flow,Api
 
@@ -73,6 +75,21 @@ class Tests(unittest.TestCase):
         with self.assertRaises(WorkerError):api.request('GET','/api/v1/accounts')
         flow=Flow.__new__(Flow)
         with self.assertRaises(WorkerError):flow.get('/zone/../../user/login')
+    def test_expired_session_does_not_block_fresh_login(self):
+        api=Api.__new__(Api);api.token='expired'
+        with patch.object(api,'request',side_effect=WorkerError('API_401_UNAUTHENTICATED')):
+            api.close()
+        self.assertIsNone(api.token)
+    def test_unauthorized_write_retries_once_with_same_idempotency_key(self):
+        api=Api.__new__(Api);api.token='expired';api.expires=time.monotonic()+100;api.origin='https://example.test';api.http=MagicMock()
+        error=HTTPError('https://example.test',401,'Unauthorized',{},io.BytesIO(b'{"code":"UNAUTHENTICATED"}'))
+        response=MagicMock();response.__enter__.return_value.read.return_value=b'{"ok":true}'
+        api.http.open.side_effect=[error,response]
+        with patch.object(api,'login') as login:
+            self.assertEqual(api.request('POST','/api/v1/competition-imports/'+RUNID+'/confirm',data={'assignments':{'x':'y'}}),{'ok':True})
+            login.assert_called_once()
+        requests=[c.args[0] for c in api.http.open.call_args_list]
+        self.assertEqual(requests[0].get_header('Idempotency-key'),requests[1].get_header('Idempotency-key'))
     def test_api_tenant_guard(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'account';atomic(p,{'accounts':[{'role':'ADMIN','username':'example@example.test','password':'fake'}]})

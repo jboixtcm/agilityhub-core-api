@@ -4178,3 +4178,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-16 — Direct user request: historical and weekly Flow results
 
 @organizer: Jordi requests all 2026 Flow history and unattended Monday 06:00 club-time imports. Real provider prints expose `1PV` and simultaneous `1PA / 1PV`, which the earlier parser rejected. Preserve the explicit counted labels and combined award, count PA/PV separately while retaining one run/trial, and expose the readable `PA / PV` wire value. No official points are inferred. The operational worker uses existing tenant-scoped preview/confirm authorization, exact unique licences, protected renewal state, checkpoints and existing-source protection. No new business parameter/event/error is introduced. No organizer task or verification is modified. Production imports and activation are tracked separately in SOFTWARE_CANIC operations evidence.
+
+
+## 2026-11-16 — Flow historical imports and RSCE progression
+
+User-authorized continuation of the isolated statistics branch. Scope now includes all available provider history and standard per-grade RSCE point progress (official 2026-07-01 regulation, arts. 60–63/71). Per-licence history is tenant-scoped; point counters do not automatically promote or certify qualification. Judges and exceptional routes remain explicit review conditions. Focused parser/progression/OpenAPI/integration checks passed; final clean verification and production work are ongoing. See docs/flow-imports/REPORT.md.

@@ -166,4 +166,25 @@ class CompetitionImportsIT extends AbstractIntegrationTest {
                 "content", CompetitionParsersTest.FCAG + "x".repeat(CompetitionValidation.MAX_BYTES))), CLUB, "ADMIN").andExpect(status().isBadRequest());
     }
 
+    @Test void T_STATS_47_progressReadsPriorYearsAndCurrentLicenceWithinTheTenant() throws Exception {
+        clock.setInstant(java.time.Instant.parse("2026-11-16T10:00:00Z"));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB + "-dog")),
+                new Update().set("licenses", List.of(Map.of("organisation", "RSCE", "number", "0123", "grade", "II"))), Dog.class);
+        var row = new FlowResultsParser().parse(FlowResultsParser.HEADER + "\n"
+                + CompetitionParsersTest.flowRow("old", "AGILITY", "PA").replace("2026-10-10", "2025-12-31"), CompetitionParsersTest.FLOW_URL).entries().getFirst();
+        for (String tenant : List.of(CLUB, OTHER)) {
+            mongo.insert(new com.agilityhub.core.clubs.statistics.persistence.CompetitionImportRecord(tenant + "-history", tenant,
+                    CompetitionModels.Source.FLOW_AGILITY, CompetitionParsersTest.FLOW_URL, "2025", clock.instant(), 1,
+                    List.of(new CompetitionModels.SavedEntry(CLUB + "-dog", row))));
+        }
+        var stats = json(call(get("/api/v1/me/dogs/" + CLUB + "-dog/competition-statistics").param("year", "2026"), CLUB, "MEMBER"));
+        assertThat(stats.path("results")).isEmpty();
+        assertThat(stats.path("rsceProgress")).hasSize(1);
+        assertThat(stats.at("/rsceProgress/0/currentGrade").asText()).isEqualTo("G2");
+        assertThat(stats.at("/rsceProgress/0/gradeSource").asText()).isEqualTo("LICENSE");
+        assertThat(stats.at("/rsceProgress/0/promotionRoutes/0/targets/0/earned").asInt()).isEqualTo(1);
+        assertThat(stats.at("/rsceProgress/0/promotionRoutes/0/targets/0/remaining").asInt()).isEqualTo(2);
+        assertThat(stats.at("/rsceProgress/0/championshipRoutes/0/targets/0/earned").asInt()).isZero();
+    }
+
 }

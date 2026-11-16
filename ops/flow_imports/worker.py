@@ -140,24 +140,28 @@ class Api:
     def login(self):
         if self.token:self.close()
         result=self.request('POST','/oauth2/token',form={'grant_type':'password','client_id':'clubs-admin','username':self.account['username'],'password':self.account['password']})
-        self.token=result['access_token'];self.started=time.monotonic()
-        club=self.request('GET','/api/v1/club')
+        self.token=result['access_token'];self.started=time.monotonic();self.expires=self.started+max(5,int(result.get('expires_in',300))-60)
+        club=self.request('GET','/api/v1/club',retry_auth=False)
         if club.get('id')!=self.club or 'STATS' not in club['modules']:raise WorkerError('TENANT_OR_MODULE_MISMATCH')
-    def request(self,method,path,data=None,form=None,key=None):
+    def request(self,method,path,data=None,form=None,key=None,retry_auth=True):
         if not (path in ('/oauth2/token','/oauth2/revoke','/api/v1/club','/api/v1/competition-imports','/api/v1/competition-imports/preview') or re.fullmatch('/api/v1/competition-imports/'+UUID+'/confirm',path) or re.fullmatch('/api/v1/dogs/'+UUID+r'/competition-statistics(?:\?year=20\d{2})?',path)):
             raise WorkerError('UNEXPECTED_API_PATH')
-        if self.token and time.monotonic()-self.started>600 and path.startswith('/api/'):self.login()
+        if self.token and time.monotonic()>=self.expires and path.startswith('/api/'):self.login()
         headers={'Origin':self.origin};body=None
         if self.token:headers['Authorization']='Bearer '+self.token
         if data is not None:body=json.dumps(data).encode();headers['Content-Type']='application/json'
         if form is not None:body=urlencode(form).encode();headers['Content-Type']='application/x-www-form-urlencoded'
-        if method=='POST' and path.startswith('/api/'):headers['Idempotency-Key']=key or str(uuid.uuid4())
+        if method=='POST' and path.startswith('/api/'):
+            key=key or str(uuid.uuid4());headers['Idempotency-Key']=key
         try:
             with self.http.open(Request(self.origin+path,method=method,data=body,headers=headers),timeout=45) as r:
                 raw=r.read(8_000_001)
                 if len(raw)>8_000_000:raise WorkerError('API_RESPONSE_TOO_LARGE')
                 return json.loads(raw) if raw else None
         except HTTPError as e:
+            if e.code==401 and retry_auth and path.startswith('/api/'):
+                self.token=None;self.login()
+                return self.request(method,path,data=data,form=form,key=key,retry_auth=False)
             try:
                 p=json.loads(e.read(10000));reason=p.get('details',{}).get('reason',p.get('code','ERROR'))
                 if not re.fullmatch('[A-Z_0-9]{1,100}',str(reason)):reason='ERROR'
@@ -167,6 +171,8 @@ class Api:
     def close(self):
         if self.token:
             try:self.request('POST','/oauth2/revoke',data={})
+            except WorkerError as e:
+                if not str(e).startswith('API_401_'):raise
             finally:self.token=None
 
 def result_subset(html,licenses,start,end,weekly):
