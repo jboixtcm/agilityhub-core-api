@@ -71,6 +71,24 @@ class ReleasePreflightTest(unittest.TestCase):
         with self.assertRaises(PREFLIGHT.PreflightError):
             PREFLIGHT.check_configuration(self.config)
 
+    def test_hosted_push_requires_exact_scope_and_all_vapid_settings(self):
+        self.filesystem_configuration()
+        environment = self.config['services']['core']['environment']
+        club = '12345678-3456-1234-8901-123456789012'
+        environment['PUSH_ENABLED_CLUB_IDS'] = club
+        for key in ('VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):
+            environment[key] = 'fictional-test-value'
+        PREFLIGHT.check_configuration(self.config)
+        for key in ('VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):
+            original = environment.pop(key)
+            with self.assertRaisesRegex(PREFLIGHT.PreflightError, key):
+                PREFLIGHT.check_configuration(self.config)
+            environment[key] = original
+        for invalid in ('*', 'all', club + ',', club + ',' + club, 'not-a-club'):
+            environment['PUSH_ENABLED_CLUB_IDS'] = invalid
+            with self.assertRaisesRegex(PREFLIGHT.PreflightError, 'PUSH_ENABLED_CLUB_IDS'):
+                PREFLIGHT.check_configuration(self.config)
+
     def filesystem_configuration(self):
         core, backup = self.config['services']['core'], self.config['services']['backup']
         core['environment'].update(HOSTED_DEMO_ENABLED='true', EMAIL_DELIVERY_ENABLED='false',

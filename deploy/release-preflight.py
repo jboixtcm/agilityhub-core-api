@@ -82,6 +82,13 @@ def check_configuration(config):
         require(all(re.fullmatch(r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}', value) for value in ids)
                 and len(ids) == len(set(ids)), 'STRIPE_LIVE_ENABLED_CLUB_IDS requires distinct exact club UUIDs')
     email_enabled = str(environment.get('EMAIL_DELIVERY_ENABLED', 'true')).lower()
+    push_clubs = str(environment.get('PUSH_ENABLED_CLUB_IDS') or '').strip()
+    if push_clubs:
+        ids = [value.strip() for value in push_clubs.split(',')]
+        require(all(re.fullmatch(r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}', value) for value in ids)
+                and len(ids) == len(set(ids)), 'PUSH_ENABLED_CLUB_IDS requires distinct exact club UUIDs')
+        for key in ('VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT'):
+            require(bool(str(environment.get(key) or '').strip()), f'{key} is required for enabled push clubs')
     require(email_enabled in ('true', 'false'), 'EMAIL_DELIVERY_ENABLED must be true or false')
     public_delivery = str(environment.get('EMAIL_PUBLIC_DELIVERY_ENABLED', 'false')).lower()
     require(public_delivery in ('true', 'false'), 'EMAIL_PUBLIC_DELIVERY_ENABLED must be true or false')
