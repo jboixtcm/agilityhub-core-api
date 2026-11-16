@@ -1,0 +1,30 @@
+{
+  "exitCode": 0,
+  "workerTests": 24,
+  "javaClasses": {
+    "FlowPrintResultsParserTest": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CompetitionParserBoundariesTest": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CompetitionStatisticsTest": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CompetitionImportsIT": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

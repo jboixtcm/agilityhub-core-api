@@ -31,6 +31,22 @@ class FlowPrintResultsParserTest {
         var eliminated = parser.parse(html("-").replace("1º", "-").replace("35.12", "-").replace("5.40", "-").replace("EXC_0", "DISQ"), URL).entries().getFirst();
         assertThat(eliminated.position()).isNull(); assertThat(eliminated.timeSeconds()).isNull();
     }
+    @Test void T_STATS_49_numberedRunsKeepTheirDisciplineAndDistinctRunIdentity() {
+        var parser = new FlowPrintResultsParser();
+        var first = parser.parse(html("1PA").replace(" / JP", " / AG1"), URL).entries().getFirst();
+        var second = parser.parse(html("1PA").replace(" / JP", " / AG2"), URL.replace("789abc", "789abd")).entries().getFirst();
+        assertThat(first.discipline()).isEqualTo(Discipline.AGILITY);
+        assertThat(second.discipline()).isEqualTo(Discipline.AGILITY);
+        assertThat(first.trialId()).isEqualTo(second.trialId());
+        assertThat(first.key()).isNotEqualTo(second.key());
+        assertThat(second.point()).isEqualTo(Point.PA);
+        for (String run : java.util.List.of("JP1", "JP2")) {
+            assertThat(parser.parse(html("1P").replace(" / JP", " / " + run), URL).entries().getFirst().discipline()).isEqualTo(Discipline.JUMPING);
+        }
+        for (String run : java.util.List.of("AG0", "JPX", "AG1/JP1")) {
+            assertThatThrownBy(() -> parser.parse(html("1P").replace(" / JP", " / " + run), URL)).isInstanceOf(ApiException.class);
+        }
+    }
     @Test void T_STATS_15_countedOfficialLabelsAndCombinedAwards() throws Exception {
         var parser = new FlowPrintResultsParser();
         assertThat(parser.parse(html("1P"), URL).entries().getFirst().point()).isEqualTo(Point.P);

@@ -13,3 +13,13 @@ User follow-up: import all available history (not only 2026), separate Agility a
 Focused validation: RsceProgressTest, CompetitionStatisticsTest, FlowPrintResultsParserTest and regenerated OpenApiSnapshotTest passed. CompetitionImportsIT passed, including previous-year PA and tenant isolation. The preceding pre-regulation clean verification passed; the final expanded clean verification is being rerun.
 
 A real 2026 Friday competition was found during the backfill. Weekly windows therefore include Friday–Sunday, with DST/new-year boundary coverage. Another imported official PA omits numerical total penalties; G1 promotion now trusts an explicit PA even when that optional statistic is absent, while raw clear-run statistics remain uninferred.
+
+Production coverage audit follow-up (2026-11-16): a sample of cached unsupported pages found valid numbered AG1/AG2/JP1/JP2 runs. Both Core and the worker now accept the numeric suffix while keeping the source UUID as the run identity. Unsupported checkpoints carry a result-format version so the corrected importer reconsiders older exclusions without replaying imported sources or unrelated no-match pages. T_STATS_49 covers discipline, separate run identity and rejected invalid labels; worker regressions cover source preservation and checkpoint migration. Full corrected archive replay remains an operational requirement, not established by code publication.
+
+Numbered-run targeted validation passed (exit 0):
+
+- `/private/tmp/canic-flow-worker-venv/bin/python -m unittest discover -s ops/flow_imports -v`: 24 tests.
+- `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 -Dtest=FlowPrintResultsParserTest,CompetitionParserBoundariesTest,CompetitionStatisticsTest test`: 11 tests.
+- `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home ./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 -Dtest=CompetitionImportsIT -Dsurefire.failIfNoSpecifiedTests=false test`: all cases passed, including T_STATS_50 persisted numbered-run readback.
+
+Complete logs and exact class counts: `docs/flow-imports/evidence/numbered-runs/`. Final clean verification, image security gates, publication and production replay must pass before this correction is considered deployed.

@@ -26,7 +26,7 @@ public class FlowPrintResultsParser {
         String organiser = uniqueText(doc.select(".organ-caption"));
         String title = uniqueText(doc.select(".results-caption"));
         var dateMatch = Pattern.compile(".* - (20\\d{2})\\.(\\d{2})\\.(\\d{2})$").matcher(organiser);
-        var titleMatch = Pattern.compile("(?:Resultados|Results|Resultats) - (G[123]) / ([A-Za-z]+) / (AG|JP)").matcher(title);
+        var titleMatch = Pattern.compile("(?:Resultados|Results|Resultats) - (G[123]) / ([A-Za-z]+) / (AG|JP)(?:[1-9][0-9]*)?").matcher(title);
         if (!dateMatch.matches() || !titleMatch.matches() || trial.length() > 300) { throw invalid("UNRECOGNIZED_FLOW_HTML"); }
         LocalDate date;
         try { date = LocalDate.of(Integer.parseInt(dateMatch.group(1)), Integer.parseInt(dateMatch.group(2)), Integer.parseInt(dateMatch.group(3))); }
