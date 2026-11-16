@@ -22,13 +22,13 @@ import org.springframework.web.context.request.WebRequest;
 public class BrandingController {
     private final ClubConfigService configs;
     private final ObjectMapper mapper;
-    private final String pushPublicKey;
+    private final com.agilityhub.core.platform.application.PushPublicKey push;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.ProductBranding product;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.CountryProfileRegistry countries;
-    /** @param pushPublicKey `VAPID_PUBLIC_KEY` (S11 R-11-07): the product's web-push key, public by design; blank without one */
+    /** The active transport publishes its public key only for clubs allowed to receive push. */
     public BrandingController(ClubConfigService configs, ObjectMapper mapper,
-            @org.springframework.beans.factory.annotation.Value("${notifications.push.vapid-public-key:}") String pushPublicKey) {
-        this.configs = configs; this.mapper = mapper; this.pushPublicKey = pushPublicKey == null || pushPublicKey.isBlank() ? null : pushPublicKey.strip();
+            com.agilityhub.core.platform.application.PushPublicKey push) {
+        this.configs = configs; this.mapper = mapper; this.push = push;
     }
     @GetMapping("/api/v1/branding")
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
@@ -43,7 +43,7 @@ public class BrandingController {
             return response(BrandingResponse.product(values, new BrandingResponse.Country(profile.code(), profile.idDocumentTypes(), profile.defaultPhonePrefix()),
                     product.privacyPolicyUrl()), request);
         }
-        return response(BrandingResponse.from(configs.get(TenantContext.require()), pushPublicKey), request);
+        return response(BrandingResponse.from(configs.get(TenantContext.require()), push.current()), request);
     }
     @GetMapping(value = "/api/v1/manifest.webmanifest", produces = "application/manifest+json")
     @io.swagger.v3.oas.annotations.responses.ApiResponses({

@@ -123,7 +123,9 @@ public class MessagingConfiguration {
     @Bean PushSender pushSender(Environment environment, ObjectMapper mapper, Clock clock, ClubConfigService configs,
             @Value("${notifications.push.vapid-public-key:}") String publicKey, @Value("${notifications.push.vapid-private-key:}") String privateKey,
             @Value("${notifications.push.vapid-subject:}") String subject) {
-        if (com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled()) {
+        var enabledClubs = com.agilityhub.core.clubs.messaging.application.integrations.ClubScopedPushSender.parseClubIds(
+                environment.getProperty("notifications.push.enabled-club-ids", ""));
+        if (com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment).enabled() && enabledClubs.isEmpty()) {
             return new PushSender() {
                 public String publicKey() { return null; }
                 public PushResult send(com.agilityhub.core.clubs.messaging.persistence.PushSubscription subscription, PushPayload payload) {
@@ -138,8 +140,13 @@ public class MessagingConfiguration {
             throw new IllegalStateException("VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT are required outside local/test");
         }
         if (environment.acceptsProfiles(Profiles.of("test"))) { return new FakePushSender(publicKey); }
-        return new WebPushSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper, clock, Duration.ofSeconds(10), publicKey, privateKey,
+        PushSender sender = new WebPushSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper, clock, Duration.ofSeconds(10), publicKey, privateKey,
                 subject, () -> 60 * Objects.requireNonNullElse(configs.get(TenantContext.require()).get("messaging.push.ttlMinutes", Integer.class), 1440));
+        return enabledClubs.isEmpty() ? sender : new com.agilityhub.core.clubs.messaging.application.integrations.ClubScopedPushSender(sender, enabledClubs);
+    }
+
+    @Bean com.agilityhub.core.platform.application.PushPublicKey pushPublicKey(PushSender sender) {
+        return sender::publicKey;
     }
 
     @Bean UnsubscribeTokens unsubscribeTokens(Environment environment, Clock clock, @Value("${notifications.unsubscribe-key:}") String key) {
