@@ -36,7 +36,7 @@ public final class MemberDataPackage {
      * item's.
      */
     static final java.util.Set<String> KEPT_NAMES = java.util.Set.of("firstname", "fullname", "membername", "holdername", "dogname", "handlername",
-            "filename", "clubname", "legalname", "levelname", "ringname", "planname", "activityname", "eventname", "locationname");
+            "filename", "clubname", "organizingclubname", "legalname", "levelname", "ringname", "planname", "activityname", "eventname", "locationname");
     /**
      * Maps that describe another member, of which only these keys stay (R-14-13 `familyGroup` «sense dades d'altres membres»,
      * E11-T11): S04's `familyGroupClaim{status, holderName, dogName, holderMemberId?}` names the group's holder and the holder's

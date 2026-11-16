@@ -1,0 +1,61 @@
+{
+  "unit": {
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "name": "com.agilityhub.core.clubs.statistics.application.CompetitionStatisticsTest",
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.agilityhub.core.clubs.statistics.application.FlowPrintResultsParserTest",
+        "tests": "6",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.agilityhub.core.clubs.statistics.application.RsceProgressTest",
+        "tests": "9",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.agilityhub.core.configuration.OpenApiSnapshotTest",
+        "tests": "12",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      },
+      {
+        "name": "com.agilityhub.core.platform.application.privacy.MemberDataPackageTest",
+        "tests": "5",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    ]
+  },
+  "integration": {
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "name": "com.agilityhub.core.clubs.statistics.application.CompetitionImportsIT",
+        "tests": "10",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    ]
+  },
+  "exitCode": 0
+}

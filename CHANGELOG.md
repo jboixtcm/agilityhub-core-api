@@ -1,5 +1,7 @@
 # Changelog
 
+- Preserve the organizing club from Flow print headers separately from each competitor’s club, including result readback and member exports. Historical records without this optional metadata remain readable.
+
 - Enable production web push for explicitly selected clubs while retaining hosted storage and other provider policies. Publish the VAPID key only for enabled clubs and require the complete credentials in deployment preflight.
 
 - Count official P/PV/PA and explicit EXC_0 as clear rounds even without numerical penalties. Add per-licence comparisons for the latest three club-calendar years, with outcome/speed sample sizes, elimination rates, dates and grades.

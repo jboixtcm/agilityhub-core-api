@@ -157,6 +157,30 @@ class CompetitionImportsIT extends AbstractIntegrationTest {
         for (String year : List.of("1999", "2101")) call(get("/api/v1/dogs/" + CLUB + "-dog/competition-statistics").param("year", year), CLUB, "ADMIN").andExpect(status().isBadRequest());
         for (String season : List.of("bad", "2026-2028")) call(get("/api/v1/dogs/" + CLUB + "-dog/competition-statistics").param("season", season), CLUB, "ADMIN").andExpect(status().isBadRequest());
     }
+    @Test void T_STATS_54_organizingClubPersistsExportsAndRemainsTenantScopedWithLegacyFallback() throws Exception {
+        for (String tenant : List.of(CLUB, OTHER)) {
+            String html = FlowPrintResultsParserTest.html("1PV").replace("Organizado por Club de prova", "Organizado por Organizer " + tenant);
+            var preview = json(call(body(post(BASE + "/preview"), Map.of("source", "FLOW_AGILITY", "sourceUrl", FlowPrintResultsParserTest.URL, "content", html)), tenant, "ADMIN"));
+            json(call(body(post(BASE + "/" + preview.path("id").asText() + "/confirm"), assignments(preview, tenant + "-dog")), tenant, "ADMIN"));
+        }
+        var request = get("/api/v1/me/dogs/" + CLUB + "-dog/competition-statistics").param("year", "2026");
+        var stats = json(call(request, CLUB, "MEMBER"));
+        assertThat(stats.path("results")).hasSize(1);
+        assertThat(stats.at("/results/0/organizingClubName").asText()).isEqualTo("Organizer " + CLUB);
+        assertThat(stats.at("/results/0/result/clubName").asText()).isEqualTo("Club de prova");
+        assertThat(stats.at("/results/0/result/trial").asText()).isEqualTo("Prova de tardor");
+        try (var ignored = TenantContext.open(CLUB)) {
+            var own = new com.agilityhub.core.platform.application.privacy.MemberDataPackage();
+            privacy.contribute(new com.agilityhub.core.platform.application.privacy.ErasureMember(CLUB + "-member", CLUB + "-account", 7,
+                    "ACTIVE", null, null, null, null, List.of(CLUB + "-dog")), own);
+            assertThat(mapper.valueToTree(own.sections()).at("/competitionResults/0/organizingClubName").asText()).isEqualTo("Organizer " + CLUB);
+        }
+        mongo.updateFirst(Query.query(Criteria.where("clubId").is(CLUB)), new Update().unset("organizingClubName"), "competition_imports");
+        var legacy = json(call(get("/api/v1/me/dogs/" + CLUB + "-dog/competition-statistics").param("year", "2026"), CLUB, "MEMBER"));
+        assertThat(legacy.at("/results/0/organizingClubName").asText("")).isEmpty();
+        assertThat(legacy.path("summaries")).isEqualTo(stats.path("summaries"));
+        assertThat(legacy.at("/results/0/result")).isEqualTo(stats.at("/results/0/result"));
+    }
     @Test void T_STATS_26_ambiguousLicencesAndInvalidSelectionsNeverPublish() throws Exception {
         org.mockito.Mockito.when(fcagClient.fetch(CompetitionParsersTest.FCAG_URL)).thenReturn(CompetitionParsersTest.FCAG);
         var copy = mongo.findById(CLUB + "-dog", Dog.class); copy.id = CLUB + "-second"; mongo.insert(copy);

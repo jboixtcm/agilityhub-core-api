@@ -27,7 +27,7 @@ public class CompetitionStatistics {
         }
         var results = imports.forDog(dogId).stream()
                 .flatMap(source -> source.entries().stream().filter(entry -> dogId.equals(entry.dogId()))
-                        .map(entry -> new Result(source.source(), source.sourceUrl(), source.importedAt(), entry.result()))).toList();
+                        .map(entry -> new Result(source.source(), source.sourceUrl(), source.importedAt(), entry.result(), source.organizingClubName()))).toList();
         var stats = aggregate(dogId, year, season, results);
         return new Statistics(stats.dogId(), year, season, stats.standings(), stats.scoredTrials(), stats.summaries(),
                 stats.results(), RsceProgress.calculate(results, dogs.licenses(dogId), year, today), stats.lastImportedAt());

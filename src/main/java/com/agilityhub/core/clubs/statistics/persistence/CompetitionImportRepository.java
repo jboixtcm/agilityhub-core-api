@@ -27,7 +27,7 @@ public class CompetitionImportRepository extends TenantRepository<CompetitionImp
         var rows = mongo.find(tenantQuery().addCriteria(Criteria.where("entries.dogId").in(dogIds)), CompetitionImportRecord.class);
         return rows.stream().map(record -> {
             var own = new CompetitionImportRecord(record.id(), record.clubId(), record.source(), record.sourceUrl(), record.season(),
-                    record.importedAt(), record.revision(), record.entries().stream().filter(entry -> dogIds.contains(entry.dogId())).toList());
+                    record.importedAt(), record.revision(), record.entries().stream().filter(entry -> dogIds.contains(entry.dogId())).toList(), record.organizingClubName());
             var document = new org.bson.Document(); mongo.getConverter().write(own, document);
             return com.agilityhub.core.platform.application.privacy.MemberDataPackage.row(document);
         }).toList();

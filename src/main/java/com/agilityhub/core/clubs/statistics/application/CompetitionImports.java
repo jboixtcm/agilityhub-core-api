@@ -87,7 +87,7 @@ public class CompetitionImports {
             if (!identities.add(identity)) { throw invalid("DUPLICATE_DOG_RESULT"); }
         }
         var saved = imports.save(new CompetitionImportRecord(preview.sourceId(), TenantContext.require(), source.source(), source.sourceUrl(), source.season(),
-                clock.instant(), preview.sourceRevision() + 1, entries), preview.sourceRevision());
+                clock.instant(), preview.sourceRevision() + 1, entries, source.organizingClubName()), preview.sourceRevision());
         var receipt = receipt(saved);
         previews.replace(new CompetitionPreviewRecord(preview.id(), preview.clubId(), preview.parsed(), preview.sourceId(), preview.sourceRevision(),
                 preview.expiresAt(), receipt, mappingHash, preview.replayAccountId(), preview.replayKey()));
