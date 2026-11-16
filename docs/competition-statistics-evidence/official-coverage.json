@@ -1,0 +1,35 @@
+{
+  "run": 43762983600,
+  "commit": "fcbc2617ef464015ef223b011fb1344450c96515",
+  "artifactId": 14182229210,
+  "artifactDigestVerified": true,
+  "statisticsPackages": {
+    "com/agilityhub/core/clubs/statistics/persistence": {
+      "BRANCH": {
+        "covered": 7,
+        "missed": 1
+      },
+      "LINE": {
+        "covered": 29,
+        "missed": 0
+      }
+    },
+    "com/agilityhub/core/clubs/statistics/application": {
+      "BRANCH": {
+        "covered": 420,
+        "missed": 41
+      },
+      "LINE": {
+        "covered": 358,
+        "missed": 1
+      }
+    },
+    "com/agilityhub/core/clubs/statistics/api": {
+      "LINE": {
+        "covered": 8,
+        "missed": 0
+      }
+    }
+  },
+  "allPackageCoverageGates": "passed in official clean verify"
+}

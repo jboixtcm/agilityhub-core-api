@@ -1,0 +1,104 @@
+{
+  "surefire": {
+    "classes": 543,
+    "tests": 5385,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "featureClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionStatisticsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.FlowPrintResultsParserTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.platform.application.privacy.MemberDataPackageTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionParserBoundariesTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionSourceClientsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionParsersTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "failsafe": {
+    "classes": 195,
+    "tests": 2587,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "featureClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionImportsIT",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "command": "./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 clean verify",
+  "exit": 0,
+  "coverage": {
+    "com/agilityhub/core/clubs/statistics/persistence": {
+      "BRANCH": {
+        "covered": 7,
+        "missed": 1,
+        "percentage": 87.5
+      },
+      "LINE": {
+        "covered": 29,
+        "missed": 0,
+        "percentage": 100.0
+      }
+    },
+    "com/agilityhub/core/clubs/statistics/application": {
+      "BRANCH": {
+        "covered": 420,
+        "missed": 41,
+        "percentage": 91.11
+      },
+      "LINE": {
+        "covered": 358,
+        "missed": 1,
+        "percentage": 99.72
+      }
+    },
+    "com/agilityhub/core/clubs/statistics/api": {
+      "LINE": {
+        "covered": 8,
+        "missed": 0,
+        "percentage": 100.0
+      }
+    }
+  }
+}

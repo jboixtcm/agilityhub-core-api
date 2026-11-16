@@ -1,0 +1,64 @@
+{
+  "surefire": {
+    "classes": 543,
+    "tests": 5384,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "featureClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionStatisticsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.FlowPrintResultsParserTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionParserBoundariesTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionSourceClientsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionParsersTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "failsafe": {
+    "classes": 195,
+    "tests": 2587,
+    "failures": 2,
+    "errors": 1,
+    "skipped": 0,
+    "featureClasses": [
+      {
+        "class": "com.agilityhub.core.clubs.statistics.application.CompetitionImportsIT",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "command": "./mvnw -q -Dmaven.repo.local=/tmp/competition-m2 clean verify",
+  "exit": 1
+}
