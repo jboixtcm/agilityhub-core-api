@@ -128,7 +128,7 @@ class CompetitionImportsIT extends AbstractIntegrationTest {
         for (int index = 0; index < 3; index++) {
             String run = List.of("AG1", "AG2", "JP1").get(index);
             String url = FlowPrintResultsParserTest.URL.replace("789abc", "789ab" + index);
-            String html = FlowPrintResultsParserTest.html(index < 2 ? "1PA" : "1PV").replace(" / JP", " / " + run);
+            String html = FlowPrintResultsParserTest.html(index < 2 ? "1PA" : "1PV").replace(" / JP", " / " + run).replace("0.00", "-");
             var preview = json(call(body(post(BASE + "/preview"), Map.of("source", "FLOW_AGILITY", "sourceUrl", url, "content", html)), CLUB, "ADMIN"));
             json(call(body(post(BASE + "/" + preview.path("id").asText() + "/confirm"), assignments(preview, CLUB + "-dog")), CLUB, "ADMIN"));
         }
@@ -137,6 +137,7 @@ class CompetitionImportsIT extends AbstractIntegrationTest {
         assertThat(stats.path("scoredTrials").asInt()).isEqualTo(1);
         assertThat(stats.at("/summaries/0/runs").asInt()).isEqualTo(2);
         assertThat(stats.at("/summaries/0/pa").asInt()).isEqualTo(2);
+        assertThat(stats.at("/summaries/0/clearRuns").asInt()).isEqualTo(2);
         assertThat(stats.at("/summaries/1/runs").asInt()).isEqualTo(1);
         assertThat(stats.at("/summaries/1/pv").asInt()).isEqualTo(1);
     }
@@ -201,6 +202,12 @@ class CompetitionImportsIT extends AbstractIntegrationTest {
         assertThat(stats.at("/rsceProgress/0/promotionRoutes/0/targets/0/earned").asInt()).isEqualTo(1);
         assertThat(stats.at("/rsceProgress/0/promotionRoutes/0/targets/0/remaining").asInt()).isEqualTo(2);
         assertThat(stats.at("/rsceProgress/0/championshipRoutes/0/targets/0/earned").asInt()).isZero();
+        assertThat(stats.at("/rsceProgress/0/annualSummaries")).hasSize(3);
+        assertThat(stats.at("/rsceProgress/0/annualSummaries/0/year").asInt()).isEqualTo(2024);
+        assertThat(stats.at("/rsceProgress/0/annualSummaries/1/year").asInt()).isEqualTo(2025);
+        assertThat(stats.at("/rsceProgress/0/annualSummaries/1/summaries/0/runs").asInt()).isEqualTo(1);
+        assertThat(stats.at("/rsceProgress/0/annualSummaries/1/summaries/0/clearRatePercent").asDouble()).isEqualTo(100.0);
+        assertThat(stats.at("/rsceProgress/0/annualSummaries/2/summaries/0/runs").asInt()).isZero();
     }
 
 }

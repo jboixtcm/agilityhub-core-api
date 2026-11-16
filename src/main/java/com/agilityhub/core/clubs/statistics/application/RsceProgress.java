@@ -40,8 +40,18 @@ final class RsceProgress {
             var annual = history.stream().filter(row -> row.date().getYear() == year).toList();
             return new LicenseProgress(license.getKey(), currentGrade, source, registeredGrade, observedGrade, lastDate,
                     conflict, higher.isPresent(), history.isEmpty() ? null : history.getFirst().date(), lastDate,
-                    CompetitionStatistics.summarize(annual), promotion(currentGrade, promotionHistory),
+                    CompetitionStatistics.summarize(annual), annualSummaries(history, today.getYear()), promotion(currentGrade, promotionHistory),
                     championship(currentGrade, annual, year), VERSION, RULES_URL);
+        }).toList();
+    }
+
+    static List<AnnualSummary> annualSummaries(List<Entry> history, int currentYear) {
+        return java.util.stream.IntStream.rangeClosed(currentYear - 2, currentYear).mapToObj(year -> {
+            var rows = history.stream().filter(row -> row.date().getYear() == year).toList();
+            return new AnnualSummary(year, rows.stream().map(Entry::date).min(Comparator.naturalOrder()).orElse(null),
+                    rows.stream().map(Entry::date).max(Comparator.naturalOrder()).orElse(null),
+                    rows.stream().map(Entry::grade).map(RsceProgress::grade).filter(Objects::nonNull).distinct().sorted().toList(),
+                    CompetitionStatistics.summarize(rows));
         }).toList();
     }
 
@@ -110,8 +120,8 @@ final class RsceProgress {
             case "PV" -> row.point() == Point.PV || row.point() == Point.PA_PV;
             case "CHAMPIONSHIP_POINT" -> row.point() == Point.P || row.point() == Point.PV || row.point() == Point.PA_PV;
             // An explicit promotion award remains valid when an older print omits numerical penalties.
-            case "CLEAR_EXCELLENT" -> row.point() == Point.PA || row.point() == Point.PA_PV
-                    || CompetitionStatistics.completed(row) && row.totalPenalty() != null && row.totalPenalty().signum() == 0
+            case "CLEAR_EXCELLENT" -> CompetitionStatistics.hasOfficialPoint(row)
+                    || CompetitionStatistics.clear(row)
                     && Set.of("EXC", "EXC_0", "EXC.", "EXCELENTE", "EXCELLENT", "EXCEL·LENT")
                     .contains(Objects.toString(row.qualification(), "").strip().toUpperCase(Locale.ROOT));
             default -> false;

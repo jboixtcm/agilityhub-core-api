@@ -19,6 +19,27 @@ class RsceProgressTest {
     static LicenseProgress progress(String grade, List<Result> rows) {
         return RsceProgress.calculate(rows, List.of(new CompetitionLicense("0123", grade)), 2026, TODAY).getFirst();
     }
+    @Test void T_STATS_52_comparisonUsesThreeClubYearsPerLicenceWithCorrectionsAndEmptyPeriods() {
+        var original = row("same", "0123", "G1", "2025-04-10", Discipline.AGILITY, Point.PA);
+        var corrected = new Result(original.source(), original.sourceUrl(), original.importedAt().plusSeconds(1),
+                row("same", "0123", "G1", "2025-04-10", Discipline.AGILITY, Point.NONE).result());
+        var rows = List.of(row("older", "0123", "G1", "2023-12-31", Discipline.AGILITY, Point.PA), original, corrected,
+                row("newer", "0123", "G2", "2026-04-10", Discipline.JUMPING, Point.PV),
+                row("another", "4567", "G3", "2026-04-10", Discipline.AGILITY, Point.PV),
+                row("future", "0123", "G2", "2026-12-31", Discipline.AGILITY, Point.PV));
+        var current = progress("G2", rows).annualSummaries();
+        var oldFilter = RsceProgress.calculate(rows, List.of(new CompetitionLicense("0123", "G2")), 2025, TODAY).getFirst().annualSummaries();
+        assertThat(oldFilter).isEqualTo(current);
+        assertThat(current).extracting(AnnualSummary::year).containsExactly(2024, 2025, 2026);
+        assertThat(current.getFirst().firstResultDate()).isNull();
+        assertThat(current.getFirst().summaries().getFirst().clearRatePercent()).isNull();
+        assertThat(current.get(1).summaries().getFirst().runs()).isEqualTo(1);
+        assertThat(current.get(1).summaries().getFirst().pa()).isZero();
+        assertThat(current.get(1).grades()).containsExactly("G1");
+        assertThat(current.getLast().summaries().getFirst().runs()).isZero();
+        assertThat(current.getLast().summaries().getLast().pv()).isEqualTo(1);
+        assertThat(current.getLast().lastResultDate()).isEqualTo(LocalDate.of(2026, 4, 10));
+    }
     @Test void T_STATS_40_promotionKeepsPriorYearsButChampionshipExcludesG1AndCountsCombinedOnce() {
         var rows = List.of(row("old", "0123", "G2", "2025-12-31", Discipline.AGILITY, Point.PA),
                 row("combined", "0123", "G2", "2026-01-01", Discipline.AGILITY, Point.PA_PV),
@@ -116,7 +137,7 @@ class RsceProgressTest {
         var rows = List.of(new Result(Source.FLOW_AGILITY, CompetitionParsersTest.FLOW_URL, Instant.parse("2026-11-16T08:00:00Z"), printed));
         assertThat(progress("G1", rows).promotionRoutes().getFirst().targets().getFirst()).isEqualTo(
                 new PointTarget(Discipline.AGILITY, "CLEAR_EXCELLENT", 1, 3, 2));
-        assertThat(CompetitionStatistics.aggregate("dog", 2025, "2025-2026", rows).summaries().getFirst().clearRuns()).isZero();
+        assertThat(CompetitionStatistics.aggregate("dog", 2025, "2025-2026", rows).summaries().getFirst().clearRuns()).isEqualTo(1);
     }
 
 }

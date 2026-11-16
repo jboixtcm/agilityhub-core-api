@@ -43,8 +43,15 @@ public final class CompetitionModels {
     @Schema(name = "CompetitionResult")
     public record Result(Source source, String sourceUrl, Instant importedAt, Entry result) { }
     @Schema(name = "CompetitionRunSummary")
-    public record RunSummary(Discipline discipline, int runs, int clearRuns, int p, int pa, int pv,
+    public record RunSummary(Discipline discipline, int runs, int clearRuns, int p, int pa, int pv, int eliminatedRuns, int outcomeSamples, int speedSamples,
+            @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal clearRatePercent,
+            @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal eliminatedRatePercent,
             @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal averageSpeedMps) { }
+    @Schema(name = "CompetitionAnnualSummary")
+    public record AnnualSummary(int year,
+            @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) LocalDate firstResultDate,
+            @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) LocalDate lastResultDate,
+            List<String> grades, List<RunSummary> summaries) { }
     @Schema(name = "RscePointTarget")
     public record PointTarget(Discipline discipline, String kind, int earned, int required, int remaining) { }
     @Schema(name = "RsceProgressRoute")
@@ -60,7 +67,7 @@ public final class CompetitionModels {
             boolean gradeConflict, boolean previousHigherGrade,
             @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) LocalDate historyFrom,
             @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) LocalDate historyThrough,
-            List<RunSummary> summaries, List<ProgressRoute> promotionRoutes, List<ProgressRoute> championshipRoutes,
+            List<RunSummary> summaries, List<AnnualSummary> annualSummaries, List<ProgressRoute> promotionRoutes, List<ProgressRoute> championshipRoutes,
             String rulesVersion, String rulesUrl) { }
     @Schema(name = "CompetitionStatistics")
     public record Statistics(String dogId, int year, String season, List<Result> standings,
