@@ -1,0 +1,29 @@
+test_commit_receipt_and_checkpoint (test_worker.ExecutionTests.test_commit_receipt_and_checkpoint) ... ok
+test_concurrent_manual_snapshot_is_preserved (test_worker.ExecutionTests.test_concurrent_manual_snapshot_is_preserved) ... ok
+test_current_unsupported_checkpoint_remains_cached (test_worker.ExecutionTests.test_current_unsupported_checkpoint_remains_cached) ... ok
+test_failed_confirmation_remains_retryable (test_worker.ExecutionTests.test_failed_confirmation_remains_retryable) ... ok
+test_no_match_checkpoint_survives_result_format_change (test_worker.ExecutionTests.test_no_match_checkpoint_survives_result_format_change) ... ok
+test_old_unsupported_checkpoint_is_revisited_for_numbered_runs (test_worker.ExecutionTests.test_old_unsupported_checkpoint_is_revisited_for_numbered_runs) ... ok
+test_weekly_recovers_missed_occurrences (test_worker.ExecutionTests.test_weekly_recovers_missed_occurrences) ... ok
+test_ambiguous_assignment_rejected (test_worker.Tests.test_ambiguous_assignment_rejected) ... ok
+test_api_tenant_guard (test_worker.Tests.test_api_tenant_guard) ... ok
+test_archive_validation (test_worker.Tests.test_archive_validation) ... ok
+test_cross_year_ranges (test_worker.Tests.test_cross_year_ranges) ... ok
+test_exact_licensed_subset (test_worker.Tests.test_exact_licensed_subset) ... ok
+test_expired_session_does_not_block_fresh_login (test_worker.Tests.test_expired_session_does_not_block_fresh_login) ... ok
+test_explicit_single_official_point_is_preserved (test_worker.Tests.test_explicit_single_official_point_is_preserved) ... ok
+test_live_components_and_updates (test_worker.Tests.test_live_components_and_updates) ... ok
+test_live_cycles_fail_closed (test_worker.Tests.test_live_cycles_fail_closed) ... ok
+test_navigation_allowlist (test_worker.Tests.test_navigation_allowlist) ... ok
+test_numbered_runs_are_included_without_rewriting_the_source (test_worker.Tests.test_numbered_runs_are_included_without_rewriting_the_source) ... ok
+test_private_files (test_worker.Tests.test_private_files) ... ok
+test_request_path_guards (test_worker.Tests.test_request_path_guards) ... ok
+test_tokens_removed_from_content (test_worker.Tests.test_tokens_removed_from_content) ... ok
+test_unauthorized_write_retries_once_with_same_idempotency_key (test_worker.Tests.test_unauthorized_write_retries_once_with_same_idempotency_key) ... ok
+test_weekly_includes_friday_competitions_but_excludes_thursday (test_worker.Tests.test_weekly_includes_friday_competitions_but_excludes_thursday) ... ok
+test_weekly_window_dst_and_new_year (test_worker.Tests.test_weekly_window_dst_and_new_year) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.082s
+
+OK

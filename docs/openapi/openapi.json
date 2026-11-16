@@ -7148,6 +7148,36 @@
         "required" : [ "background", "border", "danger", "info", "onPrimary", "primary", "success", "surface", "surfaceAlt", "text", "textMuted", "warning" ],
         "type" : "object"
       },
+      "CompetitionAnnualSummary" : {
+        "properties" : {
+          "firstResultDate" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "grades" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "lastResultDate" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "summaries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionRunSummary"
+            },
+            "type" : "array"
+          },
+          "year" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "grades", "summaries", "year" ],
+        "type" : "object"
+      },
       "CompetitionConfirmation" : {
         "properties" : {
           "assignments" : {
@@ -7378,6 +7408,9 @@
           "averageSpeedMps" : {
             "type" : [ "number", "null" ]
           },
+          "clearRatePercent" : {
+            "type" : [ "number", "null" ]
+          },
           "clearRuns" : {
             "format" : "int32",
             "type" : "integer"
@@ -7385,6 +7418,17 @@
           "discipline" : {
             "enum" : [ "AGILITY", "JUMPING" ],
             "type" : "string"
+          },
+          "eliminatedRatePercent" : {
+            "type" : [ "number", "null" ]
+          },
+          "eliminatedRuns" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "outcomeSamples" : {
+            "format" : "int32",
+            "type" : "integer"
           },
           "p" : {
             "format" : "int32",
@@ -7401,9 +7445,13 @@
           "runs" : {
             "format" : "int32",
             "type" : "integer"
+          },
+          "speedSamples" : {
+            "format" : "int32",
+            "type" : "integer"
           }
         },
-        "required" : [ "clearRuns", "discipline", "p", "pa", "pv", "runs" ],
+        "required" : [ "clearRuns", "discipline", "eliminatedRuns", "outcomeSamples", "p", "pa", "pv", "runs", "speedSamples" ],
         "type" : "object"
       },
       "CompetitionStatistics" : {
@@ -22028,6 +22076,12 @@
       },
       "RsceLicenseProgress" : {
         "properties" : {
+          "annualSummaries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionAnnualSummary"
+            },
+            "type" : "array"
+          },
           "championshipRoutes" : {
             "items" : {
               "$ref" : "#/components/schemas/RsceProgressRoute"
@@ -22086,7 +22140,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "championshipRoutes", "gradeConflict", "gradeSource", "license", "previousHigherGrade", "promotionRoutes", "rulesUrl", "rulesVersion", "summaries" ],
+        "required" : [ "annualSummaries", "championshipRoutes", "gradeConflict", "gradeSource", "license", "previousHigherGrade", "promotionRoutes", "rulesUrl", "rulesVersion", "summaries" ],
         "type" : "object"
       },
       "RscePointTarget" : {

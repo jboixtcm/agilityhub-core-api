@@ -5,10 +5,10 @@ from pathlib import Path
 import tempfile
 import json
 import os
-import io,time
+import io,time,hashlib
 from urllib.error import HTTPError
 from discovery import date_range,events,merge,render,run_links,DiscoveryError
-from worker import execute,window,selected_date,result_subset,assignments,WorkerError,atomic,private_json,Flow,Api
+from worker import execute,window,selected_date,result_subset,assignments,WorkerError,atomic,private_json,Flow,Api,RESULT_FORMAT_VERSION
 
 RUNID='11111111-1111-4111-8111-111111111111'
 def fixture(license='ABC123',caption='G2 / M / AG',day='2026.11.15'):
@@ -53,6 +53,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(result_subset(fixture(),{'ABC'},start,end,False)[1],'no_match')
         self.assertEqual(result_subset(fixture(day='2025.11.15'),{'ABC123'},start,end,False)[1],'outside_window')
         self.assertEqual(result_subset(fixture(caption='Open'),{'ABC123'},start,end,False)[1],'unsupported')
+    def test_numbered_runs_are_included_without_rewriting_the_source(self):
+        for run in ('AG1','AG2','JP1','JP2'):
+            content,status,total=result_subset(fixture(caption='G1 / I / '+run),{'ABC123'},date(2026,1,1),date(2026,11,15),False)
+            self.assertEqual((status,total),('matched',1));self.assertIn('G1 / I / '+run,content)
+        for caption in ('40 / JP1','G2 / S / AG0','G2 / S / JPX'):
+            self.assertEqual(result_subset(fixture(caption=caption),{'ABC123'},date(2026,1,1),date(2026,11,15),False)[1],'unsupported')
     def test_explicit_single_official_point_is_preserved(self):
         for point in ('P','PA','PV'):
             html=fixture().replace('<div>P</div>','<div>1'+point+'</div>')
@@ -99,11 +105,13 @@ class Tests(unittest.TestCase):
                 with self.assertRaisesRegex(WorkerError,'TENANT'):Api({'apiOrigin':'https://example.test','apiAccountsFile':str(p),'clubId':'expected'})
 
 class ExecutionTests(unittest.TestCase):
-    def scenario(self, concurrent=False, fail=False, weekly=False, completed=None):
+    def scenario(self, concurrent=False, fail=False, weekly=False, completed=None, prior=None, caption='G2 / M / AG'):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);state=Path(temp.name);state.chmod(0o700)
         if completed:atomic(state/'state.json',{'schema':1,'events':{},'runs':{},'completedThrough':completed})
         path='/zone/prints/run/'+RUNID+'/results';source='https://www.flowagility.com'+path
-        flow=MagicMock();flow.get.return_value=fixture();flow.discover_runs.return_value=[path]
+        if prior is not None:
+            atomic(state/'state.json',{'schema':1,'events':{},'runs':{path:{**prior,'licensesHash':hashlib.sha256(b'ABC123').hexdigest()}}})
+        flow=MagicMock();flow.get.return_value=fixture(caption=caption);flow.discover_runs.return_value=[path]
         preview={'id':RUNID,'sourceUrl':source,'season':'2026','dogs':[{'license':'ABC123'}], 'rows':[{'match':'EXACT_LICENSE','suggestedDogId':'dog','entry':{'key':'result','date':'2026-11-15'}}]}
         receipt={'source':'FLOW_AGILITY','sourceUrl':source,'importedRows':1,'revision':1}
         api=MagicMock();history_reads=0;confirmed=[]
@@ -127,6 +135,16 @@ class ExecutionTests(unittest.TestCase):
         result,report,confirmed,state=self.scenario()
         self.assertEqual(result,0);self.assertEqual(report['newResults'],1);self.assertEqual(len(confirmed),1)
         self.assertEqual(next(iter(private_json(state/'state.json')['runs'].values()))['status'],'imported')
+    def test_old_unsupported_checkpoint_is_revisited_for_numbered_runs(self):
+        result,report,confirmed,state=self.scenario(prior={'status':'unsupported'},caption='G1 / I / AG1')
+        self.assertEqual(result,0);self.assertEqual(report['newResults'],1);self.assertEqual(len(confirmed),1)
+        self.assertEqual(next(iter(private_json(state/'state.json')['runs'].values()))['resultFormatVersion'],RESULT_FORMAT_VERSION)
+    def test_current_unsupported_checkpoint_remains_cached(self):
+        result,report,confirmed,state=self.scenario(prior={'status':'unsupported','resultFormatVersion':RESULT_FORMAT_VERSION},caption='40 / JP1')
+        self.assertEqual(result,0);self.assertFalse(confirmed);self.assertEqual(report['statuses']['unsupported'],1)
+    def test_no_match_checkpoint_survives_result_format_change(self):
+        result,report,confirmed,state=self.scenario(prior={'status':'no_match'})
+        self.assertEqual(result,0);self.assertFalse(confirmed);self.assertEqual(report['statuses']['no_match'],1)
     def test_concurrent_manual_snapshot_is_preserved(self):
         result,report,confirmed,_=self.scenario(concurrent=True)
         self.assertEqual(result,0);self.assertFalse(confirmed);self.assertEqual(report['existing'],1)

@@ -21,6 +21,7 @@ import websocket
 from discovery import DiscoveryError, UUID, RUN, PAGE, events, merge, render, run_links
 
 ORIGIN='https://www.flowagility.com'
+RESULT_FORMAT_VERSION=2
 HEADERS=['CLA DO','Guía Perro','Club Licencia','T','F','R','PR','ET','TP','VEL','CAL','PTS']
 SESSION=re.compile(r'[A-Za-z0-9_.~+%=-]{20,8192}')
 
@@ -185,7 +186,7 @@ def result_subset(html,licenses,start,end,weekly):
     title=doc.select('.results-caption');organ=doc.select('.organ-caption')
     if not title or not organ:raise WorkerError('FLOW_PRINT_STRUCTURE')
     caption=title[0].get_text(' ',strip=True)
-    if not re.fullmatch(r'(?:Resultados|Results|Resultats) - G[123] / [A-Za-z]+ / (?:AG|JP)',caption):return None,'unsupported',0
+    if not re.fullmatch(r'(?:Resultados|Results|Resultats) - G[123] / [A-Za-z]+ / (?:AG|JP)(?:[1-9][0-9]*)?',caption):return None,'unsupported',0
     m=re.search(r' - (20\d{2})\.(\d{2})\.(\d{2})$',organ[0].get_text(' ',strip=True))
     if not m:raise WorkerError('FLOW_RESULT_DATE')
     day=date(*map(int,m.groups()))
@@ -255,7 +256,7 @@ def execute(config,start,end,weekly,commit,limit=0,event_path=None):
                         source=ORIGIN+path;report['runs']+=1
                         if source in history:report['existing']+=1;continue
                         prior=state['runs'].get(path)
-                        if commit and not weekly and prior and prior.get('licensesHash')==fingerprint and prior['status'] in ('no_match','unsupported'):
+                        if commit and not weekly and prior and prior.get('licensesHash')==fingerprint and (prior['status']=='no_match' or prior['status']=='unsupported' and prior.get('resultFormatVersion')==RESULT_FORMAT_VERSION):
                             status=prior['status'];report['statuses'][status]=report['statuses'].get(status,0)+1;continue
                         try:
                             content,status,total=result_subset(flow.get(path),licenses,start,end,weekly)
@@ -277,7 +278,7 @@ def execute(config,start,end,weekly,commit,limit=0,event_path=None):
                                     emit('imported',runId=path.split('/')[-2],results=len(mapping),totalResults=report['newResults'])
                                 else:status='would_import';report['newResults']+=len(mapping);report['newSnapshots']+=1
                             report['statuses'][status]=report['statuses'].get(status,0)+1
-                            if commit:state['runs'][path]={'status':status,'checkedAt':now(),'licensesHash':fingerprint};atomic(state_path,state)
+                            if commit:state['runs'][path]={'status':status,'checkedAt':now(),'licensesHash':fingerprint,'resultFormatVersion':RESULT_FORMAT_VERSION};atomic(state_path,state)
                         except (WorkerError,DiscoveryError) as e:
                             reason=str(e);report['errors'].append({'path':path,'reason':reason});emit('run_failed',runId=path.split('/')[-2],reason=reason)
                             if 'AUTH' in reason or 'TENANT' in reason:raise

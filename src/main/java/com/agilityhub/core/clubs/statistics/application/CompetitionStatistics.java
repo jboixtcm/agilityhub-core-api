@@ -59,13 +59,35 @@ public class CompetitionStatistics {
             var speeds = runs.stream().filter(CompetitionStatistics::completed).map(Entry::speedMps).filter(Objects::nonNull).toList();
             BigDecimal mean = speeds.isEmpty() ? null : speeds.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(speeds.size()), 2, RoundingMode.HALF_UP);
-            return new RunSummary(discipline, runs.size(), (int) runs.stream().filter(row -> completed(row)
-                    && row.totalPenalty() != null && row.totalPenalty().signum() == 0).count(),
-                    count(runs, Point.P), count(runs, Point.PA), count(runs, Point.PV), mean);
+            int clears = (int) runs.stream().filter(CompetitionStatistics::clear).count();
+            int eliminated = (int) runs.stream().filter(CompetitionStatistics::eliminated).count();
+            int outcomes = (int) runs.stream().filter(CompetitionStatistics::knownOutcome).count();
+            return new RunSummary(discipline, runs.size(), clears,
+                    count(runs, Point.P), count(runs, Point.PA), count(runs, Point.PV), eliminated, outcomes, speeds.size(),
+                    percentage(clears, outcomes), percentage(eliminated, outcomes), mean);
         }).toList();
     }
+    static boolean hasOfficialPoint(Entry row) { return row.point() != null && row.point() != Point.NONE; }
+    static String qualification(Entry row) { return Objects.toString(row.qualification(), "").strip().toUpperCase(Locale.ROOT); }
+    static boolean clear(Entry row) {
+        // Explicit official awards and EXC_0 confirm a clear even when Flow omits numerical penalties.
+        return hasOfficialPoint(row) || qualification(row).equals("EXC_0")
+                || completed(row) && row.totalPenalty() != null && row.totalPenalty().signum() == 0;
+    }
+    static boolean eliminated(Entry row) {
+        return !hasOfficialPoint(row) && Set.of("DISQ", "DQ", "ELIM", "ELIM.", "ELIMINADO", "ELIMINADA", "ELIMINATED", "ELIMINAT", "DISQUALIFIED")
+                .contains(qualification(row));
+    }
     static boolean completed(Entry row) {
-        return row.timeSeconds() != null && row.timeSeconds().signum() > 0 && row.position() != null;
+        return !eliminated(row) && (hasOfficialPoint(row) || qualification(row).equals("EXC_0")
+                || row.timeSeconds() != null && row.timeSeconds().signum() > 0 && row.position() != null);
+    }
+    static boolean knownOutcome(Entry row) {
+        return clear(row) || eliminated(row) || completed(row) && (row.totalPenalty() != null
+                || row.faults() != null && row.faults() > 0 || row.refusals() != null && row.refusals() > 0);
+    }
+    private static BigDecimal percentage(int value, int samples) {
+        return samples == 0 ? null : BigDecimal.valueOf(value * 100L).divide(BigDecimal.valueOf(samples), 1, RoundingMode.HALF_UP);
     }
     private static int count(List<Entry> rows, Point point) { return (int) rows.stream().filter(row -> row.point() == point || row.point() == Point.PA_PV && (point == Point.PA || point == Point.PV)).count(); }
 }

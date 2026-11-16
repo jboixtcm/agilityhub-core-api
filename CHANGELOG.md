@@ -1,5 +1,9 @@
 # Changelog
 
+- Count official P/PV/PA and explicit EXC_0 as clear rounds even without numerical penalties. Add per-licence comparisons for the latest three club-calendar years, with outcome/speed sample sizes, elimination rates, dates and grades.
+
+- Import Flow numbered runs (AG1/AG2/JP1/JP2) as their declared discipline without merging distinct run UUIDs. Revisit previously unsupported checkpoints when the result parser changes.
+
 - RSCE statistics now separate per-licence grade, lifetime G1/G2 promotion progress and annual G2/G3 championship point targets under the 2026 regulation. Flow imports renew expired operational API sessions safely.
 
 ## Unreleased — Competition statistics
