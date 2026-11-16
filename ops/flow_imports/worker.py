@@ -221,6 +221,8 @@ def execute(config,start,end,weekly,commit,limit=0,event_path=None):
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:raise WorkerError('IMPORT_ALREADY_RUNNING') from None
         state_path=state_dir/'state.json';state=private_json(state_path) if state_path.exists() else {'schema':1,'runs':{},'events':{}}
+        if weekly and state.get('completedThrough'):
+            start=min(start,date.fromisoformat(state['completedThrough'])+timedelta(days=1))
         flow=Flow(state_dir/'session.json',config.get('requestDelaySeconds',0.3));api=Api(config)
         report={'startedAt':now(),'from':str(start),'through':str(end),'weekly':weekly,'committed':commit,'events':0,'runs':0,'newSnapshots':0,'newResults':0,'existing':0,'errors':[],'statuses':{}}
         try:
@@ -281,6 +283,9 @@ def execute(config,start,end,weekly,commit,limit=0,event_path=None):
             after=api.request('GET','/api/v1/competition-imports')
             report['totalFlowSnapshots']=sum(r['source']=='FLOW_AGILITY' for r in after)
             report['totalFlowResults']=sum(r['importedRows'] for r in after if r['source']=='FLOW_AGILITY')
+            if commit and not report['errors'] and not event_path and not limit:
+                state['completedThrough']=str(max(end,date.fromisoformat(state.get('completedThrough',str(end)))))
+                atomic(state_path,state)
             report['finishedAt']=now();atomic(state_dir/('last-report.json' if commit else 'last-preview.json'),report)
             emit('finished',**{k:v for k,v in report.items() if k!='errors'},errorCount=len(report['errors']))
             return 1 if report['errors'] else 0

@@ -1,6 +1,6 @@
 # Operational Flow import worker
 
-This worker discovers authenticated Flow FCI / RSCE results and submits only uniquely licensed club dogs through the existing preview/confirmation API. It runs separately from booking schedulers. The same date-range command is used for the requested historical backfill; `--weekly` selects the previous three completed weekends, allowing delayed publication to be discovered.
+This worker discovers authenticated Flow FCI / RSCE results and submits only uniquely licensed club dogs through the existing preview/confirmation API. It runs separately from booking schedulers. The same date-range command is used for the requested historical backfill; `--weekly` selects the previous three completed weekends, allowing delayed publication to be discovered. If the last completed import is older, the range expands to recover missed weekends.
 
 Runtime: Python 3.12+, websocket-client 1.9.0, beautifulsoup4 4.14.2 (soupsieve and typing_extensions dependencies pinned in the deployment artifact). Run `python3 -m unittest discover -s ops/flow_imports -v` with these dependencies installed.
 

@@ -80,8 +80,9 @@ class Tests(unittest.TestCase):
                 with self.assertRaisesRegex(WorkerError,'TENANT'):Api({'apiOrigin':'https://example.test','apiAccountsFile':str(p),'clubId':'expected'})
 
 class ExecutionTests(unittest.TestCase):
-    def scenario(self, concurrent=False, fail=False):
+    def scenario(self, concurrent=False, fail=False, weekly=False, completed=None):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);state=Path(temp.name);state.chmod(0o700)
+        if completed:atomic(state/'state.json',{'schema':1,'events':{},'runs':{},'completedThrough':completed})
         path='/zone/prints/run/'+RUNID+'/results';source='https://www.flowagility.com'+path
         flow=MagicMock();flow.get.return_value=fixture();flow.discover_runs.return_value=[path]
         preview={'id':RUNID,'sourceUrl':source,'season':'2026','dogs':[{'license':'ABC123'}], 'rows':[{'match':'EXACT_LICENSE','suggestedDogId':'dog','entry':{'key':'result','date':'2026-11-15'}}]}
@@ -101,7 +102,7 @@ class ExecutionTests(unittest.TestCase):
         event={'path':'/zone/event/'+RUNID+'/runs','federation':'FCI / RSCE','start':'2026-11-15','end':'2026-11-15'}
         config={'stateDirectory':str(state),'directoryProbeUrl':source,'timeZone':'Europe/Madrid'}
         with patch('worker.Flow',return_value=flow),patch('worker.Api',return_value=api),patch('worker.events',return_value=[event]),patch('worker.emit'):
-            result=execute(config,date(2026,1,1),date(2026,11,15),False,True)
+            result=execute(config,date(2026,11,1) if weekly else date(2026,1,1),date(2026,11,15),weekly,True)
         return result,json.loads((state/'last-report.json').read_text()),confirmed,state
     def test_commit_receipt_and_checkpoint(self):
         result,report,confirmed,state=self.scenario()
@@ -110,6 +111,10 @@ class ExecutionTests(unittest.TestCase):
     def test_concurrent_manual_snapshot_is_preserved(self):
         result,report,confirmed,_=self.scenario(concurrent=True)
         self.assertEqual(result,0);self.assertFalse(confirmed);self.assertEqual(report['existing'],1)
+    def test_weekly_recovers_missed_occurrences(self):
+        result,report,_,state=self.scenario(weekly=True,completed='2026-10-11')
+        self.assertEqual(result,0);self.assertEqual(report['from'],'2026-10-12')
+        self.assertEqual(private_json(state/'state.json')['completedThrough'],'2026-11-15')
     def test_failed_confirmation_remains_retryable(self):
         result,report,confirmed,state=self.scenario(fail=True)
         self.assertEqual(result,1);self.assertFalse(confirmed);self.assertEqual(len(report['errors']),1)
