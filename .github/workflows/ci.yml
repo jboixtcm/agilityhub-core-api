@@ -31,6 +31,11 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - name: Flow operational importer regressions
+        run: |
+          python3 -m venv /tmp/flow-import-tests
+          /tmp/flow-import-tests/bin/pip install -r ops/flow_imports/requirements.txt
+          /tmp/flow-import-tests/bin/python -m unittest discover -s ops/flow_imports -v
       - name: Check Docker for Testcontainers
         run: docker info
       - name: Caddy access log drops the stream's query token (E9-T06)

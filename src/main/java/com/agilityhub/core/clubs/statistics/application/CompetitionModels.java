@@ -15,7 +15,7 @@ public final class CompetitionModels {
     @Schema(name = "CompetitionDiscipline")
     public enum Discipline { AGILITY, JUMPING }
     @Schema(name = "CompetitionPoint")
-    public enum Point { NONE, P, PA, PV }
+    public enum Point { NONE, P, PA, PV, @com.fasterxml.jackson.annotation.JsonProperty("PA / PV") PA_PV }
     @Schema(name = "CompetitionEntry")
     public record Entry(String key, String license, String dogName, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) String handlerName, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) String clubName,
             String season, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) String division, String category, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) Integer position, @Schema(nullable = true, requiredMode = Schema.RequiredMode.NOT_REQUIRED) BigDecimal points,

@@ -4173,3 +4173,8 @@ The first performance release is deployed: audit pages improved from 19.5 s imme
 ## 2026-11-15 — Direct user request: public logo loading
 
 @organizer: Prepared direct public logo delivery with a five-minute cache and ETag, preserving tenant/publication checks and private-file policy. OpenAPI regenerated; 97 targeted tests pass. See `roadmap/evidence/2026-11-15-logo-performance/REPORT.md`. Jordi explicitly requested publication; full CI and production readback are tracked in SOFTWARE_CANIC operations evidence. No existing roadmap task or organizer verification was modified.
+
+
+## 2026-11-16 — Direct user request: historical and weekly Flow results
+
+@organizer: Jordi requests all 2026 Flow history and unattended Monday 06:00 club-time imports. Real provider prints expose `1PV` and simultaneous `1PA / 1PV`, which the earlier parser rejected. Preserve the explicit counted labels and combined award, count PA/PV separately while retaining one run/trial, and expose the readable `PA / PV` wire value. No official points are inferred. The operational worker uses existing tenant-scoped preview/confirm authorization, exact unique licences, protected renewal state, checkpoints and existing-source protection. No new business parameter/event/error is introduced. No organizer task or verification is modified. Production imports and activation are tracked separately in SOFTWARE_CANIC operations evidence.

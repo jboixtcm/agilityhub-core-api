@@ -7214,7 +7214,7 @@
             "type" : "string"
           },
           "point" : {
-            "enum" : [ "NONE", "P", "PA", "PV", null ],
+            "enum" : [ "NONE", "P", "PA", "PV", "PA / PV", null ],
             "type" : [ "string", "null" ]
           },
           "points" : {

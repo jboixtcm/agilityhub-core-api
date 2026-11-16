@@ -61,5 +61,5 @@ public class CompetitionStatistics {
     private static boolean completed(Entry row) {
         return row.timeSeconds() != null && row.timeSeconds().signum() > 0 && row.position() != null;
     }
-    private static int count(List<Entry> rows, Point point) { return (int) rows.stream().filter(row -> row.point() == point).count(); }
+    private static int count(List<Entry> rows, Point point) { return (int) rows.stream().filter(row -> row.point() == point || row.point() == Point.PA_PV && (point == Point.PA || point == Point.PV)).count(); }
 }

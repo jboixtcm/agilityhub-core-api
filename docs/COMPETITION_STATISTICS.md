@@ -57,3 +57,10 @@ All routes require STATS and authenticated tenant context:
 Only selected results persist in `competition_imports`. Parsed previews in `competition_previews` have a TTL index and explicit expiry enforcement. Personal data exports include `competitionResults` for the subject's dogs only. Erasure removes those entries and clears the tenant's previews (unassigned rows can also contain the subject), and their exact response-cache entries, leaving other tenants and unrelated write retries untouched. Confirmations reuse the existing `MIGRATION_APPLIED` audit action with entity type `CompetitionImport`; no new catalog codes or notification events were invented.
 
 Tests use task-local `T-STATS-01`…`T-STATS-32` identifiers because no assigned roadmap task covers this user-requested feature. Existing organizer task/status files are unchanged. New interface copy is proposed feature text in Catalan, Spanish and English; there is no approved import-screen mockup. Both screenshots accompany the validation report for review.
+
+
+## Importació històrica i setmanal — 16 novembre 2026
+
+El procés operatiu de `ops/flow_imports/` descobreix les proves FCI/RSCE i les mànegues de cada pista/dia, i utilitza la mateixa previsualització i confirmació de l'API. Només assigna coincidències úniques de llicència del club. Les importacions ja existents no se sobreescriuen; les fallades es poden reprendre. La configuració i la sessió renovada es desen privadament al volum xifrat. El servei programat és independent dels processos de reserves. L'activació efectiva i els resultats es documenten a les evidències operatives.
+
+Les etiquetes oficials observades són `1P`, `1PA`, `1PV` i `1PA / 1PV`. P sense PV existeix (G2/XS/JP, febrer de 2026). La combinació s'exposa com `PA / PV`, incrementa els dos comptadors i conserva una sola mànega i prova. P, PA i PV simples només incrementen el seu comptador. Cap punt no es dedueix de la velocitat, la qualificació o les penalitzacions. Les multiplicitats desconegudes, com `2PV`, es refusen.
