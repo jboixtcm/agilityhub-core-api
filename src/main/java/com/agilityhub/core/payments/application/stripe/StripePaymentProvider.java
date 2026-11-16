@@ -3,6 +3,7 @@ package com.agilityhub.core.payments.application.stripe;
 import com.agilityhub.core.payments.application.*;
 import com.agilityhub.core.payments.persistence.SignupCheckoutRepository;
 import com.agilityhub.core.platform.application.ClubPaymentProviders;
+import com.agilityhub.core.platform.application.StripeProviderSettings;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.application.HostedDemoPolicy;
 import com.agilityhub.core.shared.domain.*;
@@ -38,7 +39,7 @@ public class StripePaymentProvider implements PaymentProvider {
         String key;
         try { key = vault.decrypt(config.secretKeyEnc(), club, "STRIPE", "secretKeyEnc"); }
         catch (RuntimeException invalid) { throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID); }
-        if (!Set.of("test", "live").contains(Objects.toString(config.mode(), "")) || !key.startsWith("sk_" + config.mode() + "_")) {
+        if (!StripeProviderSettings.acceptsSecretKey(config.mode(), key)) {
             throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
         }
         return newClient(key);
@@ -59,11 +60,11 @@ public class StripePaymentProvider implements PaymentProvider {
     }
     /**
      * PAY-10 (S17 R-17-05): the connection test of a key before it is saved: the same checks as a stored key (the mode, the key's
-     * `sk_{mode}_` prefix, the hosted demo's test mode) before any network call, then the account the key reaches.
+     * account secret or restricted key prefix, the hosted deployment policy) before any network call, then the account the key reaches.
      */
     @Override public Connection ping(String mode,String secretKey) {
         if(!HostedDemoPolicy.permitsStripeMode(hostedDemo,stripeLiveEnabledClubIds,TenantContext.current(),mode)) { throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID); }
-        if(!Set.of("test","live").contains(Objects.toString(mode,""))||secretKey==null||!secretKey.startsWith("sk_"+mode+"_")) {
+        if(!StripeProviderSettings.acceptsSecretKey(mode,secretKey)) {
             throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
         }
         return connection(newClient(secretKey),mode);

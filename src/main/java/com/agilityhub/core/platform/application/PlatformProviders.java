@@ -54,7 +54,7 @@ public class PlatformProviders {
     public ConsolePaymentAccess.Connection testKey(String name,Map<String,Object> input) {
         if(!"STRIPE".equals(name)) return null;
         String mode=text(input,"mode"),key=text(input,"secretKey");
-        if(key==null||!Set.of("test","live").contains(Objects.toString(mode,""))||!key.startsWith("sk_"+mode+"_")||!HostedDemoPolicy.permitsStripeMode(hostedDemo,stripeLiveEnabledClubIds,TenantContext.current(),mode)) return null;
+        if(!StripeProviderSettings.acceptsSecretKey(mode,key)||!HostedDemoPolicy.permitsStripeMode(hostedDemo,stripeLiveEnabledClubIds,TenantContext.current(),mode)) return null;
         ConsolePaymentAccess.Connection result;
         try { result=provider.ping(mode,key); } catch(RuntimeException failure) { throw new ApiException(ErrorCode.STRIPE_CONNECTION_FAILED); }
         if(result==null||!result.ok()) throw new ApiException(ErrorCode.STRIPE_CONNECTION_FAILED);
@@ -85,7 +85,7 @@ public class PlatformProviders {
                     throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID,Map.of("field","mode","reason","LIVE_KEYS_SAVED"));
                 if(settings.get("mode")!=null&&!mode.equals(settings.get("mode"))&&(!present(input,"secretKey")||!present(input,"webhookSecret"))) invalid();
                 for(String field:List.of("secretKey","webhookSecret")) if(input.containsKey(field)&&input.get(field)!=null) {
-                    String value=text(input,field);if(value==null||!value.startsWith(field.equals("secretKey")?"sk_"+mode+"_":"whsec_")) invalid();
+                    String value=text(input,field);if(field.equals("secretKey")?!StripeProviderSettings.acceptsSecretKey(mode,value):value==null||!value.startsWith("whsec_")) invalid();
                     settings.put(field+"Enc",vault.encrypt(value,old.id(),name,field+"Enc"));
                 }
                 if(!present(settings,"secretKeyEnc")||!present(settings,"webhookSecretEnc")) invalid();

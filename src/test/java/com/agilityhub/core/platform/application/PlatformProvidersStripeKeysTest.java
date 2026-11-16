@@ -76,13 +76,16 @@ class PlatformProvidersStripeKeysTest {
         assertThatThrownBy(call).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(code));
     }
 
-    @Test void hostedLiveOptInPermitsOnlyTheSelectedClubAndStillTestsAndEncryptsNewKeys() {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"sk", "rk"})
+    void hostedLiveOptInPermitsOnlyTheSelectedClubAndStillTestsAndEncryptsNewKeys(String prefix) {
         ReflectionTestUtils.setField(providers, "hostedDemo", true);
         ReflectionTestUtils.setField(providers, "stripeLiveEnabledClubIds", " club-other, club-a ");
         var input = input("live", true);
-        when(payments.ping("live", "sk_live_fictional_new")).thenReturn(new ConsolePaymentAccess.Connection(true, "acct_example_live", "Example Club", "live"));
+        String key = prefix + "_live_fictional_new"; input.put("secretKey", key);
+        when(payments.ping("live", key)).thenReturn(new ConsolePaymentAccess.Connection(true, "acct_example_live", "Example Club", "live"));
         providers.update("STRIPE", input, providers.testKey("STRIPE", input));
-        verify(payments).ping("live", "sk_live_fictional_new");
+        verify(payments).ping("live", key);
         assertThat(written()).containsEntry("mode", "live").containsEntry("secretKeyEnc", "enc:secretKeyEnc")
                 .containsEntry("webhookSecretEnc", "enc:webhookSecretEnc").containsEntry("accountId", "acct_example_live");
         clearInvocations(payments, clubs, changes);

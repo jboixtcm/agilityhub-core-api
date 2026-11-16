@@ -22,20 +22,23 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class StripePaymentProviderTest {
-    @Test void hostedLiveOptInAllowsStoredAndNewKeysOnlyForItsTenant() throws Exception {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"sk", "rk"})
+    void hostedLiveOptInAllowsStoredAndNewKeysOnlyForItsTenant(String prefix) throws Exception {
+        String key = prefix + "_live_example";
         new org.springframework.boot.test.context.runner.ApplicationContextRunner()
                 .withPropertyValues("core.hosted-demo.enabled=true", "core.payments.stripe-live-enabled-club-ids=club-a")
                 .withBean(java.time.Clock.class, java.time.Clock::systemUTC)
                 .withBean(StripePaymentProvider.class, () -> provider).run(context -> {
                     assertThat(context).hasNotFailed();
-                    configure("live", "sk_live_example"); doReturn(client).when(provider).newClient("sk_live_example");
+                    configure("live", key); doReturn(client).when(provider).newClient(key);
                     var account = new com.stripe.model.Account(); account.setId("acct_example_live");
                     when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenReturn(account);
                     try (var tenant = TenantContext.open("club-a")) {
                         assertThat(provider.ping().mode()).isEqualTo("live");
-                        assertThat(provider.ping("live", "sk_live_example").mode()).isEqualTo("live");
+                        assertThat(provider.ping("live", key).mode()).isEqualTo("live");
                         provider.forgetCustomer("cus_example");
-                        assertThatThrownBy(() -> provider.ping("live", "sk_test_example")).isInstanceOf(ApiException.class);
+                        assertThatThrownBy(() -> provider.ping("live", prefix + "_test_example")).isInstanceOf(ApiException.class);
                     }
                     verify(client.v1().accounts(), times(2)).retrieveCurrent(any(RequestOptions.class));
                     verify(client.v1().customers()).delete(eq("cus_example"), any(RequestOptions.class));
@@ -43,9 +46,9 @@ class StripePaymentProviderTest {
                     when(clubs.stripe("club-b")).thenReturn(Optional.of(new StripeProviderSettings(true, null, "encrypted-example", null, "live", null)));
                     try (var tenant = TenantContext.open("club-b")) {
                         assertThatThrownBy(provider::ping).isInstanceOf(ApiException.class);
-                        assertThatThrownBy(() -> provider.ping("live", "sk_live_example")).isInstanceOf(ApiException.class);
+                        assertThatThrownBy(() -> provider.ping("live", key)).isInstanceOf(ApiException.class);
                     }
-                    assertThatThrownBy(() -> provider.ping("live", "sk_live_example")).isInstanceOf(ApiException.class);
+                    assertThatThrownBy(() -> provider.ping("live", key)).isInstanceOf(ApiException.class);
                     verify(provider, never()).newClient(anyString()); verifyNoInteractions(vault);
                 });
     }
