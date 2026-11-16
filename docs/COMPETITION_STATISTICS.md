@@ -1,6 +1,6 @@
 # Competition statistics — branch implementation
 
-Status: implemented for review on `feature/competition-statistics` in the API and web repositories. This does not activate STATS or deploy anything to production. See `competition-statistics-evidence/REPORT.md` for checks and remaining verification.
+Status: implemented on `feature/competition-statistics`, merged and deployed in the coordinated release; STATS was enabled for Cànic on 16 November. Authenticated Flow fetching and the import preview were verified after a separate owner-entered login. See `competition-statistics-evidence/REPORT.md` for checks and remaining verification.
 
 ## Behavior and scope
 
@@ -17,7 +17,7 @@ STATS remains off by default. Social league, scheduled synchronization, bulk eve
 - FCAG public page: <https://app.fcagility.cat/federated/classification/division/128>. Observed HTTP 200 and four category tables, multirow headers and raw/net Total columns. The parser selects the **last Total**, the official net value after discards. The parser was run against the downloaded public HTML and the actual server adapter then fetched and parsed the live page successfully: 57 rows across Petita, Mitjana, Intermèdia and Gran in 2026-2027. It handles the secondary header mixing th/td cells and rejects changed/incomplete data rows.
 - Flow's signed-in individual run and print pages were inspected in the user's Chrome session. The print representation has trial/organizer/date captions and 12 result cells (CLA/DO, Guía/Perro, Club/Licencia, T, F, R, PR, ET, TP, VEL, CAL, PTS). Tests recreate that structure with fictional identities. Observed real PTS values were `-`; positive P/PA/PV cases are synthetic and must still be checked against a corresponding live run.
 - Anonymous requests redirect to login. `Accept: application/json` returned 406. The public app uses Phoenix LiveView; the [official streaming interface](https://github.com/flowagility/streaming) describes live ring updates. No historical REST API was established.
-- Chrome confirms a session cookie named `_facom_key` with HttpOnly. The adapter sends that cookie in a server HTTP request to the canonical individual-run print endpoint. **A real authenticated server request is still unverified:** automatic tool approval denied Terminal access for transferring the browser session into a local probe. No session was committed or provisioned, and the clipboard was restored. Browser access and transport unit tests are not provider authentication verification.
+- Chrome confirms a session cookie named `_facom_key` with HttpOnly. The adapter sends that cookie in a server HTTP request to the canonical individual-run print endpoint. **Authenticated server access is now verified (16 November):** the earlier browser-session transfer was denied by automatic approval; the owner instead entered credentials privately to create a fresh session. Both a direct server probe and the deployed import-preview API fetched and parsed the same three-row run. The session was provisioned only in the private deployment environments; the local temporary copy was removed. No session was committed and no results were confirmed.
 - Supported print headers are the observed Spanish representation. Unexpected layouts or point labels fail closed, preserving existing results.
 - The print view exposes a run UUID but no trial UUID. Trial identity is a hash of trial title plus organizer/date. A provider rename can change that identity; review/reimport all runs of the renamed trial consistently. CSV can supply a stable explicit trial ID.
 
@@ -29,7 +29,7 @@ The selected tenant can use only its own entry. The adapter always targets `http
 
 The browser's normal `/zone/run/{uuid}/results#list_anchor_header` URL is accepted and canonicalized to the same print source as `/zone/prints/run/{uuid}/results`; alternate hosts, credentials in URLs, ports, queries, encoded paths and arbitrary fragments are rejected. No provider mutation is performed.
 
-Before deployment approval, provision a session securely, preview one known live run through the server, compare its result fields and explicit point labels with Flow, and confirm only reviewed club dogs in a test tenant. Renew/revoke the session afterwards as appropriate. A successful local mock test alone does not satisfy this check.
+The production server preview passed for the known run on 16 November: three rows, no exact club-dog licence match, and no confirmation. See `competition-statistics-evidence/flow-production-preview.json`. The ops workspace provides `connect-flow.py` for an owner-entered fresh login and `provision-flow-session.py` for guarded server probing/rotation. Passwords are not retained for unattended renewal. A session expiry requires a new owner login; positive official point labels remain a separate live-data verification item.
 
 ## Saved input
 

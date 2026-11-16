@@ -1,0 +1,28 @@
+{
+  "verifiedAt": "2026-11-16T08:31:43.060627+00:00",
+  "sourceUrl": "https://www.flowagility.com/zone/prints/run/79653dc1-6777-4bb7-a146-f28ae5f5dbc3/results",
+  "authenticatedServerFetch": true,
+  "realParserVerified": true,
+  "previewRows": 3,
+  "season": "2026",
+  "uniqueSuggestedDogs": 0,
+  "matches": {
+    "UNMATCHED": 3
+  },
+  "nonIdentityFieldsComparedWithFlow": [
+    "date",
+    "grade",
+    "category",
+    "discipline",
+    "point",
+    "position",
+    "timeSeconds",
+    "speedMps",
+    "totalPenalty",
+    "qualification"
+  ],
+  "resultsImported": false,
+  "historyUnchanged": true,
+  "existingSnapshots": 0,
+  "positivePointLabelsVerified": false
+}

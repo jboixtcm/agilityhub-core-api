@@ -10,7 +10,7 @@ Added tenant-scoped source adapters, strict FCAG/Flow parsers, exact-licence pre
 
 User-requested implementation on separate `feature/competition-statistics` branches. The isolated checkouts are under `implementation/competition-statistics/`. Existing organizer tasks and verification sections remain unchanged. Production deployment was subsequently authorized as a coordinated release and is recorded separately in the workspace release evidence. No provider mutation, scheduled synchronization or live result import is part of this source validation; STATS activation is a separate club setting.
 
-See [behavior, configuration and limitations](../COMPETITION_STATISTICS.md). FCAG HTTP fetch plus parsing returned 57 rows for 2026–2027. Flow's authenticated browser print layout and `_facom_key` cookie were observed, but a real authenticated server request remains unverified: automatic approval rejected Terminal access for session transfer. No provider session was provisioned or committed. Positive Flow point labels still need a live example; the checked run contained `-`.
+See [behavior, configuration and limitations](../COMPETITION_STATISTICS.md). FCAG HTTP fetch plus parsing returned 57 rows for 2026–2027. Flow's authenticated server fetch and deployed import preview were verified on 16 November after an owner-entered private login. This resolved the earlier blocked browser-session transfer without reading browser credentials. The session was provisioned in private deployment environments only; the local temporary file was removed and no session was committed. Positive Flow point labels still need a live example; the checked run contained `-`.
 
 ## Assumptions and review scope
 
@@ -98,3 +98,7 @@ Jordi subsequently authorized a joint release with the other agents’ changes a
 ## Official merged release CI
 
 [Main CI 43762983600](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/43762983600) passed on `fcbc2617`: 5,387 unit tests and 2,587 integration tests, zero failures/errors/skips. Coverage and OpenAPI checks, secret/dependency/image scans, and multiarchitecture image publication succeeded. This merged tree also contains the logo-cache changes, accounting for two additional unit tests versus the feature branch. Package counters are retained in [official-coverage.json](official-coverage.json).
+
+## Authenticated Flow production verification — 16 November
+
+The owner-created session passed a direct server probe and `POST /api/v1/competition-imports/preview` with only the Flow run URL (no supplied HTML). Three rows matched the provider date/category/discipline and reported score fields; none matched a club dog licence automatically. No confirmation was sent and history remained unchanged. Aggregate proof: [flow-production-preview.json](flow-production-preview.json). Ops login/provisioning helpers passed 18 tests, including destination restrictions, private storage, tenant preservation and failed-restart rollback. The running image and all other runtime settings were preserved.
