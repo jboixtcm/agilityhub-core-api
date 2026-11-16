@@ -19,8 +19,8 @@ public class CompetitionImportRepository extends TenantRepository<CompetitionImp
         mongo.indexOps(CompetitionImportRecord.class).createIndex(new Index().on("clubId", Sort.Direction.ASC)
                 .on("entries.dogId", Sort.Direction.ASC).on("season", Sort.Direction.ASC));
     }
-    public List<CompetitionImportRecord> forDog(String dogId, String year, String season) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("entries.dogId").is(dogId).and("season").in(year, season)), CompetitionImportRecord.class);
+    public List<CompetitionImportRecord> forDog(String dogId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("entries.dogId").is(dogId)), CompetitionImportRecord.class);
     }
     public List<java.util.Map<String, Object>> exportDogs(java.util.Collection<String> dogIds) {
         if (dogIds.isEmpty()) { return List.of(); }

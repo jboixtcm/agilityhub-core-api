@@ -52,7 +52,16 @@ public class FlowPrintResultsParser {
             String key = trialId + ":" + runId + ":" + license;
             if (!keys.add(key)) { throw invalid("DUPLICATE_RESULT"); }
             String pointText = cells.get(11).text().trim(); Point point;
-            try { point = pointText.equals("-") ? Point.NONE : Point.valueOf(pointText); }
+            try {
+                point = switch (pointText) {
+                    case "-" -> Point.NONE;
+                    case "1P" -> Point.P;
+                    case "1PA" -> Point.PA;
+                    case "1PV" -> Point.PV;
+                    case "1PA / 1PV", "PA / PV" -> Point.PA_PV;
+                    default -> Point.valueOf(pointText);
+                };
+            }
             catch (IllegalArgumentException failure) { throw invalid("UNKNOWN_OFFICIAL_POINT"); }
             String rank = cells.get(0).child(0).text().replace("º", "").replace("°", "");
             BigDecimal time = number(cells.get(3).text()), speed = number(cells.get(9).text());

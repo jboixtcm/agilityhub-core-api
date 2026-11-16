@@ -57,3 +57,23 @@ All routes require STATS and authenticated tenant context:
 Only selected results persist in `competition_imports`. Parsed previews in `competition_previews` have a TTL index and explicit expiry enforcement. Personal data exports include `competitionResults` for the subject's dogs only. Erasure removes those entries and clears the tenant's previews (unassigned rows can also contain the subject), and their exact response-cache entries, leaving other tenants and unrelated write retries untouched. Confirmations reuse the existing `MIGRATION_APPLIED` audit action with entity type `CompetitionImport`; no new catalog codes or notification events were invented.
 
 Tests use task-local `T-STATS-01`…`T-STATS-32` identifiers because no assigned roadmap task covers this user-requested feature. Existing organizer task/status files are unchanged. New interface copy is proposed feature text in Catalan, Spanish and English; there is no approved import-screen mockup. Both screenshots accompany the validation report for review.
+
+
+## Importació històrica i setmanal — 16 novembre 2026
+
+El procés operatiu de `ops/flow_imports/` descobreix les proves FCI/RSCE i les mànegues de cada pista/dia, i utilitza la mateixa previsualització i confirmació de l'API. Només assigna coincidències úniques de llicència del club. Les importacions ja existents no se sobreescriuen; les fallades es poden reprendre. La configuració i la sessió renovada es desen privadament al volum xifrat. El servei programat és independent dels processos de reserves. L'activació efectiva i els resultats es documenten a les evidències operatives.
+
+Les etiquetes oficials observades són `1P`, `1PA`, `1PV` i `1PA / 1PV`. P sense PV existeix (G2/XS/JP, febrer de 2026). La combinació s'exposa com `PA / PV`, incrementa els dos comptadors i conserva una sola mànega i prova. P, PA i PV simples només incrementen el seu comptador. Cap punt no es dedueix de la velocitat, la qualificació o les penalitzacions. Les multiplicitats desconegudes, com `2PV`, es refusen.
+
+## RSCE grade progression (2026 consolidated regulation)
+
+The supplied official regulation, effective 2026-07-01, articles 60–63 and 71, is linked in every `rsceProgress` projection. This is point progress for the standard route, not an official eligibility certificate. It introduces no configurable club parameter or notification.
+
+- Each RSCE licence is evaluated separately. The registered grade takes precedence; the latest result is a labelled fallback, and conflicting grades are exposed. Reaching a target never modifies census data or promotes a dog.
+- G1 → G2: three clear Excellent Agility rounds, or two Agility plus two Jumping. Two different judges remain an explicit unverified condition because current imported rows do not identify judges. G1 has no ordinary championship route; J12 and Para-Agility exceptions are explained.
+- G2 → G3: three explicitly awarded PA per discipline, over all imported years. PA / PV contributes one to each award counter, once to the round/competition total. Prior higher-grade results trigger a downgrade review; earlier promotion points are not reused automatically.
+- G2 championship: six qualifying points including at least four PV per discipline. G3: four PV in G3 per discipline. P/PV/PA raw counters stay independent; a combined PA / PV counts once in the championship total. PA alone is not silently reclassified as PV.
+- Championship years use the previous calendar year's results. G1 and other licences are excluded. A detected G2 → G3 transition offers the G2 alternative with an explicit prior club-notification condition. Older championship periods are not recomputed using the 2026 standard.
+- Island residency, double points for mainland competitors at island events, debut exceptions, junior/Para-Agility conditions, direct podium qualifications, historical completeness and administrative notices require club verification. The interface labels the standard route and links the regulation; it never declares official qualification from counters alone.
+
+`CompetitionImportRepository.forDog` now loads the tenant-scoped imported history so non-expiring promotion awards survive annual filters. Annual results and summaries retain the selected year. Coverage dates identify the available results, not a guarantee of complete sporting history.

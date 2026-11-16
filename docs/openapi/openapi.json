@@ -7214,7 +7214,7 @@
             "type" : "string"
           },
           "point" : {
-            "enum" : [ "NONE", "P", "PA", "PV", null ],
+            "enum" : [ "NONE", "P", "PA", "PV", "PA / PV", null ],
             "type" : [ "string", "null" ]
           },
           "points" : {
@@ -7421,6 +7421,12 @@
             },
             "type" : "array"
           },
+          "rsceProgress" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RsceLicenseProgress"
+            },
+            "type" : "array"
+          },
           "scoredTrials" : {
             "format" : "int32",
             "type" : "integer"
@@ -7445,7 +7451,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "dogId", "results", "scoredTrials", "season", "standings", "summaries", "year" ],
+        "required" : [ "dogId", "results", "rsceProgress", "scoredTrials", "season", "standings", "summaries", "year" ],
         "type" : "object"
       },
       "ConsentHistoryEntry" : {
@@ -22018,6 +22024,122 @@
           }
         },
         "required" : [ "cancelledInvoices", "restoredMembers" ],
+        "type" : "object"
+      },
+      "RsceLicenseProgress" : {
+        "properties" : {
+          "championshipRoutes" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RsceProgressRoute"
+            },
+            "type" : "array"
+          },
+          "currentGrade" : {
+            "type" : [ "string", "null" ]
+          },
+          "gradeConflict" : {
+            "type" : "boolean"
+          },
+          "gradeSource" : {
+            "type" : "string"
+          },
+          "historyFrom" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "historyThrough" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "lastResultDate" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "lastResultGrade" : {
+            "type" : [ "string", "null" ]
+          },
+          "license" : {
+            "type" : "string"
+          },
+          "previousHigherGrade" : {
+            "type" : "boolean"
+          },
+          "promotionRoutes" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RsceProgressRoute"
+            },
+            "type" : "array"
+          },
+          "registeredGrade" : {
+            "type" : [ "string", "null" ]
+          },
+          "rulesUrl" : {
+            "type" : "string"
+          },
+          "rulesVersion" : {
+            "type" : "string"
+          },
+          "summaries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CompetitionRunSummary"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "championshipRoutes", "gradeConflict", "gradeSource", "license", "previousHigherGrade", "promotionRoutes", "rulesUrl", "rulesVersion", "summaries" ],
+        "type" : "object"
+      },
+      "RscePointTarget" : {
+        "properties" : {
+          "discipline" : {
+            "enum" : [ "AGILITY", "JUMPING" ],
+            "type" : "string"
+          },
+          "earned" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "remaining" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "required" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "discipline", "earned", "kind", "remaining", "required" ],
+        "type" : "object"
+      },
+      "RsceProgressRoute" : {
+        "properties" : {
+          "championshipYear" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "pointTargetsMet" : {
+            "type" : "boolean"
+          },
+          "requiresDifferentJudges" : {
+            "type" : "boolean"
+          },
+          "targetGrade" : {
+            "type" : "string"
+          },
+          "targets" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RscePointTarget"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "championshipYear", "code", "pointTargetsMet", "requiresDifferentJudges", "targetGrade", "targets" ],
         "type" : "object"
       },
       "RunNotRollbackableDetails" : {

@@ -1,6 +1,10 @@
 # Changelog
 
+- RSCE statistics now separate per-licence grade, lifetime G1/G2 promotion progress and annual G2/G3 championship point targets under the 2026 regulation. Flow imports renew expired operational API sessions safely.
+
 ## Unreleased — Competition statistics
+
+- Preserve Flow counted official points and simultaneous PA/PV awards; add a resumable, tenant-checked operational importer for historical and weekly results.
 
 - Keep member data ZIP exports available with translated competition-result summary labels in every locale.
 - Add tenant-scoped FCAG standings and FlowAgility results, reviewed imports with exact licence suggestions, revision protection and privacy export/erasure.

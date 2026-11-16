@@ -1,0 +1,11 @@
+[Unit]
+Description=Import weekend Flow results on Monday at 06:00 club time
+
+[Timer]
+OnCalendar=Mon *-*-* 06:00:00 @TIME_ZONE@
+Persistent=true
+AccuracySec=1min
+Unit=agilityhub-flow-import.service
+
+[Install]
+WantedBy=timers.target

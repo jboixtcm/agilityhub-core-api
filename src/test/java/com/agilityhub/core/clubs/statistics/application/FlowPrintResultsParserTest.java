@@ -31,6 +31,29 @@ class FlowPrintResultsParserTest {
         var eliminated = parser.parse(html("-").replace("1º", "-").replace("35.12", "-").replace("5.40", "-").replace("EXC_0", "DISQ"), URL).entries().getFirst();
         assertThat(eliminated.position()).isNull(); assertThat(eliminated.timeSeconds()).isNull();
     }
+    @Test void T_STATS_15_countedOfficialLabelsAndCombinedAwards() throws Exception {
+        var parser = new FlowPrintResultsParser();
+        assertThat(parser.parse(html("1P"), URL).entries().getFirst().point()).isEqualTo(Point.P);
+        assertThat(parser.parse(html("1PA"), URL).entries().getFirst().point()).isEqualTo(Point.PA);
+        assertThat(parser.parse(html("1PV"), URL).entries().getFirst().point()).isEqualTo(Point.PV);
+        var combined = parser.parse(html("1PA / 1PV"), URL).entries().getFirst();
+        assertThat(combined.point()).isEqualTo(Point.PA_PV);
+        assertThat(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(combined.point())).isEqualTo("\"PA / PV\"");
+        var stats = CompetitionStatistics.aggregate("dog", 2026, "2026-2027", java.util.List.of(
+                new Result(Source.FLOW_AGILITY, URL, java.time.Instant.EPOCH, combined)));
+        var jumping = stats.summaries().stream().filter(row -> row.discipline() == Discipline.JUMPING).findFirst().orElseThrow();
+        assertThat(jumping.runs()).isEqualTo(1); assertThat(jumping.pa()).isEqualTo(1); assertThat(jumping.pv()).isEqualTo(1);
+        assertThat(jumping.p()).isZero(); assertThat(stats.scoredTrials()).isEqualTo(1);
+        for (var single : java.util.List.of(Point.P, Point.PA, Point.PV)) {
+            var row = parser.parse(html("1" + single.name()), URL).entries().getFirst();
+            var singleStats = CompetitionStatistics.aggregate("dog", 2026, "2026-2027", java.util.List.of(
+                    new Result(Source.FLOW_AGILITY, URL, java.time.Instant.EPOCH, row))).summaries().getLast();
+            assertThat(singleStats.p()).isEqualTo(single == Point.P ? 1 : 0);
+            assertThat(singleStats.pa()).isEqualTo(single == Point.PA ? 1 : 0);
+            assertThat(singleStats.pv()).isEqualTo(single == Point.PV ? 1 : 0);
+        }
+        assertThatThrownBy(() -> parser.parse(html("2PV"), URL)).isInstanceOf(ApiException.class);
+    }
     @Test void T_STATS_13_loginChangedFormatMissingOfficialPointAndInvalidSourceFailClosed() {
         var parser = new FlowPrintResultsParser();
         for (String body : java.util.List.of("<form action='/user/login'>Login</form>", html("NEW_POINT"), html("PA").replace("PTS", "OTHER"), html("PA").replace("2026.11.15", "2026.99.15"), html("PA").replace("0123", ""))) {

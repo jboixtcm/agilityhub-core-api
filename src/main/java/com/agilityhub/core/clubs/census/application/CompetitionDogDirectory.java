@@ -21,5 +21,12 @@ public class CompetitionDogDirectory {
                         .map(license -> new LicensedDog(dog.id, dog.name, Objects.toString(license.get("number"), ""))))
                 .filter(dog -> !dog.license().isBlank()).toList();
     }
+    public record CompetitionLicense(String number, String grade) { }
+    public List<CompetitionLicense> licenses(String dogId) {
+        return Objects.requireNonNullElse(dogs.require(dogId).licenses, List.<java.util.Map<String, Object>>of()).stream()
+                .filter(license -> "RSCE".equalsIgnoreCase(Objects.toString(license.get("organisation"), "")))
+                .map(license -> new CompetitionLicense(Objects.toString(license.get("number"), "").trim(),
+                        Objects.toString(license.get("grade"), ""))).filter(license -> !license.number().isBlank()).toList();
+    }
     public void requireMutable(String id) { CensusAccess.unfrozen(access.mutableDog(id)); }
 }
