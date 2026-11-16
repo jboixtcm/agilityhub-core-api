@@ -677,6 +677,7 @@ Les credencials Stripe per club admeten claus secretes `sk_test_`/`sk_live_` i r
 | `SMS_ALLOWED_NUMBERS` | Outside prod, allowed tester numbers only; empty means no real sends. Never populate with demo numbers. Not a prod recipient filter. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Generated P-256 pair in base64url; rotate as a pair and re-subscribe all browsers. Escrow private half. |
 | `VAPID_SUBJECT` | Operator contact, `mailto:`/`https:`, supplied to push providers; update if contact changes. |
+| `PUSH_ENABLED_CLUB_IDS` | Empty by default; hosted push stays disabled. Exact comma-separated club UUIDs approved for real push while hosted storage remains enabled. Requires all three VAPID settings. Only enabled clubs publish the public key and send push. Other delivery and payment policies are unchanged; disabled releases must supply empty effective VAPID settings. |
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Retired (ruling E85): Core no longer reads it, and `migration:apply` encrypts with `BILLING_BANK_KEY`. Leave it empty; E11-T04 removes it from the production Compose. |
