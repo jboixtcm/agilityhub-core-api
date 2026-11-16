@@ -58,6 +58,7 @@ notifications:
     twilio-messaging-service-sid: ${TWILIO_MESSAGING_SERVICE_SID:}
     allowed-numbers: ${SMS_ALLOWED_NUMBERS:}
   push:
+    enabled-club-ids: ${PUSH_ENABLED_CLUB_IDS:}
     vapid-public-key: ${VAPID_PUBLIC_KEY:}
     vapid-private-key: ${VAPID_PRIVATE_KEY:}
     vapid-subject: ${VAPID_SUBJECT:}

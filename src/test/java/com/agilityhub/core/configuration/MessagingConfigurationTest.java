@@ -85,6 +85,19 @@ class MessagingConfigurationTest {
         assertThat(test).isInstanceOf(FakePushSender.class); assertThat(test.publicKey()).isEqualTo(publicKey);
         var real = configuration.pushSender(profiles("staging"), mapper, Clock.systemUTC(), clubs, publicKey, privateKey, "mailto:product@example.test");
         assertThat(real).isInstanceOf(WebPushSender.class); assertThat(real.publicKey()).isEqualTo(publicKey);
+        var hosted = profiles("prod").withProperty("core.hosted-demo.enabled", "true")
+                .withProperty("email.delivery-enabled", "false")
+                .withProperty("notifications.push.enabled-club-ids", "12345678-3456-1234-8901-123456789012");
+        assertThatThrownBy(() -> configuration.pushSender(hosted, mapper, Clock.systemUTC(), clubs, "", "", ""))
+                .hasMessageContaining("VAPID_PUBLIC_KEY");
+        var scoped = configuration.pushSender(hosted, mapper, Clock.systemUTC(), clubs, publicKey, privateKey, "mailto:product@example.test");
+        assertThat(scoped).isInstanceOf(com.agilityhub.core.clubs.messaging.application.integrations.ClubScopedPushSender.class);
+        assertThat(scoped.publicKey()).isNull();
+        try (var ignored = com.agilityhub.core.shared.application.TenantContext.open("12345678-3456-1234-8901-123456789012")) {
+            assertThat(scoped.publicKey()).isEqualTo(publicKey);
+        }
+        assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.from(hosted).enabled()).isTrue();
+        assertThat(configuration.smsSender(hosted, mapper, "", "", "", "").send(null).refusedByGuard()).isTrue();
     }
     private static void copy(BigInteger value, byte[] target, int offset) {
         byte[] bytes = value.toByteArray(); int start = Math.max(0, bytes.length - 32), length = Math.min(32, bytes.length);
