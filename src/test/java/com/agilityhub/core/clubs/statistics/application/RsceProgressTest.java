@@ -109,4 +109,14 @@ class RsceProgressTest {
         assertThat(p.championshipRoutes()).allMatch(ProgressRoute::pointTargetsMet);
         assertThat(p.promotionRoutes().getFirst().targets().getFirst()).isEqualTo(new PointTarget(Discipline.AGILITY, "PA", 7, 3, 0));
     }
+    @Test void T_STATS_48_explicitG1PromotionAwardsSurviveMissingNumericalPenaltyDetails() {
+        var printed = new Entry("older", "0123", "Núvol", "Laia Exemple", "Example club", "2025", null, "M", 1, null,
+                "trial", "older", LocalDate.of(2025, 12, 31), "Example trial", "G1", Discipline.AGILITY, null, null, null,
+                BigDecimal.valueOf(35), BigDecimal.valueOf(4), "EXC_0", Point.PA);
+        var rows = List.of(new Result(Source.FLOW_AGILITY, CompetitionParsersTest.FLOW_URL, Instant.parse("2026-11-16T08:00:00Z"), printed));
+        assertThat(progress("G1", rows).promotionRoutes().getFirst().targets().getFirst()).isEqualTo(
+                new PointTarget(Discipline.AGILITY, "CLEAR_EXCELLENT", 1, 3, 2));
+        assertThat(CompetitionStatistics.aggregate("dog", 2025, "2025-2026", rows).summaries().getFirst().clearRuns()).isZero();
+    }
+
 }

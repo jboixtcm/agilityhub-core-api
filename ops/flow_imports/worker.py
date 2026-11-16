@@ -49,13 +49,13 @@ def emit(event,**fields):print(json.dumps({'at':now(),'event':event,**fields}),f
 def window(today):
     # Last completed Sunday, including on a delayed/restarted weekday invocation.
     sunday=today-timedelta(days=today.weekday()+1)
-    return sunday-timedelta(days=15),sunday
+    return sunday-timedelta(days=16),sunday
 
 def selected_event(event,start,end,weekly):
     a=date.fromisoformat(event['start']);b=date.fromisoformat(event['end'])
     return event['federation']=='FCI / RSCE' and a<=end and b>=start
 
-def selected_date(day,start,end,weekly):return start<=day<=end and (not weekly or day.weekday() in (5,6))
+def selected_date(day,start,end,weekly):return start<=day<=end and (not weekly or day.weekday() in (4,5,6))
 
 class Flow:
     def __init__(self, session_file, delay=0.3):

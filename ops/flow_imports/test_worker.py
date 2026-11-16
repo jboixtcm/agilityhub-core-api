@@ -24,11 +24,13 @@ class Tests(unittest.TestCase):
         with self.assertRaises(DiscoveryError):date_range('unexpected',2026)
     def test_weekly_window_dst_and_new_year(self):
         for day in (date(2026,3,30),date(2026,10,26),date(2027,1,4)):
-            a,b=window(day);self.assertEqual(a.weekday(),5);self.assertEqual(b.weekday(),6)
-            self.assertEqual((b-a).days,15);self.assertEqual((day-b).days,1)
-    def test_weekly_excludes_weekdays(self):
-        self.assertFalse(selected_date(date(2026,11,13),date(2026,11,1),date(2026,11,15),True))
-        self.assertTrue(selected_date(date(2026,11,13),date(2026,11,1),date(2026,11,15),False))
+            a,b=window(day);self.assertEqual(a.weekday(),4);self.assertEqual(b.weekday(),6)
+            self.assertEqual((b-a).days,16);self.assertEqual((day-b).days,1)
+    def test_weekly_includes_friday_competitions_but_excludes_thursday(self):
+        self.assertFalse(selected_date(date(2026,11,12),date(2026,11,1),date(2026,11,15),True))
+        for day in (13,14,15):
+            self.assertTrue(selected_date(date(2026,11,day),date(2026,11,1),date(2026,11,15),True))
+        self.assertTrue(selected_date(date(2026,11,12),date(2026,11,1),date(2026,11,15),False))
     def test_archive_validation(self):
         html='<div class="group mb-6"><span>Nov 14 - 15</span><span>FCI / RSCE</span><span>Example</span><a href="/zone/event/'+RUNID+'/runs"></a></div>'
         self.assertEqual(events(html,date(2026,11,16))[0]['start'],'2026-11-14')

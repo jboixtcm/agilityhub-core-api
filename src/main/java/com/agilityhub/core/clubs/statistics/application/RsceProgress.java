@@ -109,9 +109,11 @@ final class RsceProgress {
             case "PA" -> row.point() == Point.PA || row.point() == Point.PA_PV;
             case "PV" -> row.point() == Point.PV || row.point() == Point.PA_PV;
             case "CHAMPIONSHIP_POINT" -> row.point() == Point.P || row.point() == Point.PV || row.point() == Point.PA_PV;
-            case "CLEAR_EXCELLENT" -> CompetitionStatistics.completed(row) && row.totalPenalty() != null && row.totalPenalty().signum() == 0
-                    && (row.point() == Point.PA || Set.of("EXC", "EXC_0", "EXC.", "EXCELENTE", "EXCELLENT", "EXCEL·LENT")
-                    .contains(Objects.toString(row.qualification(), "").strip().toUpperCase(Locale.ROOT)));
+            // An explicit promotion award remains valid when an older print omits numerical penalties.
+            case "CLEAR_EXCELLENT" -> row.point() == Point.PA || row.point() == Point.PA_PV
+                    || CompetitionStatistics.completed(row) && row.totalPenalty() != null && row.totalPenalty().signum() == 0
+                    && Set.of("EXC", "EXC_0", "EXC.", "EXCELENTE", "EXCELLENT", "EXCEL·LENT")
+                    .contains(Objects.toString(row.qualification(), "").strip().toUpperCase(Locale.ROOT));
             default -> false;
         };
     }
