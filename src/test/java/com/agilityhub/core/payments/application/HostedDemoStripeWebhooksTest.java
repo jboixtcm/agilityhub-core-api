@@ -31,6 +31,30 @@ class HostedDemoStripeWebhooksTest {
                     verify(events, times(6)).record(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID, null, "club");
                 });
     }
+    @Test void optedInLiveWebhooksStillRequireTheRightTenantSignatureAndExplicitEventMode() throws Exception {
+        var settings = mock(ClubPaymentProviders.class); var vault = mock(ProviderSecretVault.class); var events = mock(SecurityEvents.class);
+        var service = new StripeWebhookSignatures(settings, vault, events, Clock.fixed(StripeWebhookSignaturesTest.NOW, ZoneOffset.UTC));
+        when(vault.decrypt("encrypted", "club", "STRIPE", "webhookSecretEnc")).thenReturn(StripeWebhookSignaturesTest.SECRET);
+        when(settings.stripe("club")).thenReturn(Optional.of(config("live")));
+        when(settings.stripe("other")).thenReturn(Optional.of(config("live")));
+        new ApplicationContextRunner().withPropertyValues("core.hosted-demo.enabled=true", "core.payments.stripe-live-enabled-club-ids=club")
+                .withBean(StripeWebhookSignatures.class, () -> service).run(context -> {
+                    assertThat(context).hasNotFailed();
+                    byte[] live = "{\"livemode\":true}".getBytes(StandardCharsets.UTF_8);
+                    assertThatCode(() -> service.authenticate("club", signature(live), live)).doesNotThrowAnyException();
+                    for (String body : new String[] {"{\"livemode\":false}", "{}", "{\"livemode\":\"true\"}", "not-json", "null"}) {
+                        assertRejected(service, body);
+                    }
+                    assertThatThrownBy(() -> service.authenticate("club", "t=0,v1=bad", live)).isInstanceOf(ApiException.class);
+                    assertThatThrownBy(() -> service.authenticate("other", signature(live), live)).isInstanceOf(ApiException.class);
+                    verify(vault, never()).decrypt("encrypted", "other", "STRIPE", "webhookSecretEnc");
+                    when(settings.stripe("club")).thenReturn(Optional.of(config("test")));
+                    assertRejected(service, "{\"livemode\":true}");
+                    byte[] test = "{\"livemode\":false}".getBytes(StandardCharsets.UTF_8);
+                    assertThatCode(() -> service.authenticate("club", signature(test), test)).doesNotThrowAnyException();
+                });
+    }
+
     private StripeProviderSettings config(String mode) { return new StripeProviderSettings(true, null, "secret", "encrypted", mode, null); }
     private void assertRejected(StripeWebhookSignatures service, String json) throws Exception {
         byte[] body = json.getBytes(StandardCharsets.UTF_8);

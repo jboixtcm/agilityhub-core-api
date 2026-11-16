@@ -14,6 +14,11 @@ import java.util.Map;
 public record StripeProviderSettings(boolean enabled, String publishableKey, @JsonIgnore @Sensitive(Sensitive.Strategy.HIDE) String secretKeyEnc,
         @JsonIgnore @Sensitive(Sensitive.Strategy.HIDE) String webhookSecretEnc, String mode, String accountId) {
     public static final String PROVIDER = "STRIPE";
+    /** Account-scoped secret and restricted keys must both match the selected environment. */
+    public static boolean acceptsSecretKey(String mode, String key) {
+        return ("test".equals(mode) || "live".equals(mode)) && key != null
+                && (key.startsWith("sk_" + mode + "_") || key.startsWith("rk_" + mode + "_"));
+    }
     /** The view of a stored `paymentProviders.STRIPE` entry; an absent provider is an empty, disabled one. */
     public static StripeProviderSettings of(Map<String, Object> paymentProviders) {
         if (paymentProviders == null || !(paymentProviders.get(PROVIDER) instanceof Map<?, ?> stored)) {

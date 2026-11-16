@@ -12,6 +12,21 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 class HostedDemoConfigurationTest {
+    @Test void stripeLiveOptInLeavesHostedSmsPushAndEmailPoliciesEnabled() {
+        var environment = demo("tester@example.test").withProperty("core.payments.stripe-live-enabled-club-ids", "club-a");
+        var policy = com.agilityhub.core.shared.application.HostedDemoPolicy.from(environment);
+        assertThat(policy.enabled()).isTrue();
+        assertThat(policy.permitsEmail("outsider@example.test")).isFalse();
+        assertThat(new MessagingConfiguration().smsSender(environment, mapper, "", "", "", "").send(null)).isEqualTo(SendResult.notAllowed());
+        assertThat(new MessagingConfiguration().pushSender(environment, mapper, Clock.systemUTC(), mock(ClubConfigService.class), "", "", "").publicKey()).isNull();
+        for (String allowed : new String[] {"", "*", "club-ab"}) {
+            assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.permitsStripeMode(true, allowed, "club-a", "live")).isFalse();
+        }
+        assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.permitsStripeMode(true, null, "club-a", "live")).isFalse();
+        assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.permitsStripeMode(true, "club-a", null, "live")).isFalse();
+        assertThat(com.agilityhub.core.shared.application.HostedDemoPolicy.permitsStripeMode(true, "club-a", "club-a", "invalid")).isFalse();
+    }
+
     @Test void T_11_25_publicEmailOptInPreservesOtherHostedRestrictions() {
         var environment = demo("").withProperty("email.public-delivery-enabled", "true")
                 .withProperty("email.provider", "brevo").withProperty("email.brevo.api-key", "fictional");

@@ -12,6 +12,12 @@
 
 - Serve published club logos directly, with an ETag and a five-minute browser cache, eliminating the signed-download redirect and repeated image transfers during navigation. Replacement logos keep distinct URLs. Private attachment downloads retain their existing policy.
 
+## 2026-11-15 — Explicit per-club Stripe live activation
+
+- Permit reviewed clubs to use live Stripe with `STRIPE_LIVE_ENABLED_CLUB_IDS` while retaining the hosted private-volume and messaging policies; empty remains test-only.
+- Apply the same club scope to provider configuration, outbound calls and signed webhooks; reject other clubs, missing event modes and cross-mode events.
+- Accept account-scoped restricted Stripe keys alongside secret keys, retaining mode validation, encrypted storage and the mandatory connection test before saving.
+
 ## 2026-11-15 — Activity-publication email control
 
 - Allow a club-scoped operational hold on activity-publication emails while retaining in-app notices, including a check before sending queued messages.
