@@ -78,6 +78,24 @@ class Tests(unittest.TestCase):
             p=Path(d)/'state.json';atomic(p,{'x':1});self.assertEqual(private_json(p),{'x':1})
             p.chmod(0o644)
             with self.assertRaises(WorkerError):private_json(p)
+    def test_checkpoint_encoding_preserves_existing_bytes(self):
+        data={'schema':1,'runs':{'/run/b':{'status':'no_match','checkedAt':'2026-11-16'},'/run/a':{'status':'imported','count':2}},'events':{},'text':'Cànic','empty':None}
+        legacy=io.StringIO();json.dump(data,legacy,sort_keys=True)
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/'state.json';atomic(p,data)
+            self.assertEqual(p.read_bytes(),legacy.getvalue().encode())
+            self.assertEqual(private_json(p),data)
+            self.assertEqual(p.stat().st_mode&0o777,0o600)
+    def test_failed_checkpoint_preserves_previous_file_and_cleans_temporary(self):
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/'state.json';atomic(p,{'previous':True});before=p.read_bytes()
+            with self.assertRaises(TypeError):atomic(p,{'invalid':object()})
+            self.assertEqual(p.read_bytes(),before)
+            self.assertEqual(list(Path(d).iterdir()),[p])
+            with patch('worker.os.replace',side_effect=OSError('test replacement failure')):
+                with self.assertRaises(OSError):atomic(p,{'next':True})
+            self.assertEqual(p.read_bytes(),before)
+            self.assertEqual(list(Path(d).iterdir()),[p])
     def test_request_path_guards(self):
         api=Api.__new__(Api)
         with self.assertRaises(WorkerError):api.request('GET','/api/v1/accounts')

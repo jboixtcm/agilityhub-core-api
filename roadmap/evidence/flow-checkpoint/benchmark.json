@@ -1,0 +1,26 @@
+{
+  "checkpointBytes": 5478643,
+  "runs": 18712,
+  "timings": {
+    "streamed": [
+      0.1868556150002405,
+      0.2033908750017872,
+      0.21247213199967518
+    ],
+    "buffered": [
+      0.07526923400291707,
+      0.10421415099699516,
+      0.07696895400295034
+    ]
+  },
+  "sameBytes": true,
+  "statusesByVersion": {
+    "None:no_match": 12663,
+    "None:unsupported": 2372,
+    "2:no_match": 1788,
+    "None:imported": 1298,
+    "2:unsupported": 514,
+    "2:imported": 76,
+    "None:unpublished": 1
+  }
+}
