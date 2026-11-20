@@ -118,6 +118,10 @@ sms: Club Agility Exemple: la clase miércoles 12 18:50 todavia no tiene suficie
 email.text: Posible cancelación de clase⏎⏎Miércoles 12 · 18:50 · B+C, con Duna: la clase todavía no tiene suficientes alumnos. Si nadie más se apunta antes de las 7:30 de miércoles, la clase se cancelará. Te proponemos reservar otra.⏎⏎Abre la app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
 email.html.sha256: 9fd2e803f321258a
 
+## N-16 INSTRUCTORS
+title: Posible cancelación de clase
+body: Club Agility Exemple: miércoles 12 · 18:50 · B+C todavía no tiene suficientes alumnos. Si nadie más se apunta, se cancelará miércoles a las 7:30.
+
 ## N-16 ADMINS
 title: Posible cancelación de clase
 body: Club Agility Exemple: miércoles 12 · 18:50 · B+C todavía no tiene suficientes alumnos. Si nadie más se apunta, se cancelará miércoles a las 7:30.
@@ -325,4 +329,4 @@ body: Hay que revisar el reembolso de Laura Serra Puig: 45,00 €.
 title: Pago con tarjeta disputado
 body: Laura Serra Puig ha disputado en su banco un pago con tarjeta de 45,00 € (motivo: Documentació pendent). El pago queda marcado en la app. Responde a la disputa desde el panel de Stripe antes de que venza el plazo.
 
-# 53 codes, 22 staff texts
+# 53 codes, 23 staff texts

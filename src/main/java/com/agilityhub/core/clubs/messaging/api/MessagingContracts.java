@@ -163,7 +163,9 @@ public final class MessagingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null for SYSTEM codes (no template)") String templateId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Long templateVersion,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null for a direct send (N-50, N-53, a test send)") String eventType,
-            NotificationSubject subject, List<DeliveryView> deliveries, @Schema(requiredMode = NOT_REQUIRED) List<com.agilityhub.core.clubs.messaging.domain.RosterStudent> students) { }
+            NotificationSubject subject, List<DeliveryView> deliveries,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+            @Schema(requiredMode = NOT_REQUIRED) List<com.agilityhub.core.clubs.messaging.domain.RosterStudent> students) { }
 
     // ---- Feed 11 (R-11-10, R-11-11)
     @Schema(description = "The native action (R-11-11): CHANGE_CLASS and CLAIM_SEAT are buttons, the rest open on tapping the card; enabled is computed on reading")
@@ -171,7 +173,9 @@ public final class MessagingContracts {
     public record MeNotification(String id, String code, NotificationCategory category, TemplateIcon icon, TemplateColor color, String title, String body,
             Instant createdAt, @Schema(description = "Channels that reached the member; SMS only when SENT or DELIVERED («i per SMS»)") List<NotificationChannel> channels,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null when the code has no action («—»)") FeedAction action, @Schema(requiredMode = NOT_REQUIRED) List<com.agilityhub.core.clubs.messaging.domain.RosterStudent> students) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null when the code has no action («—»)") FeedAction action,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+            @Schema(requiredMode = NOT_REQUIRED) List<com.agilityhub.core.clubs.messaging.domain.RosterStudent> students) { }
     public record MeNotifications(@Schema(description = "createdAt desc; only notifications with an APP delivery") List<MeNotification> items,
             @Schema(minimum = "0") int page, @Schema(minimum = "1") int size, @Schema(minimum = "0") long totalItems,
             @Schema(minimum = "0", description = "The same count as GET /me/home notifications.unreadCount") long unreadCount) { }
