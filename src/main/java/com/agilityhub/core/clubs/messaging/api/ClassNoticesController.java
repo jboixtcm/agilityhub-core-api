@@ -6,6 +6,7 @@ import com.agilityhub.core.shared.domain.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.agilityhub.core.clubs.messaging.domain.RosterStudent;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +20,7 @@ public class ClassNoticesController {
     public ClassNoticesController(ClassNoticeHistory history) { this.history = history; }
     @Schema(name = "ClassNoticeItem")
     public record Item(String id, Instant createdAt, String code, String classId, String classDate, String classTime,
-            String classDescription, String ringName, String title, String body) { }
+            String classDescription, String ringName, String title, String body, @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED) List<RosterStudent> students) { }
     @Schema(name = "ClassNoticePage")
     public record Page(List<Item> items, int page, int size, long totalItems) { }
 
@@ -34,6 +35,6 @@ public class ClassNoticesController {
             @RequestParam(defaultValue = "20") int size) {
         var result = history.page(today, page, size);
         return new Page(result.items().stream().map(n -> new Item(n.id(), n.createdAt(), n.code(), n.classId(), n.classDate(), n.classTime(),
-                n.classDescription(), n.ringName(), n.title(), n.body())).toList(), result.page(), result.size(), result.totalItems());
+                n.classDescription(), n.ringName(), n.title(), n.body(), n.students())).toList(), result.page(), result.size(), result.totalItems());
     }
 }
