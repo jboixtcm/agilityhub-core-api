@@ -82,6 +82,13 @@ class ClassNoticesIT extends AbstractIntegrationTest {
         assertThat(today.path("totalItems").asInt()).isEqualTo(2);
         assertThat(today.path("items").findValuesAsText("id")).containsExactly("cancel-0", "midnight");
     }
+    @Test void T_11_29_adminHistoryIncludesTheFrozenRoster() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("midnight")), new org.springframework.data.mongodb.core.query.Update()
+                .set("variables.staffRoster", List.of(java.util.Map.of("name", "Test Student", "href", "https://admin.example.test/abonats/sample"))), "notifications");
+        var history = call(CLUB, "ADMIN", "", 200);
+        assertThat(history.findValuesAsText("href")).containsExactly("https://admin.example.test/abonats/sample");
+    }
+
     @Test void T_11_29_classNoticesAreTenantAndAdminScoped() throws Exception {
         assertThat(call(OTHER, "ADMIN", "", 200).path("items").findValuesAsText("id")).containsExactly("foreign");
         call(CLUB, "MEMBER", "", 403); call(CLUB, "INSTRUCTOR", "", 403);

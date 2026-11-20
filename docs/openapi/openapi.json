@@ -5109,6 +5109,12 @@
           "ringName" : {
             "type" : "string"
           },
+          "students" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RosterStudent"
+            },
+            "type" : "array"
+          },
           "title" : {
             "type" : "string"
           }

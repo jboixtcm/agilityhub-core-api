@@ -7,6 +7,7 @@ import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import java.time.Clock;
+import com.agilityhub.core.clubs.messaging.domain.RosterStudent;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
@@ -23,7 +24,7 @@ public class ClassNoticeHistory {
         this.notices = notices; this.configs = configs; this.clock = clock;
     }
     public record Item(String id, Instant createdAt, String code, String classId, String classDate, String classTime,
-            String classDescription, String ringName, String title, String body) { }
+            String classDescription, String ringName, String title, String body, List<RosterStudent> students) { }
     public record Page(List<Item> items, int page, int size, long totalItems) { }
 
     public Page page(boolean today, int page, int size) {
@@ -35,7 +36,7 @@ public class ClassNoticeHistory {
                 today ? date.plusDays(1).atStartOfDay(zone).toInstant() : null, page, size);
         return new Page(result.items().stream().map(n -> new Item(n.id(), n.createdAt(), n.code(), n.subject().classSessionId(),
                 value(n, "class_date"), value(n, "class_time"), value(n, "class_description"), value(n, "ring_name"),
-                Objects.toString(n.title(), ""), Objects.toString(n.body(), ""))).toList(), page, size, result.totalItems());
+                Objects.toString(n.title(), ""), Objects.toString(n.body(), ""), n.staffRoster())).toList(), page, size, result.totalItems());
     }
     private static String value(Notification n, String key) { return n.variables() == null ? "" : Objects.toString(n.variables().get(key), ""); }
 }
