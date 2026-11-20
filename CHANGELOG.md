@@ -1,5 +1,7 @@
 # Changelog
 
+- Repeat under-enrolment warnings daily using the club time zone, link the roster on staff notices, and list outstanding balances by member across all billing periods.
+
 - Reduce Flow checkpoint encoding overhead while preserving the exact JSON representation, private permissions, fsync and atomic replacement. Failed writes retain the previous checkpoint.
 
 - Preserve the organizing club from Flow print headers separately from each competitor’s club, including result readback and member exports. Historical records without this optional metadata remain readable.

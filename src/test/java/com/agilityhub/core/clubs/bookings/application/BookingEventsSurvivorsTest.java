@@ -55,7 +55,7 @@ class BookingEventsSurvivorsTest {
 
     @Test void T_15_13_classBelowMinimumCarriesTheCancellingMemberAndTheCatalogPayload() {
         when(context.now()).thenReturn(NOW);
-        try (var tenant = TenantContext.open("club-a")) { events.belowMinimum("class-a", 2, 3, laura); }
+        try (var tenant = TenantContext.open("club-a")) { events.belowMinimum("class-a", java.util.List.of("a", "b"), 3, laura); }
 
         var published = ArgumentCaptor.forClass(DomainEvent.class);
         verify(publisher).publish(published.capture());

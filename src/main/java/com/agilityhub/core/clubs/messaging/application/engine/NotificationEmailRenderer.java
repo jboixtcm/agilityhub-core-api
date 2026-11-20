@@ -66,6 +66,7 @@ public final class NotificationEmailRenderer {
         values.put("brand", settings.brand()); values.put("logo", safeLogo(settings.logoUrl()));
         values.put("primary", color(settings.primary(), "#2563eb")); values.put("onPrimary", color(settings.onPrimary(), "#ffffff"));
         values.put("language", locale.toLanguageTag());
+        values.put("students", notification.staffRoster());
         values.put("link", link); values.put("action", messages.format("email.layout.open", Map.of(), locale));
         values.put("calendar", calendar); values.put("calendarLabel", messages.format("email.layout.calendar", Map.of(), locale));
         values.put("reply", messages.format("email.layout.reply", Map.of(), locale));
@@ -73,6 +74,10 @@ public final class NotificationEmailRenderer {
         var context = new Context(locale); context.setVariables(values);
         String html = templates.process("email/notification", context);
         var text = new StringBuilder(notification.title()).append("\n\n").append(notification.body() == null ? "" : notification.body());
+        for (var student : notification.staffRoster()) {
+            text.append("\n").append(student.name());
+            if (student.href() != null) { text.append(" ").append(student.href()); }
+        }
         if (link != null) { text.append("\n\n").append(values.get("action")).append(": ").append(link); }
         if (calendar != null) { text.append("\n").append(values.get("calendarLabel")).append(": ").append(calendar); }
         text.append("\n\n").append(settings.brand()).append("\n").append(values.get("reply"));

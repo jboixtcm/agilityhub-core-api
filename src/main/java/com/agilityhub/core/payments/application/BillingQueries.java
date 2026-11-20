@@ -33,10 +33,16 @@ public class BillingQueries {
     private final BillingSimulationRepository simulations; private final BillingRunRepository runs; private final RemittanceRepository remittances;
     private final InvoiceRepository invoices; private final BillingRunService runService; private final BillingCensusAccess census; private final ClubConfigService configs;
     private final com.agilityhub.core.shared.application.ClubClock clock;
+    private final com.agilityhub.core.payments.persistence.OutstandingBalanceRepository outstanding;
     public BillingQueries(BillingSimulationRepository simulations, BillingRunRepository runs, RemittanceRepository remittances, InvoiceRepository invoices,
-            BillingRunService runService, BillingCensusAccess census, ClubConfigService configs, com.agilityhub.core.shared.application.ClubClock clock) {
+            BillingRunService runService, BillingCensusAccess census, ClubConfigService configs, com.agilityhub.core.shared.application.ClubClock clock, com.agilityhub.core.payments.persistence.OutstandingBalanceRepository outstanding) {
+        this.outstanding = outstanding;
         this.simulations = simulations; this.runs = runs; this.remittances = remittances; this.invoices = invoices; this.runService = runService;
         this.census = census; this.configs = configs; this.clock = clock;
+    }
+
+    public java.util.List<com.agilityhub.core.payments.domain.OutstandingBalance> outstandingBalances() {
+        return outstanding.balances();
     }
 
     public Period period(YearMonth period) {

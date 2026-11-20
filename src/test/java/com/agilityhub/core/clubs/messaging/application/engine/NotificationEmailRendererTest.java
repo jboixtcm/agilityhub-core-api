@@ -44,7 +44,10 @@ class NotificationEmailRendererTest {
             "#FFFFFF", "exemple@mail.example.test", "Club Agility Exemple", "club@example.test", "ca", 15);
 
     static Notification notification(String code, NotificationCategory category, String locale, NotificationActionType action, Map<String, Object> variables) {
-        return new Notification("notification-a", "club-a", code, category, "template-a", 0L, "event-a", "Event", "dedup-a", NotificationAudience.MEMBER,
+        return notification(code, category, locale, action, variables, NotificationAudience.MEMBER);
+    }
+    static Notification notification(String code, NotificationCategory category, String locale, NotificationActionType action, Map<String,Object> variables, NotificationAudience audience) {
+        return new Notification("notification-a", "club-a", code, category, "template-a", 0L, "event-a", "Event", "dedup-a", audience,
                 new Notification.Recipient("account-laura", "member-laura", null, null, "Laura"), locale, null, TemplateIcon.x, TemplateColor.ERROR,
                 "Classe anul·lada pel club", "Dimecres 12 · 18:50 · B+C.\nAquesta sessió no compta al teu còmput.", null,
                 action == null ? null : new Notification.Action(action, Map.of("dogId", "dog-duna")), List.of(), null, NOW,
@@ -75,6 +78,17 @@ class NotificationEmailRendererTest {
                 NotificationEmailRenderer.Unsubscribe.of("http://app.example.test", "x"), Map.of());
         assertThat(unsafe.headers()).isEmpty(); assertThat(unsafe.text()).doesNotContain("baixa");
         assertThat(renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, NO_APP, null, Map.of()).headers()).isEmpty();
+    }
+
+    @Test void T_11_staffRosterLinksAreEscapedAndExcludedFromMemberCopies() {
+        String href = "https://admin.example.test/abonats/example";
+        Map<String,Object> variables = Map.of("staffRoster", List.of(Map.of("name", "Alex <Test>", "href", href)));
+        var staff = notification("N-17", NotificationCategory.CLUB_CHANGES, "ca", null, variables, NotificationAudience.ADMINS);
+        var mail = renderer.render(staff, "admin@example.test", SETTINGS, APP, null, Map.of());
+        assertThat(mail.html()).contains(href, "Alex &lt;Test&gt;").doesNotContain("<Test>");
+        assertThat(mail.text()).contains("Alex <Test>", href);
+        var member = notification("N-16", NotificationCategory.CLUB_CHANGES, "ca", NotificationActionType.CHANGE_CLASS, variables);
+        assertThat(renderer.render(member, "user@example.test", SETTINGS, APP, null, Map.of()).html()).doesNotContain(href);
     }
 
     @Test void R_11_08_subjectLayoutSenderAndTheActionLinkInTheRecipientsLanguage() {

@@ -109,22 +109,28 @@ class RiskReviewJobIT extends BookingFixtures {
                         .containsKeys("class_description", "ring_name"));
         // N-16: Pere (APP + EMAIL) for c3, the admins (APP) for c3 and c4.
         assertThat(notifications("N-16")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
-                .containsExactlyInAnyOrder("s08-pere:APP", "s08-pere:EMAIL", "s08-admin:APP", "s08-admin:APP");
+                .containsExactlyInAnyOrder("s08-pere:APP", "s08-pere:EMAIL", "s08-admin:APP", "s08-admin:APP", "s08-inst:APP", "s08-inst:APP");
         var pere = notifications("N-16").stream().filter(n -> n.getString("accountId").equals("s08-pere") && n.getString("channel").equals("APP")).findFirst().orElseThrow();
-        assertThat(pere.get("variables", Document.class)).containsEntry("dog_name", "Nit").containsEntry("review_time", "7:30").containsEntry("auto_cancel", "true")
+        assertThat(pere.get("variables", Document.class)).doesNotContainKey("staffRoster").containsEntry("dog_name", "Nit").containsEntry("review_time", "7:30").containsEntry("auto_cancel", "true")
                 .containsEntry("class_time", "20:00").containsEntry("audience", "MEMBER");
         assertThat(pere.get("variables", Document.class).getString("review_day")).isEqualTo("dijous");
         // The admins' copy uses the staff wording: no dog phrase (RiskNotificationTextsTest renders both texts in ca/es/en).
         assertThat(notifications("N-16")).filteredOn(n -> n.getString("accountId").equals("s08-admin")).hasSize(2)
                 .allSatisfy(n -> assertThat(n.get("variables", Document.class)).containsEntry("audience", "STAFF").doesNotContainKey("dog_name"));
+        assertThat(notifications("N-16")).filteredOn(n -> n.getString("accountId").equals("s08-inst"))
+                .anySatisfy(n -> assertThat(n.get("variables", Document.class).getList("staffRoster", Document.class))
+                        .extracting(row -> row.getString("name")).containsExactly("Pere (Nit)"));
         assertThat(notifications("N-54")).isEmpty();
 
-        // Wednesday 07:30: c3 and c4 are still at risk, everybody already warned → no new N-16.
+        // Wednesday: both classes are still at risk and get another daily notice.
         var wednesday = review("2026-10-07T07:30");
-        assertThat(counters(wednesday)).containsEntry("atRisk", 2L).doesNotContainKey("notifiedMembers").doesNotContainKey("cancelled");
-        assertThat(wednesday.items()).isEmpty();
+        assertThat(counters(wednesday)).containsEntry("atRisk", 2L).containsEntry("notifiedMembers", 1L).doesNotContainKey("cancelled");
+        assertThat(wednesday.items()).hasSize(2);
         dispatch();
-        assertThat(notifications("N-16")).hasSize(4);
+        assertThat(notifications("N-16")).hasSize(12);
+        assertThat(runner.manual(CLUB, JobName.RISK_REVIEW, false, "s08-admin").items()).isEmpty();
+        dispatch();
+        assertThat(notifications("N-16")).hasSize(12);
 
         // Thursday 07:30: both are cancelled; c4 silently (N-17 yes, N-08a no), c3 with N-08a to Pere.
         var thursday = review("2026-10-08T07:30");
@@ -433,7 +439,7 @@ class RiskReviewJobIT extends BookingFixtures {
         assertThat(notifications("N-54")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
                 .containsExactlyInAnyOrder("s08-admin:APP", "s08-admin:EMAIL", "s08-inst:APP", "s08-inst:EMAIL");
         var variables = notifications("N-54").getFirst().get("variables", Document.class);
-        assertThat(variables).containsEntry("class_time", "18:50").containsEntry("ring_name", "Central").containsEntry("dogs_count", 1).containsEntry("action", "CHANGE_CLASS");
+        assertThat(variables).containsEntry("class_time", "18:50").containsEntry("ring_name", "Central").containsEntry("dogs_count", 1).doesNotContainKey("action");
         assertThat(notifications("N-54")).noneMatch(n -> n.getString("accountId").equals("s08-pere") || n.getString("accountId").equals("s08-laura"));
         assertThat(session("thu").getString("state")).isEqualTo("ACTIVE");
         assertThat(eventsOf("ClassAtRisk")).isEmpty();

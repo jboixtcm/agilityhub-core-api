@@ -130,7 +130,7 @@ public class NotificationsController {
         var n = item.notification();
         var action = item.action() == null ? null : new FeedAction(item.action().type(), item.action().params(), item.action().enabled());
         return new MeNotification(n.id(), n.code(), n.category(), n.icon(), n.color(), Objects.toString(n.title(), ""), Objects.toString(n.body(), ""), n.createdAt(),
-                item.channels(), n.readAt(), action);
+                item.channels(), n.readAt(), action, n.staffRoster());
     }
     static NotificationDetail detail(Notification n) {
         var recipient = n.recipient() == null ? new NotificationRecipient("", null, null)
@@ -144,6 +144,6 @@ public class NotificationsController {
                 deliveries.stream().map(d -> new ChannelState(d.channel(), d.status(), d.temporaryFailureAt() != null && (d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.SENT || d.status() == com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.QUEUED) ? true : null)).toList(), n.readAt(), Objects.toString(n.title(), ""),
                 Objects.toString(n.body(), ""), n.smsBody(), Objects.toString(n.locale(), ""), n.templateId(), n.templateVersion(), n.eventType(), subject,
                 deliveries.stream().map(d -> new DeliveryView(d.channel(), d.target(), d.status(), d.attempts(), d.nextAttemptAt(), d.providerRef(), d.lastError(),
-                        d.sentAt(), d.deliveredAt(), d.failedAt(), d.temporaryFailureAt(), d.temporaryFailureReason())).toList());
+                        d.sentAt(), d.deliveredAt(), d.failedAt(), d.temporaryFailureAt(), d.temporaryFailureReason())).toList(), n.staffRoster());
     }
 }

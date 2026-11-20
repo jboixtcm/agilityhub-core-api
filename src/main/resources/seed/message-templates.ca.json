@@ -267,6 +267,11 @@
           "EMAIL": true,
           "SMS": false
         },
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        },
         "ADMINS": {
           "APP": true,
           "EMAIL": false,
