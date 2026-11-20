@@ -50,6 +50,13 @@ public class BillingController {
         this.cards = cards; this.mapper = mapper; this.accounting = accounting;
     }
 
+    @GetMapping("/api/v1/billing/outstanding-balances")
+    @Operation(operationId = "outstandingBalances", summary = "outstandingBalances", description = ROLES + "All periods, grouped by member and currency. Collection in progress is shown separately.")
+    public java.util.List<com.agilityhub.core.payments.domain.OutstandingBalance> outstandingBalances() {
+        access.tenant();
+        return queries.outstandingBalances();
+    }
+
     @GetMapping("/api/v1/billing/periods/{period}")
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED})
     @Operation(summary = "billingPeriod", description = ROLES + "D6's month (`?mes=YYYY-MM`): its last simulation (step 1), its live run — else its "

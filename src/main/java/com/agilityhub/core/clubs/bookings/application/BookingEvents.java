@@ -29,9 +29,9 @@ public class BookingEvents {
         return silenced;
     }
     /** S15 R-15-12b `ClassBelowMinimum` (catalog payload `classId, countedDogs, minDogs`); N-54 is E5-T05. */
-    public String belowMinimum(String classId, int countedDogs, int minDogs, BookingActor actor) {
+    public String belowMinimum(String classId, java.util.List<String> bookingIds, int minDogs, BookingActor actor) {
         return publisher.publish(new SchedulerEvent(SchedulerEvent.Kind.ClassBelowMinimum, TenantContext.require(), classId, context.now(),
-                Map.of("classId", classId, "countedDogs", countedDogs, "minDogs", minDogs), actor.isSystem() ? null : actor.accountId(),
+                Map.of("classId", classId, "countedDogs", bookingIds.size(), "rosterBookingIds", bookingIds, "minDogs", minDogs), actor.isSystem() ? null : actor.accountId(),
                 actor.impersonatedMemberId(), origin(actor)));
     }
     private DomainEvent.Origin origin(BookingActor actor) {

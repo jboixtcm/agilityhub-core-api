@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * S15 R-15-12 P2 `risk-review` (daily at `classes.riskReviewTime`). Scope: ACTIVE classes of `[today, today +
  * classes.riskLookaheadDays]`, not exempt, whose counted dogs (ACTIVE + PAYMENT_PENDING bookings, recounted through
  * {@link ClassBookingsPort}, never `counters.booked`) are below `classes.minDogs`. Today's classes are cancelled with
- * S06's transaction when `classes.riskAutoCancelSameDay`; the rest are warned once per booking and once for the
+ * S06's transaction when `classes.riskAutoCancelSameDay`; the rest are warned once per club-local day per booking and once daily for the
  * admins (`risk` marks). A class that has already started is neither cancelled nor warned (a CATCH_UP or manual
  * evening run): it is only counted in `skippedStarted`. Each item runs in the runner's transaction, which S06's
  * cancellation joins (R-15-10).
@@ -57,7 +57,7 @@ public class RiskReviewJob implements Job {
                 items.add(new JobItem("ClassSession", c.id(), CANCEL, cancelDetail(c.id(), live)));
                 continue;
             }
-            var fresh = fresh(c, live); boolean admins = adminsPending(c);
+            var fresh = fresh(c, live, context); boolean admins = !warnedToday(c, context);
             if (fresh.isEmpty() && !admins) { context.recorder().count("atRisk", 1); continue; }
             items.add(new JobItem("ClassSession", c.id(), NOTIFY, notifyDetail(c.id(), fresh, admins)));
         }
@@ -92,26 +92,30 @@ public class RiskReviewJob implements Job {
     }
 
     private JobEffect warn(ClassSession c, List<ClassBookingsPort.BookingRef> live, Policy policy, JobContext context) {
-        var fresh = fresh(c, live); boolean admins = adminsPending(c);
+        var fresh = fresh(c, live, context); boolean admins = !warnedToday(c, context);
         if (fresh.isEmpty() && !admins) { return new JobEffect("ALREADY_NOTIFIED", Map.of(), Map.of("atRisk", 1L)); }
         var now = clock.instant(); var risk = c.risk() == null ? new ClassSession.Risk(false, List.of(), null, null) : c.risk();
-        var notified = new ArrayList<>(risk.notifiedBookingIds() == null ? List.<String>of() : risk.notifiedBookingIds()); notified.addAll(fresh);
+        var notified = new ArrayList<>(admins || risk.notifiedBookingIds() == null ? List.<String>of() : risk.notifiedBookingIds()); notified.addAll(fresh);
         var edit = new SessionEdit(c);
         edit.risk = new ClassSession.Risk(risk.exempt(), List.copyOf(notified), admins ? now : risk.adminNotifiedAt(), risk.lowAlertSentAt());
         classes.update(edit.snapshot(now, events.actor()), c.version());
         var payload = new LinkedHashMap<String, Object>();
         payload.put("classId", c.id()); payload.put("dogsCount", live.size());
         payload.put("reviewAt", WeekCalendarRules.resolve(c.date(), policy.reviewTime(), context.zone()).instant().toString());
+        payload.put("rosterBookingIds", live.stream().map(ClassBookingsPort.BookingRef::bookingId).toList());
         payload.put("newBookingIds", fresh); payload.put("notifyAdmins", admins);
         events.publish(SchedulerEvent.Kind.ClassAtRisk, c.id(), payload);
         return new JobEffect(NOTIFY, notifyDetail(c.id(), fresh, admins), Map.of("atRisk", 1L, "notifiedMembers", (long) fresh.size()));
     }
 
-    private static List<String> fresh(ClassSession c, List<ClassBookingsPort.BookingRef> live) {
-        var known = c.risk() == null || c.risk().notifiedBookingIds() == null ? Set.<String>of() : Set.copyOf(c.risk().notifiedBookingIds());
+    private List<String> fresh(ClassSession c, List<ClassBookingsPort.BookingRef> live, JobContext context) {
+        var known = !warnedToday(c, context) || c.risk().notifiedBookingIds() == null ? Set.<String>of() : Set.copyOf(c.risk().notifiedBookingIds());
         return live.stream().map(ClassBookingsPort.BookingRef::bookingId).filter(id -> !known.contains(id)).toList();
     }
-    private static boolean adminsPending(ClassSession c) { return c.risk() == null || c.risk().adminNotifiedAt() == null; }
+    private boolean warnedToday(ClassSession c, JobContext context) {
+        return c.risk() != null && c.risk().adminNotifiedAt() != null
+                && c.risk().adminNotifiedAt().atZone(context.zone()).toLocalDate().equals(clock.instant().atZone(context.zone()).toLocalDate());
+    }
     private static Map<String, Object> cancelDetail(String classId, List<ClassBookingsPort.BookingRef> live) {
         return Map.of("classId", classId, "dogsCount", live.size(), "affected", live.stream().map(ClassBookingsPort.BookingRef::bookingId).toList());
     }

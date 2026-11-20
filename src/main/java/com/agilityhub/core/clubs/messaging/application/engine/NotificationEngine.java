@@ -252,6 +252,7 @@ public class NotificationEngine {
             raw.putAll(facts.valuesOf(recipient.audience().name()));
             derived(recipient, spec, config, locale, raw);
             raw.putAll(recipient.values());
+            var roster = raw.remove("staffRoster");
             var variables = formatter.format(raw, locale);
             boolean staff = recipient.audience() == NotificationAudience.INSTRUCTORS || recipient.audience() == NotificationAudience.ADMINS;
             String title = staff ? staffCopy(spec, "title", locale).orElse(null) : null, body = staff ? staffCopy(spec, "body", locale).orElse(null) : null;
@@ -262,6 +263,10 @@ public class NotificationEngine {
             var contact = contact(recipient, account, pushTargets);
             var row = new java.util.EnumMap<NotificationChannel, Boolean>(NotificationChannel.class);
             var base = facts.categoryOverride() == null ? template.matrix().get(recipient.audience()) : spec.defaultMatrix().get(recipient.audience());
+            // Older persisted N-16 templates predate the instructor audience.
+            if (base == null && "N-16".equals(spec.code()) && recipient.audience() == NotificationAudience.INSTRUCTORS) {
+                base = spec.defaultMatrix().get(recipient.audience());
+            }
             if (base != null) { row.putAll(base); }
             facts.enabledChannels().forEach(channel -> row.put(NotificationChannel.valueOf(channel), true)); // within the caps: the resolver ignores any other cell
             var planned = ChannelResolver.resolve(spec, recipient.audience(), row, new ChannelResolver.Modules(smsModule, pushModule), contact);
@@ -278,6 +283,7 @@ public class NotificationEngine {
             String dedupKey = spec.dedupKey(new NotificationSpec.DedupKeyRule.Input(occurrence, recipient.audience(), recipientKey,
                     recipient.memberId(), recipient.dogId(), trigger.payload()));
             var stored = new LinkedHashMap<String, Object>(variables);
+            if (staff && roster != null) { stored.put("staffRoster", roster); }
             SECRET_VARIABLES.forEach(stored::remove);
             var notificationRecipient = new Notification.Recipient(recipient.accountId(), recipient.memberId(), null,
                     recipient.audience() == NotificationAudience.APPLICANT ? recipient.email() : null,

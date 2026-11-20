@@ -10,6 +10,7 @@ import com.agilityhub.core.clubs.messaging.domain.NotificationSpec;
 import com.agilityhub.core.clubs.messaging.domain.TemplateColor;
 import com.agilityhub.core.clubs.messaging.domain.TemplateIcon;
 import com.agilityhub.core.shared.domain.TenantEntity;
+import com.agilityhub.core.clubs.messaging.domain.RosterStudent;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,15 @@ public record Notification(@Id String id, String clubId, String code, Notificati
     public record Subject(String dogId, String bookingId, String classSessionId, String waitlistEntryId, String trainingBookingId, String invoiceId,
             String activityId, String taskId, String memberId) { }
     public record Action(NotificationActionType type, Map<String, String> params) { }
+    /** Frozen links for the staff copy only. Older notices have no roster. */
+    public List<RosterStudent> staffRoster() {
+        if ((audience != NotificationAudience.ADMINS && audience != NotificationAudience.INSTRUCTORS) || variables == null
+                || !(variables.get("staffRoster") instanceof List<?> rows)) { return List.of(); }
+        return rows.stream().filter(Map.class::isInstance).map(Map.class::cast)
+                .filter(row -> row.get("name") instanceof String)
+                .map(row -> new RosterStudent((String) row.get("name"), (String) row.get("href"))).toList();
+    }
+
     /**
      * One delivery per channel and destination (each phone, each push subscription); `APP` is born `DELIVERED` in the engine.
      * `claimToken`/`claimedUntil` are the dispatcher's lease while it sends (never read by the API). `acceptedAt` marks an

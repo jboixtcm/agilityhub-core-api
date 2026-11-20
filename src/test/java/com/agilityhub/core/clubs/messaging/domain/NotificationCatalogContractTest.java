@@ -160,6 +160,7 @@ class NotificationCatalogContractTest {
             String action = row.action().replace("**", "").strip();
             for (var audience : spec.audiences()) {
                 NotificationActionType type = action.equals("—") ? null : action.startsWith("admin: ") ? audience == ADMINS ? NotificationActionType.valueOf(action.substring(7)) : null
+                        : action.startsWith("member: ") ? audience == MEMBER ? NotificationActionType.valueOf(action.substring(8)) : null
                         : NotificationActionType.valueOf(action);
                 assertThat(spec.action(audience)).as(row.code() + " " + audience + " action").isEqualTo(type);
             }

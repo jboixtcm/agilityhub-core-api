@@ -14710,6 +14710,12 @@
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
+          "students" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RosterStudent"
+            },
+            "type" : "array"
+          },
           "title" : {
             "type" : "string"
           }
@@ -16528,6 +16534,12 @@
           "smsBody" : {
             "type" : [ "string", "null" ]
           },
+          "students" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RosterStudent"
+            },
+            "type" : "array"
+          },
           "subject" : {
             "$ref" : "#/components/schemas/NotificationSubject"
           },
@@ -17050,6 +17062,27 @@
           }
         },
         "required" : [ "value", "version" ],
+        "type" : "object"
+      },
+      "OutstandingBalance" : {
+        "properties" : {
+          "invoices" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "processing" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "upfront" : {
+            "$ref" : "#/components/schemas/Money"
+          }
+        },
+        "required" : [ "invoices", "memberId", "memberName", "processing", "upfront" ],
         "type" : "object"
       },
       "OverlapHint" : {
@@ -22075,6 +22108,18 @@
           }
         },
         "required" : [ "cancelledInvoices", "restoredMembers" ],
+        "type" : "object"
+      },
+      "RosterStudent" : {
+        "properties" : {
+          "href" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name" ],
         "type" : "object"
       },
       "RsceLicenseProgress" : {
@@ -34139,6 +34184,148 @@
           }
         },
         "summary" : "exportAccounting",
+        "tags" : [ "payments" ]
+      }
+    },
+    "/api/v1/billing/outstanding-balances" : {
+      "get" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. All periods, grouped by member and currency. Collection in progress is shown separately.",
+        "operationId" : "outstandingBalances",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/OutstandingBalance"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "outstandingBalances",
         "tags" : [ "payments" ]
       }
     },

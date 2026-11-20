@@ -21,7 +21,7 @@ class BookingPortsTest {
         var asOf = Instant.parse("2026-10-11T18:00:00Z");
         try (var tenant = TenantContext.open("club-fixture")) {
             context.asOf(asOf, () -> events.publish(BookingEvent.Kind.BookingCreated, "b", Map.of(), BookingActor.system()));
-            context.asOf(asOf, () -> events.belowMinimum("c", 1, 2, BookingActor.system()));
+            context.asOf(asOf, () -> events.belowMinimum("c", java.util.List.of("a"), 2, BookingActor.system()));
             events.publish(BookingEvent.Kind.BookingCreated, "b", Map.of(), BookingActor.system());
         }
         assertThat(published).extracting(DomainEvent::occurredAt).containsExactly(asOf, asOf, clock.instant());

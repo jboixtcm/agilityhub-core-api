@@ -27,13 +27,14 @@ public class BookingCounters {
     public void recount(String classSessionId, boolean alertIfBelowMinimum, BookingActor actor) {
         var session = classes.find(classSessionId).orElse(null);
         if (session == null || !session.active()) { return; }
-        int booked = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
+        var live = bookings.forClass(classSessionId, BookingRepository.LIVE);
+        int booked = live.size();
         int waiting = context.enabled(Module.WAITLIST) ? waitlist.live(classSessionId).size() : 0; // S08 §9; recounted when WAITLIST is back on (BookingConsumers)
         int minDogs = context.integer("classes.minDogs"); var alert = LowAlert.KEEP;
         if (booked >= minDogs && session.lowAlertSentAt() != null) { alert = LowAlert.CLEAR; }
         else if (alertIfBelowMinimum && booked < minDogs && session.lowAlertSentAt() == null && !session.riskExempt()
                 && context.now().isBefore(session.startsAt())) {
-            alert = LowAlert.SET; events.belowMinimum(classSessionId, booked, minDogs, actor);
+            alert = LowAlert.SET; events.belowMinimum(classSessionId, live.stream().map(b -> b.id()).toList(), minDogs, actor);
         }
         // Always written: the class_sessions write is what makes a booking conflict with a concurrent S06 cancellation.
         classes.counters(classSessionId, booked, waiting, alert);

@@ -30,8 +30,8 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-13 | Recordatori de classe/entrenament | `ReminderDue` (scheduler) | OPERATIONAL | MEMBER → APP+PUSH (EMAIL segons preferència) | dog_name, date, time, ring_name | OPEN_BOOKING | S11 |
 | N-14 | Sol·licitud de baixa rebuda | `LeaveRequested` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, requested_date, reason | OPEN_MEMBER | S13 |
 | N-15 | **S'ha alliberat una plaça!** | `SeatReleased` (si > llindar) | OPERATIONAL (SMS activat a la plantilla) | MEMBER en espera (tots o el primer FIFO) → APP+**SMS**+PUSH (EMAIL segons preferència: COMM-02, decisió del propietari 13-11-2026) | dog_name, class_date, class_time, confirm_by (FIFO), turn_minutes, has_next, mode, entityId | CLAIM_SEAT | S08 |
-| N-16 | Possible anul·lació de classe | `ClassAtRisk` | CLUB_CHANGES | MEMBER inscrit → APP+EMAIL · ADMINS → APP | dog_name (còpia MEMBER), class_date, class_time, review_time, review_day, audience | CHANGE_CLASS | S15 |
-| N-17 | Classe anul·lada per manca d'alumnes | `ClassAutoCancelled` | CLUB_CHANGES | MEMBER inscrit → **N-08a** amb text automàtic · ADMINS+INSTRUCTORS → APP+EMAIL | class_date, class_time, dogs_count, class_description, ring_name | CHANGE_CLASS | S15 |
+| N-16 | Possible anul·lació de classe | `ClassAtRisk` | CLUB_CHANGES | MEMBER inscrit → APP+EMAIL · INSTRUCTORS de la classe + ADMINS → APP | dog_name (còpia MEMBER), class_date, class_time, review_time, review_day, audience | member: CHANGE_CLASS | S15 |
+| N-17 | Classe anul·lada per manca d'alumnes | `ClassAutoCancelled` | CLUB_CHANGES | MEMBER inscrit → **N-08a** amb text automàtic · ADMINS+INSTRUCTORS → APP+EMAIL | class_date, class_time, dogs_count, class_description, ring_name | — | S15 |
 | N-18a | Sol·licitud d'inactivitat rebuda | `InactivityRequested` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, from_month, to_month | OPEN_MEMBER | S13 |
 | N-18b | Inactivitat aprovada/denegada | `InactivityResolved` | PERSONAL | MEMBER → APP+EMAIL | from_month, to_month, decision, fee | — | S13 |
 | N-18c | Represa d'activitat | `InactivityEnded` | PERSONAL | MEMBER → APP | — | — | S13 |
@@ -95,7 +95,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-50 | Les teves dades estan a punt | `ExportJob{MEMBER_DATA} → READY` | PERSONAL | MEMBER → APP+EMAIL | link, expires_days | OPEN_EXPORT | S14 |
 | N-51 | Correu rebotat | `EmailBounced` | OPERATIONAL | ADMINS → APP | member_name, email | OPEN_MEMBER | S11 |
 | N-52 | Hem rebut la teva sol·licitud de supressió | `AccountErasureRequested{source ≠ RETENTION}` | SYSTEM | compte → EMAIL | execute_date, club_name | — | S14 |
-| N-54 | **Classe amb pocs alumnes** (per sota del mínim) | `ClassBelowMinimum` (anul·lació dins termini) | OPERATIONAL | INSTRUCTORS de la classe + ADMINS → APP+EMAIL | class_date, class_time, class_description, ring_name, dogs_count | CHANGE_CLASS | S15 |
+| N-54 | **Classe amb pocs alumnes** (per sota del mínim) | `ClassBelowMinimum` (anul·lació dins termini) | OPERATIONAL | INSTRUCTORS de la classe + ADMINS → APP+EMAIL | class_date, class_time, class_description, ring_name, dogs_count | — | S15 |
 | N-53 | Invitació com a administrador del club | `POST /platform/clubs/{id}/admins` | SYSTEM | compte convidat → EMAIL | club_name, link, inviter_name | — | S17 |
 | N-55 | Reemborsament a fer a mà (E101, aprovat 09-10) | `UpfrontRefundIntervention` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, amount, reason | OPEN_MEMBER | S12 |
 | N-56 | Disputa d'un pagament amb targeta (PAY-06, decisió del propietari 13-11-2026) | `PaymentDisputed` (la primera notícia de cada disputa de Stripe; ni l'actualització ni el tancament avisen) | OPERATIONAL | ADMINS → APP+EMAIL | member_name, amount, reason | OPEN_MEMBER | S12 |

@@ -36,10 +36,14 @@ public class SchedulingNotificationFacts implements NotificationFactsPort {
     private static final Set<String> TYPES = Set.of("ClassCancelledByClub", "ClassSessionUpdated", "ClassAtRisk", "ClassAutoCancelled", "ClassBelowMinimum");
     private static final List<String> CHANGED = List.of("startTime", "ringId", "instructorIds");
     private final ClassSessionService sessions; private final ClassBookingsPort bookings; private final PlanningContext context;
+    private final com.agilityhub.core.clubs.census.application.SchedulingRecipients census;
+    private final com.agilityhub.core.platform.application.ClubEmailSettings domains;
     private final SessionProjection projection; private final IcuMessageSource messages;
 
     public SchedulingNotificationFacts(ClassSessionService sessions, ClassBookingsPort bookings, PlanningContext context, SessionProjection projection,
-            IcuMessageSource messages) {
+            IcuMessageSource messages, com.agilityhub.core.clubs.census.application.SchedulingRecipients census,
+            com.agilityhub.core.platform.application.ClubEmailSettings domains) {
+        this.census = census; this.domains = domains;
         this.sessions = sessions; this.bookings = bookings; this.context = context; this.projection = projection; this.messages = messages;
     }
 
@@ -57,8 +61,10 @@ public class SchedulingNotificationFacts implements NotificationFactsPort {
             case "ClassCancelledByClub" -> cancelled(trigger, c, builder);
             case "ClassSessionUpdated" -> updated(trigger, c, builder);
             case "ClassAtRisk" -> atRisk(trigger, c, builder);
-            case "ClassAutoCancelled" -> Optional.of(builder.value("dogs_count", trigger.number("dogsCount", 0)).build());
-            case "ClassBelowMinimum" -> Optional.of(builder.value("dogs_count", trigger.number("countedDogs", trigger.number("dogsCount", 0))).build());
+            case "ClassAutoCancelled" -> Optional.of(roster(builder, trigger, bookings.bookings(trigger.rows("affected").stream()
+                    .map(row -> row.get("bookingId").toString()).toList())).value("dogs_count", trigger.number("dogsCount", 0)).build());
+            case "ClassBelowMinimum" -> Optional.of(roster(builder, trigger, trigger.payload().containsKey("rosterBookingIds")
+                    ? bookings.bookings(trigger.ids("rosterBookingIds")) : bookings.activeBookings(c.id())).value("dogs_count", trigger.number("countedDogs", trigger.number("dogsCount", 0))).build());
             default -> Optional.empty();
         };
     }
@@ -111,11 +117,36 @@ public class SchedulingNotificationFacts implements NotificationFactsPort {
         }
         if (trigger.ids("newBookingIds").isEmpty()) { builder.noMembers(); }
         if (!trigger.flag("notifyAdmins")) { builder.audiences("MEMBER"); }
+        else { roster(builder, trigger, trigger.payload().containsKey("rosterBookingIds")
+                ? bookings.bookings(trigger.ids("rosterBookingIds")) : bookings.activeBookings(c.id())); }
         Object reviewAt = trigger.payload().get("reviewAt");
         return Optional.of(builder.value("review_time", config.get("classes.riskReviewTime", String.class))
                 .value("review_day", reviewAt == null ? c.date() : java.time.Instant.parse(reviewAt.toString()))
                 .value("auto_cancel", Boolean.TRUE.equals(config.get("classes.riskAutoCancelSameDay", Boolean.class)) ? "true" : "false")
                 .value("dogs_count", trigger.number("dogsCount", 0)).build());
+    }
+
+    private NotificationFacts.Builder roster(NotificationFacts.Builder builder, NotificationTrigger trigger, List<ClassBookingsPort.BookingRef> rows) {
+        var people = census.people(rows.stream().map(ClassBookingsPort.BookingRef::memberId).distinct().toList());
+        var dogs = census.dogs(rows.stream().map(ClassBookingsPort.BookingRef::dogId).distinct().toList());
+        for (var audience : List.of("ADMINS", "INSTRUCTORS")) {
+            boolean admin = audience.equals("ADMINS");
+            var origin = domains.appOrigin(trigger.clubId(), admin ? "clubs-admin" : "clubs");
+            var students = new ArrayList<Map<String, String>>();
+            for (var row : rows) {
+                var person = people.get(row.memberId());
+                var dog = dogs.get(row.dogId());
+                if (person == null || dog == null) { continue; }
+                var student = new java.util.LinkedHashMap<String, String>();
+                student.put("name", person.firstName() + " (" + dog.name() + ")");
+                String path = admin ? "/abonats/" + org.springframework.web.util.UriUtils.encodePathSegment(row.memberId(), java.nio.charset.StandardCharsets.UTF_8)
+                        : "/instructor/alumnes/" + org.springframework.web.util.UriUtils.encodePathSegment(row.dogId(), java.nio.charset.StandardCharsets.UTF_8);
+                origin.ifPresent(host -> student.put("href", host + path));
+                students.add(student);
+            }
+            builder.value(audience, "staffRoster", students);
+        }
+        return builder;
     }
 
     private String ring(String ringId) {

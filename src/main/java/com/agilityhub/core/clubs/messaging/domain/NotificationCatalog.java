@@ -156,10 +156,10 @@ public final class NotificationCatalog {
         rows.add(code("N-15", OPERATIONAL, "WaitlistNotified").to(MEMBER, APP, EMAIL, SMS, PUSH).memberSms().action(CLAIM_SEAT)
                 .vars("dog_name", "class_date", "class_time", "confirm_by", "turn_minutes", "has_next", "mode", "entityId", "class_description").mandatory()
                 .seed(TemplateIcon.unlock, TemplateColor.ACCENT).modules(Module.WAITLIST).build());
-        rows.add(code("N-16", CLUB_CHANGES, "ClassAtRisk").to(MEMBER, APP, EMAIL).to(ADMINS, APP).action(CHANGE_CLASS)
+        rows.add(code("N-16", CLUB_CHANGES, "ClassAtRisk").to(MEMBER, APP, EMAIL).to(INSTRUCTORS, APP).to(ADMINS, APP).action(MEMBER, CHANGE_CLASS)
                 .vars("dog_name", "class_date", "class_time", "review_time", "review_day", "audience", "class_description", "auto_cancel")
                 .seed(TemplateIcon.warn, TemplateColor.WARNING).build());
-        rows.add(code("N-17", CLUB_CHANGES, "ClassAutoCancelled").to(INSTRUCTORS, APP, EMAIL).to(ADMINS, APP, EMAIL).action(CHANGE_CLASS)
+        rows.add(code("N-17", CLUB_CHANGES, "ClassAutoCancelled").to(INSTRUCTORS, APP, EMAIL).to(ADMINS, APP, EMAIL)
                 .vars("class_date", "class_time", "dogs_count", "class_description", "ring_name", "auto_cancel").mandatory().build());
         rows.add(code("N-18a", OPERATIONAL, "InactivityRequested").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER).vars("member_name", "from_month", "to_month")
                 .modules(Module.INACTIVITY).build());
@@ -224,7 +224,7 @@ public final class NotificationCatalog {
         rows.add(code("N-50", PERSONAL).to(MEMBER, APP, EMAIL).action(OPEN_EXPORT).vars("link", "expires_days").build());
         rows.add(code("N-51", OPERATIONAL, "EmailBounced").to(ADMINS, APP).action(OPEN_MEMBER).vars("member_name", "email").build());
         rows.add(code("N-52", SYSTEM, "AccountErasureRequested").to(MEMBER, EMAIL).vars("execute_date", "club_name").build());
-        rows.add(code("N-54", OPERATIONAL, "ClassBelowMinimum").to(INSTRUCTORS, APP, EMAIL).to(ADMINS, APP, EMAIL).action(CHANGE_CLASS)
+        rows.add(code("N-54", OPERATIONAL, "ClassBelowMinimum").to(INSTRUCTORS, APP, EMAIL).to(ADMINS, APP, EMAIL)
                 .vars("class_date", "class_time", "class_description", "ring_name", "dogs_count").build());
         // `POST /platform/clubs/{id}/admins` (S17) is a request, not an event: the console triggers N-53 directly.
         rows.add(code("N-53", SYSTEM).to(APPLICANT, EMAIL).vars("club_name", "link", "inviter_name").build());
