@@ -183,7 +183,7 @@ class NotificationActionsIT extends BookingFixtures {
                 act(() -> runner.scheduled(CLUB, true, riskReview, clock.instant()).orElseThrow());
                 // Wednesday's class (today, 1 dog) is cancelled: N-17 to its instructor and the admins, N-08a to Joan only with the
                 // automatic text (scheduling.autoCancel.text). In the window, Thursday's three classes and Friday's are at risk: N-16 to
-                // Pere (Thursday 18:50, 1 dog) and one staff copy per class to the admins (notif.N-16.staff.body), reviewed on its own day.
+                // Pere (Thursday 18:50, 1 dog) and one copy per class for the instructor and each admin, reviewed on its own day.
                 expect(notice("N-17", "ADMINS", "s08-admin", "ca", "Classe anul·lada per manca d'alumnes",
                                 "Example Agility Club: avui · 18:50 · Classe wed — classe anul·lada automàticament perquè no ha arribat al mínim (1 gos inscrit).", APP, EMAIL),
                         notice("N-17", "INSTRUCTORS", "s08-inst", "es", "Clase cancelada por falta de alumnos",
@@ -194,7 +194,9 @@ class NotificationActionsIT extends BookingFixtures {
                         notice("N-16", "MEMBER", "s08-pere", "en", "Class may be cancelled", "Tomorrow · 18:50 · Classe thu, with Nit: the class does not have enough students "
                                 + "yet. If nobody else books before 7:30 tomorrow, the class will be cancelled. We suggest booking another one.", APP, EMAIL),
                         atRisk("demà · 17:40 · Classe levelD", "demà"), atRisk("demà · 18:50 · Classe thu", "demà"), atRisk("demà · 20:00 · Classe last", "demà"),
-                        atRisk("divendres 9 · 20:00 · Classe fri", "divendres"));
+                        atRisk("divendres 9 · 20:00 · Classe fri", "divendres"),
+                        instructorRisk("mañana · 17:40 · Classe levelD", "mañana"), instructorRisk("mañana · 18:50 · Classe thu", "mañana"),
+                        instructorRisk("mañana · 20:00 · Classe last", "mañana"), instructorRisk("viernes 9 · 20:00 · Classe fri", "viernes"));
                 // …until 8:00, when it goes.
                 var joan = only("N-08a");
                 clock.setInstant(local("2026-10-07T08:00"));
@@ -317,6 +319,11 @@ class NotificationActionsIT extends BookingFixtures {
     static String notice(String code, String audience, String accountId, String locale, String title, String body, String... deliveries) {
         return code + " " + audience + " " + accountId + " " + locale + " «" + title + "» «" + body + "» " + Stream.of(deliveries).sorted().toList();
     }
+    static String instructorRisk(String classLine, String reviewDay) {
+        return notice("N-16", "INSTRUCTORS", "s08-inst", "es", "Posible cancelación de clase", "Example Agility Club: " + classLine
+                + " todavía no tiene suficientes alumnos. Si nadie más se apunta, se cancelará " + reviewDay + " a las 7:30.", APP);
+    }
+
     /** N-16's staff copy to the admins (notif.N-16.staff.body, `auto_cancel`): one per class at risk, reviewed at 7:30 on its own day. */
     static String atRisk(String classLine, String reviewDay) {
         return notice("N-16", "ADMINS", "s08-admin", "ca", "Possible anul·lació de classe", "Example Agility Club: " + classLine
