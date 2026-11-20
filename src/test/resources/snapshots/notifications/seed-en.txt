@@ -118,6 +118,10 @@ sms: Club Agility Exemple: the class Wednesday 12 18:50 does not have enough stu
 email.text: Class may be cancelled⏎⏎Wednesday 12 · 18:50 · B+C, with Duna: the class does not have enough students yet. If nobody else books before 7:30 Wednesday, the class will be cancelled. We suggest booking another one.⏎⏎Open the app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
 email.html.sha256: 84241e04cdcaa0f8
 
+## N-16 INSTRUCTORS
+title: Class may be cancelled
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C does not have enough students yet. If nobody else books, it will be cancelled Wednesday at 7:30.
+
 ## N-16 ADMINS
 title: Class may be cancelled
 body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C does not have enough students yet. If nobody else books, it will be cancelled Wednesday at 7:30.
@@ -325,4 +329,4 @@ body: Review the refund for Laura Serra Puig: €45.00.
 title: Card payment disputed
 body: Laura Serra Puig has disputed a card payment of €45.00 with their bank (reason: Documentació pendent). The payment is flagged in the app. Respond to the dispute from the Stripe dashboard before the deadline.
 
-# 53 codes, 22 staff texts
+# 53 codes, 23 staff texts
