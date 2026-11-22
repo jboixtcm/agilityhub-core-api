@@ -25,7 +25,7 @@ public class CensusLists implements ListProvider {
         var columns = new ArrayList<>(List.of((members
                 ? "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,familyGroupHolder,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument"
                 : "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,birthDate,chip,pendingDocuments,levelAssignedAt,pack,registeredAt").split(",")));
-        var searchable = new ArrayList<>(members ? List.of("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name") : List.of("name", "owner.fullName", "chip"));
+        var searchable = new ArrayList<>(members ? List.of("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name") : List.of("name", "owner.fullName", "handlerName", "chip"));
         add(filters, "id", "_id", TEXT);
         if (members) {
             if(ListAccess.admin()) {
