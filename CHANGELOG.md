@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-22 — Student search
+
+- Include the registered handler in dog directory searches, including searches filtered by level.
+
 - Repeat under-enrolment warnings daily using the club time zone, link the roster on staff notices, and list outstanding balances by member across all billing periods.
 
 - Reduce Flow checkpoint encoding overhead while preserving the exact JSON representation, private permissions, fsync and atomic replacement. Failed writes retain the previous checkpoint.

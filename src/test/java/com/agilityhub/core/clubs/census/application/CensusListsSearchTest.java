@@ -53,8 +53,8 @@ class CensusListsSearchTest {
                 .containsExactly("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name");
     }
     @Test void AUTHZ_01_theDogSearchIsTheSameForBothRoles() {
-        assertThat(definition("dogs", "INSTRUCTOR").searchable()).containsExactly("name", "owner.fullName", "chip");
+        assertThat(definition("dogs", "INSTRUCTOR").searchable()).containsExactly("name", "owner.fullName", "handlerName", "chip");
         clearInvocations(projection);
-        assertThat(definition("dogs", "ADMIN").searchable()).containsExactly("name", "owner.fullName", "chip");
+        assertThat(definition("dogs", "ADMIN").searchable()).containsExactly("name", "owner.fullName", "handlerName", "chip");
     }
 }

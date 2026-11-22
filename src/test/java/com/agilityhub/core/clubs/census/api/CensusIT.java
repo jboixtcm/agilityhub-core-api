@@ -896,6 +896,13 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(detail.at("/owner/firstName").asText()).isEqualTo("Joan Antoni");
         assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(detail.path("owner"), "OwnerSummary")).isEmpty();
     }
+    @Test void studentSearchCombinesTheHandlersNameWithTheDogsLevel() throws Exception {
+        field("dogs", "dog-one", "handlerName", "Example Guide");
+        var matching = get("/api/v1/dogs").param("q", "example guide").param("filter", "levelId:eq:level-c");
+        assertThat(json(call(matching, CLUB, "one", "INSTRUCTOR"), 200).at("/items/0/id").asText()).isEqualTo("dog-one");
+        var otherLevel = get("/api/v1/dogs").param("q", "example guide").param("filter", "levelId:eq:level-d");
+        assertThat(json(call(otherLevel, CLUB, "one", "INSTRUCTOR"), 200).path("items")).isEmpty();
+    }
     @Test void T_03_34_moduleBranchesAndDerivedPlanBillingMode() throws Exception {
         mongo.insert(new Document("_id", "plan").append("clubId", CLUB).append("name", new Document("en", "Example Plan")).append("type", "MONTHLY").append("billingMode", "MAINTENANCE"), "plans");
         field("members", "one", "planId", "plan");
