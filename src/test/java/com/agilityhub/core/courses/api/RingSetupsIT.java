@@ -672,6 +672,7 @@ class RingSetupsIT extends CourseItSupport {
         }
         var grid = get("/api/v1/day-grid").param("date", "2026-10-06");
         var visible = ok(as(grid, CLUB, "MEMBER"), 200);
+        assertThat(visible.path("columns").findValuesAsText("activeSetupId")).contains(setup);
         assertThat(visible.path("rows").findValuesAsText("ringSetupId")).containsExactly(setup);
         parameter("courses.showSetupToMembers", false, "bool");
         assertThat(sessionSetup("e9t2-last", "MEMBER").isMissingNode()).isTrue();

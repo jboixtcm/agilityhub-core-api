@@ -633,7 +633,8 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         var coverage=ok("GET","/coverage?weekId="+session(id).path("weekId").asText(),null);assertThat(coverage.path("levels").findValuesAsText("booked")).contains("1");
         modules(Module.COURSES);mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-ring")),new Update().set("activeSetupId","setup-example"),"rings");
-        assertThat(memberGrid("2026-08-25",false).at("/columns/0/activeSetupId").asText()).isEqualTo("setup-example");
+        assertThat(memberGrid("2026-08-25",false).at("/columns/0").hasNonNull("activeSetupId"))
+                .as("A ring pointer without a mounted setup must not give members a broken link").isFalse();
         clock.setInstant(Instant.parse("2026-08-25T17:15:00Z"));
         finishCommand.run(new org.springframework.boot.DefaultApplicationArguments("--core.command=scheduling:finish-ended","--club="+CLUB));
         finishCommand.run(new org.springframework.boot.DefaultApplicationArguments("--core.command=scheduling:finish-ended"));
