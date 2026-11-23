@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 class ListItemCopiesContractTest {
     record Pair(String item, String copied, Set<String> onlyItem, Set<String> onlyCopied, String why) { }
     static final List<Pair> PAIRS = List.of(
-            new Pair("ClassSessionListItem", "ClassSession", Set.of(), Set.of("attendanceStatus", "instructorNames", "ring"),
-                    "the list reads the instructors and the ring from its own columns; the attendance status is the sheet's"),
+            new Pair("ClassSessionListItem", "ClassSession", Set.of(), Set.of("attendanceStatus", "instructorNames", "ring", "ringSetupId"),
+                    "the list reads the instructors and the ring from its own columns; the detail resolves the mounted setup at class start and the attendance status is the sheet's"),
             new Pair("RingBlockListItem", "RingBlock", Set.of("ringColor", "ringName"), Set.of(), "the register shows the ring of each row"),
             new Pair("MemberInstructorListItem", "MemberInstructorView", Set.of(), Set.of(), "the same instructor projection"),
             new Pair("ClassBookingItem", "BookingListItem", Set.of("displayState", "levelCode"), Set.of("classDescription", "ringColor", "ringId", "ringName"),
