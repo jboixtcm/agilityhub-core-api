@@ -23,8 +23,10 @@ public class DayGridQuery {
         var selected=classes.between(from,to).stream().filter(c -> staff && state != null ? c.state() == state : c.state()!=ClassState.DRAFT && (staff || c.state()!=ClassState.CANCELLED))
                 .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id)).toList();
         var rows=new TreeMap<String,List<Map<String,Object>>>();
+        var mounted = projection.mounted(projection.member());
         for(var c:selected) {
             var cell=new LinkedHashMap<String,Object>(); cell.put("ringId",c.ringId()); cell.put("kind","CLASS"); cell.put("endTime",c.endTime()); cell.put("classId",c.id());
+            if (c.ringId() != null) SessionProjection.putClassSetup(cell, c, mounted.get(c.ringId()));
             cell.put("description",projection.description(c,LocaleContext.current())); cell.put("instructorName",projection.instructorName(c,staff)); cell.put("state",c.state());
             var risk=projection.risk(c); cell.put("atRisk",risk.atRisk()); cell.put("riskText",risk.text());
             if(staff) {
@@ -56,7 +58,11 @@ public class DayGridQuery {
         var columns=new ArrayList<Map<String,Object>>();
         for(var ring:catalogs.rings()) if(ring.active()) {
             var column=new LinkedHashMap<String,Object>(); column.put("ringId",ring.id()); column.put("shortName",ring.shortName()); column.put("name",ring.name()); column.put("color",ring.color());
-            if(projection.enabled(Module.COURSES)) column.put("activeSetupId",ring.activeSetupId()); columns.add(column);
+            if (projection.enabled(Module.COURSES)) {
+                var setup = mounted.get(ring.id());
+                column.put("activeSetupId", setup != null && setup.overlaps(from, to) ? setup.id() : null);
+            }
+            columns.add(column);
         }
         if(selected.stream().anyMatch(c -> c.ringId()==null)) {
             String label=projection.noRing();

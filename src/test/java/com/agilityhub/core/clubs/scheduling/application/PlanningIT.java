@@ -302,7 +302,7 @@ class PlanningIT extends AbstractIntegrationTest {
         mongo.insert(new com.agilityhub.core.courses.persistence.Course("plan-course", com.agilityhub.core.courses.domain.CourseTypes.OwnerType.CLUB, CLUB, null,
                 com.agilityhub.core.courses.domain.CourseTypes.Visibility.CLUB, new LocalizedText(Map.of("ca", "Jumping de prova", "en", "Practice jumping"), "ca"),
                 com.agilityhub.core.courses.domain.CourseTypes.Discipline.JUMPING, null, null, null, null, List.of(), List.of(), null,
-                com.agilityhub.core.courses.domain.CourseTypes.CourseSource.EDITOR, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                com.agilityhub.core.courses.domain.CourseTypes.CourseSource.EDITOR, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
                 0, now, "admin", now, List.of(), null, "admin"));
         placement("plan-placement", CLUB, "plan-ring");
         var body = new LinkedHashMap<String, Object>(Map.of("date", "2026-08-25", "startTime", "18:00", "endTime", "19:00", "ringId", "plan-ring",

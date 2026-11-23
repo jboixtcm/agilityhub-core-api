@@ -36,7 +36,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class CourseLibrary {
     /** A course write: §6's body with §3/§14.2's additions. On a `PATCH` a null keeps the stored value. */
     public record CourseInput(Map<String, String> name, Discipline discipline, CourseSource source, JsonNode normalizedJson, Integer schemaVersion,
-            String imageFileKey, String sourceFileKey, String thumbnailFileKey, String designerName, LocalDate designedOn, String eventName,
+            String imageFileKey, String sourceFileKey, String smarterUrl, String thumbnailFileKey, String designerName, LocalDate designedOn, String eventName,
             AgilityHubLevel agilityhubLevel, List<String> levelIds, List<String> tags, String notes, Visibility visibility, SizeCategory sizeCategory,
             Double pathLengthM) { }
     /** A course as its reader sees it: the name in the request's language (R-16-17), signed URLs, the level label and its rings. */
@@ -281,18 +281,38 @@ public class CourseLibrary {
             draft.tags = in.tags().stream().map(String::strip).distinct().toList();
         }
         if (in.levelIds() != null) { draft.levelIds = levelIds(in.levelIds(), club); }
+        if (in.smarterUrl() != null) { draft.smarterUrl = smarterUrl(in.smarterUrl()); }
         draft.sourceFileKey = file(draft, before == null ? null : before.sourceFileKey(), in.sourceFileKey(), UploadPurpose.SMARTER_SOURCE, club);
         draft.imageFileKey = file(draft, before == null ? null : before.imageFileKey(), in.imageFileKey(), UploadPurpose.COURSE_IMAGE, club);
         draft.thumbnailFileKey = file(draft, before == null ? null : before.thumbnailFileKey(), in.thumbnailFileKey(), UploadPurpose.THUMBNAIL, club);
         visibility(draft.ownerType, draft.visibility);
-        if ((draft.source == CourseSource.SMARTER || draft.source == CourseSource.EDITOR) && (draft.normalizedJson == null || draft.normalizedJson.isNull())) {
-            throw new ApiException(COURSE_MODEL_INVALID, Map.of("schemaErrors", List.of(Map.of("path", "$", "message", "normalizedJson is required unless the source is IMAGE"))));
+        if ((draft.source == CourseSource.SMARTER && draft.smarterUrl == null || draft.source == CourseSource.EDITOR) && (draft.normalizedJson == null || draft.normalizedJson.isNull())) {
+            throw new ApiException(COURSE_MODEL_INVALID, Map.of("schemaErrors", List.of(Map.of("path", "$", "message", "A Smarter course needs a design link or model; an editor course needs a model"))));
         }
         if (draft.source == CourseSource.IMAGE && draft.imageFileKey == null) { throw invalid("imageFileKey", "REQUIRED"); }
         if (draft.ownerType == OwnerType.AGILITYHUB && draft.agilityhubLevel == null) { throw invalid("agilityhubLevel", "REQUIRED"); }
         if (in.pathLengthM() != null && (draft.normalizedJson == null || draft.normalizedJson.isNull())) { throw invalid("pathLengthM", "VALIDATION_ERROR"); }
         draft.facts = CourseModelFacts.of(draft.normalizedJson, draft.pathLengthM);
     }
+    private static String smarterUrl(String input) {
+        String value = input.strip();
+        if (value.isEmpty()) { return null; }
+        if (value.length() <= 2048) {
+            try {
+                var uri = new java.net.URI(value);
+                boolean origin = "www.smarteragility.com".equalsIgnoreCase(uri.getHost()) || "smarteragility.com".equalsIgnoreCase(uri.getHost());
+                if (origin && "https".equalsIgnoreCase(uri.getScheme()) && uri.getRawUserInfo() == null && (uri.getPort() == -1 || uri.getPort() == 443)
+                        && ("/public-design".equals(uri.getRawPath()) || "/public-design/".equals(uri.getRawPath())) && uri.getRawQuery() != null) {
+                    var ids = java.util.Arrays.stream(uri.getRawQuery().split("&")).filter(p -> p.startsWith("id=")).toList();
+                    if (ids.size() == 1 && ids.getFirst().matches("id=[0-9a-fA-F]{32}")) {
+                        return "https://www.smarteragility.com/public-design?" + ids.getFirst().toLowerCase(java.util.Locale.ROOT);
+                    }
+                }
+            } catch (java.net.URISyntaxException ignored) { /* Return the usual field validation error. */ }
+        }
+        throw invalid("smarterUrl", "VALIDATION_ERROR");
+    }
+
     /** S16 §3: `PUBLIC` only for the library and account courses; the library is always `PUBLIC`; a club course is `CLUB` or `PRIVATE`. */
     private static void visibility(OwnerType owner, Visibility visibility) {
         boolean allowed = switch (owner) {
@@ -356,6 +376,7 @@ public class CourseLibrary {
         change(diff, "tags", before.tags(), after.tags);
         change(diff, "notes", before.notes(), after.notes);
         change(diff, "sizeCategory", before.sizeCategory(), after.sizeCategory);
+        change(diff, "smarterUrl", before.smarterUrl(), after.smarterUrl);
         change(diff, "sourceFileKey", before.sourceFileKey(), after.sourceFileKey);
         change(diff, "imageFileKey", before.imageFileKey(), after.imageFileKey);
         change(diff, "thumbnailFileKey", before.thumbnailFileKey(), after.thumbnailFileKey);
@@ -390,7 +411,7 @@ public class CourseLibrary {
     private static final class Draft {
         String id; OwnerType ownerType; String clubId; String ownerAccountId; Visibility visibility; LocalizedText name; Discipline discipline;
         String designerName; LocalDate designedOn; String eventName; AgilityHubLevel agilityhubLevel; List<String> levelIds = List.of();
-        List<String> tags = List.of(); String notes; CourseSource source; String sourceCourseId; String sourceFileKey; String imageFileKey;
+        List<String> tags = List.of(); String notes; CourseSource source; String sourceCourseId; String sourceFileKey; String smarterUrl; String imageFileKey;
         String thumbnailFileKey; JsonNode normalizedJson; Integer schemaVersion; SizeCategory sizeCategory; long version; Instant createdAt;
         String createdByAccountId; Instant updatedAt; List<CourseHistory> history = List.of(); Instant deletedAt; String updatedByAccountId;
         CourseModelFacts facts; boolean modelChanged; Double pathLengthM; final List<Runnable> claims = new ArrayList<>();
@@ -406,7 +427,7 @@ public class CourseLibrary {
             d.id = c.id(); d.ownerType = c.ownerType(); d.clubId = c.clubId(); d.ownerAccountId = c.ownerAccountId(); d.visibility = c.visibility();
             d.name = c.name(); d.discipline = c.discipline(); d.designerName = c.designerName(); d.designedOn = c.designedOn(); d.eventName = c.eventName();
             d.agilityhubLevel = c.agilityhubLevel(); d.levelIds = c.levelIds(); d.tags = c.tags(); d.notes = c.notes(); d.source = c.source();
-            d.sourceCourseId = c.sourceCourseId(); d.sourceFileKey = c.sourceFileKey(); d.imageFileKey = c.imageFileKey(); d.thumbnailFileKey = c.thumbnailFileKey();
+            d.sourceCourseId = c.sourceCourseId(); d.sourceFileKey = c.sourceFileKey(); d.smarterUrl = c.smarterUrl(); d.imageFileKey = c.imageFileKey(); d.thumbnailFileKey = c.thumbnailFileKey();
             d.normalizedJson = c.normalizedJson(); d.schemaVersion = c.schemaVersion(); d.sizeCategory = c.sizeCategory(); d.version = c.version();
             d.createdAt = c.createdAt(); d.createdByAccountId = c.createdByAccountId(); d.updatedAt = c.updatedAt(); d.history = c.history() == null ? List.of() : c.history();
             d.deletedAt = c.deletedAt(); d.updatedByAccountId = c.updatedByAccountId(); d.pathLengthM = c.stats() == null ? null : c.stats().pathLengthM();
@@ -416,7 +437,7 @@ public class CourseLibrary {
         Course build() {
             var f = facts == null ? CourseModelFacts.of(normalizedJson, pathLengthM) : facts;
             return new Course(id, ownerType, clubId, ownerAccountId, visibility, name, discipline, designerName, designedOn, eventName, agilityhubLevel,
-                    List.copyOf(levelIds), List.copyOf(tags), notes, source, sourceCourseId, sourceFileKey, imageFileKey, thumbnailFileKey, normalizedJson,
+                    List.copyOf(levelIds), List.copyOf(tags), notes, source, sourceCourseId, sourceFileKey, smarterUrl, imageFileKey, thumbnailFileKey, normalizedJson,
                     schemaVersion, f.designLengthM(), f.designWidthM(), f.canvasWidth(), f.canvasHeight(), f.origin(), f.courseGrade(), f.courseType(),
                     sizeCategory, f.stats(), version, createdAt, createdByAccountId, updatedAt, List.copyOf(history), deletedAt, updatedByAccountId);
         }

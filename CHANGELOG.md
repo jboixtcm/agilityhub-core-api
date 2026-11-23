@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-23 — Smarter course links
+
+- Day grids and class details resolve the mounted course by ring and session start, independently of the planned placement and free training.
+
+- Courses can store a validated Smarter Agility sharing link. A linked course can be assigned to a ring and later receive its model while keeping the same ID.
+
 ## 2026-11-22 — Student search
 
 - Include the registered handler in dog directory searches, including searches filtered by level.

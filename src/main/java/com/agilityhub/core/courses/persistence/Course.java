@@ -33,6 +33,7 @@ public record Course(@Id String id,
         CourseSource source,
         String sourceCourseId,
         String sourceFileKey,
+        String smarterUrl,
         String imageFileKey,
         String thumbnailFileKey,
         @Field(write = Field.Write.ALWAYS)

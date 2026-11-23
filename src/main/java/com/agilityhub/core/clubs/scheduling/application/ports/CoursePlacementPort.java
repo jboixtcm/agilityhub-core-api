@@ -1,6 +1,8 @@
 package com.agilityhub.core.clubs.scheduling.application.ports;
 
+import java.time.Instant;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -9,6 +11,12 @@ import java.util.Optional;
  * (courses) supplies the adapter at the composition root; the default knows no placement.
  */
 public interface CoursePlacementPort {
+    /** Currently mounted courses by ring, excluding expired setups even before the expiry job runs. */
+    record Mounted(String id, Instant builtAt, Instant expiresAt) {
+        public boolean covers(Instant start) { return !start.isBefore(builtAt) && start.isBefore(expiresAt); }
+        public boolean overlaps(Instant from, Instant to) { return builtAt.isBefore(to) && expiresAt.isAfter(from); }
+    }
+    default Map<String, Mounted> mounted() { return Map.of(); }
     /** The ring of the club's placement {@code placementId}, or empty when the club has no such placement. */
     Optional<String> ringOf(String placementId);
     /** R-16-13 «Recorregut previst»: a class's planned placement and the name of its course in the reader's language. */

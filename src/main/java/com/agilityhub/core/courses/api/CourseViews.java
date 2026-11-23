@@ -16,19 +16,19 @@ final class CourseViews {
     private CourseViews() { }
 
     static CourseLibrary.CourseInput input(CourseRequest r) {
-        return new CourseLibrary.CourseInput(r.name(), r.discipline(), r.source(), r.normalizedJson(), r.schemaVersion(), r.imageFileKey(), r.sourceFileKey(),
+        return new CourseLibrary.CourseInput(r.name(), r.discipline(), r.source(), r.normalizedJson(), r.schemaVersion(), r.imageFileKey(), r.sourceFileKey(), r.smarterUrl(),
                 r.thumbnailFileKey(), r.designerName(), r.designedOn(), r.eventName(), r.agilityhubLevel(), r.levelIds(), r.tags(), r.notes(), r.visibility(), r.sizeCategory(),
                 r.pathLengthM());
     }
     static CourseLibrary.CourseInput input(CoursePatchRequest r) {
-        return new CourseLibrary.CourseInput(r.name(), r.discipline(), r.source(), r.normalizedJson(), r.schemaVersion(), r.imageFileKey(), r.sourceFileKey(),
+        return new CourseLibrary.CourseInput(r.name(), r.discipline(), r.source(), r.normalizedJson(), r.schemaVersion(), r.imageFileKey(), r.sourceFileKey(), r.smarterUrl(),
                 r.thumbnailFileKey(), r.designerName(), r.designedOn(), r.eventName(), r.agilityhubLevel(), r.levelIds(), r.tags(), r.notes(), r.visibility(), r.sizeCategory(),
                 r.pathLengthM());
     }
     static Course course(CourseLibrary.CourseView view) {
         var c = view.course();
         return new Course(c.id(), c.ownerType(), c.clubId(), c.ownerAccountId(), c.visibility(), view.name(), view.nameI18n(), c.discipline(), c.designerName(),
-                c.designedOn(), c.eventName(), c.agilityhubLevel(), c.levelIds(), c.tags(), c.notes(), c.source(), c.sourceCourseId(), c.sourceFileKey(),
+                c.designedOn(), c.eventName(), c.agilityhubLevel(), c.levelIds(), c.tags(), c.notes(), c.source(), c.sourceCourseId(), c.sourceFileKey(), c.smarterUrl(),
                 c.imageFileKey(), view.imageUrl(), c.thumbnailFileKey(), view.thumbnailUrl(), c.normalizedJson(), c.schemaVersion(), c.designLengthM(),
                 c.designWidthM(), c.canvasWidth(), c.canvasHeight(), c.origin(), c.courseGrade(), c.courseType(), c.sizeCategory(), c.stats(), c.version(),
                 c.createdAt(), c.createdByAccountId(), c.updatedAt());

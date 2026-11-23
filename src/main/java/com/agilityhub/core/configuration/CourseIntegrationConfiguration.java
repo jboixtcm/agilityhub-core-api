@@ -7,7 +7,9 @@ import com.agilityhub.core.clubs.training.application.ports.RingSetupPort;
 import com.agilityhub.core.courses.application.BuildSessionService;
 import com.agilityhub.core.courses.application.RingSetupService;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +34,11 @@ public class CourseIntegrationConfiguration {
     }
     @Bean CoursePlacementPort coursePlacementPort(RingSetupService setups) {
         return new CoursePlacementPort() {
+            @Override public Map<String, Mounted> mounted() {
+                var result = new HashMap<String, Mounted>();
+                setups.mountedPeriods().forEach(s -> result.put(s.ringId(), new Mounted(s.id(), s.builtAt(), s.expiresAt())));
+                return result;
+            }
             @Override public Optional<String> ringOf(String placementId) { return setups.placementRing(placementId); }
             @Override public Optional<Planned> planned(String placementId, Locale locale) {
                 return setups.plannedCourseName(placementId, locale).map(name -> new Planned(placementId, name));

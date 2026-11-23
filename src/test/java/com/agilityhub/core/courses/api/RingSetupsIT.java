@@ -1,5 +1,8 @@
 package com.agilityhub.core.courses.api;
 
+import com.agilityhub.core.clubs.scheduling.domain.CapacityMode;
+import com.agilityhub.core.clubs.scheduling.domain.ClassState;
+import com.agilityhub.core.clubs.scheduling.persistence.ClassSession;
 import com.agilityhub.core.clubs.training.application.ports.RingSetupPort;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.audit.AuditAction;
@@ -637,6 +640,45 @@ class RingSetupsIT extends CourseItSupport {
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.COURSES).toList());
         columns = ok(as(get("/api/v1/day-grid").param("date", "2026-10-05").param("view", "instructor"), CLUB, "INSTRUCTOR"), 200).path("columns");
         assertThat(columns).isNotEmpty().allSatisfy(c -> assertThat(c.has("activeSetupId")).isFalse());
+    }
+
+    private void scheduled(String id, String ring, String when) {
+        var start = LocalDateTime.parse(when).atZone(MADRID);
+        var end = start.plusHours(1);
+        mongo.insert(new ClassSession(id, CLUB, "e9t2-week", start.toLocalDate(), start.toLocalTime().toString(), end.toLocalTime().toString(),
+                start.toInstant(), end.toInstant(), ring, List.of(), List.of(), 6, CapacityMode.MANUAL, "Agility", ClassState.ACTIVE,
+                new ClassSession.Counters(0, 0), new ClassSession.Risk(false, List.of(), null, null), null, null, null, null,
+                0L, MONDAY, "admin", MONDAY, "admin"));
+    }
+
+    private JsonNode sessionSetup(String id, String role) throws Exception {
+        return ok(as(get("/api/v1/class-sessions/" + id), CLUB, role), 200).path("ringSetupId");
+    }
+
+    @Test void T_16_13_scheduledClassesShowTheMountOnTheirRingDuringItsPeriod() throws Exception {
+        clock.setInstant(MONDAY);
+        modules(Arrays.stream(Module.values()).filter(m -> m != Module.FREE_TRAINING).toList());
+        String setup = id(register("INSTRUCTOR", course(A1, "AGILITY", createCourse("Club course")).put("expectedUntil", "2026-10-06")));
+        scheduled("e9t2-before", A1, "2026-10-05T09:00");
+        scheduled("e9t2-start", A1, "2026-10-05T10:00");
+        scheduled("e9t2-last", A1, "2026-10-06T20:00");
+        scheduled("e9t2-end", A1, "2026-10-07T00:00");
+        scheduled("e9t2-other", A2, "2026-10-06T20:00");
+        for (String id : List.of("e9t2-before", "e9t2-end", "e9t2-other")) {
+            assertThat(sessionSetup(id, "MEMBER").isMissingNode()).isTrue();
+        }
+        for (String id : List.of("e9t2-start", "e9t2-last")) {
+            assertThat(sessionSetup(id, "MEMBER").asText()).isEqualTo(setup);
+        }
+        var grid = get("/api/v1/day-grid").param("date", "2026-10-06");
+        var visible = ok(as(grid, CLUB, "MEMBER"), 200);
+        assertThat(visible.path("rows").findValuesAsText("ringSetupId")).containsExactly(setup);
+        parameter("courses.showSetupToMembers", false, "bool");
+        assertThat(sessionSetup("e9t2-last", "MEMBER").isMissingNode()).isTrue();
+        assertThat(ok(as(grid, CLUB, "MEMBER"), 200).findValuesAsText("ringSetupId")).isEmpty();
+        assertThat(sessionSetup("e9t2-last", "INSTRUCTOR").asText()).isEqualTo(setup);
+        act("INSTRUCTOR", setup, "dismantle", null, 200);
+        assertThat(sessionSetup("e9t2-last", "INSTRUCTOR").isMissingNode()).isTrue();
     }
 
     @Test void T_16_16_memberSetupKeepsThePlacedTunnelCurveAfterTheSourceIsEdited() throws Exception {

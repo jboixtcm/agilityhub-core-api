@@ -5296,6 +5296,10 @@
           "ringId" : {
             "type" : [ "string", "null" ]
           },
+          "ringSetupId" : {
+            "description" : "Visible mounted setup of the class ring at the start of this session",
+            "type" : "string"
+          },
           "riskExempt" : {
             "type" : "boolean"
           },
@@ -5524,6 +5528,10 @@
             }, {
               "type" : "null"
             } ]
+          },
+          "ringSetupId" : {
+            "description" : "Visible mounted setup of the class ring at the start of this session",
+            "type" : "string"
           },
           "startTime" : {
             "type" : "string"
@@ -7738,6 +7746,10 @@
             "enum" : [ "GRAND", "GARDEN", null ],
             "type" : [ "string", "null" ]
           },
+          "smarterUrl" : {
+            "description" : "Public Smarter Agility design URL. An empty string clears it on update.",
+            "type" : [ "string", "null" ]
+          },
           "source" : {
             "enum" : [ "SMARTER", "EDITOR", "IMAGE", "AGILITYHUB_COPY" ],
             "type" : "string"
@@ -8246,6 +8258,10 @@
             "enum" : [ "GRAND", "GARDEN", null ],
             "type" : [ "string", "null" ]
           },
+          "smarterUrl" : {
+            "description" : "Public Smarter Agility design URL. An empty string clears it on update.",
+            "type" : [ "string", "null" ]
+          },
           "source" : {
             "enum" : [ "SMARTER", "EDITOR", "IMAGE", "AGILITYHUB_COPY", null ],
             "type" : [ "string", "null" ]
@@ -8331,6 +8347,10 @@
           },
           "sizeCategory" : {
             "enum" : [ "GRAND", "GARDEN", null ],
+            "type" : [ "string", "null" ]
+          },
+          "smarterUrl" : {
+            "description" : "Public Smarter Agility design URL. An empty string clears it on update.",
             "type" : [ "string", "null" ]
           },
           "source" : {
@@ -8795,6 +8815,10 @@
           },
           "ringId" : {
             "type" : [ "string", "null" ]
+          },
+          "ringSetupId" : {
+            "description" : "Visible mounted setup of the class ring at the start of this session",
+            "type" : "string"
           },
           "riskText" : {
             "type" : [ "string", "null" ]
@@ -43202,7 +43226,7 @@
         "x-sortable" : [ "name", "updatedAt" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (required unless source = IMAGE, else COURSE_MODEL_INVALID) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: none while levels.enabled = false (LEVELS_DISABLED), else this club's levels (NOT_FOUND). Publishes CourseImported (SMARTER) or CourseCreated.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (optional for IMAGE and for SMARTER with a public smarterUrl, otherwise required) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: none while levels.enabled = false (LEVELS_DISABLED), else this club's levels (NOT_FOUND). Publishes CourseImported (SMARTER) or CourseCreated.",
         "operationId" : "createCourse",
         "parameters" : [ {
           "in" : "header",

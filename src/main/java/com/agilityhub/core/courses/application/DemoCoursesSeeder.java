@@ -81,7 +81,7 @@ public class DemoCoursesSeeder implements DemoSeedStep {
         for (var course : spec.courses()) {
             var name = new LinkedHashMap<>(course.name()); name.keySet().retainAll(locales);
             var created = library.create(new CourseLibrary.CourseInput(name, course.discipline(), CourseSource.SMARTER, model(course, input), 1,
-                    null, null, null, course.designer(), input.today(), null, course.agilityhubLevel(), levels(course.levels()), course.tags(), null,
+                    null, null, null, null, course.designer(), input.today(), null, course.agilityhubLevel(), levels(course.levels()), course.tags(), null,
                     Visibility.CLUB, null, course.pathLengthM()));
             courses.put(course.key(), new Seeded(created.course().id(), created.course().version(), course));
             counts.merge("courses", 1, Integer::sum);

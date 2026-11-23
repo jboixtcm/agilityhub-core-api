@@ -51,6 +51,25 @@ class CourseLibraryIT extends CourseItSupport {
         assertThat(events("CourseCreated", editor.path("id").asText()).getFirst().get("payload", Document.class).getString("source")).isEqualTo("EDITOR");
     }
 
+    @Test void T_16_02_publicSmarterLinkSurvivesCopiesAndCanBeEnrichedWithTheModel() throws Exception {
+        var url = "https://www.smarteragility.com/public-design?id=1234567890abcdef1234567890abcdef";
+        var request = course("Enllaç", null);
+        request.remove(List.of("normalizedJson", "schemaVersion"));
+        var linked = create(CLUB, "INSTRUCTOR", request.put("smarterUrl", url + "&title=example"));
+        assertThat(linked.path("smarterUrl").asText()).isEqualTo(url);
+        String path = "/api/v1/courses/" + linked.path("id").asText();
+        assertThat(ok(as(json(post(path + "/duplicate"), Map.of()), CLUB, "INSTRUCTOR"), 201).path("smarterUrl").asText()).isEqualTo(url);
+        error(as(json(patch(path), Map.of("version", 0, "smarterUrl", "")), CLUB, "INSTRUCTOR"), 400, "COURSE_MODEL_INVALID");
+        for (String invalid : List.of(url.replace(".com/", ".com.example/"), url.replace("https:", "http:"), url + "&id=abc", url.replace("public-design", "image"))) {
+            error(as(json(patch(path), Map.of("version", 0, "smarterUrl", invalid)), CLUB, "INSTRUCTOR"), 400, "VALIDATION_ERROR");
+        }
+        var enriched = ok(as(json(patch(path), Map.of("version", 0, "normalizedJson", model(1, false), "schemaVersion", 1)), CLUB, "INSTRUCTOR"), 200);
+        assertThat(enriched.path("smarterUrl").asText()).isEqualTo(url);
+        assertThat(enriched.at("/stats/obstacleCount").asInt()).isEqualTo(1);
+        var cleared = ok(as(json(patch(path), Map.of("version", 1, "smarterUrl", "")), CLUB, "INSTRUCTOR"), 200);
+        assertThat(cleared.path("smarterUrl").isNull()).isTrue();
+    }
+
     @Test void T_16_03_aModelThatCannotBeStoredOrIsMissingIsRefusedAndNothingIsWritten() throws Exception {
         long before = count("courses", Query.query(Criteria.where("clubId").is(CLUB)));
         // E98: a number beyond every storable range is a client error with its path, never a 500.

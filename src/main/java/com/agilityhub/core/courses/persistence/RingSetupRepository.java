@@ -24,6 +24,13 @@ public class RingSetupRepository extends CourseTenantRepository<RingSetup> {
     }
     /** The club's active setups: at most one per ring (`active_setup`). */
     public List<RingSetup> active() { return mongo.find(tenantQuery().addCriteria(Criteria.where("status").is("ACTIVE")), RingSetup.class); }
+    public record SetupPeriod(String id, String ringId, Instant builtAt, Instant expiresAt) { }
+    /** Only dated, still-visible mounts can be attached to a scheduled class. */
+    public List<SetupPeriod> mountedPeriods(Instant now) {
+        var query = tenantQuery().addCriteria(Criteria.where("status").is("ACTIVE").and("builtAt").lte(now).and("expiresAt").gt(now));
+        query.fields().include("ringId", "builtAt", "expiresAt");
+        return mongo.query(RingSetup.class).as(SetupPeriod.class).matching(query).all();
+    }
     /** R-16-07: the ring's active setup, if any. */
     public Optional<RingSetup> activeOn(String ringId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("ringId").is(ringId).and("status").is("ACTIVE")), RingSetup.class));

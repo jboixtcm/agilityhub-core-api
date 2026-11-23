@@ -73,7 +73,8 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, description = "Only in GET /class-sessions/{id} (E5-T15): the instructors' names, in instructorIds order")
             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> instructorNames,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only in GET /class-sessions/{id} (E5-T15), where it is always sent: the ring, null for a class without a ring")
-            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ClassRing ring) { }
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ClassRing ring,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Visible mounted setup of the class ring at the start of this session") String ringSetupId) { }
     /**
      * A row of `GET /class-sessions` (E5-T22, CONVENCIONS_API §4): the keys of the list's `x-fields`, with {@link ClassSession}'s
      * types; `fields` makes it sparse, so only `id` is required. The class views keep {@link ClassSession} whole.
@@ -105,7 +106,8 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Visibility follows bookings.showInstructorHoursBefore") String instructorName,
             ClassState state, int capacity, int freeSeats, @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "S16 R-16-13 «Recorregut previst» (screen 07): only with COURSES and "
-                    + "courses.showSetupToMembers; null when the class plans no placement or its course is gone") PlannedPlacement plannedPlacement) { }
+                    + "courses.showSetupToMembers; null when the class plans no placement or its course is gone") PlannedPlacement plannedPlacement,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Visible mounted setup of the class ring at the start of this session") String ringSetupId) { }
     public record PlannedPlacement(String placementId, @Schema(description = "The course's name in the reader's language") String courseName) { }
     public record ClassRing(String id, String name, String color) { }
     public record CancellationPreview(List<CancellationBooking> bookings, int waitlistCount) { }
@@ -144,7 +146,9 @@ public final class SchedulingContracts {
     @Schema(description = "MEMBER: CLASS/OCCUPIED/ACTIVITY only; no occupancy, who, trainingBookingIds, trainingDogIds, note, createdByName or blockId. Instructor name follows R-06-12. INSTRUCTOR/ADMIN: all cell kinds, counts and names. ACTIVITY carries activityId/title in both views.")
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record DayGridCell(@Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId, CellKind kind, String endTime,
-            @Schema(requiredMode = NOT_REQUIRED) String classId, @Schema(requiredMode = NOT_REQUIRED) String description,
+            @Schema(requiredMode = NOT_REQUIRED) String classId,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Visible mounted setup of the class ring at the start of this session") String ringSetupId,
+            @Schema(requiredMode = NOT_REQUIRED) String description,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName, @Schema(requiredMode = NOT_REQUIRED) ClassState state,
             @Schema(requiredMode = NOT_REQUIRED) Boolean atRisk, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String riskText,
             @Schema(requiredMode = NOT_REQUIRED) GridOccupancy occupancy, @Schema(requiredMode = NOT_REQUIRED) List<String> who,

@@ -72,7 +72,7 @@ public class SessionProjection {
             out.put("instructorName",instructorName(c,false)); out.put("freeSeats",Math.max(0,c.capacity()-c.counters().booked()));
             if(enabled(Module.WAITLIST)) out.put("waiting",c.counters().waiting());
             // R-16-13 (E117 point 3): «Recorregut previst», the informative line of 07, only with COURSES and courses.showSetupToMembers.
-            if(enabled(Module.COURSES) && Boolean.TRUE.equals(context.config().get("courses.showSetupToMembers",Boolean.class))) {
+            if(showsSetups(true)) {
                 out.put("plannedPlacement",c.placementId()==null?null:placements.planned(c.placementId(),LocaleContext.current())
                         .map(p -> Map.of("placementId",p.placementId(),"courseName",p.courseName())).orElse(null));
             }
@@ -105,12 +105,27 @@ public class SessionProjection {
      * Only the detail pays the catalog read; the calendar and list rows keep the ids.
      */
     public Map<String,Object> detail(ClassSession c) {
-        if(member()) return session(c,true,List.of());
-        var out=session(c,false,List.of());
+        boolean member = member();
+        var out = session(c, member, List.of());
+        if (c.ringId() != null) {
+            putClassSetup(out, c, mounted(member).get(c.ringId()));
+        }
+        if (member) return out;
         var names=new HashMap<String,String>(); context.catalog().instructors().forEach(i -> names.put(i.id(),i.name()));
         out.put("instructorNames",c.instructorIds().stream().map(id -> names.getOrDefault(id,"")).toList());
         out.put("ring",ring(c));
         return out;
+    }
+    private boolean showsSetups(boolean member) {
+        return enabled(Module.COURSES) && (!member || Boolean.TRUE.equals(context.config().get("courses.showSetupToMembers", Boolean.class)));
+    }
+    Map<String, CoursePlacementPort.Mounted> mounted(boolean member) {
+        return showsSetups(member) ? placements.mounted() : Map.of();
+    }
+    static void putClassSetup(Map<String, Object> out, ClassSession c, CoursePlacementPort.Mounted setup) {
+        if (setup != null && c.state() != ClassState.CANCELLED && c.startsAt() != null && setup.covers(c.startsAt())) {
+            out.put("ringSetupId", setup.id());
+        }
     }
     private Map<String,Object> ring(ClassSession c) {
         return catalogs.rings().stream().filter(r -> r.id().equals(c.ringId())).map(r -> Map.<String,Object>of("id",r.id(),"name",r.name(),"color",r.color())).findFirst().orElse(null);

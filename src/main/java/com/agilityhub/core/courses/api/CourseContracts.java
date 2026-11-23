@@ -34,6 +34,7 @@ public final class CourseContracts {
             CourseSource source,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String sourceCourseId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String sourceFileKey,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Public Smarter Agility design URL. An empty string clears it on update.") String smarterUrl,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String imageFileKey,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String imageUrl,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String thumbnailFileKey,

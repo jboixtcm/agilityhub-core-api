@@ -309,6 +309,9 @@ public class RingSetupService {
                 .map(setup -> new Active(setup.id(), setup.kind(), labels.names(setup.levelIds(), locale), setup.builtAt(), setup.expectedUntil(),
                         setup.agilityhubLevel()));
     }
+    public List<RingSetupRepository.SetupPeriod> mountedPeriods() {
+        return setups.mountedPeriods(clocks.now(TenantContext.require()).toInstant());
+    }
     /** S06's `placementId` (R-16-13, T-16-20): the ring of a placement of the club, or empty when the club has no such placement. */
     public Optional<String> placementRing(String placementId) { return placements.findById(placementId).map(Placement::ringId); }
     /**
