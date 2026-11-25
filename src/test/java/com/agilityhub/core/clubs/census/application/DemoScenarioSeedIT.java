@@ -110,7 +110,15 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
         var m8 = canic("member.4@example.test", "/api/v1/me/bookable-classes?dogId=" + dog("member.4@example.test", "E"));
         assertThat(states(m8)).contains("WAITLIST_OPEN"); all.addAll(states(m8));
         var m7 = canic("member.3@example.test", "/api/v1/me/bookable-classes?dogId=" + dog("member.3@example.test", "E"));
-        assertThat(week(m7, "CURRENT")).isNotEmpty().allSatisfy(c -> assertThat(c.path("state").asText()).isEqualTo("WEEKLY_LIMIT_DONE"));
+        var m7Bookings = mongo.find(Query.query(Criteria.where("memberId").is(memberOf("member.3@example.test"))), Document.class, "bookings");
+        var lateSessions = m7Bookings.stream().filter(b -> "CANCELLED_LATE".equals(b.getString("state")))
+                .map(b -> b.getString("classSessionId")).toList();
+        assertThat(lateSessions).hasSize(1);
+        var currentRows = week(m7, "CURRENT");
+        assertThat(currentRows).filteredOn(c -> "BOOKABLE".equals(c.path("state").asText()))
+                .extracting(c -> c.path("id").asText()).containsExactlyElementsOf(lateSessions);
+        assertThat(currentRows).filteredOn(c -> !lateSessions.contains(c.path("id").asText())).isNotEmpty()
+                .allSatisfy(c -> assertThat(c.path("state").asText()).isEqualTo("WEEKLY_LIMIT_DONE"));
         assertThat(week(m7, "LATER")).isNotEmpty().allSatisfy(c -> assertThat(c.path("state").asText()).isEqualTo("NOT_YET_OPEN"));
         all.addAll(states(m7));
         var m11 = canic("member.7@example.test", "/api/v1/me/bookable-classes");
@@ -123,7 +131,6 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
         var m6 = memberOf("member.2@example.test");
         var m6Bookings = mongo.find(Query.query(Criteria.where("memberId").is(m6).and("bookingWeekKey").is("2026-09-13")), Document.class, "bookings");
         assertThat(m6Bookings).extracting(b -> b.getString("state")).containsExactlyInAnyOrder("ACTIVE", "CANCELLED_LATE");
-        var m7Bookings = mongo.find(Query.query(Criteria.where("memberId").is(memberOf("member.3@example.test"))), Document.class, "bookings");
         assertThat(m7Bookings).extracting(b -> b.getString("state") + ":" + b.getBoolean("late")).containsExactlyInAnyOrder("ACTIVE:null", "CANCELLED_LATE:true", "CANCELLED:false");
         assertThat(m7Bookings).extracting(b -> b.getString("dogId")).containsOnly(dog("member.3@example.test", "E"));
 

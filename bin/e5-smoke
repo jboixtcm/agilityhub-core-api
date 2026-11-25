@@ -367,7 +367,14 @@ class Smoke:
             states |= {c["state"] for c in view["classes"]}
         require(sorted(states) == SIX_STATES, f"Row states mismatch: {sorted(states)}")
         require(views[11]["bookingBlock"] and all(c["notBookableReason"] == "BLOCKED" for c in views[11]["classes"]), "Blocked member rows")
-        require(all(c["state"] == "WEEKLY_LIMIT_DONE" for c in views[7]["classes"] if c["week"] == "CURRENT"), "member.3@ must be at its weekly limit")
+        current = [c for c in views[7]["classes"] if c["week"] == "CURRENT"]
+        late_sessions = self.mongo('db.bookings.distinct("classSessionId",{clubId:' + json.dumps(self.canic)
+                                   + ',dogId:' + json.dumps(views[7]["dog"]["id"]) + ',state:"CANCELLED_LATE"})')
+        require(len(late_sessions) == 1 and [c["id"] for c in current if c["state"] == "BOOKABLE"] == late_sessions,
+                "member.3@ can reclaim its already-counted late cancellation")
+        other_rows = [c for c in current if c["id"] not in late_sessions]
+        require(other_rows and all(c["state"] == "WEEKLY_LIMIT_DONE" for c in other_rows),
+                "member.3@ must be at its weekly limit for every other class")
         self.record("GET /me/bookable-classes (member@, .3@, .4@, .7@)", "200", "states " + ", ".join(sorted(states)))
 
         # Hold → refresh → confirm → idempotent replay → detail → cancel in time.
