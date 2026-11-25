@@ -60,7 +60,7 @@ public class SeatHoldService {
                 var hold = holds.upsert(new SeatHold(UUID.randomUUID().toString(), TenantContext.require(), classSessionId, dogId, subject.owner().id(),
                         actor.accountId(), waitlistEntryId, now, expiresAt));
                 events.publish(BookingEvent.Kind.SeatHeld, hold.id(), payload(hold), actor);
-                return new Held(hold, subject, limit, singleClass(subject.owner().id()), now, seconds);
+                return new Held(hold, subject, limit, subject.lateCancellation() == null ? singleClass(subject.owner().id()) : Optional.empty(), now, seconds);
             });
         });
     }

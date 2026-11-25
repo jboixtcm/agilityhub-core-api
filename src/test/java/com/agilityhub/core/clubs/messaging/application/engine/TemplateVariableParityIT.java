@@ -244,7 +244,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         return new Activity(ACTIVITY, CLUB, new LocalizedText(Map.of("ca", "Seminari de salts", "es", "Seminario de saltos"), "ca"), ActivityType.SEMINAR, null, null, null,
                 null, List.of(), new Activity.Location(true, null, null, null), List.of("par-ring"), LocalDate.parse("2026-10-17"), "10:00", "13:00", local("2026-10-17T10:00"),
                 local("2026-10-17T13:00"), null, LocalDate.parse("2026-10-01"), LocalDate.parse("2026-10-16"), local("2026-10-01T00:00"), local("2026-10-16T23:59"), null, 12,
-                List.of(), true, "MEMBERS", List.of(), "seminari-de-salts", ActivityState.PUBLISHED, NOW, "par-admin", null, null, new Activity.Counters(1, 0), null, List.of(),
+                List.of(), true, "MEMBERS", List.of(), "seminari-de-salts", ActivityState.PUBLISHED, NOW, "par-admin", null, null, new Activity.Counters(1, 0), true, null, List.of(),
                 null, NOW, "par-admin", NOW, "par-admin");
     }
 

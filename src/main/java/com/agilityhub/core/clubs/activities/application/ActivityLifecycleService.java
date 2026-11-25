@@ -20,7 +20,7 @@ public class ActivityLifecycleService {
             var edit=new ActivityEdit(before); service.context.validate(edit,true); service.sync(edit,options);
             edit.state=ActivityState.PUBLISHED; edit.publishedAt=service.context.clock.instant(); edit.publishedByAccountId=service.context.actor();
             var saved=service.save(edit,before.version());
-            service.events.publish(ActivityEvent.Kind.ActivityPublished,id,Map.of("activityId",id,"levelIds",edit.levelIds,"notifyEmail",notifyEmail));
+            service.events.publish(ActivityEvent.Kind.ActivityPublished,id,Map.of("activityId",id,"levelIds",edit.levelIds,"notifyMembers",!Boolean.FALSE.equals(edit.notifyMembers),"notifyEmail",notifyEmail));
             service.audit.published(before,saved); return saved;
         });
     }

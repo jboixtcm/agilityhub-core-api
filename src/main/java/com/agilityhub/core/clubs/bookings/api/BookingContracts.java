@@ -138,6 +138,7 @@ public final class BookingContracts {
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record BookingListItem(String id, BookingState state, BookingOrigin origin, String classSessionId, Instant classStartsAt,
             String bookingWeekKey, String dogId, String dogName, String memberId, String memberName, Instant bookedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant cancelledAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late,
             @Schema(description = "The class's display description in the reader's language (D10 «Classes», E5-T29)") String classDescription,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId,

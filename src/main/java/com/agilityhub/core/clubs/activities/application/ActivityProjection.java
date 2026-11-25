@@ -67,7 +67,10 @@ public class ActivityProjection {
                 "levelIds",context.levels()?a.levelIds():List.of(),"levelNames",levelNames(a),"waitlistEnabled",waitlist(a),"visibility","MEMBERS","priceTiers",List.of(),
                 "counters",a.counters(),"freeSeats",free(a),"belowMinimum",a.minPlaces()!=null && a.counters().active()<a.minPlaces(),"publicUrl",publicUrl(a),
                 "ringBlockIds",a.ringBlockIds(),"publishedAt",a.publishedAt(),"cancellation",a.cancellation(),"version",a.version());
-        if(admin) result.put("internalNotes",a.internalNotes());
+        if(admin) {
+            result.put("internalNotes",a.internalNotes());
+            result.put("notifyMembers",!Boolean.FALSE.equals(a.notifyMembers()));
+        }
         if(context.enabled(Module.COURSES)) result.put("placementIds",activities.placementIds(a.id()));
         return result;
     }

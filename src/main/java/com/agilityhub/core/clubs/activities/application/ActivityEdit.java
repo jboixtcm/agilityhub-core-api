@@ -42,6 +42,7 @@ final class ActivityEdit {
     Instant finishedAt;
     Cancellation cancellation;
     Counters counters;
+    Boolean notifyMembers;
     String internalNotes;
     List<String> ringBlockIds;
     Long version;
@@ -85,6 +86,7 @@ final class ActivityEdit {
         finishedAt=a.finishedAt();
         cancellation=a.cancellation();
         counters=a.counters();
+        notifyMembers=a.notifyMembers();
         internalNotes=a.internalNotes();
         ringBlockIds=a.ringBlockIds();
         version=a.version();
@@ -93,6 +95,6 @@ final class ActivityEdit {
         updatedAt=a.updatedAt();
         updatedByAccountId=a.updatedByAccountId();
     }
-    Activity snapshot() { return new Activity(id, clubId, title, type, typeLabel, shortDescription, longDescription, image, documents, location, ringIds, date, startTime, endTime, startsAt, endsAt, ringBlockWindow, registrationFrom, registrationTo, registrationOpensAt, registrationClosesAt, minPlaces, maxPlaces, levelIds, waitlistEnabled, visibility, priceTiers, slug, state, publishedAt, publishedByAccountId, finishedAt, cancellation, counters, internalNotes, ringBlockIds, version, createdAt, createdByAccountId, updatedAt, updatedByAccountId); }
+    Activity snapshot() { return new Activity(id, clubId, title, type, typeLabel, shortDescription, longDescription, image, documents, location, ringIds, date, startTime, endTime, startsAt, endsAt, ringBlockWindow, registrationFrom, registrationTo, registrationOpensAt, registrationClosesAt, minPlaces, maxPlaces, levelIds, waitlistEnabled, visibility, priceTiers, slug, state, publishedAt, publishedByAccountId, finishedAt, cancellation, counters, notifyMembers, internalNotes, ringBlockIds, version, createdAt, createdByAccountId, updatedAt, updatedByAccountId); }
     ActivityRules.Input input() { return new ActivityRules.Input(title,type,location.atClub(),location.name(),ringIds,date,startTime,endTime,registrationFrom,registrationTo,minPlaces,maxPlaces,levelIds); }
 }

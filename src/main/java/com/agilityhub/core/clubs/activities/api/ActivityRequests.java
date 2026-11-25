@@ -12,7 +12,8 @@ import static com.agilityhub.core.clubs.activities.api.ActivityContracts.Activit
 
 public final class ActivityRequests {
     private ActivityRequests() { }
-    public record ActivityCreateRequest(@NotEmpty Map<String, @NotBlank @Size(max = 80) String> title, @NotNull ActivityType type) { }
+    public record ActivityCreateRequest(@NotEmpty Map<String, @NotBlank @Size(max = 80) String> title, @NotNull ActivityType type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Notify eligible members when this draft is published (defaults to true)") Boolean notifyMembers) { }
     public record ActivityLocationRequest(@NotNull Boolean atClub, @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 80) String name,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 200) String address,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String url) { }

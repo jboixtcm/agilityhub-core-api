@@ -84,34 +84,48 @@ public class BookingConfirmationService {
             int booked = bookings.forClass(s.id(), BookingRepository.LIVE).size();
             var taken = WaitlistTransitions.taken(waitlist.openOffers(s.id(), now), holds.live(s.id(), now), hold.dogId(), hold.waitlistEntryId());
             if (booked + taken.dogs().size() >= s.capacity()) { throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", booked + taken.offered().size() < s.capacity())); }
-            var terms = seatHolds.singleClass(subject.owner().id());
-            var charge = terms.map(t -> new Booking.Charge(t.mode(), t.price(), null, null, null, null, null)).orElse(null);
-            boolean payToBook = terms.filter(t -> t.mode() == ChargeMode.PAY_TO_BOOK).isPresent();
-            String id = UUID.randomUUID().toString();
-            String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id, s.startsAt().atZone(context.zone()).toLocalDate()) : null;
+            var previous = subject.lateCancellation();
+            String id = previous == null ? UUID.randomUUID().toString() : previous.id();
             String entry = context.enabled(Module.WAITLIST) ? waitlist.consolidate(s.id(), subject.dog().id(), id, hold.waitlistEntryId() != null, actor).orElse(null) : null;
-            SingleClassChargePort.Pending checkout = null;
-            if (payToBook) { // R-08-18: the due line and the session only; the provider is called after the commit (openCheckout)
-                checkout = charges.prepare(subject.owner().id(), subject.dog().id(), id, terms.get().price(), views.labels(s).description());
-                charge = new Booking.Charge(charge.mode(), charge.price(), null, checkout.sessionId(), null, null, null);
+            Confirmed confirmed;
+            if (previous == null) {
+                confirmed = createBooking(subject, actor, id, entry, swapped, now);
+            } else {
+                var restored = previous.reactivated(previous.packMovementId(), entry, s.startsAt(), s.endsAt(), subject.week().key(), now, actor.accountId());
+                confirmed = new Confirmed(bookings.update(restored, previous.version()), null, null);
             }
-            var booking = bookings.insert(new Booking(id, TenantContext.require(), s.id(), subject.dog().id(), subject.owner().id(),
-                    payToBook ? BookingState.PAYMENT_PENDING : BookingState.ACTIVE, actor.origin(), now,
-                    new Booking.Actor(actor.accountId(), actor.impersonatedMemberId(), actor.impersonated() ? actor.displayName() : subject.booker().firstName(),
-                            actor.notifies() ? null : Boolean.FALSE),
-                    s.startsAt(), s.endsAt(), subject.week().key(), null, null, null, null, null, null,
-                    swapped == null ? null : swapped.id(), null, entry, movement, null, charge, null,
-                    null, now, actor.accountId(), now, actor.accountId()));
+            var booking = confirmed.booking();
             if (swapped != null) { bookings.update(withSwapTo(swapped, id), swapped.version()); }
             holds.deleteById(hold.id());
             census.lastDogForClass(subject.booker().id(), subject.dog().id());
-            if (!payToBook) { created(booking, actor); }
+            if (booking.state() == BookingState.ACTIVE) { created(booking, actor); }
             events.publish(BookingEvent.Kind.SeatHoldReleased, hold.id(), SeatHoldService.payload(hold), actor);
             counters.recount(s.id(), false, actor);
             waitlist.demoteIfFull(s.id(), actor); // R-08-13: the last seat is gone → the other NOTIFIED entries go back to ACTIVE
             if (actor.impersonated()) { audit.createdByClub(booking, actor.notifies()); }
-            return new Confirmed(booking, null, checkout);
+            return confirmed;
         });
+    }
+
+    private Confirmed createBooking(BookingChecks.Subject subject, BookingActor actor, String id, String entry, Booking swapped, java.time.Instant now) {
+        var s = subject.session();
+        var terms = seatHolds.singleClass(subject.owner().id());
+        var charge = terms.map(t -> new Booking.Charge(t.mode(), t.price(), null, null, null, null, null)).orElse(null);
+        boolean payToBook = terms.filter(t -> t.mode() == ChargeMode.PAY_TO_BOOK).isPresent();
+        String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id, s.startsAt().atZone(context.zone()).toLocalDate()) : null;
+        SingleClassChargePort.Pending checkout = null;
+        if (payToBook) { // R-08-18: the due line and the session only; the provider is called after the commit (openCheckout)
+            checkout = charges.prepare(subject.owner().id(), subject.dog().id(), id, terms.get().price(), views.labels(s).description());
+            charge = new Booking.Charge(charge.mode(), charge.price(), null, checkout.sessionId(), null, null, null);
+        }
+        var booking = bookings.insert(new Booking(id, TenantContext.require(), s.id(), subject.dog().id(), subject.owner().id(),
+                payToBook ? BookingState.PAYMENT_PENDING : BookingState.ACTIVE, actor.origin(), now,
+                new Booking.Actor(actor.accountId(), actor.impersonatedMemberId(), actor.impersonated() ? actor.displayName() : subject.booker().firstName(),
+                        actor.notifies() ? null : Boolean.FALSE),
+                s.startsAt(), s.endsAt(), subject.week().key(), null, null, null, null, null, null,
+                swapped == null ? null : swapped.id(), null, entry, movement, null, charge, null,
+                null, now, actor.accountId(), now, actor.accountId()));
+        return new Confirmed(booking, null, checkout);
     }
 
     /**

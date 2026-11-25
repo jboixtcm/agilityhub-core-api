@@ -96,7 +96,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, LOCALE_NOT_ENABLED})
     @Operation(summary = "createActivity", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "201", description = "Activity", useReturnTypeSchema = true))
     public Activity createActivity(@Valid @RequestBody ActivityCreateRequest request) {
-        return mutation(null,() -> service.create(request.title(),request.type()),Activity.class,201);
+        return mutation(null,() -> service.create(request.title(),request.type(),!Boolean.FALSE.equals(request.notifyMembers())),Activity.class,201);
     }
 
     @GetMapping("/api/v1/activities/{id}")

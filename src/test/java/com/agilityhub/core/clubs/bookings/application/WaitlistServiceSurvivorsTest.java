@@ -265,7 +265,7 @@ class WaitlistServiceSurvivorsTest {
         var owner = new BookingMemberAccess.Member("member-laura", "account-laura", "Laura", "Laura Serra", "ACTIVE", null, false, null, null, null,
                 "ca", "laura@example.test", List.of());
         var week = new BookingWeeks.Week("2026-10-04", Instant.parse("2026-10-04T18:00:00Z"), Instant.parse("2026-10-11T18:00:00Z"));
-        return new BookingChecks.Subject(session(capacity, 1, STARTS), dog, owner, owner, week, RelativeWeek.CURRENT, Optional.empty());
+        return new BookingChecks.Subject(session(capacity, 1, STARTS), dog, owner, owner, week, RelativeWeek.CURRENT, Optional.empty(), null);
     }
 
     static WaitlistEntry entry(String id, String dogId, String memberId, WaitlistState state, Instant notifiedAt, Instant confirmBy, long version) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-25 — Club reservations and activity notices
+
+- Class and training booking lists expose the recorded cancellation time.
+- Activity drafts retain the publication notice preference. Notices use the levels recorded at publication and the member's active club membership and dogs.
+- Returning to a member's late-cancelled class uses the original booking, weekly allowance and payment or pack movement, subject to availability.
+
 ## 2026-11-23 — Smarter course links
 
 - Day grids and class details resolve the mounted course by ring and session start, independently of the planned placement and free training.

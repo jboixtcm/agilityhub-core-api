@@ -31,6 +31,6 @@ public final class ActivityEligibility {
         if (registered) throw new ApiException(ErrorCode.ALREADY_REGISTERED);
     }
     public static boolean admitted(List<Dog> dogs, List<String> levels, boolean enabled, String dogId) {
-        return !enabled || levels.isEmpty() || dogs.stream().anyMatch(d -> d.active() && (dogId == null || dogId.equals(d.id())) && levels.contains(d.levelId()));
+        return !enabled || levels.isEmpty() || dogs.stream().anyMatch(d -> d.active() && (dogId == null || dogId.equals(d.id())) && d.levelId() != null && levels.contains(d.levelId()));
     }
 }

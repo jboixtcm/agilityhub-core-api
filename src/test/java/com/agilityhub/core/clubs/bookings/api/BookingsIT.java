@@ -28,6 +28,67 @@ class BookingsIT extends BookingFixtures {
     @Autowired BookingCancellationService cancellations; @Autowired ClassCancellationUseCase classCancellations; @Autowired BookingActivity activity;
     @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway gateway; @Autowired com.agilityhub.core.payments.application.UpfrontPayments upfrontPayments;
 
+    @Test void memberCanRecoverTheirLateCancelledSeatWithAnEmptyPackAndFullWeeklyQuota() throws Exception {
+        String dog = "s08-d-duna";
+        openPack("s08-m-laura", dog, 2, 0, LocalDate.parse("2026-11-12"));
+        String id = book(as("laura"), "wed", dog).path("id").asText();
+        book(as("laura"), "thu", dog);
+        String movement = booking(id).getString("packMovementId");
+        clock.setInstant(local("2026-10-07T16:00"));
+        var cancelled = cancel(as("laura"), id, 200);
+        assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED_LATE");
+        var list = call(GET, "/bookings?filter=id:eq:"+id+"&fields=bookedAt,cancelledAt", null, as("admin"), 200).at("/items/0");
+        assertThat(list.path("bookedAt").asText()).isEqualTo(cancelled.path("bookedAt").asText());
+        assertThat(list.path("cancelledAt").asText()).isEqualTo(cancelled.at("/cancellation/at").asText());
+        var rows = call(GET, "/me/bookable-classes?dogId="+dog, null, as("laura"), 200).path("classes");
+        assertThat(rows).anySatisfy(row -> {
+            assertThat(row.path("id").asText()).isEqualTo("s08-wed");
+            assertThat(row.path("state").asText()).isEqualTo("BOOKABLE");
+        });
+        var held = hold(as("laura"), "wed", dog, 201);
+        assertThat(held.at("/limit/reached").asBoolean()).isFalse();
+        var restored = confirm(as("laura"), held.path("id").asText(), null, 201);
+        assertThat(restored.path("id").asText()).isEqualTo(id);
+        assertThat(restored.path("state").asText()).isEqualTo("ACTIVE");
+        assertThat(booking(id).getString("packMovementId")).isEqualTo(movement);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(packs.balance("s08-m-laura", dog).orElseThrow().available()).isZero();
+        }
+        assertThat(count("bookings", Criteria.where("classSessionId").is("s08-wed").and("dogId").is(dog))).isOne();
+    }
+
+    @Test void reclaimingACancelledBookingDoesNotDisplaceAnotherDogsHoldOrBooking() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-wed")),new Update().set("capacity",1),"class_sessions");
+        var original = book(as("laura"), "wed", "s08-d-duna");
+        clock.setInstant(local("2026-10-07T16:00"));
+        cancel(as("laura"), original.path("id").asText(), 200);
+        var otherHold = hold(as("pere"), "wed", "s08-d-nit", 201);
+        assertThat(code(hold(as("laura"), "wed", "s08-d-duna", 409))).isEqualTo("CLASS_FULL");
+        confirm(as("pere"), otherHold.path("id").asText(), null, 201);
+        assertThat(code(hold(as("laura"), "wed", "s08-d-duna", 409))).isEqualTo("CLASS_FULL");
+        assertThat(booking(original.path("id").asText()).getString("state")).isEqualTo("CANCELLED_LATE");
+    }
+
+    @Test void reopeningAPaidLateCancellationKeepsTheSettledCheckout() throws Exception {
+        payToBook();
+        var pending = book(as("laura"), "wed", "s08-d-duna");
+        String id = pending.path("id").asText();
+        String checkout = checkoutSession(id);
+        gateway.complete(checkout);
+        dispatch();
+        clock.setInstant(local("2026-10-07T16:00"));
+        assertThat(cancel(as("laura"), id, 200).path("state").asText()).isEqualTo("CANCELLED_LATE");
+        var held = hold(as("laura"), "wed", "s08-d-duna", 201);
+        assertThat(held.path("payment").isNull()).isTrue();
+        var restored = confirm(as("laura"), held.path("id").asText(), null, 201);
+        dispatch();
+        assertThat(restored.path("id").asText()).isEqualTo(id);
+        assertThat(restored.path("state").asText()).isEqualTo("ACTIVE");
+        assertThat(checkoutSession(id)).isEqualTo(checkout);
+        assertThat(line(id)).containsEntry("status","PAID");
+        assertThat(count("upfront_payments",Criteria.where("bookingId").is(id))).isOne();
+    }
+
     @Test void T_08_14_weeklyLimitExplainsLateCancellationsWithoutAttendance() throws Exception {
         var first = book(as("laura"), "wed", "s08-d-duna");
         book(as("laura"), "thu", "s08-d-duna");

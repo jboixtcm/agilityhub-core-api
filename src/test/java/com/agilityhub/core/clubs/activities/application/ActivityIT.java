@@ -452,6 +452,29 @@ class ActivityIT extends ActivityFixtures {
         assertThat(call("GET","/day-grid?date=2026-09-15&view=member",null,"m0","MEMBER",200).toString()).doesNotContain("ACTIVITY");
         modules(EnumSet.allOf(Module.class));call("GET","/activities/"+id,null,"admin","ADMIN",200);
     }
+    @Test void publicationMayBeSilentAndRespectsThePublishedLevelsAndActiveMemberships() throws Exception {
+        var draft = call("POST","/activities",Map.of("title",Map.of("ca","Silenci"),"type","SEMINAR","notifyMembers",false),"admin","ADMIN",201);
+        var silent = ready(draft,10,false);
+        String id = silent.path("id").asText();
+        assertThat(silent.path("notifyMembers").asBoolean(true)).isFalse();
+        call("POST","/activities/"+id+"/publication",Map.of("notifyEmail",true),"admin","ADMIN",200);
+        dispatch();
+        assertThat(count("notifications","code","N-32a")).isZero();
+
+        var activity = ready(10,false);
+        assertThat(activity.path("notifyMembers").asBoolean()).isTrue();
+        id = activity.path("id").asText();
+        call("PATCH","/activities/"+id,Map.of("version",activity.path("version").asLong(),"levelIds",List.of("s07-D")),"admin","ADMIN",200);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s07-m2")),new Update().set("status","SUSPENDED"),"memberships");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("dog-m3")),new Update().set("status","INACTIVE"),"dogs");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("dog-m4")),new Update().unset("levelId"),"dogs");
+        var published = call("POST","/activities/"+id+"/publication",Map.of(),"admin","ADMIN",200);
+        call("PATCH","/activities/"+id,Map.of("version",published.path("version").asLong(),"levelIds",List.of()),"admin","ADMIN",200);
+        dispatch();
+        assertThat(notices("m0","N-32a")).isNotEmpty();
+        for (String excluded : List.of("m2","m3","m4","m31")) { assertThat(notices(excluded,"N-32a")).isEmpty(); }
+    }
+
     @Test void T_07_28_notificationsUseAudienceRecipientLocaleAndGsmLimit() throws Exception {
         var a=ready(40,false);String id=a.path("id").asText();a=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"levelIds",List.of("s07-D")),"admin","ADMIN",200);
         call("POST","/activities/"+id+"/publication",Map.of("notifyEmail",true),"admin","ADMIN",200);dispatch();
@@ -546,7 +569,7 @@ class ActivityIT extends ActivityFixtures {
         assertThat(call("GET","/me/activities",null,"m1","MEMBER",200).path("bookable").get(0).path("rowState").asText()).isEqualTo("NOT_BOOKABLE");
         parameter("levels.enabled",false,"BOOLEAN");var a=call("GET","/activities/"+id,null,"admin","ADMIN",200);
         a=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"levelIds",List.of("missing")),"admin","ADMIN",200);assertThat(a.path("levelIds")).isEmpty();
-        try(var tenant=TenantContext.open(CLUB)) { assertThat(audience.admittedMemberIds(activities.require(id))).hasSize(34); }
+        try(var tenant=TenantContext.open(CLUB)) { assertThat(audience.admittedMemberIds(activities.require(id).levelIds())).hasSize(34); }
         clock.setInstant(Instant.parse("2026-09-15T22:30:00Z"));
         var tree=(ObjectNode)mapper.valueToTree(clubs.findById(CLUB).orElseThrow());tree.put("timeZone","America/Argentina/Buenos_Aires");clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(CLUB);
         assertThat(call("GET","/activities?filter=registrationOpen:eq:true",null,"admin","ADMIN",200).path("items")).hasSize(1);

@@ -85,7 +85,10 @@ abstract class ActivityFixtures extends AbstractIntegrationTest {
     }
     JsonNode create() throws Exception { return call("POST","/activities",Map.of("title",Map.of("ca","Activitat exemple","es","Actividad ejemplo","en","Example activity"),"type","SEMINAR"),"admin","ADMIN",201); }
     JsonNode ready(int max,boolean rings) throws Exception {
-        var a=create(); var patch=new LinkedHashMap<String,Object>(); patch.put("version",a.path("version").asLong()); patch.put("date","2026-09-15"); patch.put("startTime","18:00"); patch.put("endTime","20:00");
+        return ready(create(),max,rings);
+    }
+    JsonNode ready(JsonNode a,int max,boolean rings) throws Exception {
+        var patch=new LinkedHashMap<String,Object>(); patch.put("version",a.path("version").asLong()); patch.put("date","2026-09-15"); patch.put("startTime","18:00"); patch.put("endTime","20:00");
         patch.put("registrationFrom","2026-09-01"); patch.put("registrationTo","2026-09-15"); patch.put("maxPlaces",max); patch.put("waitlistEnabled",true);
         if(rings) patch.put("ringIds",java.util.stream.IntStream.range(0,5).mapToObj(i -> "s07-ring-"+i).toList());
         return call("PATCH","/activities/"+a.path("id").asText(),patch,"admin","ADMIN",200);

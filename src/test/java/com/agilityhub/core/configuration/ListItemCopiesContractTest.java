@@ -24,8 +24,8 @@ class ListItemCopiesContractTest {
                     "the list reads the instructors and the ring from its own columns; the detail resolves the mounted setup at class start and the attendance status is the sheet's"),
             new Pair("RingBlockListItem", "RingBlock", Set.of("ringColor", "ringName"), Set.of(), "the register shows the ring of each row"),
             new Pair("MemberInstructorListItem", "MemberInstructorView", Set.of(), Set.of(), "the same instructor projection"),
-            new Pair("ClassBookingItem", "BookingListItem", Set.of("displayState", "levelCode"), Set.of("classDescription", "ringColor", "ringId", "ringName"),
-                    "a class's booking list shows the dog's level and state, the member's list the class and its ring"));
+            new Pair("ClassBookingItem", "BookingListItem", Set.of("displayState", "levelCode"), Set.of("cancelledAt", "classDescription", "ringColor", "ringId", "ringName"),
+                    "a class's booking list shows the dog's level and state, the member's list the class, its ring and the recorded cancellation time"));
 
     static JsonNode schemas() throws Exception { return new ObjectMapper().readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas"); }
     static Set<String> names(JsonNode properties) { var names = new TreeSet<String>(); properties.fieldNames().forEachRemaining(names::add); return names; }

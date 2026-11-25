@@ -127,7 +127,7 @@
 | `SignupRecognitionRequested{memberId, accountId, redirect}` | alta | S04 |
 | `PriceChanged{action: CLOSED}` (supersessió) · `MembershipChanged` des de D17 | catàlegs | S05 |
 | `RingBlockUpdated{blockId, diff}` · enum `InconsistencyType` (RING_DOUBLE_BOOKED · INSTRUCTOR_DOUBLE_BOOKED · RING_BLOCKED · RING_TRAINING_CONFLICT · LEVEL_INACTIVE · RING_INACTIVE · INSTRUCTOR_INACTIVE) | planificació | S06/S09 |
-| `ActivityPublished{levelIds, notifyEmail}` · `ActivityUpdated{diff, registrantCount}` · `ActivityCancelled{adminText, affected[]}` · `ActivityRegistrationChanged{origin, cancelReason, promoted}` | activitats | S07 |
+| `ActivityPublished{levelIds, notifyEmail, notifyMembers?}` · `ActivityUpdated{diff, registrantCount}` · `ActivityCancelled{adminText, affected[]}` · `ActivityRegistrationChanged{origin, cancelReason, promoted}` | activitats | S07 |
 | `WaitlistNotified{mode}` · `BookingCancelled{reason: PAYMENT_TIMEOUT · INSTRUCTOR_NOTICE · INACTIVITY · LEAVE · CLASS_CANCELLED}` | reserves | S08/S13 |
 | `TrainingCancelled{by, cancelReason, late}` | entrenaments | S09 |
 | `AttendanceMarked{classSessionId, memberId, previousState, late, afterClassEnd}` · `TaskReopened{taskId, dogId, by}` · `AttachmentRemoved{attachmentId, entityType, entityId}` | assistència | S10 |

@@ -31,7 +31,7 @@ class BookingChecksOverlapTest {
     final BookingChecks.Subject subject = new BookingChecks.Subject(
             new ClassSessionBookingAccess.Session("class-b", "ACTIVE", LocalDate.of(2026, 10, 8), "18:50", "19:50", STARTS, ENDS,
                     "ring-a", List.of(), List.of(), 5, 0, 0, false, null, 0L),
-            new BookingMemberAccess.Dog("dog-duna", "Duna", "FEMALE", "member-laura", "level-c", "ACTIVE"), null, null, null, null, Optional.empty());
+            new BookingMemberAccess.Dog("dog-duna", "Duna", "FEMALE", "member-laura", "level-c", "ACTIVE"), null, null, null, null, Optional.empty(), null);
 
     void refused() {
         assertThatThrownBy(() -> checks.noOverlap(subject, null))

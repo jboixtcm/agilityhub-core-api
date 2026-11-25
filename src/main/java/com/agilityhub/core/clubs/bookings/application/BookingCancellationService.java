@@ -132,10 +132,8 @@ public class BookingCancellationService {
         var held = holds.live(b.classSessionId(), now);
         if (live.size() + held.size() >= session.capacity()) throw new ApiException(ErrorCode.CLASS_FULL);
         String movement = b.packRefundMovementId() == null ? b.packMovementId() : packs.restore(b.id());
-        var restored = bookings.update(new Booking(b.id(), b.clubId(), b.classSessionId(), b.dogId(), b.memberId(), BookingState.ACTIVE,
-                b.origin(), b.bookedAt(), b.bookedBy(), b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), null, null, null, null, null, null,
-                b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(), movement, null, b.charge(), b.reminderSentAt(),
-                b.version() + 1, b.createdAt(), b.createdByAccountId(), now, actor.accountId()), b.version());
+        var restored = bookings.update(b.reactivated(movement, b.waitlistEntryId(), b.classStartsAt(), b.classEndsAt(),
+                b.bookingWeekKey(), now, actor.accountId()), b.version());
         counters.recount(b.classSessionId(), false, actor);
         return restored;
     }

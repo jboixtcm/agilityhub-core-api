@@ -154,7 +154,7 @@ public class TrainingController {
             columns = {"date*", "startsAtLocal*", "endsAtLocal", "ringName*", "memberName*", "memberNumber", "dogName*", "state*", "origin", "createdAt", "endsAt"},
             paged = true, exportable = true,
             fields = {"id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName",
-                    "state", "origin", "createdAt"})
+                    "state", "origin", "createdAt", "cancelledAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
     @Operation(summary = "trainingBookings", description = "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. q searches the member's full name, the dog's name and the ring's name (S09 §2, E75). Each row carries its slot's end (endsAt, endsAtLocal) and the member's number (null without one). Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<TrainingBookingListItem>", useReturnTypeSchema = true))
@@ -191,7 +191,7 @@ public class TrainingController {
             columns = {"date*", "startsAtLocal*", "endsAtLocal", "ringName*", "memberName*", "memberNumber", "dogName*", "state*", "origin", "createdAt", "endsAt"},
             paged = true, exportable = false,
             fields = {"id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName",
-                    "state", "origin", "createdAt"})
+                    "state", "origin", "createdAt", "cancelledAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportTrainingBookings", description = "Roles: ADMIN (S14 R-14-12: list exports are ADMIN only; INSTRUCTOR → 403). Same q/filter/sort and selected columns as GET /training-bookings (listKey training-bookings); 200 file or 202 ExportAccepted. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = {@ApiResponse(responseCode = "200", description = "Export file", content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),

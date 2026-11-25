@@ -31,7 +31,7 @@ public final class ActivityContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate registrationTo, boolean registrationOpen,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer minPlaces,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer maxPlaces,
-            List<String> levelIds, List<String> levelNames, boolean waitlistEnabled, ActivityVisibility visibility,
+            List<String> levelIds, List<String> levelNames, @Schema(requiredMode = NOT_REQUIRED) Boolean notifyMembers, boolean waitlistEnabled, ActivityVisibility visibility,
             @io.swagger.v3.oas.annotations.media.ArraySchema(maxItems = 0, arraySchema = @Schema(description = "Always empty in R1")) List<Void> priceTiers,
             ActivityCounters counters, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer freeSeats,
             boolean belowMinimum, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String publicUrl,

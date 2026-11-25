@@ -18,7 +18,7 @@ public record Activity(@Id String id, String clubId,
         Instant registrationOpensAt, Instant registrationClosesAt, @com.agilityhub.core.shared.domain.audit.AuditField Integer minPlaces, @com.agilityhub.core.shared.domain.audit.AuditField Integer maxPlaces,
         @com.agilityhub.core.shared.domain.audit.AuditField List<String> levelIds, @com.agilityhub.core.shared.domain.audit.AuditField boolean waitlistEnabled, String visibility, List<Void> priceTiers, @com.agilityhub.core.shared.domain.audit.AuditField String slug,
         @com.agilityhub.core.shared.domain.audit.AuditField ActivityState state, Instant publishedAt, String publishedByAccountId, Instant finishedAt, @com.agilityhub.core.shared.domain.audit.AuditField Cancellation cancellation,
-        Counters counters, @com.agilityhub.core.shared.domain.audit.AuditField String internalNotes, List<String> ringBlockIds,
+        Counters counters, Boolean notifyMembers, @com.agilityhub.core.shared.domain.audit.AuditField String internalNotes, List<String> ringBlockIds,
         @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) implements TenantEntity {
     public record Image(String fileId, String fileKey, String name, String mimeType, long sizeBytes) { }
     public record ActivityDocument(String id, String fileKey, String name, String mimeType, long sizeBytes, Instant uploadedAt) { }

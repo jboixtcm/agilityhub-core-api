@@ -34,7 +34,7 @@ public class TrainingQueryService implements ListProvider {
     static final List<String> SEARCH = List.of("memberFullName", "dogName", "ringName");
     /** The list's keys and `x-fields`; E5-T29 adds the end (`endsAt`, `endsAtLocal`) and the member's number (null without one). */
     static final List<String> FIELDS = List.of("id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName",
-            "memberNumber", "dogId", "dogName", "state", "origin", "createdAt");
+            "memberNumber", "dogId", "dogName", "state", "origin", "createdAt", "cancelledAt");
     private final TrainingContext context; private final TrainingBookingRepository bookings; private final TrainingMemberAccess census;
     private final TrainingEligibilityService eligibility; private final TrainingBookingService service; private final InactivityPort inactivity;
     private final CensusIdentityService identities; private final com.agilityhub.core.shared.application.IcuMessageSource messages;

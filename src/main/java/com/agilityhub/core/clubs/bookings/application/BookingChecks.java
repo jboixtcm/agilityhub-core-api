@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BookingChecks {
     public record Subject(ClassSessionBookingAccess.Session session, BookingMemberAccess.Dog dog, BookingMemberAccess.Member owner,
-            BookingMemberAccess.Member booker, BookingWeeks.Week week, RelativeWeek relative, Optional<PackBalancePort.Balance> pack) { }
+            BookingMemberAccess.Member booker, BookingWeeks.Week week, RelativeWeek relative, Optional<PackBalancePort.Balance> pack, Booking lateCancellation) { }
     private final BookingContext context; private final ClassSessionBookingAccess classes; private final BookingMemberAccess census;
     private final BookingRepository bookings; private final InactivityPort inactivity; private final PackBalancePort packs;
     private final DogTrainingOverlapPort training;
@@ -42,13 +42,15 @@ public class BookingChecks {
         var booker = census.member(actor.memberId()).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
         var weeks = context.weeks(); var week = weeks.week(session.startsAt()); var relative = weeks.relative(session.startsAt(), now);
         var localDate = session.startsAt().atZone(context.zone()).toLocalDate();
-        var pack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), localDate) : Optional.<PackBalancePort.Balance>empty();
+        // The same late-cancelled seat already consumed its pack and weekly allowance.
+        var lateCancellation = bookings.lateMemberCancellation(session.id(), dog.id(), owner.id()).orElse(null);
+        var pack = lateCancellation == null && context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), localDate) : Optional.<PackBalancePort.Balance>empty();
         var period = context.enabled(Module.INACTIVITY) ? inactivity.covering(owner.id(), localDate).map(p -> new BookingEligibility.Period(p.from(), p.to()))
                 : Optional.<BookingEligibility.Period>empty();
         BookingEligibility.check(new BookingEligibility.Input(true, dog.active(), person(owner), person(booker), period,
                 context.flag("levels.enabled"), dog.levelId(), session.levelIds(), session.active(), session.startsAt(), context.zone(), now,
                 relative, weeks.opensAt(week), pack.map(p -> new BookingEligibility.Pack(p.available(), p.expiresOn()))));
-        return new Subject(session, dog, owner, booker, week, relative, pack);
+        return new Subject(session, dog, owner, booker, week, relative, pack, lateCancellation);
     }
     /**
      * R-08-02/12 (E8-T05): `$inc` of the dog owner's `bookingEligibilitySeq` inside the caller's transaction, so two
@@ -71,7 +73,11 @@ public class BookingChecks {
                 .anyMatch(b -> !b.classSessionId().equals(session.id()) && !b.id().equals(swappedBookingId));
         if (otherClass || training.dogInTraining(s.dog().id(), session.startsAt(), session.endsAt())) { throw new ApiException(ErrorCode.DOG_ALREADY_BOOKED); }
     }
-    public BookingLimits.Result limit(Subject s, Instant now) { return limit(s.week().key(), s.relative(), s.dog().id(), s.owner().id(), now); }
+    public BookingLimits.Result limit(Subject s, Instant now) {
+        var result = limit(s.week().key(), s.relative(), s.dog().id(), s.owner().id(), now);
+        if (s.lateCancellation() == null) { return result; }
+        return new BookingLimits.Result(false, result.unit(), result.count(), result.max(), List.of(), List.of());
+    }
     /** The weekly limit of one booking week for a dog and its owner (R-08-02/03/09); also the per-week input of the 04 rows. */
     public BookingLimits.Result limit(String weekKey, RelativeWeek relative, String dogId, String ownerMemberId, Instant now) {
         var unit = context.unit();

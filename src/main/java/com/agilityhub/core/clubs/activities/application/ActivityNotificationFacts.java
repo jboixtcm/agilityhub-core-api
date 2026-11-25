@@ -53,7 +53,9 @@ public class ActivityNotificationFacts implements NotificationFactsPort {
                 .value("entityId", a.id());
         switch (trigger.type()) {
             case "ActivityPublished" -> {
-                members.addAll(audience.admittedMemberIds(a));
+                if (Boolean.FALSE.equals(trigger.payload().get("notifyMembers"))) { return Optional.empty(); }
+                var levels = trigger.payload().containsKey("levelIds") ? trigger.ids("levelIds") : a.levelIds();
+                members.addAll(audience.admittedMemberIds(levels));
                 if (trigger.flag("notifyEmail")) { builder.enable("EMAIL"); }
             }
             case "ActivityCancelled" -> trigger.rows("affected").forEach(row -> members.add(row.get("memberId").toString()));

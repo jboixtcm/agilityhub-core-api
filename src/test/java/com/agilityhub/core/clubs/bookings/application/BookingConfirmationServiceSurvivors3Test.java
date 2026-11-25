@@ -129,7 +129,7 @@ class BookingConfirmationServiceSurvivors3Test {
         var laura = new BookingMemberAccess.Member("member-laura", "account-laura", "Laura", "Laura Serra", "ACTIVE", null, false, null, null, null,
                 "ca", "laura@example.test", List.of());
         var week = new BookingWeeks.Week("2026-10-04", Instant.parse("2026-10-04T18:00:00Z"), Instant.parse("2026-10-11T18:00:00Z"));
-        var subject = new BookingChecks.Subject(session, dog, laura, laura, week, RelativeWeek.CURRENT, Optional.empty());
+        var subject = new BookingChecks.Subject(session, dog, laura, laura, week, RelativeWeek.CURRENT, Optional.empty(), null);
         when(checks.subject(actor, "class-a", "dog-duna", NOW)).thenReturn(subject);
         when(checks.limit(subject, NOW)).thenReturn(new BookingLimits.Result(false, LimitUnit.DOG, 0, 2, List.of(), List.of()));
         return subject;

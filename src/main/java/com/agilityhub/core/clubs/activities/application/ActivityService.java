@@ -22,14 +22,15 @@ public class ActivityService {
         this.registrations=registrations; this.attachments=attachments; this.mapper=mapper;
     }
     public Activity require(String id) { context.require(); return activities.require(id); }
-    public Activity create(Map<String,String> title,ActivityType type) {
+    public Activity create(Map<String,String> title,ActivityType type) { return create(title,type,true); }
+    public Activity create(Map<String,String> title,ActivityType type,boolean notifyMembers) {
         context.require();
         return transactions.write(List.of(),() -> {
             context.catalogs.lockReferences(); var a=new ActivityEdit(); var now=context.clock.instant();
             a.id=UUID.randomUUID().toString(); a.clubId=TenantContext.require(); a.title=context.text(title,"title",80,true); a.type=type;
             a.slug=SlugGenerator.generate(a.title.values().get(context.config().club().defaultLocale()),slug -> activities.findBySlug(slug).isPresent());
             a.location=new Activity.Location(true,null,null,null); a.ringIds=List.of(); a.levelIds=List.of(); a.documents=List.of(); a.priceTiers=List.of(); a.ringBlockIds=List.of();
-            a.state=ActivityState.DRAFT; a.counters=new Activity.Counters(0,0); a.visibility="MEMBERS"; a.version=0L;
+            a.notifyMembers=notifyMembers; a.state=ActivityState.DRAFT; a.counters=new Activity.Counters(0,0); a.visibility="MEMBERS"; a.version=0L;
             a.createdAt=now; a.updatedAt=now; a.createdByAccountId=context.actor(); a.updatedByAccountId=context.actor(); context.validate(a,false);
             var saved=activities.insert(a.snapshot()); updated(null,saved,Map.of("created",true)); return saved;
         });

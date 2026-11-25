@@ -32,6 +32,11 @@ public record Booking(@Id String id, String clubId, String classSessionId, Strin
         public Actor { }
         public Actor(String accountId, String impersonatedMemberId, String displayName) { this(accountId, impersonatedMemberId, displayName, null); }
     }
+    public Booking reactivated(String movement, String entry, Instant startsAt, Instant endsAt, String week, Instant now, String actorAccountId) {
+        return new Booking(id, clubId, classSessionId, dogId, memberId, BookingState.ACTIVE, origin, bookedAt, bookedBy,
+                startsAt, endsAt, week, null, null, null, null, null, null, swapFromBookingId, swapToBookingId,
+                entry, movement, null, charge, reminderSentAt, version + 1, createdAt, createdByAccountId, now, actorAccountId);
+    }
     public record Canceller(String accountId, ActorRole role, String displayName, String impersonatedMemberId) { }
     /** `checkoutUrl` is the provider's checkout of a PAY_TO_BOOK booking, kept only while it is PAYMENT_PENDING (S08 §6, E5-T10). */
     public record Charge(ChargeMode mode, Money price, String chargeInvoiceLineRef, String checkoutSessionId, String paymentIntentId, Instant paidAt,

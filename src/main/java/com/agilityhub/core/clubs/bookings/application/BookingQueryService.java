@@ -26,7 +26,7 @@ public class BookingQueryService implements ListProvider {
      * description and ring (E5-T29).
      */
     public static final Set<String> ITEM_FIELDS = Set.of("id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId",
-            "memberName", "bookedAt", "late", "classDescription", "ringId", "ringName", "ringColor");
+            "memberName", "bookedAt", "cancelledAt", "late", "classDescription", "ringId", "ringName", "ringColor");
     private final BookingRepository bookings; private final BookingMemberAccess census; private final BookingViews views;
     private final BookingContext context; private final BookingCalendarTokens tokens; private final AttendanceRepository attendances;
     private final com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess catalogs;
@@ -142,6 +142,7 @@ public class BookingQueryService implements ListProvider {
         var labels = views.classLabels(list.stream().map(Booking::classSessionId).distinct().toList());
         return list.stream().map(b -> {
             var row = views.listItem(b, dogs, members); var label = labels.get(b.classSessionId());
+            row.put("cancelledAt", b.cancelledAt());
             row.put("classDescription", label == null ? "" : label.description()); row.put("ringId", label == null ? null : label.ringId());
             row.put("ringName", label == null ? null : label.ringName()); row.put("ringColor", label == null ? null : label.ringColor());
             return row;

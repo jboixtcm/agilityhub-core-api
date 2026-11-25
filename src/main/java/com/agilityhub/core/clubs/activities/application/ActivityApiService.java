@@ -22,7 +22,7 @@ public class ActivityApiService {
         this.service=service; this.lifecycle=lifecycle; this.registrations=registrations; this.projection=projection; this.queries=queries; this.recipients=recipients; this.lists=lists;
     }
     public Map<String,Object> activity(String id,boolean admin) { return projection.activity(service.require(id),admin); }
-    public Map<String,Object> create(Map<String,String> title,ActivityType type) { return projection.activity(service.create(title,type),true); }
+    public Map<String,Object> create(Map<String,String> title,ActivityType type,boolean notifyMembers) { return projection.activity(service.create(title,type,notifyMembers),true); }
     public Map<String,Object> patch(String id,long version,Map<String,Object> changes,RingBlockService.Options options) { return projection.activity(service.patch(id,version,changes,options),true); }
     public Map<String,Object> publish(String id,boolean notifyEmail,RingBlockService.Options options) { return projection.activity(lifecycle.publish(id,notifyEmail,options),true); }
     public Map<String,Object> unpublish(String id) { return projection.activity(lifecycle.unpublish(id),true); }

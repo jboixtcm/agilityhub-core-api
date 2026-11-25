@@ -80,7 +80,8 @@ public final class TrainingContracts {
             @Schema(description = "The slot's end (E5-T29)") Instant endsAt, @Schema(example = "09:00", description = "Club-local HH:mm of endsAt") String endsAtLocal,
             String ringId, String ringName, String memberId, String memberName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Member.memberNumber; null for a member without one") Integer memberNumber,
-            String dogId, String dogName, TrainingBookingState state, TrainingOrigin origin, Instant createdAt) { }
+            String dogId, String dogName, TrainingBookingState state, TrainingOrigin origin, Instant createdAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant cancelledAt) { }
 
     // ---- Error details (CATALEG_ERRORS §3 rule 2)
     @Schema(description = "details of 409 TRAINING_LIMIT_REACHED")

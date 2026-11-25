@@ -79,6 +79,10 @@ public class BookableClassesQuery {
         var cached = base.get(); var weeks = context.weeks(); var zone = context.zone(); var locale = LocaleContext.current();
         var taken = new HashSet<String>();
         bookings.forDogs(List.of(dog.id()), BookingRepository.LIVE, now, cached.to()).forEach(b -> taken.add(b.classSessionId()));
+        var lateCancellations = new HashSet<String>();
+        bookings.forDogs(List.of(dog.id()), List.of(BookingState.CANCELLED_LATE), now, cached.to()).stream()
+                .filter(b -> b.cancelReason() == BookingCancelReason.MEMBER && owner.id().equals(b.memberId()))
+                .forEach(b -> lateCancellations.add(b.classSessionId()));
         var ownQueue = waitlist.liveForDogs(List.of(dog.id()), now).stream()
                 .collect(java.util.stream.Collectors.toMap(WaitlistEntry::classSessionId, e -> e));
         boolean levelsEnabled = context.flag("levels.enabled"), waitlistOn = context.enabled(Module.WAITLIST), inactivityOn = context.enabled(Module.INACTIVITY);
@@ -97,9 +101,10 @@ public class BookableClassesQuery {
             BookableRow.NotBookable reason = blocked ? BookableRow.NotBookable.BLOCKED
                     : inactivityOn && inactiveOn.computeIfAbsent(date, day -> inactivity.covering(owner.id(), day).isPresent()) ? BookableRow.NotBookable.INACTIVITY
                     : BookingEligibility.leaving(owner.leaveDate(), s.startsAt(), zone) ? BookableRow.NotBookable.LEAVING : null;
-            boolean limitDone = !delegated && relative != RelativeWeek.LATER
+            boolean reactivating = lateCancellations.contains(s.id());
+            boolean limitDone = !reactivating && !delegated && relative != RelativeWeek.LATER
                     && limits.computeIfAbsent(week.key(), key -> checks.limit(key, relative, dog.id(), owner.id(), now)).done();
-            var sessionPack = context.enabled(Module.PACKS) ? packOn.computeIfAbsent(date, day -> packs.balance(owner.id(), dog.id(), day))
+            var sessionPack = !reactivating && context.enabled(Module.PACKS) ? packOn.computeIfAbsent(date, day -> packs.balance(owner.id(), dog.id(), day))
                     : Optional.<PackBalancePort.Balance>empty();
             int occupied = s.booked() + WaitlistTransitions.others(offers.getOrDefault(s.id(), Set.of()), dog.id()).size();
             var ownEntry = ownQueue.get(s.id());
@@ -122,7 +127,7 @@ public class BookableClassesQuery {
             out.put("freeSeats", Math.max(0, s.capacity() - occupied));
             out.put("waiting", waitlistOn ? s.waiting() : null); out.put("waitlistMax", waitlistOn ? waitlistMax : null);
             out.put("opensAt", row.state() == BookableRow.State.NOT_YET_OPEN ? weeks.opensAt(week) : null);
-            out.put("price", terms.map(SingleClassChargePort.Terms::price).orElse(null));
+            out.put("price", reactivating ? null : terms.map(SingleClassChargePort.Terms::price).orElse(null));
             result.add(out);
         }
         return result;

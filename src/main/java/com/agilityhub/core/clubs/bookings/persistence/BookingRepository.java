@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.bookings.persistence;
 
+import com.agilityhub.core.clubs.bookings.domain.BookingCancelReason;
 import com.agilityhub.core.clubs.bookings.domain.BookingState;
 import com.agilityhub.core.clubs.bookings.domain.ChargeMode;
 import com.agilityhub.core.shared.domain.ApiException;
@@ -46,6 +47,12 @@ public class BookingRepository extends TenantRepository<Booking> {
     public Optional<Booking> live(String classSessionId, String dogId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId).and("dogId").is(dogId)
                 .and("state").in(LIVE)), Booking.class));
+    }
+    public Optional<Booking> lateMemberCancellation(String classSessionId, String dogId, String memberId) {
+        var criteria = Criteria.where("classSessionId").is(classSessionId).and("dogId").is(dogId).and("memberId").is(memberId)
+                .and("state").is(BookingState.CANCELLED_LATE).and("cancelReason").is(BookingCancelReason.MEMBER);
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(criteria)
+                .with(Sort.by(Sort.Direction.DESC, "cancelledAt", "_id")), Booking.class));
     }
     /** Every booking of a booking week for the unit (the dog, or all dogs of the owner). */
     public List<Booking> week(String bookingWeekKey, String field, String value) {

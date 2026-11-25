@@ -187,6 +187,9 @@
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
+          "notifyMembers" : {
+            "type" : "boolean"
+          },
           "placementIds" : {
             "description" : "Only with COURSES",
             "items" : {
@@ -405,6 +408,10 @@
       },
       "ActivityCreateRequest" : {
         "properties" : {
+          "notifyMembers" : {
+            "description" : "Notify eligible members when this draft is published (defaults to true)",
+            "type" : "boolean"
+          },
           "title" : {
             "additionalProperties" : {
               "type" : "string"
@@ -2714,6 +2721,10 @@
           },
           "bookingWeekKey" : {
             "type" : "string"
+          },
+          "cancelledAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
           },
           "classDescription" : {
             "description" : "The class's display description in the reader's language (D10 «Classes», E5-T29)",
@@ -25160,6 +25171,10 @@
       },
       "TrainingBookingListItem" : {
         "properties" : {
+          "cancelledAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
           "createdAt" : {
             "format" : "date-time",
             "type" : "string"
@@ -35690,7 +35705,7 @@
           "key" : "late"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late", "classDescription", "ringId", "ringName", "ringColor" ],
+        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "cancelledAt", "late", "classDescription", "ringId", "ringName", "ringColor" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
         "x-sortable" : [ "classStartsAt", "bookedAt" ]
@@ -93618,7 +93633,7 @@
           "key" : "endsAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt" ],
+        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt", "cancelledAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
@@ -94037,7 +94052,7 @@
           "key" : "endsAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt" ],
+        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt", "cancelledAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
