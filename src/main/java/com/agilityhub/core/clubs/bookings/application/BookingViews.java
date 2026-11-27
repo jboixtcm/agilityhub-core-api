@@ -86,7 +86,7 @@ public class BookingViews {
         var labels = labelsOf(b); var now = context.now(); int threshold = context.integer("bookings.lateCancelThresholdMinutes");
         var out = new LinkedHashMap<String, Object>();
         out.put("id", b.id()); out.put("state", b.state()); out.put("origin", b.origin()); out.put("classSessionId", b.classSessionId());
-        out.put("dogId", b.dogId()); out.put("dog", dog(b.dogId())); out.put("memberId", b.memberId());
+        out.put("dogId", b.dogId()); out.put("dog", dog(b.dogId()).orElse(null)); out.put("memberId", b.memberId());
         out.put("classSession", classCard(labels, b.classStartsAt(), b.classEndsAt(), now, staff)); out.put("bookedAt", b.bookedAt());
         // Every booking is created with `bookedBy` (R-08-19); only the display name may be empty. `self` compares accounts,
         // never names (E5-T25): while impersonating, the reader is the member and the booker of a club booking the admin.
@@ -137,7 +137,7 @@ public class BookingViews {
         }
         return rows;
     }
-    /** INC-42: a booking's or an entry's dog the census does not have; a broken invariant, never a business error. */
+    /** INC-42: a waiting-list entry whose dog is missing from the census. */
     static final class MissingDog extends IllegalStateException {
         MissingDog(String dogId) { super("S08 row of a missing dog " + dogId); }
     }
@@ -145,7 +145,7 @@ public class BookingViews {
     private Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff, com.agilityhub.core.clubs.census.application.AttendanceCensusAccess.Pair pair) {
         var session = classes.find(e.classSessionId()); var labels = labelsOf(e.classSessionId());
         var out = new LinkedHashMap<String, Object>();
-        var dog = dog(e.dogId());
+        var dog = dog(e.dogId()).orElseThrow(() -> new MissingDog(e.dogId()));
         out.put("id", e.id()); out.put("state", e.state()); out.put("classSessionId", e.classSessionId()); out.put("dogId", e.dogId());
         out.put("dogName", dog.get("name")); out.put("dog", dog); out.put("memberId", e.memberId());
         // S10 R-10-00 (E5-T29): «{guia} + {gos}» = handlerName ?? memberFirstName; the handler is null when the member handles the dog.
@@ -157,13 +157,8 @@ public class BookingViews {
         out.put("cancelledAt", e.cancelledAt()); out.put("cancelReason", e.cancelReason());
         return out;
     }
-    /**
-     * The `HoldDog` of a booking or a waiting-list entry (E5-T25): the same form as `SeatHoldResponse.dog`. The census
-     * never deletes a dog, so a booking's dog always exists.
-     */
-    private Map<String, Object> dog(String dogId) {
-        var dog = census.dog(dogId).orElseThrow(() -> new MissingDog(dogId));
-        return map("id", dog.id(), "name", dog.name(), "sex", dog.sex());
+    private Optional<Map<String, Object>> dog(String dogId) {
+        return census.dog(dogId).map(dog -> map("id", dog.id(), "name", dog.name(), "sex", dog.sex()));
     }
     public Map<String, Object> calendarLinks(Booking b, ClassSessionBookingAccess.Labels labels) {
         var event = event(b, labels);

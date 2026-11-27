@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-27 — Historical booking detail
+
+- A booking remains readable when its dog is missing from the club census. Its original dog ID, class and recorded booking and cancellation times are preserved.
+
 ## 2026-11-25 — Club reservations and activity notices
 
 - Class and training booking lists expose the recorded cancellation time.

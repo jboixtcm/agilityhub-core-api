@@ -29,10 +29,11 @@ class S08MemberFlowContractTest {
     /** The error codes a response publishes: its description lists them, comma-separated (`@ContractErrors`). */
     static List<String> codes(JsonNode response) { return Arrays.stream(response.path("description").asText().split(",")).map(String::trim).toList(); }
 
-    /** Step 1 (S08 §2 row 07): every `Booking` carries the booked dog as a `HoldDog`, like `SeatHoldResponse.dog`. */
-    @Test void S08_07_T_08_15_aBookingCarriesTheBookedDog() {
-        assertThat(texts(schema("Booking").path("required"))).contains("dog");
-        assertThat(schema("Booking").at("/properties/dog/$ref").asText()).isEqualTo("#/components/schemas/HoldDog");
+    /** Step 1 (S08 §2 row 07): the dog reference survives missing census data; dog details use the hold schema. */
+    @Test void S08_07_T_08_15_aBookingKeepsItsDogIdAndMayIncludeDogDetails() {
+        assertThat(texts(schema("Booking").path("required"))).contains("dogId").doesNotContain("dog");
+        assertThat(schema("Booking").at("/properties/dog/anyOf/0/$ref").asText()).isEqualTo("#/components/schemas/HoldDog");
+        assertThat(schema("Booking").at("/properties/dog/anyOf/1/type").asText()).isEqualTo("null");
         assertThat(texts(schema("HoldDog").path("required"))).containsExactlyInAnyOrder("id", "name", "sex");
         assertThat(texts(schema("HoldDog").at("/properties/sex/enum"))).containsExactlyInAnyOrder("MALE", "FEMALE");
     }

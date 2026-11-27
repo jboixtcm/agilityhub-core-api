@@ -2491,8 +2491,12 @@
             "type" : "string"
           },
           "dog" : {
-            "$ref" : "#/components/schemas/HoldDog",
-            "description" : "The booked dog; its sex gives 07's Catalan article («amb la Duna»)"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/HoldDog"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "The booked dog when present in the club census. The booking retains its original dogId if the dog is missing."
           },
           "dogId" : {
             "type" : "string"
@@ -2529,7 +2533,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "bookedAt", "bookedBy", "calendarLinks", "cancellableInTimeUntil", "classSession", "classSessionId", "dog", "dogId", "id", "lateCancelThresholdMinutes", "memberId", "origin", "state" ],
+        "required" : [ "bookedAt", "bookedBy", "calendarLinks", "cancellableInTimeUntil", "classSession", "classSessionId", "dogId", "id", "lateCancelThresholdMinutes", "memberId", "origin", "state" ],
         "type" : "object"
       },
       "BookingBlock" : {

@@ -107,7 +107,7 @@ public final class BookingContracts {
     // ---- Booking (POST /bookings, claim, GET /bookings/{id}, cancellation)
     @Schema(description = "S08 booking. INSTRUCTOR and ADMIN read the same form; PAYMENT_PENDING carries checkoutUrl.")
     public record Booking(String id, BookingState state, BookingOrigin origin, String classSessionId, String dogId,
-            @Schema(description = "The booked dog; its sex gives 07's Catalan article («amb la Duna»)") HoldDog dog,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The booked dog when present in the club census. The booking retains its original dogId if the dog is missing.") HoldDog dog,
             @Schema(description = "Owner of the dog (the member + dog unit)") String memberId,
             BookingClassSession classSession, Instant bookedAt, BookedBy bookedBy,
             @Schema(description = "The club's bookings.lateCancelThresholdMinutes (R-08-10), for 07's warning and late note") int lateCancelThresholdMinutes,

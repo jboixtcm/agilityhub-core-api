@@ -28,6 +28,30 @@ class BookingsIT extends BookingFixtures {
     @Autowired BookingCancellationService cancellations; @Autowired ClassCancellationUseCase classCancellations; @Autowired BookingActivity activity;
     @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway gateway; @Autowired com.agilityhub.core.payments.application.UpfrontPayments upfrontPayments;
 
+    @Test void cancelledBookingRemainsReadableWhenItsDogIsMissingFromTheCensus() throws Exception {
+        String dog = "s08-d-duna";
+        String id = book(as("laura"), "wed", dog).path("id").asText();
+        var cancelled = cancel(as("laura"), id, 200);
+        mongo.remove(Query.query(Criteria.where("_id").is(dog).and("clubId").is(CLUB)), "dogs");
+
+        for (var reader : List.of(as("laura"), as("admin"))) {
+            var detail = call(GET, "/bookings/" + id, null, reader, 200);
+            assertThat(detail.path("dogId").asText()).isEqualTo(dog);
+            assertThat(detail.hasNonNull("dog")).isFalse();
+            assertThat(detail.path("state").asText()).isEqualTo("CANCELLED");
+            assertThat(detail.path("classSessionId")).isEqualTo(cancelled.path("classSessionId"));
+            assertThat(detail.path("bookedAt")).isEqualTo(cancelled.path("bookedAt"));
+            assertThat(detail.path("cancellation")).isEqualTo(cancelled.path("cancellation"));
+        }
+        assertThat(code(call(GET, "/bookings/" + id, null, as("pere"), 404))).isEqualTo("NOT_FOUND");
+
+        mongo.remove(Query.query(Criteria.where("_id").is("s08-m-laura").and("clubId").is(CLUB)), "members");
+        var staffDetail = call(GET, "/bookings/" + id, null, as("admin"), 200);
+        assertThat(staffDetail.path("memberId")).isEqualTo(cancelled.path("memberId"));
+        assertThat(staffDetail.path("bookedAt")).isEqualTo(cancelled.path("bookedAt"));
+        assertThat(staffDetail.path("cancellation")).isEqualTo(cancelled.path("cancellation"));
+    }
+
     @Test void memberCanRecoverTheirLateCancelledSeatWithAnEmptyPackAndFullWeeklyQuota() throws Exception {
         String dog = "s08-d-duna";
         openPack("s08-m-laura", dog, 2, 0, LocalDate.parse("2026-11-12"));
